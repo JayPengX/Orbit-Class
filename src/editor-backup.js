@@ -1211,7 +1211,8 @@ function applyPendingImportSettings() {
     closeAfter: true,
     statusMessage: t('editorBackup.importedAndSaved')
   });
-  document.getElementById('settings-transfer-text').value = '';
+  const pasted = document.getElementById('settings-transfer-text');
+  if (pasted) pasted.value = '';
   state.pendingEditorImportData = null;
   resetOCRImporterUI();
   hideEditorDiscardConfirm();

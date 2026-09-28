@@ -2155,3 +2155,16 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
      anyway, so this is a strictly safer floor, not a behavior change. */
   body{height:100lvh}
 }
+
+/* The Quadra Pass panel (src/sync.js): a status card, then sharing. */
+.qp-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--pro-accent) 9%,rgba(255,255,255,.06));border:1px solid color-mix(in srgb,var(--pro-accent) 20%,var(--bd))}
+.qp-icon{width:40px;height:40px;border-radius:11px;flex:0 0 auto}
+.qp-card-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.qp-card-text strong{font-size:14px;font-weight:800;color:var(--text,#F8FAFC)}
+.qp-card-text span{font-size:11.5px;line-height:1.4;color:var(--sub)}
+.settings-transfer-btn.qp-account{flex:0 0 auto;min-height:38px;padding:0 14px;font-size:12.5px;border-radius:11px}
+.qp-section{display:flex;flex-direction:column;gap:8px;padding-top:12px;margin-top:4px;border-top:1px solid var(--bd)}
+.qp-section-title{font-size:13px;font-weight:800;color:var(--text,#F8FAFC)}
+.qp-key-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.qp-key-row .sync-input{text-transform:uppercase;letter-spacing:.12em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.qp-key-row .settings-transfer-btn{min-height:42px;padding:0 14px}

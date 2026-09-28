@@ -20,20 +20,7 @@ function confirmButtons() {
 
 afterEach(() => {
   hideConfirmSheet();
-  document.getElementById('settings-transfer-text').value = '';
   vi.restoreAllMocks();
-});
-
-describe('the manual-import textarea no longer has a hidden "reset" trick', () => {
-  it('treats the literal word "reset" as ordinary (invalid) import content, not a factory reset', async () => {
-    const clearSpy = vi.spyOn(Storage.prototype, 'clear');
-    document.getElementById('settings-transfer-text').value = 'reset';
-    window.requestTransferAction('import');
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(clearSpy).not.toHaveBeenCalled();
-    expect(document.getElementById('settings-transfer-status').textContent).toMatch(/匯入失敗/);
-  });
 });
 
 describe('resetAllAppData: a full local factory reset, now a real confirmed button', () => {

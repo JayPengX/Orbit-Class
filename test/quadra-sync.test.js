@@ -52,9 +52,7 @@ const session = {
 };
 vi.mock('../src/quadra.mjs', () => ({
   quadraSession: () => session,
-  accountButton: () => document.createElement('button'),
-  setting: (wallet, key, fallback = null) => wallet?.settings?.[key]?.value ?? fallback,
-  settingPatch: (key, value) => ({ settings: { [key]: { value, t: Date.now() } } }),
+  accountSheet: () => {},
   errorText: error => error.message,
   detectLang: () => 'zh'
 }));
@@ -63,18 +61,15 @@ let sync;
 beforeAll(async () => {
   seedLocalStorage();
   localStorage.setItem('orbitSyncCode', 'CODE2345');
-  localStorage.setItem('orbitSyncManagerPasscode', 'MANAGER1');
   await loadApp();
   sync = await import('../src/sync.js');
   await sync.whenReady();
 });
 
 describe('Orbit Class on the Quadra Pass', () => {
-  it('merges an old sync code this device managed into the pass, then forgets it', () => {
-    const merge = calls.find(c => c[0] === 'merge');
-    expect(merge[1]).toEqual([{ app: 'orbit', passcode: 'CODE2345', manager: 'MANAGER1' }]);
+  it('forgets what older versions kept on the device, and never merges it', () => {
+    expect(calls.some(c => c[0] === 'merge')).toBe(false);
     expect(localStorage.getItem('orbitSyncCode')).toBe(null);
-    expect(localStorage.getItem('orbitSyncManagerPasscode')).toBe(null);
   });
 
   it('uploads the schedule on this device when the pass has none', () => {
@@ -83,35 +78,25 @@ describe('Orbit Class on the Quadra Pass', () => {
     expect(sync.isSyncViewer()).toBe(false);
   });
 
-  it('makes a merge key and shows it', async () => {
+  it('makes a share key and shows it', async () => {
     document.querySelector('#quadra-box .settings-transfer-btn.primary').click();
     await vi.waitFor(() =>
       expect(document.querySelector('#quadra-box .sync-active-code')?.textContent).toBe('KEY23456')
     );
   });
 
-  it('following a schedule locks editing; stopping unlocks it', async () => {
+  it('a share key copies that schedule as this pass’s own; typing survives a refresh', async () => {
+    const input = document.getElementById('quadra-key');
+    input.value = 'KEY2';
+    sync.renderSyncPanel();
+    expect(document.getElementById('quadra-key').value).toBe('KEY2');
     document.getElementById('quadra-key').value = 'KEY23456';
-    [...document.querySelectorAll('#quadra-box .settings-transfer-btn')]
-      .find(b => b.textContent.includes('跟隨'))
-      .click();
+    document.querySelector('#quadra-box .qp-key-row .settings-transfer-btn').click();
     await vi.waitFor(() =>
-      expect(document.querySelector('#quadra-box .sync-role-label')).not.toBe(null)
-    );
-    expect(sync.isSyncViewer()).toBe(true);
-    expect(document.getElementById('btn-edit').classList.contains('is-disabled')).toBe(true);
-    expect(document.getElementById('transfer-sheet').classList.contains('sync-viewer-locked')).toBe(
-      true
-    );
-    const pushed = await sync.pushSyncSnapshot();
-    expect(pushed.pushed).toBe(false);
-    [...document.querySelectorAll('#quadra-box .settings-transfer-btn')]
-      .find(b => b.textContent.includes('停止跟隨'))
-      .click();
-    await vi.waitFor(() =>
-      expect(document.getElementById('btn-edit').classList.contains('is-disabled')).toBe(false)
+      expect(calls.some(c => c[0] === 'op' && c[1] === 'share-redeem')).toBe(true)
     );
     expect(sync.isSyncViewer()).toBe(false);
+    expect(document.getElementById('btn-edit').classList.contains('is-disabled')).toBe(false);
   });
 
   it('AI requests carry the session token', async () => {

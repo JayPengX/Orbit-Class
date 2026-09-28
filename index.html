@@ -62,7 +62,7 @@
         <button type="button" id="btn-edit" class="top-action-btn" onclick="openEditor()" title="編輯課表" aria-label="編輯課表" data-i18n-title="sync.editTitle" data-i18n-aria-label="sync.editTitle">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
         </button>
-        <button type="button" id="btn-transfer" class="top-action-btn" onclick="openTransferSheet()" title="同步 / 匯入匯出" aria-label="同步 / 匯入匯出" data-i18n-title="sync.transferSheetTitle" data-i18n-aria-label="sync.transferSheetTitle">
+        <button type="button" id="btn-transfer" class="top-action-btn" onclick="openTransferSheet()" title="Quadra Pass 與匯入" aria-label="Quadra Pass 與匯入" data-i18n-title="sync.transferSheetTitle" data-i18n-aria-label="sync.transferSheetTitle">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2 21 6 17 10"></path><path d="M3 12v-2a4 4 0 0 1 4-4h14"></path><path d="M7 22 3 18 7 14"></path><path d="M21 12v2a4 4 0 0 1-4 4H3"></path></svg>
         </button>
         <button type="button" id="btn-style" class="top-action-btn" onclick="toggleStylePanel()" title="樣式工具" aria-label="開啟樣式工具" data-i18n-title="sync.styleToolTitle" data-i18n-aria-label="appearance.openStyleTools"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a9 9 0 1 1 0-18c4.97 0 9 3.582 9 8 0 2.21-1.79 3-4 3h-1.5a1.5 1.5 0 0 0 0 3H16a2 2 0 0 1 0 4h-4Z"></path><circle cx="7.5" cy="10.5" r="1" fill="currentColor" stroke="none"></circle><circle cx="10.5" cy="7" r="1" fill="currentColor" stroke="none"></circle><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"></circle></svg></button>
@@ -302,10 +302,10 @@
     </div>
 </div>
 <div id="transfer-sheet-overlay" class="test-panel-overlay" onclick="closeTransferSheet()" aria-hidden="true"></div>
-<div id="transfer-sheet" class="test-panel transfer-sheet" role="dialog" aria-modal="true" aria-label="同步 / 匯入匯出" data-i18n-aria-label="sync.transferSheetTitle">
+<div id="transfer-sheet" class="test-panel transfer-sheet" role="dialog" aria-modal="true" aria-label="Quadra Pass 與匯入" data-i18n-aria-label="sync.transferSheetTitle">
   <div class="test-panel-handle" aria-hidden="true"></div>
   <div class="editor-header">
-    <div class="editor-title" data-i18n="sync.transferSheetTitle">同步 / 匯入匯出</div>
+    <div class="editor-title" data-i18n="sync.transferSheetTitle">Quadra Pass 與匯入</div>
     <button type="button" class="editor-close" onclick="closeTransferSheet()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
   </div>
   <div class="transfer-sheet-body" id="transfer-sheet-body">
@@ -334,24 +334,6 @@
     </div>
     <div id="ocr-import-result" class="ocr-import-result" hidden></div>
   </div>
-  <details class="legacy-fold" id="legacy-transfer-fold">
-    <summary class="legacy-fold-summary" data-i18n="editorBackup.manualBackupLegacySummary">手動備份（舊版，不需要同步也能用）</summary>
-    <div class="legacy-fold-body">
-      <div class="settings-transfer-box">
-        <textarea id="settings-transfer-text" class="settings-transfer-text" spellcheck="false" placeholder="請在此貼上 Orbit Class 課表設定備份，或按下「匯出」建立備份。" data-i18n-placeholder="editorBackup.pasteBackupPlaceholder"></textarea>
-        <div class="editor-hint-body" data-i18n="editorBackup.copyFullBackupHint">請複製完整備份文字，包含 BEGIN 與 END 標記。</div>
-        <div class="settings-transfer-actions">
-          <button type="button" id="settings-export-btn" class="settings-transfer-btn" onclick="requestTransferAction('export')" data-i18n="common.export">
-            匯出
-          </button>
-          <button type="button" id="settings-import-btn" class="settings-transfer-btn primary" onclick="requestTransferAction('import')" data-i18n="common.import">
-            匯入
-          </button>
-        </div>
-        <div id="settings-transfer-status" class="settings-transfer-status"></div>
-      </div>
-    </div>
-  </details>
   <details class="legacy-fold" id="test-mode-fold">
     <summary class="legacy-fold-summary" data-i18n="testsim.advancedFoldSummary">進階：時間模擬</summary>
     <div class="legacy-fold-body">
