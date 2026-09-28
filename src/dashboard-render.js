@@ -244,6 +244,10 @@ function fitNowTitleText(force = false) {
   const minDefaultSize = vw <= 430 ? 52 : 50;
   const minSize = hasLatin ? 18 : 22;
   const stackWidth = Math.round(stack.getBoundingClientRect().width);
+  // Hidden (the sign-in screen is still up on a first sign-in): nothing to
+  // measure, and a fit made now would shrink the title to its floor and be
+  // remembered. The ResizeObserver below fits it once the box has a size.
+  if (!stackWidth) return;
   const metaText = meta ? (meta.textContent || '').trim() : '';
   const metaDisplay = meta ? getComputedStyle(meta).display : '';
   const key = [
@@ -627,6 +631,25 @@ window.addEventListener('load', () => {
   fitNowMetaChips(true);
   fitNextMetaText(true);
 });
+// The dashboard's box changes size without a window resize: shown after the
+// sign-in screen, or the layout around it settling. Refit then.
+if (typeof ResizeObserver !== 'undefined') {
+  let lastWidth = -1;
+  const observer = new ResizeObserver(entries => {
+    const width = Math.round(entries[0]?.contentRect.width || 0);
+    if (!width || width === lastWidth) return;
+    lastWidth = width;
+    fitNowTitleText(true);
+    fitNowMetaChips(true);
+    fitNextMetaText(true);
+  });
+  const watch = () => {
+    const stack = document.querySelector('.now-stack');
+    if (stack) observer.observe(stack);
+    else requestAnimationFrame(watch);
+  };
+  watch();
+}
 
 /* Test mode advances from one clock tick; the consolidated controller handles input changes. */
 function mainClockTick() {
