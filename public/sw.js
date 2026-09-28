@@ -121,3 +121,16 @@ async function cacheFirst(request) {
     return Response.error();
   }
 }
+
+self.addEventListener('notificationclick', event => {
+  // A Quadra notice (quadra.mjs notify): open the app where it points.
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || './', self.registration.scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const open = list.find(c => c.url.startsWith(self.registration.scope));
+      if (!open) return self.clients.openWindow(url);
+      return open.focus().then(c => (url !== c.url && 'navigate' in c ? c.navigate(url) : c));
+    })
+  );
+});
