@@ -10,7 +10,7 @@ import { applyStaticTranslations } from './i18n-dom.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { buildSchedule } from './schedule.js';
 import { state } from './state.js';
-import { renderSyncPanel, startSyncLoop } from './sync.js';
+import { renderSyncPanel, startSyncLoop, whenReady } from './sync.js';
 
 // index.html's markup is static, so its own text/aria-label/title/
 // placeholder content needs one DOM pass translated in from strings.js
@@ -44,7 +44,7 @@ startSyncLoop();
 // where in the boot sequence it's scheduled from, since it can't run until
 // the current synchronous script (the rest of this module-import chain)
 // finishes - which is all "deferred" needs to mean here.
-setTimeout(showOnboardingPrompt, 400);
+whenReady().then(() => setTimeout(showOnboardingPrompt, 400));
 
 // Caches the whole app shell so a return visit can load almost entirely
 // from disk instead of the network - see public/sw.js for the actual

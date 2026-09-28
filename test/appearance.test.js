@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { loadApp } from './helpers/loadApp.js';
 import { seedLocalStorage } from './helpers/fixtureData.js';
 
@@ -134,45 +134,3 @@ describe('state', () => {
   });
 });
 
-describe('style tool lock: a viewer still accepting synced colors cannot use it', () => {
-  let sync;
-
-  beforeAll(async () => {
-    sync = await import('../src/sync.js');
-  });
-
-  afterEach(() => {
-    sync.clearSyncPairing();
-  });
-
-  it("window.toggleStylePanel() refuses to open the panel for a plain viewer (hasn't opted out)", async () => {
-    window.closeStylePanel(); // start from a known-closed state
-    sync.setSyncPairing('CODE1234');
-    await window.toggleStylePanel();
-    expect(document.getElementById('style-panel').classList.contains('show')).toBe(false);
-  });
-
-  it('#btn-style is visually locked for a plain viewer, and unlocks once the opt-out is confirmed', () => {
-    sync.setSyncPairing('CODE1234');
-    sync.applyEditorRoleLock();
-    expect(document.getElementById('btn-style').classList.contains('is-disabled')).toBe(true);
-
-    // orbitSyncSetKeepLocalStyle now warns before taking effect - confirm it.
-    sync.orbitSyncSetKeepLocalStyle(true);
-    document
-      .getElementById('editor-confirm-sheet')
-      .querySelectorAll('.editor-confirm-btn')[1]
-      .onclick();
-    expect(document.getElementById('btn-style').classList.contains('is-disabled')).toBe(false);
-    sync.setSyncKeepLocalStyle(false);
-  });
-
-  it('a manager is never locked out of the style tool, opted out or not', async () => {
-    window.closeStylePanel();
-    sync.setSyncPairing('CODE1234', 'PASSCODE1');
-    sync.applyEditorRoleLock();
-    expect(document.getElementById('btn-style').classList.contains('is-disabled')).toBe(false);
-    await window.toggleStylePanel();
-    expect(document.getElementById('style-panel').classList.contains('show')).toBe(true);
-  });
-});

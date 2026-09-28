@@ -4,7 +4,7 @@ import globals from 'globals';
 export default [
   js.configs.recommended,
   {
-    ignores: ['dist/**', '**/node_modules/**']
+    ignores: ['dist/**', '**/node_modules/**', 'src/quadra.mjs']
   },
   {
     files: ['src/**/*.js'],

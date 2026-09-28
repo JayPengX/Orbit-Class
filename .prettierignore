@@ -5,3 +5,5 @@ dist/
 # risks subtly changing whitespace text nodes the JS reads/writes.
 index.html
 css/styles.css
+css/quadra.css
+src/quadra.mjs

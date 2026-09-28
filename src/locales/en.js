@@ -16,8 +16,7 @@ export default {
   'dashboard.loading': 'Loading…',
   'nlEdit.notConfigured':
     'AI schedule editing has not been set up yet. Please contact your schedule administrator.',
-  'nlEdit.offline':
-    'You are currently offline, so AI schedule editing is temporarily unavailable.',
+  'nlEdit.offline': 'You are currently offline, so AI schedule editing is temporarily unavailable.',
   'nlEdit.viewerLocked':
     'This device is in receive-only mode, so AI schedule editing is unavailable. Unlink sync first if you want to edit.',
   'nlEdit.emptyInput': 'Please enter what you would like to change first.',
@@ -144,8 +143,8 @@ export default {
   'onboarding.buildManually': 'Build it manually',
   'onboarding.welcomeTitle': 'Get started with Orbit Class',
   'onboarding.welcomeMessage':
-    'If you have a code, enter it to join directly; otherwise you can build your own.',
-  'onboarding.enterPairingCode': 'Enter pairing code',
+    'If someone gave you a merge key, enter it; otherwise you can build your own.',
+  'onboarding.enterPairingCode': 'Enter a merge key',
   'onboarding.buildOwnFirst': 'Build my own first',
   'editorBackup.overwriteExportTitle': 'Overwrite the exported content?',
   'editorBackup.overwriteExportMessage':
@@ -207,8 +206,7 @@ export default {
   'editorBackup.sectionCurrentStyle': 'Current style',
   'editorBackup.styleSlotLabel': 'Style {number}',
   'editorBackup.unnamedStyle': 'Unnamed',
-  'editorBackup.styleSlotAdded':
-    'Added {slot} "{name}": primary {primary}, secondary {secondary}',
+  'editorBackup.styleSlotAdded': 'Added {slot} "{name}": primary {primary}, secondary {secondary}',
   'editorBackup.styleSlotRemoved':
     'Removed {slot} "{name}": primary {primary}, secondary {secondary}',
   'editorBackup.styleSlotChangedImport':
@@ -297,8 +295,7 @@ export default {
   'sync.resumeSyncingStyleMessage':
     'The shared colors and style presets will be applied to this device immediately.',
   'sync.stopSyncingStyleDetail': 'The schedule content will continue to sync as usual.',
-  'sync.resumeSyncingStyleDetail':
-    'The current colors and style presets will be backed up first.',
+  'sync.resumeSyncingStyleDetail': 'The current colors and style presets will be backed up first.',
   'sync.stopSyncingStyle': 'Stop syncing style',
   'sync.resumeSyncing': 'Resume syncing',
   'sync.styleBackupRestored': 'The kept style and style presets have been restored.',
@@ -333,8 +330,7 @@ export default {
   'sync.checkingCode': 'Checking pairing code…',
   'sync.codeNotFound':
     'This pairing code was not found. Please check the code, or ask the other party to press "Create new sync" first.',
-  'sync.wrongManagerPasscode':
-    'The manager passcode is incorrect. Please check it and try again.',
+  'sync.wrongManagerPasscode': 'The manager passcode is incorrect. Please check it and try again.',
   'sync.roleManagerLabel': 'manager',
   'sync.roleViewerOnlyLabel': 'receive-only',
   'sync.joinSyncTitle': 'Join sync?',
@@ -426,8 +422,7 @@ export default {
   'geminiOcr.unnamedFile': 'unnamed file',
   'geminiOcr.fileTooLarge': 'File too large: {name}. Please use a smaller file.',
   'geminiOcr.imageLoadFailed': 'Failed to load the image. Please try a different one.',
-  'geminiOcr.imageResolutionTooLow':
-    'The image resolution is too low. Please use a clearer photo.',
+  'geminiOcr.imageResolutionTooLow': 'The image resolution is too low. Please use a clearer photo.',
   'geminiOcr.imageEncodeFailed': 'Failed to encode the image. Please try a different one.',
   'geminiOcr.fileReadFailed': 'Failed to read the file. Please try again.',
   'geminiOcr.notConfigured':
@@ -550,12 +545,10 @@ export default {
   'sync.codeLabelShareable': 'Sync code (free to share)',
   'sync.managerPasscodeLabelKeepSafe': 'Manager passcode (keep it safe)',
   'sync.savedCodeAndPasscode': "I've saved the code and passcode",
-  'sync.pairedShareHint':
-    'Paired with sync - share the code with other devices so they can join:',
+  'sync.pairedShareHint': 'Paired with sync - share the code with other devices so they can join:',
   'sync.enterPasscodeForEditAccess': 'Enter the manager passcode to get edit access',
   'sync.getEditAccessButton': 'Get edit access',
-  'sync.dontSyncStyleCheckboxLabel':
-    "Don't sync style colors (keep this device's current colors)",
+  'sync.dontSyncStyleCheckboxLabel': "Don't sync style colors (keep this device's current colors)",
   'geminiOcr.headingLabel': 'AI import',
   'geminiOcr.oneTimeImportTag': 'One-time import, not automatically synced',
   'geminiOcr.setupHint':
@@ -607,5 +600,41 @@ export default {
   'appearance.saveStyleButton': 'Save style',
   'appearance.previewAndSaveButton': 'Preview and save',
   'common.close': 'Close',
-  'editorCore.weekdayFieldLabel': 'Weekday'
+  'editorCore.weekdayFieldLabel': 'Weekday',
+  'quadra.tag': 'Your schedule lives on your Quadra Pass',
+  'quadra.hint':
+    'Every device signed in with your Quadra Pass shows the same schedule, updated as you edit it.',
+  'quadra.shareHint':
+    'Only your Quadra Pass can edit this schedule. To share it, make a merge key (valid 24 hours); whoever enters it can follow it or take a copy.',
+  'quadra.makeKey': 'Make a merge key',
+  'quadra.newKey': 'Make another',
+  'quadra.revoke': 'Stop all sharing',
+  'quadra.revoked': 'Sharing stopped: followers won’t get updates any more.',
+  'quadra.keyLabel': 'Merge key (valid until {time})',
+  'quadra.keyCopied': 'Merge key copied.',
+  'quadra.orReceive': 'Or enter a merge key someone gave you',
+  'quadra.keyPlaceholder': 'Enter a merge key',
+  'quadra.follow': 'Follow',
+  'quadra.copy': 'Take a copy',
+  'quadra.enterKey': 'Enter a merge key first.',
+  'quadra.keyNotFound': 'That merge key wasn’t found: mistyped or expired.',
+  'quadra.ownKey': 'That’s the key to your own schedule.',
+  'quadra.nowFollowing': 'Now following this schedule.',
+  'quadra.copied': 'Copied: it’s your own schedule now.',
+  'quadra.following': 'Following someone else’s schedule (read-only, stays updated)',
+  'quadra.stopFollowing': 'Stop following, back to my schedule',
+  'quadra.followUpdated': 'The schedule you follow was updated.',
+  'quadra.followEnded': 'Its owner stopped sharing; back to your own schedule.',
+  'quadra.backToOwn': 'Back to your own schedule.',
+  'quadra.merged': 'Your old synced schedule is now on your Quadra Pass.',
+  'quadra.legacySummary': 'Old sync code',
+  'quadra.legacyHint':
+    'A schedule synced with a sync code and manager passcode before: enter both to merge it into your Quadra Pass.',
+  'quadra.legacyMerge': 'Merge into Quadra Pass',
+  'quadra.legacyNeedBoth': 'Enter the sync code and the manager passcode.',
+  'quadra.legacyNotFound': 'That sync code wasn’t found.',
+  'quadra.legacyLocked': 'That manager passcode isn’t right.',
+  'quadra.legacyMoved': 'This device’s synced schedule is now on your Quadra Pass.',
+  'quadra.legacyViewer':
+    'Old sync codes are retired. Ask the schedule’s manager to make you a merge key in Orbit Class.'
 };

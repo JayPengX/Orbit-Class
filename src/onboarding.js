@@ -1,13 +1,12 @@
 // ---- src/onboarding.js ----
-// First-run prompt: a brand-new browser with no saved schedule and no sync
-// pairing gets asked once whether it wants to join an existing synced class
-// schedule before being nudged toward building one from scratch (by hand in
+// First-run prompt: a Quadra Pass with no schedule yet gets asked once
+// whether it has a merge key for someone's class schedule before being nudged toward building one from scratch (by hand in
 // the editor, or via the AI photo-import shortcut). Shown at most once - see
 // markOnboardingSeen()'s callers - so a returning user is never nagged,
 // including one who saw it once and closed the app without actually
 // building or joining anything yet.
 import { hasSavedSchedule } from './data.js';
-import { isSyncConfigured } from './sync.js';
+import { isSyncViewer } from './sync.js';
 import {
   hideEditorDiscardConfirm,
   setEditorConfirmContent,
@@ -41,7 +40,7 @@ function openSyncPanel() {
 
 function focusSyncJoinField() {
   openSyncPanel();
-  document.getElementById('sync-join-code')?.focus();
+  document.getElementById('quadra-key')?.focus();
 }
 
 function focusAIImportSection() {
@@ -73,7 +72,7 @@ function showStartChoice() {
 }
 
 function showOnboardingPrompt() {
-  if (hasSavedSchedule() || isSyncConfigured() || hasSeenOnboarding()) return;
+  if (hasSavedSchedule() || isSyncViewer() || hasSeenOnboarding()) return;
   markOnboardingSeen();
   setEditorConfirmContent(
     t('onboarding.welcomeTitle'),

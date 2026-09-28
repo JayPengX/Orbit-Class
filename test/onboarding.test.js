@@ -52,13 +52,6 @@ describe('first-run onboarding prompt', () => {
     expect(confirmSheetVisible()).toBe(false);
   });
 
-  it('does not show for a device already paired to a sync, even with no saved schedule yet', () => {
-    localStorage.setItem('orbitSyncProjectId', 'demo-project');
-    localStorage.setItem('orbitSyncCode', 'CODE1234');
-    showOnboardingPrompt();
-    expect(confirmSheetVisible()).toBe(false);
-  });
-
   it('never shows again once already seen, even with still no saved schedule', () => {
     localStorage.setItem('orbitOnboardingSeen', '1');
     showOnboardingPrompt();
@@ -73,14 +66,14 @@ describe('first-run onboarding prompt', () => {
     expect(confirmSheetVisible()).toBe(false);
   });
 
-  it('"輸入配對代碼" opens the standalone transfer sheet with the join field focused', () => {
+  it('"輸入合併金鑰" opens the standalone transfer sheet with the key field focused', () => {
     showOnboardingPrompt();
-    confirmButtons()[1].onclick(); // confirmLabel slot: "輸入配對代碼"
+    confirmButtons()[1].onclick(); // confirmLabel slot: "輸入合併金鑰"
 
     expect(confirmSheetVisible()).toBe(false);
     expect(document.getElementById('transfer-sheet').classList.contains('show')).toBe(true);
     expect(document.getElementById('editor-sheet').classList.contains('show')).toBe(false);
-    expect(document.activeElement).toBe(document.getElementById('sync-join-code'));
+    expect(document.activeElement).toBe(document.getElementById('quadra-key'));
   });
 
   it('"先自己建立" leads to a second choice between manual setup and AI import', () => {

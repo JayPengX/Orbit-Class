@@ -11,7 +11,7 @@ import {
 } from './editor-backup.js';
 import { editorTimeToMinutes, formatClassLabel } from './editor-core.js';
 import { updateTeacherCardAvatar } from './editor-teachers.js';
-import { isSyncViewer } from './sync.js';
+import { isSyncViewer, sessionUrl } from './sync.js';
 import { proxyPath } from './proxy-config.js';
 import { applyStaticTranslations } from './i18n-dom.js';
 import { t } from './strings.js';
@@ -411,7 +411,7 @@ class AIVisionProcessor {
       const callLabel = `GeminiCall:${callId}:${model}`;
       console.time(callLabel);
       try {
-        response = await fetch(GEMINI_PROXY_URL, {
+        response = await fetch(await sessionUrl(GEMINI_PROXY_URL), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: requestBody

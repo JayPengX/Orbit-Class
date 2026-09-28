@@ -28,11 +28,13 @@
     <meta name="twitter:image" content="https://jaypengx.github.io/Orbit-Class/og-card.jpg">
     <meta name="twitter:image:alt" content="Orbit Class — 即時課表儀表板">
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=__APP_VERSION__">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=__APP_VERSION__">
     <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=__APP_VERSION__">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png?v=__APP_VERSION__">
     <title>Orbit Class</title>
     <link rel="stylesheet" href="css/styles.css?v=__APP_VERSION__">
+    <link rel="stylesheet" href="css/quadra.css?v=__APP_VERSION__">
   </head>
 <body class="orbit-booting">
 <div id="test-banner" class="test-banner" data-i18n="testsim.simulating">
@@ -307,93 +309,7 @@
     <button type="button" class="editor-close" onclick="closeTransferSheet()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
   </div>
   <div class="transfer-sheet-body" id="transfer-sheet-body">
-  <div class="settings-transfer-box transfer-sync-box" id="sync-setup-box">
-    <div class="transfer-section-heading"><span data-i18n="sync.syncHeading">同步</span><span class="transfer-section-tag" data-i18n="sync.syncHeadingTag">持續、跨裝置自動保持一致</span></div>
-    <div class="editor-hint-body" id="sync-setup-hint" data-i18n="sync.setupHint">課表自動同步到所有裝置，不需要帳號。同步代碼可自由分享；管理者密碼才能編輯課表，請妥善保管。</div>
-    <div class="settings-transfer-actions">
-      <button type="button" id="sync-create-btn" class="settings-transfer-btn" onclick="orbitSyncCreate()" data-i18n="sync.createNewSync">
-        建立新同步
-      </button>
-    </div>
-    <div class="sync-divider" data-i18n="sync.orJoinExisting">或加入現有同步</div>
-    <input id="sync-join-code" class="settings-transfer-text sync-input" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="輸入同步代碼" data-i18n-placeholder="sync.enterSyncCodePlaceholder">
-    <details class="legacy-fold" id="sync-join-manager-fold">
-      <summary class="legacy-fold-summary" data-i18n="sync.haveManagerPasscodeSummary">我有管理者密碼，也想要能編輯課表</summary>
-      <div class="legacy-fold-body">
-        <input id="sync-join-passcode" class="settings-transfer-text sync-input" type="text" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="輸入管理者密碼" data-i18n-placeholder="sync.enterManagerPasscodePlaceholder">
-      </div>
-    </details>
-    <div class="settings-transfer-actions">
-      <button type="button" id="sync-join-btn" class="settings-transfer-btn primary" onclick="orbitSyncJoin()" data-i18n="sync.joinSyncButton">
-        加入同步
-      </button>
-    </div>
-  </div>
-  <div class="settings-transfer-box transfer-sync-box" id="sync-created-codes" hidden>
-    <div class="transfer-section-heading"><span data-i18n="sync.syncHeading">同步</span><span class="transfer-section-tag" data-i18n="sync.syncHeadingTag">持續、跨裝置自動保持一致</span></div>
-    <div class="editor-hint-body" data-i18n="sync.createdHint">同步已建立！請先保存好管理者密碼，離開後不會再直接顯示。</div>
-    <div class="sync-code-row">
-      <div class="sync-code-row-label" data-i18n="sync.codeLabelShareable">同步代碼（可自由分享）</div>
-      <div class="sync-code-row-value">
-        <div id="sync-created-code" class="sync-active-code"></div>
-        <button type="button" id="sync-created-code-copy" class="settings-transfer-btn" onclick="copySyncCreatedCode('code')" data-i18n="common.copy">
-          複製
-        </button>
-      </div>
-    </div>
-    <div class="sync-code-row">
-      <div class="sync-code-row-label" data-i18n="sync.managerPasscodeLabelKeepSafe">管理者密碼（請妥善保管）</div>
-      <div class="sync-code-row-value">
-        <div id="sync-created-passcode" class="sync-active-code"></div>
-        <button type="button" id="sync-created-passcode-copy" class="settings-transfer-btn" onclick="copySyncCreatedCode('passcode')" data-i18n="common.copy">
-          複製
-        </button>
-      </div>
-    </div>
-    <div class="settings-transfer-actions">
-      <button type="button" class="settings-transfer-btn primary" onclick="acknowledgeSyncCreatedCodes()" data-i18n="sync.savedCodeAndPasscode">
-        我已保存好代碼與密碼
-      </button>
-    </div>
-  </div>
-  <div class="settings-transfer-box transfer-sync-box" id="sync-active-box" hidden>
-    <div class="transfer-section-heading"><span data-i18n="sync.syncHeading">同步</span><span class="transfer-section-tag" data-i18n="sync.syncHeadingTag">持續、跨裝置自動保持一致</span></div>
-    <div class="editor-hint-body" data-i18n="sync.pairedShareHint">已配對同步，分享代碼給其他裝置即可加入：</div>
-    <div id="sync-active-code" class="sync-active-code"></div>
-    <div id="sync-role-label" class="sync-role-label"></div>
-    <div id="sync-manager-passcode-box" class="sync-manager-passcode-box" hidden>
-      <div class="editor-hint-body" data-i18n="sync.managerPasscodeLabelKeepSafe">管理者密碼（請妥善保管）</div>
-      <div class="sync-code-row-value">
-        <div id="sync-manager-passcode-value" class="sync-active-code" hidden></div>
-        <button type="button" id="sync-manager-passcode-toggle" class="settings-transfer-btn" onclick="toggleSyncManagerPasscodeReveal()" data-i18n="common.show">
-          顯示
-        </button>
-        <button type="button" id="sync-manager-passcode-copy" class="settings-transfer-btn" onclick="copySyncManagerPasscode()" data-i18n="common.copy">
-          複製
-        </button>
-      </div>
-    </div>
-    <details class="legacy-fold" id="sync-upgrade-box" hidden>
-      <summary class="legacy-fold-summary" data-i18n="sync.enterPasscodeForEditAccess">輸入管理者密碼以取得編輯權限</summary>
-      <div class="legacy-fold-body">
-        <input id="sync-upgrade-passcode" class="settings-transfer-text sync-input" type="text" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="輸入管理者密碼" data-i18n-placeholder="sync.enterManagerPasscodePlaceholder">
-        <div class="settings-transfer-actions">
-          <button type="button" id="sync-upgrade-btn" class="settings-transfer-btn primary" onclick="orbitSyncUpgradeToManager()" data-i18n="sync.getEditAccessButton">
-            取得編輯權限
-          </button>
-        </div>
-      </div>
-    </details>
-    <label class="sync-role-checkbox">
-      <input type="checkbox" id="sync-keep-local-style" onchange="orbitSyncSetKeepLocalStyle(this.checked)">
-      <span data-i18n="sync.dontSyncStyleCheckboxLabel">不同步樣式顏色（保留這台裝置目前的配色）</span>
-    </label>
-    <div class="settings-transfer-actions">
-      <button type="button" id="sync-unlink-btn" class="settings-transfer-btn" onclick="orbitSyncUnlink()" data-i18n="sync.unlink">
-        解除同步
-      </button>
-    </div>
-  </div>
+  <div class="settings-transfer-box transfer-sync-box" id="quadra-box"></div>
   <div id="sync-status" class="settings-transfer-status"></div>
   <div class="ocr-import-box" id="ocr-import-box">
     <div class="transfer-section-heading"><span data-i18n="geminiOcr.headingLabel">AI 匯入</span><span class="transfer-section-tag" data-i18n="geminiOcr.oneTimeImportTag">單次匯入，不會自動同步</span></div>

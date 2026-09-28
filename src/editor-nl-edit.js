@@ -31,7 +31,7 @@
 // never trusting a class key, day/period reference, or time blindly.
 import { state } from './state.js';
 import { t } from './strings.js';
-import { isSyncViewer } from './sync.js';
+import { isSyncViewer, sessionUrl } from './sync.js';
 import {
   applyPendingSaveEditor,
   cloneSettingsData,
@@ -141,7 +141,7 @@ async function tryNlEditModels(text, context) {
   for (const model of NL_EDIT_MODELS) {
     let response;
     try {
-      response = await fetch(NL_EDIT_PROXY_URL, {
+      response = await fetch(await sessionUrl(NL_EDIT_PROXY_URL), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, text, context })
