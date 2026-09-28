@@ -1196,7 +1196,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .editor-confirm-title{font-size:19px;font-weight:800;text-align:center;letter-spacing:-.4px;margin:0 0 12px}
 .editor-confirm-msg{font-size:14px;font-weight:500;color:var(--sub);text-align:center;line-height:1.5;margin:0 auto 22px;max-width:30ch}
 .editor-confirm-actions{display:flex;flex-direction:column;gap:12px}
-.editor-confirm-btn{width:100%;min-height:var(--action-btn-h);padding:13px 18px;border-radius:var(--action-btn-radius);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,rgba(255,255,255,.12));background:color-mix(in srgb,var(--pro-accent) 10%,rgba(255,255,255,.09));color:#F8FAFC;font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;touch-action:manipulation;font-family:inherit;white-space:normal;line-height:1.2}
+.editor-confirm-btn{width:100%;min-height:var(--action-btn-h);padding:13px 18px;border-radius:var(--action-btn-radius);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,rgba(255,255,255,.12));background:color-mix(in srgb,var(--pro-accent) 10%,rgba(255,255,255,.09));color:#F8FAFC;font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;touch-action: pan-x pan-y;font-family:inherit;white-space:normal;line-height:1.2}
 .editor-confirm-btn:active{transform:scale(.96);opacity:.88}
 .editor-confirm-btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
 /* Filled red, not the outlined red of an in-panel entry button (.settings-transfer-btn.danger):
@@ -1585,7 +1585,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .assign-box:active{transform:scale(.95)}
 .assign-box.occupied{border-color:color-mix(in srgb,var(--accent) 50%,transparent);color:var(--accent)}
 .assign-box.assigned{background:color-mix(in srgb,var(--ok) 22%,transparent);border-color:var(--ok);color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 35%,transparent)}
-.teacher-assign{min-height:40px;padding:0 14px;border:0;border-radius:13px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 72%,#fff 18%),color-mix(in srgb,var(--accent) 48%,#fff 18%));color:var(--pro-accent-text);font-weight:850;letter-spacing:.04em;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 22%,transparent);touch-action:manipulation;transition:transform .12s;backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%)}
+.teacher-assign{min-height:40px;padding:0 14px;border:0;border-radius:13px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 72%,#fff 18%),color-mix(in srgb,var(--accent) 48%,#fff 18%));color:var(--pro-accent-text);font-weight:850;letter-spacing:.04em;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 22%,transparent);touch-action: pan-x pan-y;transition:transform .12s;backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%)}
 .teacher-assign:active{transform:scale(.95)}
 .assign-sheet .editor-confirm-btn{margin-top:8px;min-height:var(--action-btn-h);width:100%}
 @media (max-width:480px){.assign-sheet{width:calc(100vw - 20px);max-height:calc(100dvh - 28px);padding:14px;border-radius:20px}.teacher-assign{min-height:44px;padding:0 13px}.assign-day-row{grid-template-columns:39px minmax(0,1fr);gap:6px}.assign-periods{grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:6px}.assign-box{min-height:48px;font-size:11px}}
@@ -1655,15 +1655,15 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .test-panel label{font-size:11px;color:var(--sub);font-weight:600}
 .test-panel select,.test-panel input[type="number"]{background:#2c2c2e;color:#fff;border:1px solid var(--bd);padding:7px 10px;border-radius:9px;font-size:14px;width:100%;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}
 .test-panel select:focus,.test-panel input[type="number"]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
-.test-panel input[type="range"]{width:100%;cursor:pointer;margin:6px 0 2px;touch-action:manipulation}
+.test-panel input[type="range"]{width:100%;cursor:pointer;margin:6px 0 2px;touch-action: pan-x pan-y}
 
 .test-status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:var(--warn);color:#000;font-size:10px;font-weight:800}
 .test-panel-meta-row{display:flex;align-items:center;gap:7px;margin:-6px 0 10px}
 .app-version{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--sub);opacity:.8;white-space:nowrap}
-#test-refresh-btn{flex:0 0 auto;min-height:24px;width:auto;padding:3px 7px;border-radius:7px;background:color-mix(in srgb,var(--pro-accent) 15%,transparent);color:var(--pro-accent);border:1px solid color-mix(in srgb,var(--pro-accent) 42%,transparent);box-shadow:none;font-size:9px;font-weight:800;line-height:1;letter-spacing:0;cursor:pointer;touch-action:manipulation;transition:transform .12s,background .15s}
+#test-refresh-btn{flex:0 0 auto;min-height:24px;width:auto;padding:3px 7px;border-radius:7px;background:color-mix(in srgb,var(--pro-accent) 15%,transparent);color:var(--pro-accent);border:1px solid color-mix(in srgb,var(--pro-accent) 42%,transparent);box-shadow:none;font-size:9px;font-weight:800;line-height:1;letter-spacing:0;cursor:pointer;touch-action: pan-x pan-y;transition:transform .12s,background .15s}
 #test-refresh-btn:active{transform:scale(.92);background:color-mix(in srgb,var(--pro-accent) 28%,transparent)}
 #test-refresh-btn:disabled{opacity:.6;cursor:default}
-#test-reset-btn{flex:0 0 auto;min-height:24px;width:auto;padding:3px 7px;border-radius:7px;background:rgba(255,69,58,.08);color:#ff453a;border:1px solid rgba(255,69,58,.35);box-shadow:none;font-size:9px;font-weight:800;line-height:1;letter-spacing:0;cursor:pointer;touch-action:manipulation;transition:transform .12s,background .15s}
+#test-reset-btn{flex:0 0 auto;min-height:24px;width:auto;padding:3px 7px;border-radius:7px;background:rgba(255,69,58,.08);color:#ff453a;border:1px solid rgba(255,69,58,.35);box-shadow:none;font-size:9px;font-weight:800;line-height:1;letter-spacing:0;cursor:pointer;touch-action: pan-x pan-y;transition:transform .12s,background .15s}
 #test-reset-btn:active{transform:scale(.92);background:rgba(255,69,58,.16)}
 /* Shown inline in this panel rather than the app's floating .save-toast:
    that toast renders behind this sheet's own stacking context, so it was
@@ -1687,7 +1687,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    not just a transform, so a tap is unmistakable even mid-animation. */
 .sim-btn{
   padding:9px 12px;font-weight:bold;cursor:pointer;transition:transform .12s var(--ease-glass),background .15s,box-shadow .15s,color .15s;
-  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-size:14px;touch-action:manipulation;min-height:42px;
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-size:14px;touch-action: pan-x pan-y;min-height:42px;
   border-radius:12px;background:transparent;color:var(--pro-accent);border:1px solid color-mix(in srgb,var(--pro-accent) 58%,var(--orbit-line));box-shadow:none;
 }
 .sim-btn:active{transform:scale(.95);background:color-mix(in srgb,var(--pro-accent) 22%,transparent);box-shadow:inset 0 2px 6px rgba(0,0,0,.25)}
@@ -1696,7 +1696,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 #test-play-pause-btn:hover{background:color-mix(in srgb,var(--pro-accent) 10%,transparent)}
 #test-play-pause-btn.active:hover{background:color-mix(in srgb,var(--pro-accent) 88%,#fff)}
 
-.test-exit-btn{width:100%;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s,background .15s,color .15s;touch-action:manipulation;border:1px solid rgba(255,69,58,.48);opacity:1;min-height:42px;border-radius:12px;background:rgba(255,69,58,.12);color:#ff6a5c}
+.test-exit-btn{width:100%;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s,background .15s,color .15s;touch-action: pan-x pan-y;border:1px solid rgba(255,69,58,.48);opacity:1;min-height:42px;border-radius:12px;background:rgba(255,69,58,.12);color:#ff6a5c}
 .test-exit-btn:active:not(:disabled){transform:scale(.96);background:rgba(255,69,58,.26);color:#ff8a7a}
 .test-exit-btn:disabled{cursor:pointer;opacity:1}
 
