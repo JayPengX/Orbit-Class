@@ -33,7 +33,7 @@ import { state } from './state.js';
 import { t } from './strings.js';
 import { isSyncViewer, sessionUrl } from './sync.js';
 import {
-  applyPendingSaveEditor,
+  applyEditorSettingsData,
   cloneSettingsData,
   describeSettingsDiff,
   normalizeSettingsData,
@@ -49,10 +49,12 @@ import { parseLocalNlEdit } from './nl-edit-local.js';
 
 // Must match GEMINI_ALLOWED_MODELS in the shared-proxy repo's worker.js -
 // the Worker's /nl-edit path reuses the exact same vetted model list as
-// /gemini (see that file's own comment on why these two models specifically
-// - fastest first, escalate to the stronger one only on a transient
-// failure, same fallback shape as AIVisionProcessor.callGemini below).
-const NL_EDIT_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.7-flash'];
+// /gemini. Unlike photo import, the stronger model goes first here: an
+// instruction is a few words, so the request is small either way, and the
+// lite model was the one misreading casually worded instructions. The lite
+// model stays as the fallback on a transient failure (same fallback shape
+// as AIVisionProcessor.callGemini).
+const NL_EDIT_MODELS = ['gemini-3.7-flash', 'gemini-3.5-flash-lite'];
 
 // Same shared PROXY_URL as gemini-ocr.js and sync.js (see proxy-config.js) -
 // a fork that hasn't deployed the Worker simply doesn't get this feature
@@ -68,13 +70,28 @@ function isNlEditConfigured() {
 // classes around within weeklySchedule (see the Worker's own comment on why
 // that used to be too narrow). Still never the whole app data blob - no
 // style/sync state, same payload-size discipline as gemini-ocr.js.
+//
+// Each class also lists where it already sits ("slots", e.g. "週二第3節"),
+// so an instruction that names a class instead of a period ("把數學移到週五
+// 早上", "王老師的課都刪掉") doesn't need the model to cross-reference
+// weeklySchedule's bare keys against the class list itself. The Worker
+// passes class entries through as-is; the prompt only relies on key/subject.
+const NL_EDIT_DAY_LABELS = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
 function buildNlEditContext() {
   const data = settingsDataForExport();
+  const slots = {};
+  Object.entries(data.weeklySchedule || {}).forEach(([day, periods]) => {
+    (periods || []).forEach((key, period) => {
+      if (!key) return;
+      (slots[key] ||= []).push(`${NL_EDIT_DAY_LABELS[day] || day}第${period + 1}節`);
+    });
+  });
   const classes = Object.entries(data.teacherDB || {}).map(([key, value]) => ({
     key,
     subject: value[0] || '',
     teacher: value[1] || '',
-    location: data.locationDB?.[key] || ''
+    location: data.locationDB?.[key] || '',
+    slots: slots[key] || []
   }));
   return {
     weeklySchedule: data.weeklySchedule,
@@ -87,9 +104,17 @@ function buildNlEditContext() {
 }
 
 // Cheap, deterministic clean-up of the typed instruction before it is sent,
-// so the model never has to guess at things plain code can settle for free
-// (no extra prompt text, no extra request):
+// so neither the local parser nor the model has to guess at things plain
+// code can settle for free (no extra prompt text, no extra request):
 // - NFKC folds full-width digits/punctuation ("３節", "２、３") to ASCII.
+// - Spaces next to a Chinese character carry no meaning ("週 二 第 3 節",
+//   "改成 物理") and are dropped. A space between two digits or two Latin
+//   words is kept: in "週3 2節" it is what separates the day from the period.
+// - Simplified/variant spellings of the words the local parser keys on
+//   ("星期", "节", "课", "换", "删") are folded to the Traditional ones.
+// - Relative days ("今天", "明天", "後天", "昨天") become the actual weekday,
+//   and "這週/下週/本週" in front of a day is dropped - the schedule repeats
+//   every week, so "下週二" is just 週二.
 // - A day written straight into its periods ("星期三二三節", "週五1-2節",
 //   "禮拜一三到四節") gets a 的 between them. Otherwise the numerals run
 //   together and the model can't tell where the day ends; with the 的 it
@@ -97,11 +122,41 @@ function buildNlEditContext() {
 //   to 節/堂, so "週一二第三節" (Monday and Tuesday) is left alone.
 const NL_EDIT_DAY_BEFORE_PERIODS =
   /((?:星期|禮拜|礼拜|週|周)[日天一二三四五六七1-7])(?=[一二三四五六七八九十0-9、,和與跟到至~-]*[一二三四五六七八九十0-9][節节堂])/g;
-function normalizeNlEditText(rawText) {
-  return String(rawText || '')
+const NL_EDIT_SPACE_NEAR_CJK =
+  /(?<=[\u3000-\u303f\u3400-\u9fff\uff00-\uffef])\s+|\s+(?=[\u3000-\u303f\u3400-\u9fff\uff00-\uffef])/g;
+const NL_EDIT_VARIANTS = {
+  礼拜: '禮拜',
+  节: '節',
+  课: '課',
+  换: '換',
+  删: '刪',
+  为: '為',
+  这: '這'
+};
+const NL_EDIT_RELATIVE_DAYS = {
+  大後天: 3,
+  大后天: 3,
+  今天: 0,
+  今日: 0,
+  明天: 1,
+  明日: 1,
+  後天: 2,
+  后天: 2,
+  昨天: -1
+};
+function normalizeNlEditText(rawText, now = new Date()) {
+  let text = String(rawText || '')
     .normalize('NFKC')
     .replace(/\s+/g, ' ')
     .trim()
+    .replace(NL_EDIT_SPACE_NEAR_CJK, '');
+  text = text.replace(/礼拜|节|课|换|删|为|这/g, match => NL_EDIT_VARIANTS[match]);
+  text = text.replace(/大後天|大后天|今天|今日|明天|明日|後天|后天|昨天/g, match => {
+    const day = (((now.getDay() + NL_EDIT_RELATIVE_DAYS[match]) % 7) + 7) % 7;
+    return NL_EDIT_DAY_LABELS[day];
+  });
+  return text
+    .replace(/(?:這個|這|本|下個|下|上個|上)(?=(?:星期|禮拜|週|周)[日天一二三四五六七1-7])/g, '')
     .replace(NL_EDIT_DAY_BEFORE_PERIODS, '$1的');
 }
 
@@ -339,23 +394,33 @@ function showNlEditInfo(title, message) {
 // editor-backup.js's own diff/save machinery rather than inventing a
 // second one: describeSettingsDiff produces the same human-readable diff
 // text the schedule editor's own save confirmation uses, and
-// applyPendingSaveEditor (via state.pendingEditorSaveData) is the exact
-// same "apply, save, toast, push to sync if configured" path a normal
-// manual save goes through - see editor-schedule.js's saveEditor(). Nothing
-// here is ever applied without this step.
-function showNlEditConfirm(current, next, { local = false } = {}) {
+// applyEditorSettingsData is the exact same "apply, save, toast, push to
+// sync if configured" path a normal manual save goes through - see
+// editor-schedule.js's saveEditor(). Nothing here is ever applied without
+// this step. Unlike a manual save, the settings sheet stays open afterwards:
+// an AI edit is usually one of several, and the re-rendered editor below
+// the box is where the user checks the result.
+function showNlEditConfirm(current, next, { local = false, onApplied } = {}) {
   const diff = describeSettingsDiff(current, next);
   if (diff === t('editorBackup.noChanges')) {
     showNlEditInfo(t('nlEdit.noChangeTitle'), t('nlEdit.noChangeMessage'));
     return;
   }
   state.pendingEditorSaveData = next;
+  const apply = () => {
+    const pending = state.pendingEditorSaveData;
+    state.pendingEditorSaveData = null;
+    hideEditorDiscardConfirm();
+    if (!pending) return;
+    applyEditorSettingsData(pending, { closeAfter: false });
+    onApplied?.();
+  };
   setEditorConfirmContent(
     t(local ? 'nlEdit.confirmTitleLocal' : 'nlEdit.confirmTitle'),
     t('nlEdit.confirmMessage'),
     diff,
     t('nlEdit.confirmApply'),
-    applyPendingSaveEditor,
+    apply,
     t('nlEdit.confirmCancel')
   );
   showEditorConfirmSheet();
@@ -364,8 +429,9 @@ function showNlEditConfirm(current, next, { local = false } = {}) {
 // The entry point the UI wiring below calls. `status` reports progress/
 // errors back to the caller's own status line; `onDone` always fires last
 // (success, failure, or a first-class unclear/not_found outcome) so the UI
-// can re-enable its controls.
-async function submitNlEdit(rawText, { status, onDone } = {}) {
+// can re-enable its controls; `onApplied` fires only once the user has
+// confirmed and the edit is saved.
+async function submitNlEdit(rawText, { status, onDone, onApplied } = {}) {
   const text = normalizeNlEditText(rawText);
   try {
     if (isSyncViewer()) {
@@ -421,7 +487,7 @@ async function submitNlEdit(rawText, { status, onDone } = {}) {
       return;
     }
     status?.(t('nlEdit.ready'));
-    showNlEditConfirm(current, next, { local });
+    showNlEditConfirm(current, next, { local, onApplied });
   } catch (error) {
     status?.(error.message, true);
   } finally {
@@ -451,6 +517,10 @@ function mountNlEditor() {
       onDone: () => {
         button.disabled = false;
         input.disabled = false;
+      },
+      onApplied: () => {
+        input.value = '';
+        setStatus('');
       }
     });
   };

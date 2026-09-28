@@ -36,7 +36,34 @@ const CLEAR_BEFORE = /^(?:清空|清掉|刪除|刪掉|删除|拿掉|取消|移�
 const CLEAR_AFTER =
   /^(?:清空|清掉|刪除|刪掉|删除|拿掉|取消|移除|改成空堂|改為空堂|變成空堂|設為空堂|空堂)$/;
 const MOVE_VERBS = /^(?:移到|搬到|挪到|換到|改到|移去|搬去|調到)$/;
-const SET_VERBS = ['改成', '換成', '改為', '換為', '變成', '設為', '設成', '改上', '排'];
+// Longest first, so "改成" wins over a bare "改" at the same position.
+const SET_VERBS = [
+  '改成為',
+  '設定為',
+  '設定成',
+  '改成',
+  '換成',
+  '改為',
+  '換為',
+  '變成',
+  '變為',
+  '設為',
+  '設成',
+  '調成',
+  '調為',
+  '改上',
+  '換上',
+  '排上',
+  '放上',
+  '安排',
+  '改',
+  '換',
+  '排',
+  '放',
+  '上',
+  '要上',
+  '是'
+].sort((a, b) => b.length - a.length);
 const EMPTY_TARGETS = new Set(['空堂', '空', '空白', '沒課', '無課', '沒有課']);
 
 // "十" = 10, "十二" = 12, "二十" = 20; plain digits as written.
@@ -133,23 +160,64 @@ function cellExists(current, { day, period }) {
   );
 }
 
-// The one existing class a "改成 X" target names, by exact subject (or
-// "X課"), or the empty string for 空堂. null when it matches no class or
-// several (e.g. two 數學 classes with different teachers) - the AI decides
-// those, since it may need to create a class or ask which one.
+// The one existing class a "改成 X" target names, or the empty string for
+// 空堂. Tried in order, stopping at the first rule that finds anything:
+// the exact subject (ignoring case, spaces and a trailing "課"/"的課"), a
+// teacher ("王老師", "王老師的課"), then a subject that contains or is
+// contained in the target ("數學" for 數學A, "體育課" for 體育) - only ever
+// among classes that aren't a 單/雙週 split, since "國文" alone doesn't say
+// which half is meant. null when a rule matches several classes (e.g. two
+// 數學 classes with different teachers) or none do - the AI decides those,
+// since it may need to create a class or ask which one.
 function parseSetTarget(current, rawTarget) {
-  const target = rawTarget.replace(/[。!?~\s]+$/g, '');
+  const target = rawTarget
+    .replace(/[。!?~\s]+$/g, '')
+    .replace(/^的+/, '')
+    .replace(/(?:的課|課|的)$/, '')
+    .toLowerCase();
+  if (!target) return null;
   if (EMPTY_TARGETS.has(target)) return '';
-  const candidates = [target, target.replace(/(?:的課|課)$/, '')];
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    const keys = Object.entries(current.teacherDB || {})
-      .filter(([, value]) => String(value?.[0] || '') === candidate)
-      .map(([key]) => key);
+  const classes = Object.entries(current.teacherDB || {}).map(([key, value]) => ({
+    key,
+    subject: String(value?.[0] || '')
+      .replace(/\s+/g, '')
+      .toLowerCase(),
+    teacher: String(value?.[1] || '')
+      .replace(/\s+/g, '')
+      .toLowerCase()
+  }));
+  const teacherName = target.replace(/老師$/, '');
+  const rules = [
+    entry => entry.subject === target,
+    entry =>
+      target.endsWith('老師') &&
+      !!teacherName &&
+      !entry.teacher.includes('/') &&
+      (entry.teacher === target || entry.teacher.replace(/老師$/, '') === teacherName),
+    entry =>
+      !entry.subject.includes('/') &&
+      entry.subject.length > 0 &&
+      ((target.length >= 2 && entry.subject.includes(target)) ||
+        (entry.subject.length >= 2 && target.includes(entry.subject)))
+  ];
+  for (const rule of rules) {
+    const keys = classes.filter(rule).map(entry => entry.key);
     if (keys.length === 1) return keys[0];
     if (keys.length > 1) return null;
   }
   return null;
+}
+
+// The set verb that appears earliest in the skeleton (longest one at that
+// position), or null.
+function findSetVerb(skeleton) {
+  let best = null;
+  for (const verb of SET_VERBS) {
+    const index = skeleton.indexOf(verb);
+    if (index === -1) continue;
+    if (!best || index < best.index) best = { verb, index };
+  }
+  return best;
 }
 
 function okPatch(scheduleEdits) {
@@ -180,14 +248,16 @@ function parseLocalNlEdit(text, current) {
 
   // Set: "<cells> 改成 <class>" - the class name is taken from the raw
   // skeleton, never filler-stripped, so a subject like "課外活動" survives.
-  for (const verb of SET_VERBS) {
-    const verbIndex = skeleton.indexOf(verb);
-    if (verbIndex === -1) continue;
-    const before = skeleton.slice(0, verbIndex).replace(FILLER, '');
-    if (!/^@+$/.test(before)) break;
-    const key = parseSetTarget(current, skeleton.slice(verbIndex + verb.length).trim());
-    if (key === null) return null;
-    return okPatch(cells.map(cell => ({ ...cell, key })));
+  // A target that itself names a period ("改到週三第二節") is a move, not a
+  // set - left to the templates below.
+  const found = findSetVerb(skeleton);
+  if (found) {
+    const before = skeleton.slice(0, found.index).replace(FILLER, '');
+    const target = skeleton.slice(found.index + found.verb.length).trim();
+    if (/^@+$/.test(before) && !target.includes('@')) {
+      const key = parseSetTarget(current, target);
+      if (key !== null) return okPatch(cells.map(cell => ({ ...cell, key })));
+    }
   }
 
   const reduced = skeleton.replace(FILLER, '');
@@ -217,6 +287,13 @@ function parseLocalNlEdit(text, current) {
       { ...from, key: '' },
       { ...to, key }
     ]);
+  }
+
+  // No verb at all: "週二第三節物理", "週二第三節 數學課".
+  const bare = /^(@+)([^@]+)$/.exec(skeleton.replace(/^(?:請|幫我|幫忙|麻煩|把|將|我的|我)+/, ''));
+  if (bare) {
+    const key = parseSetTarget(current, bare[2]);
+    if (key !== null) return okPatch(cells.map(cell => ({ ...cell, key })));
   }
 
   return null;
