@@ -51,8 +51,26 @@ describe('normalizeNlEditText', () => {
     expect(normalizeNlEditText(input)).toBe(input);
   });
 
-  it('trims and collapses whitespace', () => {
-    expect(normalizeNlEditText('  週三　第二節\n改成物理 ')).toBe('週三 第二節 改成物理');
+  it('drops spaces next to Chinese text, keeping the ones between digits or words', () => {
+    expect(normalizeNlEditText('  週三　第二節\n改成物理 ')).toBe('週三第二節改成物理');
+    expect(normalizeNlEditText('週 二 第 3 節 改成 物理')).toBe('週二第3節改成物理');
+    expect(normalizeNlEditText('週3 2節改國文')).toBe('週3 2節改國文');
+    expect(normalizeNlEditText('週二第一節改成 AP Chem')).toBe('週二第一節改成AP Chem');
+  });
+
+  it('folds simplified spellings', () => {
+    expect(normalizeNlEditText('礼拜二第三节换成物理课')).toBe('禮拜二第三節換成物理課');
+  });
+
+  it.each([
+    ['今天第一節改成英文', '週三第一節改成英文'],
+    ['明天第二節刪掉', '週四第二節刪掉'],
+    ['昨天第一節', '週二第一節'],
+    ['下週二第三節改成物理', '週二第三節改成物理'],
+    ['這個星期五一二節對調', '星期五的一二節對調']
+  ])('resolves relative days: %s', (input, expected) => {
+    // 2026-09-30 is a Wednesday.
+    expect(normalizeNlEditText(input, new Date(2026, 8, 30))).toBe(expected);
   });
 });
 
@@ -72,8 +90,14 @@ describe('buildNlEditContext', () => {
     expect(context.bellTimes).toHaveLength(3);
     expect(context.classes).toEqual(
       expect.arrayContaining([
-        { key: 'A', subject: '數學', teacher: '王老師', location: '101' },
-        { key: 'C', subject: '英文', teacher: '林老師', location: '103' }
+        {
+          key: 'A',
+          subject: '數學',
+          teacher: '王老師',
+          location: '101',
+          slots: ['週一第1節', '週三第1節']
+        },
+        { key: 'C', subject: '英文', teacher: '林老師', location: '103', slots: ['週一第3節'] }
       ])
     );
     expect(Array.isArray(context.breakTimes)).toBe(true);

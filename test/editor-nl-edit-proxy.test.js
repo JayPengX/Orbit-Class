@@ -102,7 +102,7 @@ describe('submitNlEdit - request shape', () => {
     const fetchMock = vi.fn(async (url, options) => {
       expect(url).toBe(PROXY_URL);
       const body = JSON.parse(options.body);
-      expect(body.model).toBe('gemini-3.5-flash-lite');
+      expect(body.model).toBe('gemini-3.7-flash');
       expect(body.text).toBe('把我週二第一節改成物理');
       expect(body.context).toMatchObject({
         weeklySchedule: expect.any(Object),
@@ -124,13 +124,13 @@ describe('submitNlEdit - request shape', () => {
     vi.unstubAllGlobals();
   });
 
-  it('escalates to the stronger model when the fast one is overloaded', async () => {
+  it('falls back to the lite model when the stronger one is overloaded', async () => {
     const fetchMock = vi.fn(async (url, options) => {
       const body = JSON.parse(options.body);
-      if (body.model === 'gemini-3.5-flash-lite') {
+      if (body.model === 'gemini-3.7-flash') {
         return { ok: false, status: 503, statusText: 'Overloaded', json: async () => ({}) };
       }
-      expect(body.model).toBe('gemini-3.7-flash');
+      expect(body.model).toBe('gemini-3.5-flash-lite');
       return fakeNlEditResponse(okChangedState());
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -305,12 +305,18 @@ describe('submitNlEdit - confirm-before-apply', () => {
     vi.unstubAllGlobals();
   });
 
-  it('applies the proposed edit once confirmed', async () => {
+  it('applies the proposed edit once confirmed, without closing the settings sheet', async () => {
     const fetchMock = vi.fn(async () => fakeNlEditResponse(okChangedState()));
     vi.stubGlobal('fetch', fetchMock);
     const { status } = statusRecorder();
-    await submitNlEdit('把我週二第一節改成物理', { status });
+    const onApplied = vi.fn();
+    await submitNlEdit('把我週二第一節改成物理', { status, onApplied });
+    expect(onApplied).not.toHaveBeenCalled();
+    const closeSpy = vi.spyOn(window, 'setTimeout');
     clickConfirm();
+    expect(onApplied).toHaveBeenCalledTimes(1);
+    expect(closeSpy.mock.calls.some(([, delay]) => delay === 400)).toBe(false);
+    closeSpy.mockRestore();
     expect(confirmSheetVisible()).toBe(false);
     const key = state.applicationData.weeklySchedule[2][0];
     expect(key).toBeTruthy();

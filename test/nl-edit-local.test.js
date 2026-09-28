@@ -68,6 +68,41 @@ describe('parseLocalNlEdit - set to an existing class', () => {
     }
   );
 
+  it.each([
+    '週三第二節英文',
+    '週三第二節改英文',
+    '週三第二節換英文課',
+    '週三第二節上英文',
+    '週三第二節改成英文的課',
+    '週三第二節改成林老師的課',
+    '週三第二節改成林老師'
+  ])('forgiving wording: %s', text => {
+    expect(edits(text)).toEqual([{ day: 3, period: 1, key: 'C' }]);
+  });
+
+  it('ignores case in a subject name', () => {
+    const data = buildFixtureData();
+    data.teacherDB.C = ['English', '林老師', ''];
+    expect(parseLocalNlEdit('週三第二節改成english', data)?.scheduleEdits).toEqual([
+      { day: 3, period: 1, key: 'C' }
+    ]);
+  });
+
+  it('matches a subject by part of its name', () => {
+    const data = buildFixtureData();
+    data.teacherDB.A = ['數學A', '王老師', ''];
+    expect(parseLocalNlEdit('週三第二節改成數學', data)?.scheduleEdits).toEqual([
+      { day: 3, period: 1, key: 'A' }
+    ]);
+  });
+
+  it('still treats 改到 a period as a move, not a set', () => {
+    expect(edits('把週三第一節改到週三第二節')).toEqual([
+      { day: 3, period: 0, key: '' },
+      { day: 3, period: 1, key: 'A' }
+    ]);
+  });
+
   it('matches an odd/even split class by its full subject', () => {
     expect(edits('週三第三節改成國文/公民')).toEqual([{ day: 3, period: 2, key: 'B' }]);
   });
