@@ -307,6 +307,8 @@ body.orbit-motion-paused .dashboard::before{animation-play-state:paused}
 
 /* ---- Base ---- */
 html{color-scheme:dark;height:100%;overflow:hidden;overscroll-behavior:none;background:#0B1117}
+/* Orbit draws its own status-bar area (the header pads for it; nothing scrolls under it), so no kit strip. */
+html::before{display:none}
 body{
   /* Derived from the --pro-* tokens JS overrides on this same element — see the
      note in the :root design-tokens block above for why these live here and

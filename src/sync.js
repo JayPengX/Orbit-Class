@@ -442,7 +442,7 @@ function clearSyncInputFields() {
 // The next class is about to start: the kit's notice (a banner on screen, a
 // system notice in the background once turned on in the account sheet).
 function notifyClassSoon({ tag, name, meta }) {
-  notify(q, { title: lang === 'en' ? `Next: ${name}` : `下一堂：${name}`, body: meta, tag });
+  notify(q, { title: lang === 'en' ? `Next: ${name}` : `下一堂：${name}`, body: meta, tag, kind: 'class' });
 }
 
 export {
