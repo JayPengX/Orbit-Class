@@ -279,6 +279,7 @@ export default {
   'sync.notConfigured': 'Sync has not been set up yet.',
   'sync.uploadFailed': 'Sync upload failed: {message}',
   'sync.downloadFailed': 'Sync download failed: {message}',
+  'sync.newerElsewhere': 'This device was behind: the newer schedule from your other device was kept, and the change made here was set aside.',
   'sync.syncedFromOtherDevice': 'The schedule was synced from another device.',
   'sync.remoteDeletedByManager':
     'The sync was deleted entirely by the manager. This device has automatically unlinked from sync (the local schedule is unaffected).',

@@ -57,7 +57,8 @@ vi.mock('../src/quadra.mjs', () => ({
   setting: (wallet, key, fallback = null) => wallet?.settings?.[key]?.value ?? fallback,
   taipeiDay: () => 'd',
   errorText: error => error.message,
-  detectLang: () => 'zh'
+  detectLang: () => 'zh',
+  notify: () => {}
 }));
 
 let sync;

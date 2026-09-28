@@ -237,6 +237,7 @@ export default {
   'sync.notConfigured': '尚未設定同步。',
   'sync.uploadFailed': '同步上傳失敗：{message}',
   'sync.downloadFailed': '同步下載失敗：{message}',
+  'sync.newerElsewhere': '這台裝置的課表比較舊：已保留其他裝置較新的課表，這裡剛剛的修改沒有覆蓋上去。',
   'sync.syncedFromOtherDevice': '已從其他裝置同步課表。',
   'sync.remoteDeletedByManager':
     '同步已被管理者整個刪除，這台裝置已自動解除同步（本機課表不受影響）。',
