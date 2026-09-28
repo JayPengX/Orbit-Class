@@ -242,3 +242,22 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
 }
 
 export { pad2 };
+
+/**
+ * The next class today when it starts within `lead` minutes (for a notice):
+ * { tag, name, start, meta }, else null. `tag` is the same all the minutes
+ * before one class, so it's announced once.
+ */
+export function classStartingSoon({ now, week, todaySchedule, lead = 5 }) {
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const next = (todaySchedule || []).find(c => parseTime(c.s) > mins);
+  if (!next || parseTime(next.s) - mins > lead) return null;
+  const info = processSplitName(next, week);
+  const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  return {
+    tag: `class:${day}:${next.s}`,
+    name: info.n,
+    start: next.s,
+    meta: [next.s, info.t, next.loc].filter(Boolean).join(' · ')
+  };
+}

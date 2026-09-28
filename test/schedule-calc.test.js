@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeDashboardViewModel } from '../src/schedule-calc.js';
+import { classStartingSoon, computeDashboardViewModel } from '../src/schedule-calc.js';
 
 // A 3-period Monday with one split (單/雙 week) class in the middle, and the
 // default 打掃時間 break sitting exactly between periods 0 and 1 - same
@@ -240,5 +240,20 @@ describe('computeDashboardViewModel - same-day special time on a no-class day', 
     });
     expect(vm.statusText).toBe('就寢時間');
     expect(vm.timerVisible).toBe(true);
+  });
+});
+
+describe('classStartingSoon', () => {
+  const at = (h, m) => new Date(2026, 8, 28, h, m, 0);
+  it('announces the next class in the five minutes before it', () => {
+    const soon = classStartingSoon({ now: at(9, 6), week: '單', todaySchedule });
+    expect(soon).toEqual({ tag: 'class:2026-09-28:09:10', name: '國文', start: '09:10', meta: '09:10 · 李老師 · 102' });
+    expect(classStartingSoon({ now: at(9, 9), week: '雙', todaySchedule }).name).toBe('公民');
+  });
+  it('says nothing earlier, during a class, or after the last one', () => {
+    expect(classStartingSoon({ now: at(9, 0), week: '單', todaySchedule })).toBeNull();
+    expect(classStartingSoon({ now: at(9, 10), week: '單', todaySchedule })).toBeNull();
+    expect(classStartingSoon({ now: at(12, 0), week: '單', todaySchedule })).toBeNull();
+    expect(classStartingSoon({ now: at(9, 6), week: '單', todaySchedule: [] })).toBeNull();
   });
 });

@@ -32,7 +32,8 @@ import {
   pad2,
   processSplitName
 } from './schedule.js';
-import { computeDashboardViewModel } from './schedule-calc.js';
+import { classStartingSoon, computeDashboardViewModel } from './schedule-calc.js';
+import { notifyClassSoon } from './sync.js';
 import { t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
@@ -537,6 +538,12 @@ function update() {
   }
 
   renderDashboard(viewModel, week);
+
+  // Five minutes before a class: a notice (once per class; not in test mode).
+  if (!window.MANUALLY_TEST) {
+    const soon = classStartingSoon({ now, week, todaySchedule: state.runtimeSchedule[curDay] });
+    if (soon) notifyClassSoon(soon);
+  }
 
   const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}`;
   if (state.lastListKey !== liveStateKey) {

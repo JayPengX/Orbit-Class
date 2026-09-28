@@ -51,6 +51,7 @@ All three are deliberately built on top of services whose free tier has a hard u
 
 - **"Right now" front and center**: the top of the dashboard always shows the current class, teacher, room, and time remaining (progress bar + countdown), followed by a preview of the next period, then the full day's schedule list — tap any period for a detail card.
 - **Fully automatic transitions**: period changes, day changes, and end-of-class all recompute automatically — no manual refresh or "next period" button needed.
+- **A notice before each class**: five minutes before a class starts, a banner (on screen) or a system notification (in the background, once notifications are turned on in the Quadra account sheet) names it with its time, teacher and room (`classStartingSoon` in `src/schedule-calc.js`, the kit's `notify`).
 - **Non-class periods handled properly**: lunch break, cleaning time, and similar special periods are shown by name with their own countdown on the main screen, rather than being forced into the "class" display format.
 
 ---
