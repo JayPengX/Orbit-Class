@@ -2174,4 +2174,19 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 /* Dialogs over the dashboard: nearly solid, so the page behind never reads
    through their text (where the backdrop blur isn't drawn, and in bright
    themes). */
-.editor-confirm-sheet{background:var(--glass-specular),color-mix(in srgb,var(--orbit-panel-strong) 90%,transparent)}
+.editor-confirm-sheet{background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),#0e141c}
+/* The welcome card (onboarding.js): a top-layer dialog, solid, three ways in. */
+.orbit-welcome{width:min(calc(100vw - 28px),400px);max-height:calc(100dvh - 40px);margin:auto;padding:0;border:1px solid var(--bd);border-radius:28px;background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),#0e141c;color:var(--txt);box-shadow:var(--glass-shadow);overflow:auto}
+.orbit-welcome::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.orbit-welcome-box{display:grid;gap:12px;padding:24px 20px 16px}
+.orbit-welcome-kicker{margin:0;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--pro-accent)}
+.orbit-welcome-title{margin:0;font-size:24px;font-weight:900;letter-spacing:-.02em;line-height:1.2}
+.orbit-welcome-lede{margin:0 0 4px;font-size:14px;line-height:1.55;color:var(--sub)}
+.orbit-welcome-choices{display:grid;gap:9px}
+.orbit-welcome-choice{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--pro-accent) 22%,var(--bd));background:color-mix(in srgb,var(--pro-accent) 9%,rgba(255,255,255,.04));color:var(--txt);font:inherit;text-align:left;cursor:pointer;transition:transform .12s}
+.orbit-welcome-choice:active{transform:scale(.98)}
+.orbit-welcome-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--pro-accent) 18%,transparent);font-size:20px}
+.orbit-welcome-text{display:grid;gap:2px;min-width:0}
+.orbit-welcome-text strong{font-size:15.5px;font-weight:800}
+.orbit-welcome-text small{font-size:12.5px;line-height:1.4;color:var(--sub)}
+.orbit-welcome-later{justify-self:center;margin-top:2px;padding:8px 14px;border:0;background:none;color:var(--sub);font:inherit;font-size:14px;font-weight:700;cursor:pointer}

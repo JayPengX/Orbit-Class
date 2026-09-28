@@ -52,6 +52,7 @@ const session = {
 };
 vi.mock('../src/quadra.mjs', () => ({
   quadraSession: () => session,
+  storedAccount: () => 'account',
   accountSheet: () => {},
   activityPatch: (wallet, app, action) => ({ settings: { [`act:${app}`]: { value: { day: 'd', n: { [action]: 1 } }, t: 1 } } }),
   setting: (wallet, key, fallback = null) => wallet?.settings?.[key]?.value ?? fallback,

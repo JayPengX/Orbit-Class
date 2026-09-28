@@ -2,16 +2,21 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { loadApp } from './helpers/loadApp.js';
 import { seedLocalStorage } from './helpers/fixtureData.js';
 
-// One real boot is enough (unlike sync-default-project.test.js's env-var
-// case, nothing here is read once at module-import time) -
-// showOnboardingPrompt() re-checks hasSavedSchedule()/isSyncConfigured()/
-// the "seen" flag against live localStorage on every call, so each scenario
-// just calls it directly rather than rebooting the whole app per case
-// (which, tried initially, thrashed accumulating setInterval timers from
-// repeated bootstrap.js boots badly enough to crash the test worker).
+// One real boot is enough: showOnboardingPrompt() re-checks
+// hasSavedSchedule() and the "seen" flag against live localStorage on
+// every call, so each scenario calls it directly.
 let showOnboardingPrompt;
 
 beforeAll(async () => {
+  // jsdom has no showModal: open the dialog the plain way.
+  if (!HTMLDialogElement.prototype.showModal)
+    HTMLDialogElement.prototype.showModal = function () {
+      this.setAttribute('open', '');
+    };
+  if (!HTMLDialogElement.prototype.close)
+    HTMLDialogElement.prototype.close = function () {
+      this.removeAttribute('open');
+    };
   await loadApp();
   ({ showOnboardingPrompt } = await import('../src/onboarding.js'));
 });
@@ -21,84 +26,53 @@ beforeEach(() => {
   localStorage.removeItem('orbitSyncProjectId');
   localStorage.removeItem('orbitSyncCode');
   localStorage.removeItem('orbitOnboardingSeen');
-  hideConfirmSheet();
+  document.getElementById('orbit-welcome')?.remove();
   document.getElementById('editor-sheet').classList.remove('show');
   document.getElementById('transfer-sheet').classList.remove('show');
 });
 
-function hideConfirmSheet() {
-  document.getElementById('editor-confirm-sheet').classList.remove('show');
-  document.getElementById('editor-confirm-overlay').classList.remove('show');
-}
-function confirmSheetVisible() {
-  return document.getElementById('editor-confirm-sheet').classList.contains('show');
-}
-function confirmButtons() {
-  return document.querySelectorAll('#editor-confirm-sheet .editor-confirm-btn');
-}
+const card = () => document.getElementById('orbit-welcome');
+const choice = id => card().querySelector(`[data-choice="${id}"]`);
 
-describe('first-run onboarding prompt', () => {
-  it('shows for a brand-new browser (no saved schedule, no sync)', () => {
+describe('the welcome card', () => {
+  it('shows for a brand-new pass (no saved schedule)', () => {
     showOnboardingPrompt();
-    expect(confirmSheetVisible()).toBe(true);
-    expect(document.getElementById('editor-confirm-title').textContent).toMatch(
-      /開始使用 Orbit Class/
-    );
+    expect(card()?.hasAttribute('open')).toBe(true);
+    expect(card().textContent).toMatch(/歡迎使用 Orbit Class/);
+    expect(card().querySelectorAll('.orbit-welcome-choice').length).toBe(3);
   });
 
   it('does not show for a returning user with a saved schedule', () => {
     seedLocalStorage();
     showOnboardingPrompt();
-    expect(confirmSheetVisible()).toBe(false);
+    expect(card()).toBe(null);
   });
 
-  it('never shows again once already seen, even with still no saved schedule', () => {
-    localStorage.setItem('orbitOnboardingSeen', '1');
+  it('never shows again once seen', () => {
     showOnboardingPrompt();
-    expect(confirmSheetVisible()).toBe(false);
+    card().querySelector('.orbit-welcome-later').click();
+    expect(card()).toBe(null);
+    showOnboardingPrompt();
+    expect(card()).toBe(null);
   });
 
-  it('marks itself seen so a second call in the same session is a no-op', () => {
+  it('the share key opens the transfer sheet with the key field focused', () => {
     showOnboardingPrompt();
-    expect(confirmSheetVisible()).toBe(true);
-    hideConfirmSheet();
-    showOnboardingPrompt();
-    expect(confirmSheetVisible()).toBe(false);
-  });
-
-  it('"輸入合併金鑰" opens the standalone transfer sheet with the key field focused', () => {
-    showOnboardingPrompt();
-    confirmButtons()[1].onclick(); // confirmLabel slot: "輸入合併金鑰"
-
-    expect(confirmSheetVisible()).toBe(false);
+    choice('key').click();
+    expect(card()).toBe(null);
     expect(document.getElementById('transfer-sheet').classList.contains('show')).toBe(true);
-    expect(document.getElementById('editor-sheet').classList.contains('show')).toBe(false);
     expect(document.activeElement).toBe(document.getElementById('quadra-key'));
   });
 
-  it('"先自己建立" leads to a second choice between manual setup and AI import', () => {
+  it('typing it in opens the editor', () => {
     showOnboardingPrompt();
-    confirmButtons()[0].onclick(); // cancelLabel slot: "先自己建立"
-
-    expect(confirmSheetVisible()).toBe(true);
-    expect(document.getElementById('editor-confirm-title').textContent).toMatch(/怎麼開始/);
-  });
-
-  it('the second choice\'s "前往手動建立" just opens the editor', () => {
-    showOnboardingPrompt();
-    confirmButtons()[0].onclick(); // -> second choice sheet
-    confirmButtons()[0].onclick(); // cancelLabel slot: "前往手動建立"
-
-    expect(confirmSheetVisible()).toBe(false);
+    choice('manual').click();
     expect(document.getElementById('editor-sheet').classList.contains('show')).toBe(true);
   });
 
-  it('the second choice\'s "用 AI 辨識照片" opens the standalone transfer sheet', () => {
+  it('a photo opens the transfer sheet (AI import)', () => {
     showOnboardingPrompt();
-    confirmButtons()[0].onclick(); // -> second choice sheet
-    confirmButtons()[1].onclick(); // confirmLabel slot: "用 AI 辨識照片"
-
-    expect(confirmSheetVisible()).toBe(false);
+    choice('photo').click();
     expect(document.getElementById('transfer-sheet').classList.contains('show')).toBe(true);
     expect(document.getElementById('editor-sheet').classList.contains('show')).toBe(false);
   });

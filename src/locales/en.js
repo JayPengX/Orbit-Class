@@ -136,16 +136,16 @@ export default {
   'editorTeachers.deleteTitle': 'Delete "{label}"?',
   'editorTeachers.deleteMessage':
     'This will remove this class and clear every schedule cell that uses it.',
-  'onboarding.startChoiceTitle': 'How would you like to start?',
-  'onboarding.startChoiceMessage':
-    'Build a schedule manually, or let AI generate one automatically from a photo.',
-  'onboarding.useAiPhoto': 'Use AI to scan a photo',
-  'onboarding.buildManually': 'Build it manually',
-  'onboarding.welcomeTitle': 'Get started with Orbit Class',
+  'onboarding.welcomeTitle': 'Welcome to Orbit Class',
   'onboarding.welcomeMessage':
-    'If someone gave you a merge key, enter it; otherwise you can build your own.',
-  'onboarding.enterPairingCode': 'Enter a merge key',
-  'onboarding.buildOwnFirst': 'Build my own first',
+    'Bring your schedule in first: then opening the app tells you the period now, the minutes left and what’s next. It lives on your Quadra Pass, the same on every device.',
+  'onboarding.photoTitle': 'Import from a photo',
+  'onboarding.photoHint': 'Snap a paper schedule or a screenshot; AI fills it in',
+  'onboarding.manualTitle': 'Type it in',
+  'onboarding.manualHint': 'Add each period’s class, time, teacher and room',
+  'onboarding.keyTitle': 'Use a classmate’s share key',
+  'onboarding.keyHint': 'Enter the key a classmate gave you for a copy of theirs',
+  'onboarding.later': 'Later',
   'editorBackup.overwriteExportTitle': 'Overwrite the exported content?',
   'editorBackup.overwriteExportMessage':
     'Exporting will overwrite the content currently in the text field.',
@@ -279,7 +279,8 @@ export default {
   'sync.notConfigured': 'Sync has not been set up yet.',
   'sync.uploadFailed': 'Sync upload failed: {message}',
   'sync.downloadFailed': 'Sync download failed: {message}',
-  'sync.newerElsewhere': 'This device was behind: the newer schedule from your other device was kept, and the change made here was set aside.',
+  'sync.newerElsewhere':
+    'This device was behind: the newer schedule from your other device was kept, and the change made here was set aside.',
   'sync.syncedFromOtherDevice': 'The schedule was synced from another device.',
   'sync.remoteDeletedByManager':
     'The sync was deleted entirely by the manager. This device has automatically unlinked from sync (the local schedule is unaffected).',

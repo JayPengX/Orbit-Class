@@ -12,7 +12,7 @@ import { buildSchedule } from './schedule.js';
 import { state } from './state.js';
 import { renderSyncPanel, startSyncLoop, whenReady } from './sync.js';
 import qrcode from 'qrcode-generator';
-import { APPS, SITE, detectLang, phoneOnlyGate } from './quadra.mjs';
+import { APPS, SITE, detectLang, phoneOnlyGate, storedAccount } from './quadra.mjs';
 
 // Orbit Class is a phone app: on a computer the page says where to open it
 // (a QR code of its address) and nothing else starts. Only in the built
@@ -25,8 +25,13 @@ function qrSvg(text) {
 }
 const phoneOnly = Boolean(
   import.meta.env?.PROD &&
-    phoneOnlyGate('orbit', { lang: detectLang(), qr: qrSvg(`${SITE}${APPS.orbit.path}`) })
+  phoneOnlyGate('orbit', { lang: detectLang(), qr: qrSvg(`${SITE}${APPS.orbit.path}`) })
 );
+
+// Like every Quadra app, nothing shows until this device is signed in: the
+// dashboard stays hidden (the kit's q-signing-in) while the sign-in screen
+// comes up (sync.js's startQuadra -> q.start()).
+if (!phoneOnly && !storedAccount()) document.documentElement.classList.add('q-signing-in');
 
 // index.html's markup is static, so its own text/aria-label/title/
 // placeholder content needs one DOM pass translated in from strings.js
