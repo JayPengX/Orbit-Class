@@ -11,6 +11,22 @@ import { showOnboardingPrompt } from './onboarding.js';
 import { buildSchedule } from './schedule.js';
 import { state } from './state.js';
 import { renderSyncPanel, startSyncLoop, whenReady } from './sync.js';
+import qrcode from 'qrcode-generator';
+import { APPS, SITE, detectLang, phoneOnlyGate } from './quadra.mjs';
+
+// Orbit Class is a phone app: on a computer the page says where to open it
+// (a QR code of its address) and nothing else starts. Only in the built
+// site, so `vite dev` and the tests still run on a computer.
+function qrSvg(text) {
+  const qr = qrcode(0, 'M');
+  qr.addData(text);
+  qr.make();
+  return qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+const phoneOnly = Boolean(
+  import.meta.env?.PROD &&
+    phoneOnlyGate('orbit', { lang: detectLang(), qr: qrSvg(`${SITE}${APPS.orbit.path}`) })
+);
 
 // index.html's markup is static, so its own text/aria-label/title/
 // placeholder content needs one DOM pass translated in from strings.js
@@ -36,7 +52,7 @@ syncTestPlayPauseUi();
 syncTestToolbar();
 window.update();
 renderSyncPanel();
-startSyncLoop();
+if (!phoneOnly) startSyncLoop();
 // Deferred rather than shown inline here: this runs before testsim-
 // runtime.js's finishBoot() clears the loading spinner (see main.js's
 // import order), so showing a modal this early would sit behind/under it.
@@ -44,7 +60,7 @@ startSyncLoop();
 // where in the boot sequence it's scheduled from, since it can't run until
 // the current synchronous script (the rest of this module-import chain)
 // finishes - which is all "deferred" needs to mean here.
-whenReady().then(() => setTimeout(showOnboardingPrompt, 400));
+if (!phoneOnly) whenReady().then(() => setTimeout(showOnboardingPrompt, 400));
 
 // Caches the whole app shell so a return visit can load almost entirely
 // from disk instead of the network - see public/sw.js for the actual

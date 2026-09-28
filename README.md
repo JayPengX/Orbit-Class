@@ -51,6 +51,7 @@ All three are deliberately built on top of services whose free tier has a hard u
 
 - **"Right now" front and center**: the top of the dashboard always shows the current class, teacher, room, and time remaining (progress bar + countdown), followed by a preview of the next period, then the full day's schedule list — tap any period for a detail card.
 - **Fully automatic transitions**: period changes, day changes, and end-of-class all recompute automatically — no manual refresh or "next period" button needed.
+- **Made for phones**: on a computer the page shows a QR code and the link to open Orbit Class on a phone, with how to add it to the home screen (the kit's `phoneOnlyGate`; only in the built site, so `vite dev` and the tests still run on a computer).
 - **A notice before each class**: five minutes before a class starts, a banner (on screen) or a system notification (in the background, once notifications are turned on in the Quadra account sheet) names it with its time, teacher and room (`classStartingSoon` in `src/schedule-calc.js`, the kit's `notify`).
 - **Non-class periods handled properly**: lunch break, cleaning time, and similar special periods are shown by name with their own countdown on the main screen, rather than being forced into the "class" display format.
 
@@ -211,6 +212,10 @@ sign-in, and the schedule lives on the pass (the Worker's `/eco`, app
 backup string the export/import flow produces, so every device signed in
 with the pass shows the same schedule, updated when it's saved and checked
 whenever the app comes back on screen or is used (`src/sync.js`).
+
+### Never saving over a newer schedule
+
+A device uploads only its own saved edits, and only while the pass still holds the copy the device last saw. If another device changed the schedule meanwhile, the pass's newer copy is kept, the change made here is set aside on the device (`orbitSetAside`, the newest ten) and a note says so. A device left open with an older schedule used to push it back over the newer one when it came back on screen.
 
 ### Sharing: merge keys
 
