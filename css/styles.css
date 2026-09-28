@@ -2168,3 +2168,4 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .qp-key-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
 .qp-key-row .sync-input{text-transform:uppercase;letter-spacing:.12em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
 .qp-key-row .settings-transfer-btn{min-height:42px;padding:0 14px}
+.qp-key-row .sync-input::placeholder { letter-spacing: normal; text-transform: none; font-family: inherit; }
