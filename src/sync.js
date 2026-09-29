@@ -24,7 +24,17 @@ import {
 import { setStatusText } from './editor-core.js';
 import { hasSavedSchedule } from './data.js';
 import { t } from './strings.js';
-import { quadraSession, accountSheet, errorText, detectLang, activityPatch, setting, taipeiDay, notify } from './quadra.mjs';
+import {
+  quadraSession,
+  accountSheet,
+  errorText,
+  detectLang,
+  activityPatch,
+  setting,
+  taipeiDay,
+  notify,
+  schedulePush
+} from './quadra.mjs';
 
 const lang = detectLang();
 const q = quadraSession('orbit', { lang });
@@ -144,7 +154,8 @@ function pushSyncSnapshot({ mine = true } = {}) {
         await setAside(seen.conflict);
         return { ok: true, pushed: false };
       }
-      if (unreadable) return { ok: false, error: t('sync.uploadFailed', { message: 'unreadable' }) };
+      if (unreadable)
+        return { ok: false, error: t('sync.uploadFailed', { message: 'unreadable' }) };
       const payload = await encodeTransferData(state.applicationData);
       if (payload === base) {
         localDirty = false;
@@ -442,12 +453,33 @@ function clearSyncInputFields() {
 // The next class is about to start: the kit's notice (a banner on screen, a
 // system notice in the background once turned on in the account sheet).
 function notifyClassSoon({ tag, name, meta }) {
-  notify(q, { title: lang === 'en' ? `Next: ${name}` : `下一堂：${name}`, body: meta, tag, kind: 'class' });
+  notify(q, {
+    title: lang === 'en' ? `Next: ${name}` : `下一堂：${name}`,
+    body: meta,
+    tag,
+    kind: 'class'
+  });
+}
+
+// The week's classes, five minutes before each, for notices while the app
+// is closed (the Worker sends them: see the kit's schedulePush).
+function scheduleClassNotices(classes) {
+  schedulePush(
+    q,
+    classes.map(c => ({
+      at: c.at,
+      title: lang === 'en' ? `Next: ${c.name}` : `下一堂：${c.name}`,
+      body: c.meta,
+      tag: c.tag,
+      kind: 'class'
+    }))
+  );
 }
 
 export {
   applyEditorRoleLock,
   notifyClassSoon,
+  scheduleClassNotices,
   clearSyncInputFields,
   getSyncKeepLocalStyle,
   isSyncConfigured,

@@ -54,15 +54,17 @@ const session = {
 vi.mock('../src/quadra.mjs', () => ({
   quadraSession: () => session,
   storedAccount: () => 'account',
+  schedulePush: () => {},
   accountSheet: () => {},
-  activityPatch: (wallet, app, action) => ({ settings: { [`act:${app}`]: { value: { day: 'd', n: { [action]: 1 } }, t: 1 } } }),
+  activityPatch: (wallet, app, action) => ({
+    settings: { [`act:${app}`]: { value: { day: 'd', n: { [action]: 1 } }, t: 1 } }
+  }),
   setting: (wallet, key, fallback = null) => wallet?.settings?.[key]?.value ?? fallback,
   taipeiDay: () => 'd',
   errorText: error => error.message,
   detectLang: () => 'zh',
   notify: () => {}
 }));
-
 
 // Data loss: a device left open with an older schedule must never save it
 // over a newer one another device put on the pass.

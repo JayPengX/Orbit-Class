@@ -33,7 +33,7 @@ import {
   processSplitName
 } from './schedule.js';
 import { classStartingSoon, computeDashboardViewModel } from './schedule-calc.js';
-import { notifyClassSoon } from './sync.js';
+import { notifyClassSoon, scheduleClassNotices } from './sync.js';
 import { t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
@@ -543,6 +543,12 @@ function update() {
   if (!window.MANUALLY_TEST) {
     const soon = classStartingSoon({ now, week, todaySchedule: state.runtimeSchedule[curDay] });
     if (soon) notifyClassSoon(soon);
+    // The coming week's, for the Worker (again every ten minutes).
+    const slot = Math.floor(now.getTime() / 600_000);
+    if (slot !== state.classPushSlot) {
+      state.classPushSlot = slot;
+      scheduleClassNotices(weekClasses(now));
+    }
   }
 
   const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}`;
@@ -550,6 +556,34 @@ function update() {
     renderList(week, viewModel.curIdx, viewModel.nxtIdx, curDay, viewModel.isDayFinished);
     state.lastListKey = liveStateKey;
   }
+}
+
+// Every class from now to a week ahead: { at (five minutes before), tag, name, meta }.
+function weekClasses(now) {
+  const out = [];
+  for (let d = 0; d < 7 && out.length < 60; d++) {
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
+    const week = getWeekType(date);
+    const day = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    for (const c of state.runtimeSchedule[date.getDay()] || []) {
+      const [h, m] = String(c.s || '')
+        .split(':')
+        .map(Number);
+      if (!Number.isFinite(h) || !Number.isFinite(m)) continue;
+      const at =
+        new Date(date.getFullYear(), date.getMonth(), date.getDate(), h, m).getTime() - 5 * 60_000;
+      if (at <= now.getTime()) continue;
+      const info = processSplitName(c, week);
+      if (!info.n) continue;
+      out.push({
+        at,
+        tag: `class:${day}:${c.s}`,
+        name: info.n,
+        meta: [c.s, info.t, c.loc].filter(Boolean).join(' · ')
+      });
+    }
+  }
+  return out;
 }
 
 // Set the instant the user touches or scrolls the list (see initScheduleScrollInputTracking),

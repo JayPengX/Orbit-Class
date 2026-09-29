@@ -72,8 +72,7 @@ function getISOWeekNumber(date) {
   return Math.ceil(((d - ys) / MS_PER_DAY + 1) / 7);
 }
 // Returns the current odd/even week label, respecting the reverse-week setting.
-function getWeekType() {
-  const now = new Date();
+function getWeekType(now = new Date()) {
   const wn = getISOWeekNumber(now);
   const even = wn % 2 === 0;
   return state.applicationData.reverseWeek ? (even ? '單' : '雙') : even ? '雙' : '單';
