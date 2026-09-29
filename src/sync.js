@@ -186,6 +186,8 @@ function pullSyncSnapshot() {
       }
       return { ok: true, applied: seen.applied };
     } catch (error) {
+      // Live on another device for now: not a failure (the kit says so).
+      if (error.code === 'ECO_SESSION_MOVED') return { ok: true, applied: false };
       return { ok: false, error: t('sync.downloadFailed', { message: failText(error) }) };
     }
   });
@@ -237,7 +239,7 @@ async function startQuadraOnce() {
       if (hasSavedSchedule()) await pushSyncSnapshot();
     }
   } catch (error) {
-    setSyncStatusUi(t('sync.downloadFailed', { message: failText(error) }), true);
+    if (error.code !== 'ECO_SESSION_MOVED') setSyncStatusUi(t('sync.downloadFailed', { message: failText(error) }), true);
   }
   renderSyncPanel();
   countToday('open');
