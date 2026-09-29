@@ -138,13 +138,13 @@ export default {
     'This will remove this class and clear every schedule cell that uses it.',
   'onboarding.welcomeTitle': 'Welcome to Orbit Class',
   'onboarding.welcomeMessage':
-    'Bring your schedule in first: then opening the app tells you the period now, the minutes left and what’s next. It lives on your Quadra Pass, the same on every device.',
+    'Add your schedule and always know what’s on now.',
   'onboarding.photoTitle': 'Import from a photo',
-  'onboarding.photoHint': 'Snap a paper schedule or a screenshot; AI fills it in',
+  'onboarding.photoHint': 'A photo or screenshot; AI fills it in',
   'onboarding.manualTitle': 'Type it in',
-  'onboarding.manualHint': 'Add each period’s class, time, teacher and room',
+  'onboarding.manualHint': 'Period by period',
   'onboarding.keyTitle': 'Use a classmate’s share key',
-  'onboarding.keyHint': 'Enter the key a classmate gave you for a copy of theirs',
+  'onboarding.keyHint': 'Enter a classmate’s key',
   'onboarding.later': 'Later',
   'editorBackup.overwriteExportTitle': 'Overwrite the exported content?',
   'editorBackup.overwriteExportMessage':
