@@ -456,7 +456,7 @@ function clearSyncInputFields() {
 // system notice in the background once turned on in the account sheet).
 function notifyClassSoon({ tag, name, meta }) {
   notify(q, {
-    title: lang === 'en' ? `Next: ${name}` : `下一堂：${name}`,
+    title: lang === 'en' ? `${name} in 5 minutes` : `${name} 5 分鐘後上課`,
     body: meta,
     tag,
     kind: 'class'
@@ -470,7 +470,7 @@ function scheduleClassNotices(classes) {
     q,
     classes.map(c => ({
       at: c.at,
-      title: lang === 'en' ? `Next: ${c.name}` : `下一堂：${c.name}`,
+      title: lang === 'en' ? `${c.name} in 5 minutes` : `${c.name} 5 分鐘後上課`,
       body: c.meta,
       tag: c.tag,
       kind: 'class'
