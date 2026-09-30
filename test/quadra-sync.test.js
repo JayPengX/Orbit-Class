@@ -103,6 +103,11 @@ describe('Orbit Class on the Quadra Pass', () => {
     await vi.waitFor(() =>
       expect(calls.some(c => c[0] === 'op' && c[1] === 'share-redeem')).toBe(true)
     );
+    // The copied schedule applied (the key box empties): the redeem has
+    // finished, so nothing of it runs on after this file's page is gone.
+    await vi.waitFor(() => expect(document.getElementById('quadra-key').value).toBe(''), {
+      timeout: 5000
+    });
     expect(sync.isSyncViewer()).toBe(false);
     expect(document.getElementById('btn-edit').classList.contains('is-disabled')).toBe(false);
   });
