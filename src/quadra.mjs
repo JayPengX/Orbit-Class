@@ -511,7 +511,10 @@ function makeSession(app, { lang, heartbeat }) {
     if (!w) return;
     wallet = w;
     cacheWallet(storedAccount(), w);
+    // The pass's notice switches (newer here: sent up).
+    adoptNotifyPrefs(w);
     emit('wallet', w);
+    setTimeout(() => syncPrefs(s), 0);
   }
   function setActive(next, where = null) {
     live = where;
@@ -542,7 +545,22 @@ function makeSession(app, { lang, heartbeat }) {
   const login = code => signIn(DEVICE_CODE_PATTERN.test(cleanCode(code)) ? { op: 'pair-redeem', code: cleanCode(code) } : { op: 'login', passcode: cleanCode(code) });
   const create = () => signIn({ op: 'create' });
   // A session from the device's refresh token (claim: make this app live).
-  async function refresh({ claim = false, data = false } = {}) {
+  // One at a time: a data fetch that needs a token while the start's sign-in
+  // is on its way waits for that one (not a second call to the Worker).
+  let refreshing = null;
+  function refresh(opts) {
+    const p = refreshOnce(opts);
+    refreshing = p;
+    const done = () => refreshing === p && (refreshing = null);
+    p.then(done, done);
+    return p;
+  }
+  // A usable token: the one held, the sign-in already on its way, or a new one.
+  async function freshToken() {
+    if (refreshing) await refreshing.catch(() => {});
+    if (!token || Date.now() - tokenAt > 15 * 60_000) await (refreshing || refresh({ claim: false }));
+  }
+  async function refreshOnce({ claim = false, data = false } = {}) {
     const ref = readStore(KEY.refresh);
     if (!ref) return signedOut();
     try {
@@ -567,7 +585,7 @@ function makeSession(app, { lang, heartbeat }) {
   }
   // Every call with the session token: a fresh one on expiry, once.
   async function withToken(fn) {
-    if (!token || Date.now() - tokenAt > 15 * 60_000) await refresh({ claim: false });
+    await freshToken();
     if (!token) {
       const error = new Error('not live');
       error.code = 'ECO_SESSION_MOVED';
@@ -629,7 +647,7 @@ function makeSession(app, { lang, heartbeat }) {
   // The data proxy, signed in.
   s.proxy = (url, extra = '') => `${PROXY_URL}?url=${encodeURIComponent(url)}${extra}${token ? `&qt=${encodeURIComponent(token)}` : ''}`;
   s.ensureToken = async () => {
-    if (!token || Date.now() - tokenAt > 15 * 60_000) await refresh({ claim: false });
+    await freshToken();
     return token;
   };
 
@@ -658,6 +676,7 @@ function makeSession(app, { lang, heartbeat }) {
     s.first = first;
     loop();
     setTimeout(() => resetNotice(s), 1200);
+    setTimeout(() => offerNotices(s), 2500);
     // The first reply: what the app merges its own copy with (never the
     // session itself: an app that took the session for the reply saw "no
     // data" and saved over the pass).
@@ -1564,7 +1583,8 @@ export function showNewPass(s, passcode) {
 // schedulePush(s, items), and arrives as a push notice while the app is
 // closed (Shared-Proxy/push.js).
 
-export const notifyOn = () => readStore(KEY.notify) === '1' && globalThis.Notification?.permission === 'granted';
+// Notices on for the pass (every app, every device) and allowed on this one.
+export const notifyOn = () => notifyPrefs().on === true && globalThis.Notification?.permission === 'granted';
 
 const PUSH_URL = ECO_URL.replace(/\/eco$/, '/push');
 async function pushPost(s, path, body) {
@@ -1613,7 +1633,7 @@ export async function schedulePush(s, items) {
   const base = `${globalThis.location?.origin || 'https://jaypengx.github.io'}${APPS[s.app]?.path || '/'}`;
   const list = items
     .filter(x => x && Number.isFinite(x.at) && kindOn(s.app, x.kind))
-    .map(x => ({ at: Math.round(x.at), title: x.title || '', body: x.body || '', tag: `${s.app}:${x.tag || x.title}`, url: `${base}${x.hash ? `#${x.hash}` : ''}`, ...(x.check ? { check: x.check } : {}), ...(x.until ? { until: Math.round(x.until) } : {}) }))
+    .map(x => ({ at: Math.round(x.at), title: x.title || '', body: x.body || '', tag: `${s.app}:${x.tag || x.title}`, ...(x.kind ? { kind: x.kind } : {}), url: `${base}${x.hash ? `#${x.hash}` : ''}`, ...(x.check ? { check: x.check } : {}), ...(x.until ? { until: Math.round(x.until) } : {}) }))
     .sort((a, b) => a.at - b.at)
     .slice(0, 60);
   const text = JSON.stringify(list);
@@ -1623,8 +1643,9 @@ export async function schedulePush(s, items) {
 }
 
 // Every kind of notice, by app: what it is and when it comes. Each can be
-// turned off on its own (per device, `quadra.notify.kinds`); a kind that's
-// off shows neither a banner nor a system notice.
+// turned off on its own; a kind that's off shows neither a banner nor a
+// system notice, and the Worker drops it from what it sends while the app
+// is closed.
 export const NOTICE_KINDS = {
   match: [
     ['start', '比賽開打', 'A game starts', '你追蹤的球隊比賽開始時。', 'When a team you follow starts a game.'],
@@ -1640,25 +1661,114 @@ export const NOTICE_KINDS = {
   ],
   stock: [
     ['alert', '價格提醒', 'Price alert', '你設定的價格提醒到價時。', 'When a price alert you set is reached.'],
-    ['fill', '委託成交', 'Order filled', '掛單或定期定額成交時。', 'When an order or a monthly plan is filled.']
+    ['fill', '委託成交', 'Order filled', '掛單或定期定額成交時，和定期定額扣款日當天。', 'When an order or a monthly plan is filled, and on a plan’s day.'],
+    ['order', '委託未成交', 'Order not filled', '委託到期失效、被取消，或定期定額這個月跳過時。', 'When an order lapses or is dropped, or a monthly plan skips a month.'],
+    ['margin', '維持率與斷頭', 'Margin call', '維持率偏低，或融資、放空被強制處理時。', 'When margin runs low, or a loan or short is force-closed.'],
+    ['income', '股利與利息', 'Dividends and interest', '除息、股利入帳、債券配息和活存利息入帳時。', 'When a holding goes ex-dividend, and when dividends, coupons or interest arrive.']
   ],
   orbit: [['class', '上課提醒', 'Class reminder', '每堂課開始前 5 分鐘。', 'Five minutes before each class.']]
 };
+
+// The switches belong to the pass, not the device: the wallet setting
+// `notify` ({ on, off: ['stock:alert', …] }, newest wins), so every app and
+// every device follows the same ones (apps on a phone's home screen don't
+// even share storage). This device keeps a copy (`quadra.notify.prefs`, with
+// the time it was set) for when it's offline, and sends a newer one up when
+// its app is the live one. `on` is "system notices wanted"; each device (and,
+// on an iPhone, each app) still has to be allowed once by the phone.
+const PREFS_KEY = 'quadra.notify.prefs';
 const KINDS_KEY = 'quadra.notify.kinds';
-function kindPrefs() {
-  try {
-    return JSON.parse(readStore(KINDS_KEY) || '{}') || {};
-  } catch {
-    return {};
-  }
+const cleanPrefs = v => ({
+  ...(typeof v?.on === 'boolean' ? { on: v.on } : {}),
+  off: [...new Set((Array.isArray(v?.off) ? v.off : []).filter(k => typeof k === 'string' && /^[a-z]+:[a-z]+$/.test(k)))].sort()
+});
+export function notifyPrefs() {
+  const saved = readJson(PREFS_KEY, null);
+  if (saved && typeof saved === 'object') return { ...cleanPrefs(saved), t: Number(saved.t) || 0 };
+  // Before the pass kept them: this device's own switches (t 0: the pass's
+  // copy wins over them; an account without one takes them).
+  const old = readJson(KINDS_KEY, {}) || {};
+  const flag = readStore(KEY.notify);
+  return { ...(flag === '1' ? { on: true } : flag === '0' ? { on: false } : {}), off: Object.keys(old).filter(k => old[k] === false).sort(), t: 0 };
+}
+const samePrefs = (a, b) => a.on === b.on && a.off.join() === b.off.join();
+function savePrefs(next, s) {
+  const prefs = { ...cleanPrefs(next), t: Date.now() };
+  writeStore(PREFS_KEY, JSON.stringify(prefs));
+  if (s) syncPrefs(s);
+  return prefs;
 }
 // Whether notices of this kind are wanted (every kind is, until turned off).
-export const kindOn = (app, kind) => !kind || kindPrefs()[`${app}:${kind}`] !== false;
-export function setKind(app, kind, on) {
-  const prefs = kindPrefs();
-  if (on) delete prefs[`${app}:${kind}`];
-  else prefs[`${app}:${kind}`] = false;
-  writeStore(KINDS_KEY, JSON.stringify(prefs));
+export const kindOn = (app, kind) => !kind || !notifyPrefs().off.includes(`${app}:${kind}`);
+export function setKind(app, kind, on, s = null) {
+  const prefs = notifyPrefs();
+  const off = prefs.off.filter(k => k !== `${app}:${kind}`);
+  if (!on) off.push(`${app}:${kind}`);
+  return savePrefs({ ...prefs, off }, s);
+}
+export const setNotifyOn = (on, s = null) => savePrefs({ ...notifyPrefs(), on: Boolean(on) }, s);
+// The pass's copy and this device's, made one: the newer wins; a newer (or
+// never uploaded) copy here goes up when this app may write; the Worker's
+// copy (for notices sent while the app is closed) follows.
+let syncingPrefs = null;
+export function adoptNotifyPrefs(wallet) {
+  const held = wallet?.settings?.notify;
+  const mine = notifyPrefs();
+  if (!held?.value || !(Number(held.t) > mine.t)) return false;
+  writeStore(PREFS_KEY, JSON.stringify({ ...cleanPrefs(held.value), t: Number(held.t) }));
+  return true;
+}
+export async function syncPrefs(s) {
+  if (!s?.wallet || syncingPrefs) return;
+  syncingPrefs = (async () => {
+    adoptNotifyPrefs(s.wallet);
+    const mine = notifyPrefs();
+    const held = s.wallet.settings?.notify;
+    const heldPrefs = held?.value ? cleanPrefs(held.value) : null;
+    const worth = mine.on !== undefined || mine.off.length;
+    if (s.active && worth && (!heldPrefs || (mine.t > (Number(held.t) || 0) && !samePrefs(mine, heldPrefs)))) {
+      const t = mine.t || Date.now();
+      const { t: _, ...value } = mine;
+      await s.write({ wallet: { settings: { notify: { value, t } } } }).catch(() => null);
+      if (!mine.t) writeStore(PREFS_KEY, JSON.stringify({ ...mine, t }));
+    }
+    // The Worker's copy, once per change.
+    const now = notifyPrefs();
+    const text = JSON.stringify({ on: now.on !== false, off: now.off });
+    if (readStore('quadra.push.prefs') !== text && (await pushPost(s, 'prefs', JSON.parse(text)))) writeStore('quadra.push.prefs', text);
+  })().finally(() => (syncingPrefs = null));
+  return syncingPrefs;
+}
+
+// Notices were turned on for the pass (on another device or in another
+// app), but the phone hasn't been asked here yet: a banner offers it (the
+// phone asks only after a tap). Not again for a week once closed.
+function offerNotices(s) {
+  if (typeof document === 'undefined' || !s.pass || !('Notification' in globalThis)) return;
+  if (notifyPrefs().on !== true || Notification.permission !== 'default') return;
+  const last = Number(readStore('quadra.notify.offered')) || 0;
+  if (Date.now() - last < 7 * 86_400_000) return;
+  const T = (zh, e) => (s.lang === 'en' ? e : zh);
+  bannerEl?.remove();
+  const el = node('div', { class: 'q-banner q-banner-ask', role: 'dialog', 'aria-label': T('開啟通知', 'Turn on notices'), style: `--q-accent:${APPS[s.app].color}` }, [
+    node('img', { src: './favicon.svg', alt: '' }),
+    node('div', {}, [node('strong', { text: T('在這裡也開啟通知？', 'Notices here too?') }), node('span', { text: T(`你的 Quadra Pass 開啟了通知，${APPS[s.app].short} 在這台裝置還需要允許一次。`, `Your Quadra Pass has notices on; ${APPS[s.app].short} on this device needs allowing once.`) })]),
+    node('button', { class: 'q-banner-go', type: 'button', text: T('允許', 'Allow') }),
+    node('button', { class: 'q-banner-x', type: 'button', 'aria-label': T('關閉', 'Close'), text: '×' })
+  ]);
+  const gone = () => {
+    writeStore('quadra.notify.offered', String(Date.now()));
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 250);
+  };
+  el.querySelector('.q-banner-x').addEventListener('click', gone);
+  el.querySelector('.q-banner-go').addEventListener('click', async () => {
+    const p = await Notification.requestPermission().catch(() => 'denied');
+    if (p === 'granted') enablePush(s, true);
+    gone();
+  });
+  document.body.append(el);
+  bannerEl = el;
 }
 
 // A switch: role=switch, aria-checked.
@@ -1672,31 +1782,37 @@ function toggle(on, label, onchange) {
   return b;
 }
 
-// The account sheet's notices: this device's system notices (on, off, or
-// not allowed by the phone), then every kind of notice with what it is and
-// its own switch.
+// The account sheet's notices: system notices for the pass (on, off, or
+// not allowed yet by this phone), then every kind of notice with what it is
+// and its own switch. All of them follow the pass to every app and device.
 function notifyRows(s, note) {
   const en = s.lang === 'en';
   const T = (zh, e) => (en ? e : zh);
   const supported = 'Notification' in globalThis;
-  const state = () => (!supported ? T('這個瀏覽器不支援', 'Not supported here') : Notification.permission === 'denied' ? T('已封鎖：請到系統設定允許', 'Blocked in system settings') : notifyOn() ? T('開啟', 'On') : T('關閉', 'Off'));
+  const state = () => {
+    if (!supported) return notifyPrefs().on ? T('已開啟；這個瀏覽器收不到通知', 'On; this browser can’t show them') : T('這個瀏覽器不支援', 'Not supported here');
+    if (Notification.permission === 'denied') return T('這台裝置封鎖了通知：請到系統設定允許', 'Blocked on this device: allow them in system settings');
+    if (notifyOn()) return T('開啟：每個 App、每台裝置', 'On: every app, every device');
+    if (notifyPrefs().on) return T('已開啟；這台裝置還沒允許，點開關允許', 'On; not allowed on this device yet: tap to allow');
+    return T('關閉', 'Off');
+  };
   const sub = node('small', { class: 'q-notice-sub', text: state() });
   const master = node('div', { class: 'q-notice-row master' }, [
     node('span', { class: 'q-notice-icon', 'aria-hidden': 'true', text: '🔔' }),
-    node('div', { class: 'q-notice-text' }, [node('strong', { text: T('系統通知（這台裝置）', 'System notices (this device)') }), sub]),
+    node('div', { class: 'q-notice-text' }, [node('strong', { text: T('系統通知', 'System notices') }), sub]),
     supported
       ? toggle(notifyOn(), T('系統通知', 'System notices'), async on => {
           if (!on) {
-            writeStore(KEY.notify, '0');
+            setNotifyOn(false, s);
             sub.textContent = state();
+            schedulePush(s, []);
             return true;
           }
           const p = await Notification.requestPermission().catch(() => 'denied');
           if (p === 'granted') {
-            writeStore(KEY.notify, '1');
+            setNotifyOn(true, s);
             enablePush(s, true);
-          }
-          else note.textContent = T('請到系統設定允許通知。', 'Allow notifications in system settings.');
+          } else note.textContent = T('請到系統設定允許通知。', 'Allow notifications in system settings.');
           sub.textContent = state();
           return p === 'granted';
         })
@@ -1710,12 +1826,16 @@ function notifyRows(s, note) {
       ...NOTICE_KINDS[app].map(([kind, zh, e, dzh, de]) =>
         node('div', { class: 'q-notice-row' }, [
           node('div', { class: 'q-notice-text' }, [node('strong', { text: T(zh, e) }), node('small', { class: 'q-notice-sub', text: T(dzh, de) })]),
-          toggle(kindOn(app, kind), T(zh, e), on => setKind(app, kind, on))
+          toggle(kindOn(app, kind), T(zh, e), on => void setKind(app, kind, on, s))
         ])
       )
     ])
   );
-  return [node('div', { class: 'q-rows' }, [master]), node('div', { class: 'q-rows q-notice-kinds' }, groups)];
+  return [
+    node('div', { class: 'q-rows' }, [master]),
+    node('p', { class: 'q-notice-note', text: T('通知設定跟著 Quadra Pass：在每個 App、每台裝置都一樣。', 'Notice settings follow your Quadra Pass: the same in every app, on every device.') }),
+    node('div', { class: 'q-rows q-notice-kinds' }, groups)
+  ];
 }
 
 const shown = new Set();
@@ -1985,6 +2105,148 @@ function steadyTabBar() {
   else settle();
 }
 steadyTabBar();
+
+// ---- The app frame: the tab bar and the top-right, the same in every app -------------------
+//
+// Every app's header is the same markup (index.html):
+//   <header class="q-appbar"><div class="q-appbar-inner">
+//     <div class="q-brand">logo, <h1 id="title">, <p id="status" class="q-status"></div>
+//     <nav id="tabs" class="q-tabbar"></nav> <div id="top-actions" class="q-actions"></div>
+//   </div></header>
+// On a phone the tabs sit at the bottom and the header is only the status
+// line and the buttons; on a wider screen it's one sticky bar.
+
+// One drawing per idea, shared by every app (24×24, stroked).
+export const ICONS = {
+  home: '<path d="M3.5 10.6 12 4l8.5 6.6"/><path d="M5.5 9.3V20h13V9.3"/><path d="M10 20v-5.4h4V20"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  live: '<circle cx="12" cy="12" r="2.3"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5.2 5.2a9.6 9.6 0 0 0 0 13.6M18.8 5.2a9.6 9.6 0 0 1 0 13.6"/>',
+  star: '<path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/>',
+  balls: '<circle cx="8" cy="8" r="4"/><circle cx="16.5" cy="16" r="4"/><circle cx="17" cy="7" r="2.4"/><circle cx="7.2" cy="17" r="2.4"/>',
+  ticket: '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5V9a3 3 0 0 0 0 6v2.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5V15a3 3 0 0 0 0-6z"/><path d="M9.5 9h5M9.5 12h5M9.5 15h3"/>',
+  history: '<path d="M3.5 12a8.5 8.5 0 1 0 2.8-6.3"/><path d="M3.5 4.5v4.3h4.3"/><path d="M12 7.5V12l3 2"/>',
+  chart: '<path d="M4 20h16"/><path d="M5 16l4.2-5 3.6 3 6.2-8"/><circle cx="19" cy="6" r="1.4"/>',
+  wallet: '<rect x="3.5" y="6.5" width="17" height="13.5" rx="3"/><path d="M8 6.5V5.3A1.8 1.8 0 0 1 9.8 3.5h4.4A1.8 1.8 0 0 1 16 5.3v1.2"/><path d="M3.5 12h17"/>',
+  exchange: '<path d="M4 8.5h14l-3.2-3.2"/><path d="M20 15.5H6l3.2 3.2"/>',
+  book: '<path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v14.5H7.5A2.5 2.5 0 0 0 5 20z"/><path d="M5 20a1.5 1.5 0 0 0 1.5 1.5H19v-4"/><path d="M9.5 7.5h6M9.5 11h4"/>',
+  gamepad: '<rect x="2.5" y="7" width="19" height="11.5" rx="5.2"/><path d="M7.5 10.8v3.9M5.6 12.75h3.8"/><circle cx="15.6" cy="11.6" r=".9"/><circle cx="17.9" cy="14" r=".9"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.4 9.4a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2.3-2.6 3.9"/><circle cx="12" cy="17.2" r=".5"/>',
+  refresh: '<path d="M19.5 11.5a7.5 7.5 0 1 0-2.2 5.4"/><path d="M19.5 4.5v7h-7"/>'
+};
+const icon = (name, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || name}</svg>`;
+const reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// tabBar({ tabs: [{ id, label, icon }], onSelect }) draws the tab bar in #tabs
+// and returns { select, badge, label, hide, current }.
+//   onSelect(id, { again }): the app shows that tab (its own rendering), and
+//     calls select(id) for the bar, the panels (#panel-<id>) and the address.
+//   Tapping the tab that's already open scrolls it back to the top; tapped
+//   again at the top, onSelect(id, { again: true }) (a tab may reset itself).
+//   Each tab keeps its place: switching back returns to where it was
+//   (select(id, { top: true }) starts it at the top instead).
+//   hash(id): the address for a tab ('#<id>' by default; null leaves it).
+export function tabBar({ tabs, onSelect, hash = id => `#${id}`, nav = document.getElementById('tabs'), label: ariaLabel = '' } = {}) {
+  const buttons = new Map();
+  const places = {};
+  let current = null;
+  nav.classList.add('q-tabbar');
+  nav.setAttribute('role', 'tablist');
+  if (ariaLabel) nav.setAttribute('aria-label', ariaLabel);
+  nav.style.setProperty('--q-tabs', String(tabs.length));
+  const again = id => {
+    if ((globalThis.scrollY || 0) > 4) globalThis.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+    else onSelect(id, { again: true });
+  };
+  for (const tab of tabs) {
+    const b = node('button', { class: 'q-tab', id: `tab-${tab.id}`, type: 'button', role: 'tab', 'data-tab': tab.id, 'aria-controls': `panel-${tab.id}`, 'aria-selected': 'false', tabindex: '-1' });
+    b.innerHTML = `<span class="q-tab-icon">${icon(tab.icon)}<b class="q-tab-badge" hidden></b></span><span class="q-tab-label"></span>`;
+    b.querySelector('.q-tab-label').textContent = tab.label;
+    b.addEventListener('click', () => (tab.id === current ? again(tab.id) : onSelect(tab.id, { again: false })));
+    buttons.set(tab.id, b);
+  }
+  nav.replaceChildren(...buttons.values());
+  nav.addEventListener('keydown', event => {
+    const shown = [...buttons].filter(([, b]) => !b.hidden).map(([id]) => id);
+    const i = shown.indexOf(current);
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (!step || i < 0) return;
+    event.preventDefault();
+    const next = shown[(i + step + shown.length) % shown.length];
+    onSelect(next, { again: false });
+    buttons.get(next)?.focus();
+  });
+  const api = {
+    get current() {
+      return current;
+    },
+    select(id, { top = false } = {}) {
+      const changed = current !== id;
+      const first = current == null;
+      if (changed && !first) places[current] = globalThis.scrollY || 0;
+      current = id;
+      for (const [tid, b] of buttons) {
+        const on = tid === id;
+        b.setAttribute('aria-selected', String(on));
+        b.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(`panel-${tid}`);
+        if (panel) panel.hidden = !on;
+      }
+      // Only a change of tab moves the address (the first paint leaves it:
+      // the app reads it to start).
+      try {
+        const h = changed && !first ? hash(id) : null;
+        if (h != null && location.hash !== h) history.replaceState(null, '', h || location.pathname + location.search);
+      } catch {}
+      if (changed && !first) {
+        // After the app has drawn the tab (it does so right after select).
+        const y = top ? 0 : places[id] || 0;
+        globalThis.scrollTo?.(0, y);
+        if (y) requestAnimationFrame(() => globalThis.scrollTo(0, y));
+      }
+    },
+    // A count (a number or short text) on a tab's icon; 0/''/null hides it.
+    // tone: 'bad' (red, default), 'warn', 'accent'; dot: a dot without text.
+    badge(id, value, { tone = 'bad', dot = false } = {}) {
+      const b = buttons.get(id)?.querySelector('.q-tab-badge');
+      if (!b) return;
+      const show = dot ? Boolean(value) : value != null && value !== '' && value !== 0 && value !== false;
+      b.hidden = !show;
+      b.textContent = show && !dot ? String(value) : '';
+      b.className = `q-tab-badge${dot ? ' dot' : ''}${tone !== 'bad' ? ` ${tone}` : ''}`;
+    },
+    label(id, text) {
+      const l = buttons.get(id)?.querySelector('.q-tab-label');
+      if (l && l.textContent !== text) l.textContent = text;
+    },
+    hide(id, hidden = true) {
+      const b = buttons.get(id);
+      if (b) b.hidden = Boolean(hidden);
+    }
+  };
+  return api;
+}
+
+// topActions(s, { help, refresh, extra }): the top-right of every app, in
+// #top-actions: 說明 · 重新整理 (apps with live data) · the account.
+//   help(): opens the help (default: this app's guide in Rewards).
+//   refresh(): reloads the app's data; the button (id="refresh") spins while
+//     it's disabled, so apps set refresh.disabled while loading.
+export function topActions(s, { help = null, refresh = null, extra = null, into = document.getElementById('top-actions') } = {}) {
+  const en = s.lang === 'en';
+  const helpBtn = node('button', { class: 'q-icon-btn', id: 'help-button', type: 'button', 'aria-label': en ? 'Help' : '說明', title: en ? 'Help' : '說明' });
+  helpBtn.innerHTML = icon('help');
+  helpBtn.addEventListener('click', () => (help ? help() : s.go('vocab', `help=${s.app}`)));
+  let refreshBtn = null;
+  if (refresh) {
+    refreshBtn = node('button', { class: 'q-icon-btn q-refresh', id: 'refresh', type: 'button', 'aria-label': en ? 'Refresh' : '重新整理', title: en ? 'Refresh' : '重新整理' });
+    refreshBtn.innerHTML = icon('refresh');
+    refreshBtn.addEventListener('click', () => refresh());
+  }
+  into.classList.add('q-actions');
+  into.replaceChildren(...[helpBtn, refreshBtn, accountButton(s, { extra })].filter(Boolean));
+  return { help: helpBtn, refresh: refreshBtn };
+}
 
 // Big numbers never wrap: they shrink (to 60% at most) to fit their box.
 export function fitNumbers(nodes) {
