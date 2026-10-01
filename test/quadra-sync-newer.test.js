@@ -56,11 +56,6 @@ vi.mock('../src/quadra.mjs', () => ({
   storedAccount: () => 'account',
   schedulePush: () => {},
   accountSheet: () => {},
-  activityPatch: (wallet, app, action) => ({
-    settings: { [`act:${app}`]: { value: { day: 'd', n: { [action]: 1 } }, t: 1 } }
-  }),
-  setting: (wallet, key, fallback = null) => wallet?.settings?.[key]?.value ?? fallback,
-  taipeiDay: () => 'd',
   errorText: error => error.message,
   detectLang: () => 'zh',
   notify: () => {}

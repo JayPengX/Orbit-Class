@@ -55,11 +55,6 @@ vi.mock('../src/quadra.mjs', () => ({
   storedAccount: () => 'account',
   schedulePush: () => {},
   accountSheet: () => {},
-  activityPatch: (wallet, app, action) => ({
-    settings: { [`act:${app}`]: { value: { day: 'd', n: { [action]: 1 } }, t: 1 } }
-  }),
-  setting: (wallet, key, fallback = null) => wallet?.settings?.[key]?.value ?? fallback,
-  taipeiDay: () => 'd',
   errorText: error => error.message,
   detectLang: () => 'zh',
   notify: () => {}
@@ -110,13 +105,6 @@ describe('Orbit Class on the Quadra Pass', () => {
     });
     expect(sync.isSyncViewer()).toBe(false);
     expect(document.getElementById('btn-edit').classList.contains('is-disabled')).toBe(false);
-  });
-
-  it('counts the day it was opened, once, for Rewards’ mission', () => {
-    const opened = calls.filter(
-      c => c[0] === 'write' && c[1].wallet?.settings?.['act:orbit']?.value?.n?.open
-    );
-    expect(opened.length).toBe(1);
   });
 
   it('AI requests carry the session token', async () => {

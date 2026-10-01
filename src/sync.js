@@ -29,9 +29,6 @@ import {
   accountSheet,
   errorText,
   detectLang,
-  activityPatch,
-  setting,
-  taipeiDay,
   notify,
   schedulePush
 } from './quadra.mjs';
@@ -165,7 +162,6 @@ function pushSyncSnapshot({ mine = true } = {}) {
       lastPayload = payload;
       base = payload;
       localDirty = false;
-      countToday('edit');
       return { ok: true, pushed: true };
     } catch (error) {
       if (error.code === 'ECO_SESSION_MOVED') return { ok: true, pushed: false };
@@ -242,16 +238,6 @@ async function startQuadraOnce() {
     if (error.code !== 'ECO_SESSION_MOVED') setSyncStatusUi(t('sync.downloadFailed', { message: failText(error) }), true);
   }
   renderSyncPanel();
-  countToday('open');
-}
-
-// What Orbit Class was used for today, on the pass (act:orbit): Quadra
-// Rewards' daily Orbit mission reads it. Opened counts once a day.
-function countToday(action) {
-  if (!q.pass || !q.active) return;
-  const had = setting(q.wallet, 'act:orbit', null);
-  if (action === 'open' && had?.day === taipeiDay() && had.n?.open) return;
-  q.write({ wallet: activityPatch(q.wallet, 'orbit', action) }).catch(() => {});
 }
 
 // Checks when the app comes back on screen or is used (at most every few
@@ -286,7 +272,7 @@ function startSyncLoop() {
     'visibilitychange',
     () => document.visibilityState === 'visible' && started && syncTick()
   );
-  q.on('active', live => live && (syncTick(), countToday('open')));
+  q.on('active', live => live && syncTick());
 }
 
 // The pass's session token for Orbit's AI requests (the Worker needs one).
