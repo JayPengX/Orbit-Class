@@ -2036,6 +2036,44 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
   .exam-countdown-value{font-size:clamp(20px,5.5vw,24px)}
 }
 
+/* ============================================================================
+   Tablet and computer layout
+   An iPad (or a computer's window) has the width for both columns AND the
+   height for the dashboard to breathe, so the phone's single 420px column
+   centred in a wide screen left most of it empty. Here: the same two
+   columns as a sideways phone (see above for why .top-stack is a flex
+   column next to .list-container), the left one the dashboard filling the
+   height above the nav bar, the right one the whole day's schedule. The
+   pair is capped and centred so a big monitor doesn't stretch the rows
+   into long thin bars. */
+@media (min-width:700px) and (min-height:501px){
+  body{
+    display:flex;flex-direction:row;align-items:stretch;column-gap:18px;
+    height:100dvh;min-height:100dvh;overflow:hidden;
+    max-width:1180px;margin:0 auto;
+    padding:calc(14px + var(--q-top, env(safe-area-inset-top))) max(20px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+    box-sizing:border-box;
+  }
+  .top-stack{display:flex;flex-direction:column;flex:0 0 min(460px,46%);width:min(460px,46%);min-height:0}
+  html{background:#0B1117}
+  .dashboard{width:100%;margin:0 0 12px;flex:1 1 auto;padding:16px 16px 18px}
+  .nav-bar{width:100%;margin:0;flex:0 0 auto;min-height:64px}
+  .list-container{flex:1 1 auto;width:auto;min-height:0;margin:0;max-width:none}
+  .title-now{font-size:58px}
+  #schedule-list .row{height:96px}
+  .exam-countdown{width:auto;max-width:none;flex:1 1 auto;min-width:0}
+}
+/* A tall tablet held upright: the dashboard on top at its phone shape but
+   wider, the schedule below it full width - two thin columns read worse
+   than one generous one at 820px. */
+@media (min-width:700px) and (max-width:900px) and (min-height:1000px){
+  body{flex-direction:column;column-gap:0;max-width:760px}
+  .top-stack{flex:0 0 auto;width:100%}
+  .dashboard{flex:0 0 auto;height:min(440px,38dvh)}
+  .nav-bar{margin-bottom:12px}
+  .list-container{flex:1 1 auto}
+}
+
 /* Sync / import-export sheet, phone landscape: the same fixed height every
    other viewport uses (see .transfer-sheet's own height comment) works out
    to only ~200px tall here, comfortably fitting nothing, so a viewer
