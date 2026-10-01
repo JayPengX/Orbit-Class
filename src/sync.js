@@ -35,24 +35,6 @@ import {
 
 const lang = detectLang();
 const q = quadraSession('orbit', { lang });
-// What older versions kept on the device (sync codes, backups): gone.
-const OLD_KEYS = [
-  'orbitSyncCode',
-  'orbitSyncManagerPasscode',
-  'orbitSyncLastUpdateTime',
-  'orbitSyncProjectId',
-  'orbitSyncRole',
-  'orbitSyncKeepLocalStyle',
-  'orbitSyncLastKnownStyle',
-  'orbitSyncStyleBackup',
-  'orbitSyncScheduleBackup'
-];
-try {
-  for (const key of OLD_KEYS) localStorage.removeItem(key);
-} catch {
-  // Storage unavailable: nothing to clean.
-}
-
 function isSyncConfigured() {
   return Boolean(q.pass);
 }

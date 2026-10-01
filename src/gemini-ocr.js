@@ -628,16 +628,12 @@ class AIVisionProcessor {
     // response_schema: Gemini's response_schema is the OpenAPI-3.0 subset
     // Schema object, which has no `additionalProperties` - confirmed against
     // the real API, not just the docs, a request that tried to schema-constrain
-    // a free-form {key: [subject, teacher, location]} map (the older shape,
-    // still accepted below) was rejected outright with a 400, and dropping the
+    // a free-form {key: [subject, teacher, location]} map was rejected
+    // outright with a 400, and dropping the
     // constraint to a bare `type: 'object'` made the model leave it empty far
     // too often (nothing in an unconstrained nested object tells the model
     // it's still expected to fill it in). An array of fully-typed objects has
-    // no such problem and is what the Worker's prompt now actually asks for;
-    // the older map shape is still read here only so a client running ahead
-    // of a not-yet-redeployed Worker (or vice versa, during a rolling deploy)
-    // degrades to parsing correctly instead of silently landing an empty
-    // course list.
+    // no such problem and is what the Worker's prompt asks for.
     const teacherDB = {};
     const locationDB = {};
     const keyMap = {};
@@ -650,13 +646,9 @@ class AIVisionProcessor {
     // visible second "same subject" row in the imported class list.
     const classKeyByIdentity = new Map();
     let courseCounter = 1;
-    // Does NOT fall subject back to dbKey itself - that would have been
-    // reasonable for the legacy map shape (its key is typically the
-    // subject's own Chinese name already, e.g. teacherDB's "國文"), but
-    // would be wrong for the classes-array shape, where "key" is an opaque
-    // id like "c1" the model invented purely to link a weeklySchedule slot
-    // back to this entry (see the Worker's prompt) - never a real subject
-    // name. Callers that want the old fallback pass it in explicitly.
+    // Does NOT fall subject back to dbKey itself: "key" is an opaque id like
+    // "c1" the model invented purely to link a weeklySchedule slot back to
+    // this entry (see the Worker's prompt) - never a real subject name.
     const addClass = (dbKey, subject, teacher, location) => {
       subject = String(subject || '').trim();
       if (!subject) return;
@@ -688,24 +680,6 @@ class AIVisionProcessor {
         if (!entry || typeof entry !== 'object') return;
         addClass(entry.key, entry.subject, entry.teacher, entry.location);
       });
-    } else if (aiResult.teacherDB && typeof aiResult.teacherDB === 'object') {
-      Object.entries(aiResult.teacherDB).forEach(([dbKey, val]) => {
-        if (Array.isArray(val)) addClass(dbKey, val[0] || dbKey, val[1], val[2]);
-        else if (val && typeof val === 'object')
-          addClass(dbKey, val.subject || dbKey, val.teacher, val.location);
-        else addClass(dbKey, val || dbKey, '', '');
-      });
-      if (aiResult.locationDB && typeof aiResult.locationDB === 'object') {
-        Object.entries(aiResult.locationDB).forEach(([dbKey, value]) => {
-          const key =
-            keyMap[
-              String(dbKey || '')
-                .trim()
-                .replace(/／/g, '/')
-            ];
-          if (key) locationDB[key] = String(value || '').trim();
-        });
-      }
     }
 
     const weeklySchedule = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };

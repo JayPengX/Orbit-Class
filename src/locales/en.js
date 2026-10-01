@@ -557,7 +557,6 @@ export default {
     'Choose a schedule photo, screenshot, or PDF, and AI will automatically read it and generate a schedule. You can select multiple files to read together (e.g. a schedule photo plus a course-selection screenshot).',
   'geminiOcr.selectFileLabel': 'Select file',
   'geminiOcr.filePreviewAlt': 'File preview',
-  'editorBackup.manualBackupLegacySummary': 'Manual backup (legacy, works without sync too)',
   'editorBackup.pasteBackupPlaceholder':
     'Paste your Orbit Class schedule settings backup here, or press "Export" to create one.',
   'editorBackup.copyFullBackupHint':

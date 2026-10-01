@@ -104,22 +104,6 @@ describe('AIVisionProcessor.parseResponse turns the AI JSON into the app-interna
     ]);
   });
 
-  it('still reads the older {key: [subject, teacher, location]} map, for a Worker not yet redeployed', () => {
-    const processor = new AIVisionProcessor();
-    const candidate = processor.parseResponse(
-      fakeGeminiTextResponse({
-        documentKind: 'timetable',
-        bellTimes: [{ start: '08:10', end: '09:00' }],
-        teacherDB: { A: ['國文', '陳老師', 'A101'] },
-        locationDB: { A: 'A101' },
-        weeklySchedule: { 1: ['A'], 2: [], 3: [], 4: [], 5: [] }
-      })
-    );
-    expect(Object.values(candidate.teacherDB)).toContainEqual(['國文', '陳老師', 'A101']);
-    expect(candidate.recognizedBlocks).toHaveLength(1);
-    expect(candidate.recognizedBlocks[0].assignment.subject).toBe('國文');
-  });
-
   it('drops a class with no subject rather than inventing one', () => {
     const processor = new AIVisionProcessor();
     const candidate = processor.parseResponse(

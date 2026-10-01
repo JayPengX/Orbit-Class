@@ -24,7 +24,6 @@ beforeAll(async () => {
 beforeEach(() => {
   localStorage.removeItem('classFocusData');
   localStorage.removeItem('orbitSyncProjectId');
-  localStorage.removeItem('orbitSyncCode');
   localStorage.removeItem('orbitOnboardingSeen');
   document.getElementById('orbit-welcome')?.remove();
   document.getElementById('editor-sheet').classList.remove('show');

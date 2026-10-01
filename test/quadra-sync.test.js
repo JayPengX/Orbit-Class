@@ -63,16 +63,14 @@ vi.mock('../src/quadra.mjs', () => ({
 let sync;
 beforeAll(async () => {
   seedLocalStorage();
-  localStorage.setItem('orbitSyncCode', 'CODE2345');
   await loadApp();
   sync = await import('../src/sync.js');
   await sync.whenReady();
 });
 
 describe('Orbit Class on the Quadra Pass', () => {
-  it('forgets what older versions kept on the device, and never merges it', () => {
+  it('never merges another pass in', () => {
     expect(calls.some(c => c[0] === 'merge')).toBe(false);
-    expect(localStorage.getItem('orbitSyncCode')).toBe(null);
   });
 
   it('uploads the schedule on this device when the pass has none', () => {

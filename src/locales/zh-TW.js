@@ -481,7 +481,6 @@ export default {
     '選擇課表照片、截圖或 PDF，AI 自動判讀並產出課表。可選多個檔案一起讀取（例如課表照片＋選課截圖）。',
   'geminiOcr.selectFileLabel': '選擇檔案',
   'geminiOcr.filePreviewAlt': '檔案預覽',
-  'editorBackup.manualBackupLegacySummary': '手動備份（舊版，不需要同步也能用）',
   'editorBackup.pasteBackupPlaceholder':
     '請在此貼上 Orbit Class 課表設定備份，或按下「匯出」建立備份。',
   'editorBackup.copyFullBackupHint': '請複製完整備份文字，包含 BEGIN 與 END 標記。',
