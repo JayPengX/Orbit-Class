@@ -205,8 +205,9 @@ Data lives in a single browser only. Moving to another device/browser, or keepin
 ## Cross-Device Sync: the Quadra Pass
 
 Orbit Class is Quadra's related service, and a **Quadra Pass is required**:
-the shared kit (`src/quadra.mjs`, `css/quadra.css`, copied from
-`Shared-Proxy/kit` by `node kit/sync.mjs`; don't edit the copies) shows the
+the shared kit (loaded from Shared-Proxy's Pages through `index.html`'s
+`kit:head`, `Shared-Proxy/kit/loader.html`; `#kit/quadra.mjs` stays out of
+Vite's bundle) shows the
 sign-in, and the schedule lives on the pass (the Worker's `/eco`, app
 `orbit`, collection `orbit-quadra`). Its data is the same compressed v2
 backup string the export/import flow produces, so every device signed in
