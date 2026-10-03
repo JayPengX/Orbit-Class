@@ -32,6 +32,13 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+      - name: The shared kit (Shared-Proxy/kit), for the tests
+        uses: actions/checkout@v4
+        with:
+          repository: JayPengX/Shared-Proxy
+          path: .shared
+          sparse-checkout: kit
+      - run: ln -sfn .shared/kit .kit
       - name: Install dependencies
         run: npm ci
       - name: Run tests

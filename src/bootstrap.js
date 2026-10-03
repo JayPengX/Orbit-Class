@@ -12,7 +12,7 @@ import { buildSchedule } from './schedule.js';
 import { state } from './state.js';
 import { renderSyncPanel, startSyncLoop, whenReady } from './sync.js';
 import qrcode from 'qrcode-generator';
-import { APPS, SITE, detectLang, phoneOnlyGate, storedAccount } from './quadra.mjs';
+import { APPS, SITE, detectLang, phoneOnlyGate, storedAccount } from '#kit/quadra.mjs';
 
 // Orbit Class is a phone app: on a computer the page says where to open it
 // (a QR code of its address) and nothing else starts. Only in the built

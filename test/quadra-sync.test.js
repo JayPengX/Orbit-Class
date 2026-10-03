@@ -50,7 +50,7 @@ const session = {
     return 'TOKEN';
   }
 };
-vi.mock('../src/quadra.mjs', () => ({
+vi.mock('#kit/quadra.mjs', () => ({
   quadraSession: () => session,
   storedAccount: () => 'account',
   schedulePush: () => {},

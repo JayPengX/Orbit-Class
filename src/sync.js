@@ -31,7 +31,7 @@ import {
   detectLang,
   notify,
   schedulePush
-} from './quadra.mjs';
+} from '#kit/quadra.mjs';
 
 const lang = detectLang();
 const q = quadraSession('orbit', { lang });

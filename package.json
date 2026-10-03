@@ -12,7 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "pretest": "test -e .kit || ln -s ../Shared-Proxy/kit .kit"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -26,5 +27,8 @@
   },
   "dependencies": {
     "qrcode-generator": "^2.0.4"
+  },
+  "imports": {
+    "#kit/*": "./.kit/*"
   }
 }

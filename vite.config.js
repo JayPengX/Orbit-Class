@@ -81,7 +81,13 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    rollupOptions: {
+      // The shared kit (#kit/quadra.mjs) isn't bundled: the page loads it
+      // from Shared-Proxy's Pages through its import map (index.html's
+      // kit:head, Shared-Proxy/kit/loader.html), like every Quadra app.
+      external: id => id.startsWith('#kit/')
+    }
   },
   test: {
     environment: 'jsdom',
