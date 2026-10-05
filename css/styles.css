@@ -2228,3 +2228,76 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .orbit-welcome-text strong{font-size:15.5px;font-weight:800}
 .orbit-welcome-text small{font-size:12.5px;line-height:1.4;color:var(--sub)}
 .orbit-welcome-later{justify-self:center;margin-top:2px;padding:8px 14px;border:0;background:none;color:var(--sub);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+
+/* ============================================================================
+   Native pass (2026-10-05): closer to iOS 26's own Liquid Glass.
+   What read as "web glass" rather than the system's: an outline ring round
+   every surface, five separate boxed day buttons, a coloured stripe and a
+   thick border on each class. iOS draws none of those: glass is shaped by
+   its light (a bright lip on top, a dimmer one below), controls sit in one
+   capsule with a lens-like thumb on the chosen one, and list rows are plain
+   glass with the state carried by tint alone. Later rules win, so this
+   block is the whole change.
+   ========================================================================= */
+:root{
+  /* The rim without the all-round 1px ring: light only where glass turns. */
+  --glass-edge-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(255,255,255,.08),
+    inset 1px 0 0 rgba(255,255,255,.07),
+    inset -1px 0 0 rgba(255,255,255,.07),
+    inset 0 0 22px rgba(255,255,255,.045);
+  --orbit-radius-md:22px;
+}
+/* The days: one glass capsule, the chosen day a brighter lens inside it. */
+.nav-bar{
+  gap:0;padding:4px;border-radius:999px;
+  background:var(--glass-fill);
+  backdrop-filter:blur(var(--glass-blur)) saturate(170%);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(170%);
+  box-shadow:var(--glass-shadow-soft);
+}
+.nav-item,
+.nav-item.is-today,
+.nav-item.is-tomorrow{
+  border:0;border-radius:999px;background:transparent;box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  color:rgba(255,255,255,.72);font-weight:650;
+}
+/* Today and tomorrow: their colour as a dot under the name, not a frame. */
+.nav-item.is-today,.nav-item.is-tomorrow{position:relative;color:#fff}
+.nav-item.is-today::before,.nav-item.is-tomorrow::before{
+  content:"";position:absolute;left:50%;bottom:5px;width:4px;height:4px;margin-left:-2px;border-radius:50%;
+  background:var(--day-today-border);
+}
+.nav-item.is-tomorrow::before{background:var(--day-tomorrow-border)}
+.nav-item.active,
+.nav-item.active.is-today,
+.nav-item.active.is-tomorrow{
+  color:#fff;border:0;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.10)),
+    color-mix(in srgb,var(--pro-accent) 30%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.12),0 4px 14px rgba(0,0,0,.28);
+}
+@media (max-width:480px){.nav-bar{gap:0;padding:4px}.nav-item{min-height:42px}}
+
+/* The classes: plain glass rows, no outline, no stripe; the class on now
+   and the next one by their tint and the badge, as iOS's own lists do. */
+.row,
+.row.is-next,
+.row.is-now{
+  border:0;border-radius:var(--orbit-radius-md);
+  padding-left:13px;
+}
+.row .content,
+.row.is-next .content,
+.row.is-now .content{border-left:0;padding-left:2px}
+.row{background:var(--glass-fill-card)}
+.row.is-next{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 22%,transparent),var(--glass-fill-card) 72%)}
+.row.is-now{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 34%,transparent),var(--glass-fill-card) 72%)}
+@keyframes rowLiveGlow{
+  0%,100%{box-shadow:var(--glass-shadow-soft),0 0 18px color-mix(in srgb,var(--pro-secondary) 18%,transparent)}
+  50%{box-shadow:var(--glass-shadow-soft),0 0 26px color-mix(in srgb,var(--pro-secondary) 30%,transparent)}
+}
+/* The period number: a small glass disc, its colour from the row. */
+.row .period-badge{border:0;border-radius:50%;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}

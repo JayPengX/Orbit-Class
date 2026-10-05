@@ -12,7 +12,7 @@ import { buildSchedule } from './schedule.js';
 import { state } from './state.js';
 import { renderSyncPanel, startSyncLoop, whenReady } from './sync.js';
 import qrcode from 'qrcode-generator';
-import { APPS, SITE, detectLang, phoneOnlyGate, storedAccount } from '#kit/quadra.mjs';
+import { APPS, SITE, detectLang, phoneOnlyGate, installGate, storedAccount } from '#kit/quadra.mjs';
 
 // Orbit Class is a phone app: on a computer the page says where to open it
 // (a QR code of its address) and nothing else starts. Only in the built
@@ -28,10 +28,16 @@ const phoneOnly = Boolean(
   phoneOnlyGate('orbit', { lang: detectLang(), qr: qrSvg(`${SITE}${APPS.orbit.path}`) })
 );
 
+// And like every other app, on a phone it runs from the home screen only:
+// opened in Safari, the kit's screen says how to add it (and nothing else
+// starts).
+const installing = Boolean(!phoneOnly && import.meta.env?.PROD && installGate('orbit', detectLang()));
+const gated = phoneOnly || installing;
+
 // Like every Quadra app, nothing shows until this device is signed in: the
 // dashboard stays hidden (the kit's q-signing-in) while the sign-in screen
 // comes up (sync.js's startQuadra -> q.start()).
-if (!phoneOnly && !storedAccount()) document.documentElement.classList.add('q-signing-in');
+if (!gated && !storedAccount()) document.documentElement.classList.add('q-signing-in');
 
 // index.html's markup is static, so its own text/aria-label/title/
 // placeholder content needs one DOM pass translated in from strings.js
@@ -57,7 +63,7 @@ syncTestPlayPauseUi();
 syncTestToolbar();
 window.update();
 renderSyncPanel();
-if (!phoneOnly) startSyncLoop();
+if (!gated) startSyncLoop();
 // Deferred rather than shown inline here: this runs before testsim-
 // runtime.js's finishBoot() clears the loading spinner (see main.js's
 // import order), so showing a modal this early would sit behind/under it.
@@ -65,7 +71,7 @@ if (!phoneOnly) startSyncLoop();
 // where in the boot sequence it's scheduled from, since it can't run until
 // the current synchronous script (the rest of this module-import chain)
 // finishes - which is all "deferred" needs to mean here.
-if (!phoneOnly) whenReady().then(() => setTimeout(showOnboardingPrompt, 400));
+if (!gated) whenReady().then(() => setTimeout(showOnboardingPrompt, 400));
 
 // Caches the whole app shell so a return visit can load almost entirely
 // from disk instead of the network - see public/sw.js for the actual
