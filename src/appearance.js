@@ -112,8 +112,11 @@ const PRO_PALETTE_PRESETS = {
   ruby: '#E23D5B',
   lilac: '#9B7EDE'
 };
+// Class's own colour, whatever an old save or a synced device says: the
+// family's apps don't offer a colour choice (樣式工具 is gone).
+// eslint-disable-next-line no-unused-vars
 function applyProAccent(data = state.applicationData) {
-  const accent = normalizeProAccent(data.proAccent);
+  const accent = normalizeProAccent(DEFAULT_STYLE_PRIMARY);
   // Always derived from accent, never read off data.proSecondary - see
   // deriveSingleHueSecondary's own comment. That field still exists in
   // storage/sync/import payloads for backward compatibility, but nothing

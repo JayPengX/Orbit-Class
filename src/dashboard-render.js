@@ -1,4 +1,5 @@
 // ---- src/dashboard-render.js ----
+import { DEFAULT_STYLE_PRIMARY } from './constants.js';
 // DOM rendering for the schedule list (not the live "now" card - that's
 // dashboard.js) and viewport-driven layout fitting (title sizing, accordion).
 import { state } from './state.js';
@@ -528,13 +529,9 @@ function createMetaChip(text, cls = '') {
   span.textContent = text;
   return span;
 }
+// Class's own colour, as every app in the family has one (no colour choice).
 function getClassColor() {
-  const draftPanel = document.getElementById('style-panel');
-  const activeStyle =
-    state.stylePanelDraft && draftPanel?.classList.contains('style-draft-dirty')
-      ? state.stylePanelDraft
-      : state.applicationData;
-  return normalizeProAccent(activeStyle.proAccent);
+  return normalizeProAccent(DEFAULT_STYLE_PRIMARY);
 }
 function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   const list = document.getElementById('schedule-list');

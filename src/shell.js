@@ -2,12 +2,13 @@
 // The family's frame, as every Quadra app has it: the kit's app bar (the
 // status on the left; 說明 and the Quadra Pass circle on the right) and its
 // tab bar: 今天 (now, and today's classes), 課表 (any day's) and 工具 (editing,
-// sharing and importing, the colours). 今天 and 課表 are one panel: the
+// sharing and importing; src/tools.js). 今天 and 課表 are one panel: the
 // list and the day switcher stay put, 今天 only pins the list to today.
 import * as kit from '#kit/quadra.mjs';
 import { state } from './state.js';
 import { orbitSession } from './sync.js';
 import { t } from './strings.js';
+import { renderTools } from './tools.js';
 
 const TABS = [
   { id: 'today', icon: 'home' },
@@ -26,7 +27,8 @@ function show(id) {
     state.viewDay = today();
     if (title) title.textContent = t('dashboard.todayClasses');
   } else if (title) title.textContent = t('dashboard.timetable');
-  if (id !== 'tools') window.update?.();
+  if (id === 'tools') renderTools();
+  else window.update?.();
 }
 
 // Through the kit's module, each with a fallback: an older kit on a phone,

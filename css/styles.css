@@ -2563,3 +2563,33 @@ body[data-tab="week"] .cx-countdowns,.cx-countdowns:empty{display:none}
 .cx-cd-add{flex:0 0 64px;flex-direction:column;justify-content:center;gap:4px;padding:10px 6px;background:transparent;box-shadow:none;border:1.5px dashed var(--q-border);color:var(--q-muted)}
 .cx-cd-plus{font-size:26px;font-weight:500;line-height:1}
 .cx-cd-addtext{font-size:11px;font-weight:700;text-align:center;line-height:1.2}
+
+/* ---- 工具 (src/tools.js): the timetable at a glance, then the ways in ---- */
+#panel-tools > .cx-tools-page > .cx-section:first-child{margin-top:6px}
+.cx-tl-card{padding:18px;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm)}
+.cx-tl-figures{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:22px;margin:0 2px 16px}
+.cx-tl-figure{display:grid;gap:2px;min-width:0}
+.cx-tl-figure b{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-tl-figure span{color:var(--q-muted);font-size:12.5px;font-weight:600}
+.cx-tl-grid{display:grid;grid-template-columns:18px repeat(var(--days),minmax(0,1fr));gap:4px;align-items:center}
+.cx-tl-corner{display:block}
+.cx-tl-day{text-align:center;color:var(--q-muted);font-size:12.5px;font-weight:700;padding:0 0 4px}
+.cx-tl-day.is-today{color:var(--q-accent)}
+.cx-tl-num{color:var(--q-muted);font-size:11px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.cx-tl-cell{display:grid;place-items:center;height:30px;border-radius:8px;background:var(--q-surface-2);color:var(--q-text-2);font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden}
+.cx-tl-cell.is-empty{background:transparent;border:1px dashed var(--q-divider)}
+.cx-tl-cell.is-today{background:var(--q-accent-wash);color:var(--q-accent)}
+.cx-tl-cell.is-now{background:var(--q-accent);color:var(--q-accent-ink)}
+.cx-tl-empty{grid-column:1 / -1;margin:10px 0 4px;color:var(--q-muted);font-size:14px;text-align:center}
+.cx-tl-edit{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:16px 0 0;border:0;border-radius:14px;background:var(--q-accent);color:var(--q-accent-ink);font:inherit;font-size:16px;font-weight:800;cursor:pointer}
+.cx-tl-parts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cx-tl-part{min-height:34px;padding:0 14px;border:1px solid var(--q-border);border-radius:999px;background:var(--q-surface-2);color:var(--q-text);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.cx-tl-edit:disabled,.cx-tl-part:disabled{opacity:.45;cursor:default}
+.cx-tl-edit:active,.cx-tl-part:active,.cx-way:active{transform:scale(.98)}
+.cx-ways{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx-way{display:grid;align-content:start;gap:14px;min-height:132px;padding:16px;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm);color:var(--q-text);font:inherit;text-align:left;cursor:pointer;transition:transform .15s ease}
+.cx-way-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--q-accent-wash);color:var(--q-accent)}
+.cx-way.is-key .cx-way-icon{background:color-mix(in srgb,var(--pro-secondary) 16%,transparent);color:var(--pro-secondary)}
+.cx-way-words{display:grid;gap:3px}
+.cx-way-words strong{font-size:16px;font-weight:800}
+.cx-way-words small{color:var(--q-muted);font-size:13px;font-weight:500;line-height:1.35}
