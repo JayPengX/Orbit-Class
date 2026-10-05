@@ -2471,3 +2471,7 @@ body[data-tab="week"] .cx-section#cx-list-title,#panel-tools .cx-section{margin-
 #schedule-list .row-name{font-size:16.5px}
 .cx-section{font-size:21px;margin-top:24px}
 .dashboard{overflow:visible;contain:none;isolation:auto}
+/* Every tab at least the screen tall (工具 is short): a page shorter than the screen let iOS lift the fixed tab bar. */
+html{min-height:100%}
+body{min-height:100vh;min-height:100lvh}
+.cx-page{min-height:calc(100vh - 60px);min-height:calc(100lvh - 60px)}
