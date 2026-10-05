@@ -52,6 +52,21 @@
 <div id="test-banner" class="test-banner" data-i18n="testsim.simulating">
   模擬中
 </div>
+<header class="q-appbar">
+  <div class="q-appbar-inner">
+    <div class="q-brand">
+      <img class="q-brand-logo" src="./favicon.svg" alt="" width="34" height="34" />
+      <div class="q-brand-text">
+        <h1 id="title">Orbit Class</h1>
+        <p id="status" class="q-status" aria-live="polite"></p>
+      </div>
+    </div>
+    <nav id="tabs" class="q-tabbar" role="tablist"></nav>
+    <div id="top-actions" class="q-actions"></div>
+  </div>
+</header>
+<main class="page cx-page">
+  <div id="panel-today" class="tab-panel" role="tabpanel">
 <div class="top-stack">
 <div class="dashboard">
   <div class="dashboard-boot-loader" aria-hidden="true"><span class="dashboard-boot-spinner"></span></div>
@@ -82,6 +97,7 @@
     </div>
   </div>
   <section class="cx-hero">
+        <span class="cx-tile" id="cx-tile" aria-hidden="true"></span>
         <span class="cx-kicker" id="cx-kicker"></span>
         <div class="now-stack">
     <div class="title-now" id="now-name" data-i18n="dashboard.loading">
@@ -130,6 +146,16 @@
 </div>
 <div id="schedule-list" class="list-container">
 </div>
+  </div>
+  <div id="panel-tools" class="tab-panel" role="tabpanel" hidden>
+    <h2 class="cx-section" data-i18n="tab.tools">工具</h2>
+    <div class="cx-tools">
+      <button type="button" class="cx-tool" onclick="openEditor()"><span class="cx-tool-icon" aria-hidden="true">✎</span><span class="cx-tool-text"><strong data-i18n="sync.editTitle">編輯課表</strong><small data-i18n="tools.editSub">科目、節次、時段、倒數</small></span><span class="cx-tool-go" aria-hidden="true">›</span></button>
+      <button type="button" class="cx-tool" onclick="openTransferSheet()"><span class="cx-tool-icon" aria-hidden="true">⇄</span><span class="cx-tool-text"><strong data-i18n="sync.transferSheetTitle">Quadra Pass 與匯入</strong><small data-i18n="tools.transferSub">分享金鑰、AI 匯入課表</small></span><span class="cx-tool-go" aria-hidden="true">›</span></button>
+      <button type="button" class="cx-tool" onclick="toggleStylePanel()"><span class="cx-tool-icon" aria-hidden="true">◐</span><span class="cx-tool-text"><strong data-i18n="sync.styleToolTitle">樣式工具</strong><small data-i18n="tools.styleSub">主色與輔色</small></span><span class="cx-tool-go" aria-hidden="true">›</span></button>
+    </div>
+  </div>
+</main>
 <div id="overlay" class="modal-overlay" onclick="closeModal()">
 </div>
 <div id="sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="m-title">

@@ -16,3 +16,4 @@ import './gemini-ocr.js';
 import './editor-nl-edit.js';
 import './bootstrap.js';
 import './testsim-runtime.js';
+import './shell.js';

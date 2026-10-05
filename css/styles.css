@@ -2329,11 +2329,29 @@ body::before,.dashboard::before{display:none}
 *,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .dashboard::after,.top-action-btn::after,.top-actions-menu::after,.modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{display:none}
 .modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.42)}
-.top-stack{width:min(440px,100%);margin:0 auto;padding:0 2px}
+.top-stack{width:100%;margin:0;padding:0;position:static;flex:none}
+/* The page scrolls as every app's does (no fixed-height screen, no list scrolling inside it). */
+html,body{height:auto;min-height:100%;overflow:visible;overscroll-behavior:auto}
+body{display:block;padding:0}
+.cx-page{display:block;width:min(560px,100%);margin:0 auto;padding:12px 16px calc(120px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
+/* The old tool menu: its buttons live in 工具 now. */
+.label-row .top-actions{display:none!important}
+/* 今天: now and today's list; 課表: the day switcher and any day's list. */
+body[data-tab="today"] .nav-bar{display:none}
+body[data-tab="week"] .dashboard{display:none}
+body[data-tab="week"] .cx-section#cx-list-title,#panel-tools .cx-section{margin-top:6px}
+.cx-tools{display:grid;border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden}
+.cx-tool{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;padding:14px 18px;border:0;border-bottom:1px solid var(--q-divider);background:none;color:var(--q-text);font:inherit;text-align:left;cursor:pointer}
+.cx-tool:last-child{border-bottom:0}
+.cx-tool-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--q-accent-wash);color:var(--q-accent);font-size:19px;font-weight:700}
+.cx-tool-text{display:grid;gap:2px;min-width:0}
+.cx-tool-text strong{font-size:16px;font-weight:700}
+.cx-tool-text small{font-size:13px;color:var(--q-muted)}
+.cx-tool-go{color:var(--q-muted);font-size:22px}
 
 /* ---- The top row: a status, round buttons ---- */
 .dashboard{display:block;background:transparent;border:0;box-shadow:none;border-radius:0;padding:6px 0 0;margin:0;width:100%;height:auto;min-height:0;flex:0 0 auto;color:var(--q-text)}
-.dashboard > .label-row{display:flex;align-items:center;gap:10px;min-height:44px;margin:0 0 14px}
+.dashboard > .label-row{display:flex;align-items:center;gap:10px;min-height:0;margin:0 4px 10px}
 .exam-countdown{background:none;border:0;box-shadow:none;padding:0;gap:6px;min-height:0;width:auto;flex-direction:row;align-items:baseline}
 .exam-countdown-copy{flex-direction:row;align-items:baseline;gap:6px}
 .exam-countdown-label{color:var(--q-muted);font-size:14px;font-weight:600}
@@ -2378,7 +2396,7 @@ body::before,.dashboard::before{display:none}
 .time-card.v3-11-next-module .next-box .next-meta #next-meta-text,#next-meta-text{color:var(--q-muted);font-size:14px!important;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ---- 課表: a section title, the kit's switcher, one card of rows ---- */
-.cx-section{text-align:left;align-self:stretch;width:100%;margin:26px 4px 12px;font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--q-text)}
+.cx-section{text-align:left;align-self:stretch;width:auto;margin:26px 2px 12px;font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--q-text)}
 .nav-bar{display:flex;background:var(--q-sunken);border:0;border-radius:14px;box-shadow:none;padding:4px;gap:2px;margin:0 0 12px}
 .nav-item,.nav-item.is-today,.nav-item.is-tomorrow,.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{
   flex:1 1 0;background:transparent;border:0;border-radius:10px;box-shadow:none;color:var(--q-text-2);font-size:15px;font-weight:700;min-height:40px;position:relative
@@ -2386,7 +2404,7 @@ body::before,.dashboard::before{display:none}
 .nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{background:var(--q-surface);border:1px solid var(--q-border);color:var(--q-accent);box-shadow:var(--q-shadow-sm)}
 .nav-item.is-today::before,.nav-item.is-tomorrow::before{top:auto;bottom:3px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px;background:var(--q-accent)}
 .nav-item.is-tomorrow::before{background:var(--pro-secondary)}
-#schedule-list{width:min(440px,calc(100% - 4px));margin:0 auto 16px;gap:0;flex:1 1 auto;min-height:0;border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden auto}
+#schedule-list{width:100%;margin:0 0 16px;gap:0;flex:none;min-height:0;max-height:none;height:auto;border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden}
 #schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{
   position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;column-gap:14px;
   background:transparent;border:0;border-bottom:1px solid var(--q-divider);border-radius:0;box-shadow:none;animation:none;
@@ -2424,3 +2442,32 @@ body::before,.dashboard::before{display:none}
 .orbit-welcome-kicker{color:var(--q-accent)}
 .close-btn,.editor-confirm-btn.primary,.editor-primary-btn,.settings-transfer-btn.primary,.save-btn{background:var(--q-accent);color:var(--q-accent-ink);border:0;box-shadow:none}
 .occ-row-period,.time-input{font-family:inherit;font-variant-numeric:tabular-nums}
+
+/* ---- Polish: the summary card as the family's best cards (Words' level card) ---- */
+.cx-hero{
+  grid-template-columns:auto minmax(0,1fr) auto;
+  grid-template-areas:"tile kicker timer" "tile now timer" "bar bar bar" "next next next";
+  column-gap:14px;row-gap:2px;padding:18px;align-items:center
+}
+.cx-tile{grid-area:tile;align-self:start;display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:var(--q-accent-wash);color:var(--q-accent);font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.cx-tile:empty{display:none}
+.dashboard[data-mode="break"] .cx-tile{background:color-mix(in srgb,var(--pro-secondary) 14%,transparent);color:var(--pro-secondary)}
+.cx-kicker{align-self:end;font-size:13px;font-weight:700}
+.dashboard[data-mode="break"] .cx-kicker{color:var(--pro-secondary)}
+.title-now,.now-stack.is-status .title-now{font-size:26px!important;line-height:1.2}
+.now-stack{align-self:start}
+#now-teacher,#now-place,#now-class-label{font-size:14px}
+.timer-container,.time-card.v3-11-next-module .timer-container{align-self:center}
+.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{font-size:28px}
+.break-progress-wrap,.time-card.v3-11-next-module .break-progress-wrap{height:10px;margin:16px 0 4px}
+.next-box,.time-card.v3-11-next-module .next-box{border-top:0;margin:10px 0 0;padding:12px 14px;border-radius:14px;background:var(--q-surface-2)}
+.next-content > .label,.time-card.v3-11-next-module .next-content > .label{color:var(--q-accent);font-weight:700;font-size:13px}
+.dashboard[data-mode="off"] .next-box,.dashboard:not([data-mode]) .next-box{margin-top:14px}
+/* The list: lighter, tighter; what's over a little quieter, not washed out. */
+#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{padding:12px 18px;min-height:60px}
+#schedule-list .row.is-past .content,#schedule-list .row.is-past .row-time{opacity:.55}
+#schedule-list .row.is-past .period-badge{opacity:.7}
+#schedule-list .row.is-now{background:var(--q-accent-wash);box-shadow:inset 3px 0 0 var(--q-accent)}
+#schedule-list .row-name{font-size:16.5px}
+.cx-section{font-size:21px;margin-top:24px}
+.dashboard{overflow:visible;contain:none;isolation:auto}

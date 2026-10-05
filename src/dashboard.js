@@ -395,6 +395,9 @@ function renderDashboard(viewModel, week) {
   const dom = getDashboardDom();
 
   if (changed('week', week)) dom.weekDisplay.innerHTML = getWeekLabelHtml(week);
+  // The app bar's status (the family's: a few words of where you are): today's week.
+  const status = document.getElementById('status');
+  if (status && changed('week', week)) status.textContent = getWeekLabelHtml(week).replace(/<[^>]+>/g, '');
 
   if (changed('dotState', viewModel.dotState)) {
     dom.dot.className =
@@ -431,6 +434,10 @@ function renderDashboard(viewModel, week) {
       const kicker = document.getElementById('cx-kicker');
       if (kicker) kicker.textContent = mode === 'class' ? t('dashboard.inProgress') : mode === 'break' ? t('dashboard.betweenClasses') : '';
     }
+    // The tile: the period on now (in class) or coming (on a break).
+    const n = mode === 'class' ? viewModel.curIdx : mode === 'break' ? viewModel.nxtIdx : -1;
+    const tile = document.getElementById('cx-tile');
+    if (tile && changed('tileN', n)) tile.textContent = n >= 0 ? String(n + 1) : '';
     if (viewModel.progressVisible) dom.dashboard.style.setProperty('--p', String(viewModel.progressPercent));
   }
   if (changed('statusText', viewModel.statusText)) dom.nowName.innerText = viewModel.statusText;
@@ -477,7 +484,7 @@ function renderDashboard(viewModel, week) {
     fitNextMetaText();
   }
 
-  lastRendered = { week, mode, ...viewModel };
+  lastRendered = { week, mode, tileN: mode === 'class' ? viewModel.curIdx : mode === 'break' ? viewModel.nxtIdx : -1, ...viewModel };
 }
 
 // updateExamCountdown() computes a day-granularity D-day count (it can't

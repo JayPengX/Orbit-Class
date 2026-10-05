@@ -448,6 +448,7 @@ function scheduleClassNotices(classes) {
 }
 
 export {
+  q as orbitSession,
   applyEditorRoleLock,
   notifyClassSoon,
   scheduleClassNotices,
