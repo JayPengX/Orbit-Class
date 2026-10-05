@@ -32,7 +32,7 @@ import {
   pad2,
   processSplitName
 } from './schedule.js';
-import { classStartingSoon, computeDashboardViewModel } from './schedule-calc.js';
+import { classStartingSoon, computeDashboardViewModel, noticeLead } from './schedule-calc.js';
 import { notifyClassSoon, scheduleClassNotices } from './sync.js';
 import { t } from './strings.js';
 
@@ -539,7 +539,8 @@ function update() {
 
   renderDashboard(viewModel, week);
 
-  // Five minutes before a class: a notice (once per class; not in test mode).
+  // As the break before a class starts (five minutes before, after a long
+  // one): a notice (once per class; not in test mode).
   if (!window.MANUALLY_TEST) {
     const soon = classStartingSoon({ now, week, todaySchedule: state.runtimeSchedule[curDay] });
     if (soon) notifyClassSoon(soon);
@@ -558,25 +559,27 @@ function update() {
   }
 }
 
-// Every class from now to a week ahead: { at (five minutes before), tag, name, meta }.
+// Every class from now to a week ahead: { at (its notice's time, noticeLead), lead, tag, name, meta }.
 function weekClasses(now) {
   const out = [];
   for (let d = 0; d < 7 && out.length < 60; d++) {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
     const week = getWeekType(date);
     const day = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-    for (const c of state.runtimeSchedule[date.getDay()] || []) {
+    const list = state.runtimeSchedule[date.getDay()] || [];
+    for (const [i, c] of list.entries()) {
       const [h, m] = String(c.s || '')
         .split(':')
         .map(Number);
       if (!Number.isFinite(h) || !Number.isFinite(m)) continue;
-      const at =
-        new Date(date.getFullYear(), date.getMonth(), date.getDate(), h, m).getTime() - 5 * 60_000;
+      const lead = noticeLead(list, i);
+      const at = new Date(date.getFullYear(), date.getMonth(), date.getDate(), h, m).getTime() - lead * 60_000;
       if (at <= now.getTime()) continue;
       const info = processSplitName(c, week);
       if (!info.n) continue;
       out.push({
         at,
+        lead,
         tag: `class:${day}:${c.s}`,
         name: info.n,
         meta: [c.s, info.t, c.loc].filter(Boolean).join(' · ')

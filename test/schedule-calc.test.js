@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classStartingSoon, computeDashboardViewModel } from '../src/schedule-calc.js';
+import { classStartingSoon, computeDashboardViewModel, noticeLead } from '../src/schedule-calc.js';
 
 // A 3-period Monday with one split (單/雙 week) class in the middle, and the
 // default 打掃時間 break sitting exactly between periods 0 and 1 - same
@@ -243,11 +243,24 @@ describe('computeDashboardViewModel - same-day special time on a no-class day', 
   });
 });
 
+describe('noticeLead', () => {
+  const day = [
+    { s: '08:10', e: '09:00' },
+    { s: '09:10', e: '10:00' },
+    { s: '13:10', e: '15:00' },
+    { s: '15:10', e: '16:00' },
+    { s: '16:05', e: '16:55' }
+  ];
+  it('tells as the break starts; after a long break or first thing, five minutes before', () => {
+    expect([0, 1, 2, 3, 4].map(i => noticeLead(day, i))).toEqual([5, 10, 5, 10, 5]);
+  });
+});
+
 describe('classStartingSoon', () => {
   const at = (h, m) => new Date(2026, 8, 28, h, m, 0);
   it('announces the next class in the five minutes before it', () => {
     const soon = classStartingSoon({ now: at(9, 6), week: '單', todaySchedule });
-    expect(soon).toEqual({ tag: 'class:2026-09-28:09:10', name: '國文', start: '09:10', meta: '09:10 · 李老師 · 102' });
+    expect(soon).toEqual({ tag: 'class:2026-09-28:09:10', name: '國文', start: '09:10', lead: 5, meta: '09:10 · 李老師 · 102' });
     expect(classStartingSoon({ now: at(9, 9), week: '雙', todaySchedule }).name).toBe('公民');
   });
   it('says nothing earlier, during a class, or after the last one', () => {

@@ -2301,3 +2301,93 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 }
 /* The period number: a small glass disc, its colour from the row. */
 .row .period-badge{border:0;border-radius:50%;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+
+/* ============================================================================
+   Solid pass (2026-10-05): no more frosted plastic.
+   The glass read cheap: smoky see-through panels, a lit rim and a lens on
+   every edge, black wells sunk inside cards, glows round the buttons and
+   purple everywhere. Native apps that feel expensive do the opposite:
+   opaque surfaces a step lighter than the page, a hairline edge, white
+   type, and the accent kept for what matters (the class on now, the
+   progress, the chosen day's dot). Later rules win, so this block is the
+   whole change.
+   ========================================================================= */
+:root,body{
+  --page:#0A0C10;
+  --surface:#14171D;
+  --surface-2:#1C2028;
+  --surface-3:#252A33;
+  --hairline:rgba(255,255,255,.07);
+  --ink:#F3F5F8;
+  --ink-2:#9AA3B2;
+  --ink-3:#6B7383;
+  --solid-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 1px 2px rgba(0,0,0,.4);
+  --q-status-bg:var(--page);
+  --glass-fill:var(--surface);
+  --glass-fill-strong:var(--surface-2);
+  --glass-fill-card:var(--surface);
+  --glass-specular:linear-gradient(transparent,transparent);
+  --glass-shadow:var(--solid-shadow);
+  --glass-shadow-soft:var(--solid-shadow);
+  --glass-dispersion:none;
+  --well-fill:transparent;
+  --well-shadow:none;
+  --sub:var(--ink-2);
+  --txt:var(--ink);
+}
+html,body{background:var(--page)}
+/* No drifting sheen, no grid, no colour clouds behind everything. */
+body::before,.dashboard::before{display:none}
+/* Times in the app's own type (tabular), not a code font. */
+.row-meta .meta-time,.timer-badge,.exam-countdown-value,.occ-row-period,.time-input{font-family:inherit;font-variant-numeric:tabular-nums}
+/* Nothing frosted: see-through blur was the plastic. Dialogs dim the page instead. */
+*,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.dashboard::after,.top-action-btn::after,.top-actions-menu::after,.modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{display:none}
+.modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.66)}
+
+/* The dashboard: one card, its parts on it (no cards sunk inside). */
+.dashboard{background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--solid-shadow);border-radius:24px}
+.now-stack,.time-card,.next-box{background:transparent;border:0;box-shadow:none}
+.time-card,.next-box{border-top:1px solid var(--hairline)}
+.title-now{color:var(--ink);letter-spacing:-.02em}
+.title-next{color:var(--ink)}
+.dashboard .label,.timer-label{color:var(--ink-3);letter-spacing:.02em}
+.timer-badge{color:var(--ink);font-variant-numeric:tabular-nums}
+.break-progress-wrap{background:var(--surface-3);box-shadow:none;height:6px}
+.break-progress-bar{box-shadow:none}
+#now-teacher,#now-place{background:var(--surface-2);color:var(--ink-2)}
+.exam-countdown{background:var(--surface-2);border:0;box-shadow:none}
+.exam-countdown-label{color:var(--ink)}
+.exam-countdown-date{color:var(--ink-3)}
+.exam-countdown-value{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* Buttons: solid, no glow. */
+.top-action-btn,#btn-menu.top-action-btn{background:var(--surface-2);border:1px solid var(--hairline);box-shadow:none;color:var(--ink)}
+#btn-menu.top-action-btn{background:var(--pro-accent);border-color:transparent;color:var(--pro-accent-text)}
+.top-actions-menu{background:var(--surface-2);border:1px solid var(--hairline);box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.close-btn,.editor-confirm-btn.primary,.editor-primary-btn{background:var(--pro-accent);box-shadow:none}
+
+/* The days: a native segmented control. */
+.nav-bar{background:var(--surface);border:1px solid var(--hairline);box-shadow:none}
+.nav-item,.nav-item.is-today,.nav-item.is-tomorrow{color:var(--ink-2);font-weight:600}
+.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{
+  color:var(--ink);background:var(--surface-3);
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 2px 6px rgba(0,0,0,.35);
+}
+
+/* The classes: flat rows; the one on now and the next by a quiet tint and their number. */
+.row,.row.is-next,.row.is-now{background:var(--surface);border:1px solid var(--hairline);box-shadow:none;animation:none}
+.row.is-next{background:color-mix(in srgb,var(--pro-accent) 9%,var(--surface));border-color:color-mix(in srgb,var(--pro-accent) 28%,transparent)}
+.row.is-now{background:color-mix(in srgb,var(--pro-secondary) 11%,var(--surface));border-color:color-mix(in srgb,var(--pro-secondary) 34%,transparent)}
+.row .period-badge{background:var(--surface-3);color:var(--ink-2);box-shadow:none}
+.row.is-next .period-badge{background:var(--pro-accent);color:var(--pro-accent-text)}
+.row.is-now .period-badge{background:var(--pro-secondary);color:var(--pro-secondary-text)}
+.row-name{color:var(--ink)}
+.row-meta{color:var(--ink-2);font-family:inherit;font-variant-numeric:tabular-nums}
+.meta-chip{background:var(--surface-2);border-color:transparent;color:var(--ink-2)}
+
+/* Sheets and dialogs: solid. */
+.modal-sheet,.editor-confirm-sheet,.orbit-welcome,.test-panel{background:var(--surface);border:1px solid var(--hairline);box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.editor-fold,.toggle-row,.orbit-welcome-choice{background:var(--surface-2);border:1px solid var(--hairline)}
+.editor-close,.editor-drill-btn,.editor-back-btn{background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink)}
+.orbit-welcome-icon{background:var(--surface-3)}

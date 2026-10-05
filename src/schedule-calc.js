@@ -248,16 +248,30 @@ export { pad2 };
  * { tag, name, start, meta }, else null. `tag` is the same all the minutes
  * before one class, so it's announced once.
  */
-export function classStartingSoon({ now, week, todaySchedule, lead = 5 }) {
+// When a class's notice goes: as the break before it starts (a short break
+// is the time to get there), or five minutes before it after a long one
+// (lunch) or as the day's first. In minutes before the class.
+export const LONG_BREAK = 15;
+export function noticeLead(schedule, i) {
+  const prev = schedule[i - 1];
+  const gap = prev ? parseTime(schedule[i].s) - parseTime(prev.e) : Infinity;
+  return gap > 0 && gap <= LONG_BREAK ? gap : 5;
+}
+export function classStartingSoon({ now, week, todaySchedule }) {
+  const list = todaySchedule || [];
   const mins = now.getHours() * 60 + now.getMinutes();
-  const next = (todaySchedule || []).find(c => parseTime(c.s) > mins);
-  if (!next || parseTime(next.s) - mins > lead) return null;
+  const i = list.findIndex(c => parseTime(c.s) > mins);
+  if (i < 0) return null;
+  const next = list[i];
+  const lead = noticeLead(list, i);
+  if (parseTime(next.s) - mins > lead) return null;
   const info = processSplitName(next, week);
   const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
   return {
     tag: `class:${day}:${next.s}`,
     name: info.n,
     start: next.s,
+    lead,
     meta: [next.s, info.t, next.loc].filter(Boolean).join(' · ')
   };
 }

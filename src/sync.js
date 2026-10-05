@@ -422,23 +422,24 @@ function clearSyncInputFields() {
 
 // The next class is about to start: the kit's notice (a banner on screen, a
 // system notice in the background once turned on in the account sheet).
-function notifyClassSoon({ tag, name, meta }) {
+const soonTitle = (name, lead = 5) => (lang === 'en' ? `${name} in ${lead} minutes` : `${name} ${lead} 分鐘後上課`);
+function notifyClassSoon({ tag, name, meta, lead }) {
   notify(q, {
-    title: lang === 'en' ? `${name} in 5 minutes` : `${name} 5 分鐘後上課`,
+    title: soonTitle(name, lead),
     body: meta,
     tag,
     kind: 'class'
   });
 }
 
-// The week's classes, five minutes before each, for notices while the app
+// The week's classes, each as the break before it starts, for notices while the app
 // is closed (the Worker sends them: see the kit's schedulePush).
 function scheduleClassNotices(classes) {
   schedulePush(
     q,
     classes.map(c => ({
       at: c.at,
-      title: lang === 'en' ? `${c.name} in 5 minutes` : `${c.name} 5 分鐘後上課`,
+      title: soonTitle(c.name, c.lead),
       body: c.meta,
       tag: c.tag,
       kind: 'class'
