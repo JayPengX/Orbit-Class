@@ -2303,32 +2303,33 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .row .period-badge{border:0;border-radius:50%;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
 
 /* ============================================================================
-   Solid pass (2026-10-05): no more frosted plastic.
-   The glass read cheap: smoky see-through panels, a lit rim and a lens on
-   every edge, black wells sunk inside cards, glows round the buttons and
-   purple everywhere. Native apps that feel expensive do the opposite:
-   opaque surfaces a step lighter than the page, a hairline edge, white
-   type, and the accent kept for what matters (the class on now, the
-   progress, the chosen day's dot). Later rules win, so this block is the
-   whole change.
+   Redesign (2026-10-05): a timetable, not a stack of boxes.
+   The glass, and then the solid cards, both read as cheap: every part in a
+   box of its own, boxes inside boxes, tinted rims and glows. This is how a
+   good timetable reads instead: the class on now in big type straight on
+   the page, its teacher and room as plain words under it, one thin line of
+   progress, the next class and the time left side by side; the days as
+   plain tabs; the classes as one list with hairlines between them, the
+   ones over faded, the one on now on a soft panel. Colour only where it
+   means something (now, next, today). Later rules win, so this block is
+   the whole look.
    ========================================================================= */
 :root,body{
-  --page:#0A0C10;
-  --surface:#14171D;
-  --surface-2:#1C2028;
-  --surface-3:#252A33;
-  --hairline:rgba(255,255,255,.07);
-  --ink:#F3F5F8;
-  --ink-2:#9AA3B2;
-  --ink-3:#6B7383;
-  --solid-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 1px 2px rgba(0,0,0,.4);
+  --page:#0B0B0D;
+  --surface:#151518;
+  --surface-2:#1D1D21;
+  --surface-3:#2A2A30;
+  --hairline:rgba(255,255,255,.08);
+  --ink:#F5F5F7;
+  --ink-2:#A1A1AA;
+  --ink-3:#6E6E78;
   --q-status-bg:var(--page);
   --glass-fill:var(--surface);
   --glass-fill-strong:var(--surface-2);
   --glass-fill-card:var(--surface);
   --glass-specular:linear-gradient(transparent,transparent);
-  --glass-shadow:var(--solid-shadow);
-  --glass-shadow-soft:var(--solid-shadow);
+  --glass-shadow:none;
+  --glass-shadow-soft:none;
   --glass-dispersion:none;
   --well-fill:transparent;
   --well-shadow:none;
@@ -2336,58 +2337,74 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
   --txt:var(--ink);
 }
 html,body{background:var(--page)}
-/* No drifting sheen, no grid, no colour clouds behind everything. */
+body{color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC",sans-serif;letter-spacing:0}
 body::before,.dashboard::before{display:none}
-/* Times in the app's own type (tabular), not a code font. */
-.row-meta .meta-time,.timer-badge,.exam-countdown-value,.occ-row-period,.time-input{font-family:inherit;font-variant-numeric:tabular-nums}
-/* Nothing frosted: see-through blur was the plastic. Dialogs dim the page instead. */
 *,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .dashboard::after,.top-action-btn::after,.top-actions-menu::after,.modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{display:none}
-.modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.66)}
+.modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.6)}
 
-/* The dashboard: one card, its parts on it (no cards sunk inside). */
-.dashboard{background:var(--surface);border:1px solid var(--hairline);box-shadow:var(--solid-shadow);border-radius:24px}
-.now-stack,.time-card,.next-box{background:transparent;border:0;box-shadow:none}
-.time-card,.next-box{border-top:1px solid var(--hairline)}
-.title-now{color:var(--ink);letter-spacing:-.02em}
-.title-next{color:var(--ink)}
-.dashboard .label,.timer-label{color:var(--ink-3);letter-spacing:.02em}
-.timer-badge{color:var(--ink);font-variant-numeric:tabular-nums}
-.break-progress-wrap{background:var(--surface-3);box-shadow:none;height:6px}
-.break-progress-bar{box-shadow:none}
-#now-teacher,#now-place{background:var(--surface-2);color:var(--ink-2)}
-.exam-countdown{background:var(--surface-2);border:0;box-shadow:none}
-.exam-countdown-label{color:var(--ink)}
-.exam-countdown-date{color:var(--ink-3)}
-.exam-countdown-value{color:var(--ink);font-variant-numeric:tabular-nums}
+/* ---- Now: on the page itself ---- */
+.dashboard{background:transparent;border:0;box-shadow:none;border-radius:0;padding:4px 6px 14px;justify-content:space-between}
+.dashboard > .label-row{margin-bottom:0}
+.exam-countdown{background:transparent;border:0;box-shadow:none;padding:0;gap:8px;min-height:0}
+.exam-countdown-copy{flex-direction:row;align-items:baseline;gap:8px}
+.exam-countdown-label{color:var(--ink-2);font-size:13px;font-weight:600}
+.exam-countdown-date{color:var(--ink-3);font-size:12px;font-weight:500}
+.exam-countdown-value{color:var(--ink);font-family:inherit;font-variant-numeric:tabular-nums;font-size:15px;font-weight:700}
+.top-action-btn,#btn-menu.top-action-btn{width:36px;height:36px;border-radius:50%;background:var(--surface-2);border:0;box-shadow:none;color:var(--ink)}
+.top-actions-menu{background:var(--surface-2);border:1px solid var(--hairline);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,.55)}
+.now-stack{background:transparent;border:0;box-shadow:none;border-radius:0;padding:0;align-items:flex-start;justify-content:center}
+.title-now,.now-stack.is-status .title-now{color:var(--ink);text-align:left;justify-self:start;align-self:flex-start;letter-spacing:-.025em;font-weight:750}
+.now-meta-row{justify-content:flex-start;align-self:flex-start;gap:0}
+#now-teacher,#now-place,#now-class-label{background:none;padding:0;border:0;border-radius:0;color:var(--ink-2);font-size:15px;font-weight:500;max-width:none}
+#now-place::before{content:"·";margin:0 7px;color:var(--ink-3)}
+.time-card,.time-card.v3-11-next-module{background:transparent;box-shadow:none;border:0;border-radius:0;padding:0;row-gap:12px}
+.time-card.v3-11-next-module .break-progress-wrap,.break-progress-wrap{height:3px;border:0;background:var(--surface-3);box-shadow:none;margin:0}
+.break-progress-bar,.break-progress-bar.is-class{background:var(--pro-secondary)}
+.break-progress-bar.is-class{background:var(--pro-accent)}
+.next-box,.time-card.v3-11-next-module .next-box{background:transparent;border:0;box-shadow:none}
+.time-card.v3-11-next-module .next-content{text-align:left}
+.time-card.v3-11-next-module .next-content > .label{text-align:left;opacity:1;color:var(--ink-3);font-size:12px;font-weight:600;letter-spacing:.02em;margin-bottom:3px}
+.time-card.v3-11-next-module .title-next,.title-next{color:var(--ink);font-weight:650;-webkit-box-pack:start;text-align:left}
+.time-card.v3-11-next-module .next-box .next-meta,.time-card.v3-11-next-module .next-box .next-meta #next-meta-text{justify-content:flex-start;text-align:left;color:var(--ink-2)}
+.time-card.v3-11-next-module .timer-container{align-items:flex-end}
+.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{color:var(--ink);font-family:inherit;font-variant-numeric:tabular-nums;font-weight:650;letter-spacing:-.02em}
+.timer-label,.time-card:has(#progress-bar.is-class) .timer-label{color:var(--ink-3);font-weight:600;font-size:12px}
 
-/* Buttons: solid, no glow. */
-.top-action-btn,#btn-menu.top-action-btn{background:var(--surface-2);border:1px solid var(--hairline);box-shadow:none;color:var(--ink)}
-#btn-menu.top-action-btn{background:var(--pro-accent);border-color:transparent;color:var(--pro-accent-text)}
-.top-actions-menu{background:var(--surface-2);border:1px solid var(--hairline);box-shadow:0 12px 32px rgba(0,0,0,.5)}
-.close-btn,.editor-confirm-btn.primary,.editor-primary-btn{background:var(--pro-accent);box-shadow:none}
-
-/* The days: a native segmented control. */
-.nav-bar{background:var(--surface);border:1px solid var(--hairline);box-shadow:none}
-.nav-item,.nav-item.is-today,.nav-item.is-tomorrow{color:var(--ink-2);font-weight:600}
-.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{
-  color:var(--ink);background:var(--surface-3);
-  box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 2px 6px rgba(0,0,0,.35);
+/* ---- The days: plain tabs ---- */
+.nav-bar{background:transparent;border:0;border-bottom:1px solid var(--hairline);border-radius:0;box-shadow:none;padding:0 2px;gap:0}
+.nav-item,.nav-item.is-today,.nav-item.is-tomorrow,.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{
+  background:transparent;border:0;border-radius:0;box-shadow:none;color:var(--ink-3);font-weight:600;min-height:44px
 }
+.nav-item.is-today,.nav-item.is-tomorrow{color:var(--ink-2)}
+.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+.nav-item.is-today::before,.nav-item.is-tomorrow::before{top:auto;bottom:6px;left:50%;right:auto;margin-left:-2.5px;width:5px;height:5px}
 
-/* The classes: flat rows; the one on now and the next by a quiet tint and their number. */
-.row,.row.is-next,.row.is-now{background:var(--surface);border:1px solid var(--hairline);box-shadow:none;animation:none}
-.row.is-next{background:color-mix(in srgb,var(--pro-accent) 9%,var(--surface));border-color:color-mix(in srgb,var(--pro-accent) 28%,transparent)}
-.row.is-now{background:color-mix(in srgb,var(--pro-secondary) 11%,var(--surface));border-color:color-mix(in srgb,var(--pro-secondary) 34%,transparent)}
-.row .period-badge{background:var(--surface-3);color:var(--ink-2);box-shadow:none}
-.row.is-next .period-badge{background:var(--pro-accent);color:var(--pro-accent-text)}
-.row.is-now .period-badge{background:var(--pro-secondary);color:var(--pro-secondary-text)}
-.row-name{color:var(--ink)}
-.row-meta{color:var(--ink-2);font-family:inherit;font-variant-numeric:tabular-nums}
-.meta-chip{background:var(--surface-2);border-color:transparent;color:var(--ink-2)}
+/* ---- The classes: one list ---- */
+#schedule-list{gap:0}
+#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{
+  background:transparent;border:0;border-bottom:1px solid var(--hairline);border-radius:0;box-shadow:none;animation:none;
+  padding:12px 8px;margin:0;height:auto;min-height:74px;gap:14px
+}
+#schedule-list .row.is-now{background:var(--surface-2);border-radius:16px;border-bottom-color:transparent}
+#schedule-list .row.is-past{opacity:.42}
+#schedule-list .period-badge,#schedule-list .row.is-next .period-badge,#schedule-list .row.is-now .period-badge{
+  width:26px;height:26px;min-width:26px;border-radius:50%;border:0;box-shadow:none;background:transparent;color:var(--ink-3);font-weight:650;font-size:14px
+}
+#schedule-list .row.is-now .period-badge{background:var(--pro-secondary);color:var(--pro-secondary-text)}
+#schedule-list .row.is-next .period-badge{box-shadow:inset 0 0 0 1.5px var(--pro-accent);color:var(--ink)}
+.row .content{border:0;padding:0;gap:3px}
+#schedule-list .row-name{color:var(--ink);font-size:17px;font-weight:600;letter-spacing:-.01em}
+.status-tag{background:none!important;color:var(--pro-secondary)!important;padding:0;border:0;box-shadow:none;font-size:12px;font-weight:600;margin-left:8px}
+.row.is-next .status-tag{color:var(--pro-accent)!important}
+#schedule-list .row-meta{gap:0;color:var(--ink-2)}
+.row-meta .meta-chip{background:none;border:0;box-shadow:none;padding:0;border-radius:0;color:var(--ink-2);font-family:inherit;font-variant-numeric:tabular-nums;font-size:14px;font-weight:500}
+.row-meta .meta-chip + .meta-chip::before{content:"·";margin:0 7px;color:var(--ink-3)}
 
-/* Sheets and dialogs: solid. */
+/* ---- Sheets and dialogs: solid, quiet ---- */
 .modal-sheet,.editor-confirm-sheet,.orbit-welcome,.test-panel{background:var(--surface);border:1px solid var(--hairline);box-shadow:0 24px 60px rgba(0,0,0,.6)}
 .editor-fold,.toggle-row,.orbit-welcome-choice{background:var(--surface-2);border:1px solid var(--hairline)}
 .editor-close,.editor-drill-btn,.editor-back-btn{background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink)}
 .orbit-welcome-icon{background:var(--surface-3)}
+.close-btn,.editor-confirm-btn.primary,.editor-primary-btn{background:var(--ink);color:var(--page);box-shadow:none}
+.occ-row-period,.time-input{font-family:inherit;font-variant-numeric:tabular-nums}

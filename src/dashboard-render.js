@@ -558,7 +558,10 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     const isNow = isToday && i === curIdx;
     const isNext = isToday && i === nxtIdx;
     const row = document.createElement('div');
-    row.className = `row ${isNow ? 'is-now' : ''} ${isNext ? 'is-next' : ''}`.trim();
+    // Today's classes already over, faded.
+    const upTo = curIdx >= 0 ? curIdx : nxtIdx >= 0 ? nxtIdx : isDayFinished ? rows.length : 0;
+    const isPast = isToday && i < upTo;
+    row.className = `row ${isNow ? 'is-now' : ''} ${isNext ? 'is-next' : ''} ${isPast ? 'is-past' : ''}`.replace(/\s+/g, ' ').trim();
     row.style.setProperty('--row-i', String(i));
     row.tabIndex = 0;
     row.role = 'button';
