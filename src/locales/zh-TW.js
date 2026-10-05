@@ -91,6 +91,8 @@ export default {
   'dashboard.breakThen': '休息 · 接著第 {n} 節',
   'dashboard.untilEnd': '後下課',
   'dashboard.untilStart': '後上課',
+  'dashboard.countdowns': '倒數',
+  'dashboard.addCountdown': '新增倒數',
   'dashboard.inProgress': '進行中',
   'dashboard.nextPeriod': '下一節',
   'dashboard.noClassesToday': '這天沒有課',

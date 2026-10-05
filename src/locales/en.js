@@ -113,6 +113,8 @@ export default {
   'dashboard.breakThen': 'Break · period {n} next',
   'dashboard.untilEnd': 'left',
   'dashboard.untilStart': 'to class',
+  'dashboard.countdowns': 'Countdowns',
+  'dashboard.addCountdown': 'Add countdown',
   'dashboard.inProgress': 'In progress',
   'dashboard.nextPeriod': 'Next period',
   'dashboard.noClassesToday': 'No classes on this day',

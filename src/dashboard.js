@@ -333,19 +333,81 @@ function showCountdown() {
   }
 }
 
-// The app bar's status: the week, then the countdown (第一次段考 15 天), as
-// Words puts its day's goal and streak there.
+// The app bar's status: the week.
 let statusWeek = null;
 function showStatus(week = statusWeek) {
   statusWeek = week;
   const status = document.getElementById('status');
   if (!status) return;
   const parts = [week == null ? '' : getWeekLabelHtml(week).replace(/<[^>]+>/g, '')];
-  const card = document.getElementById('exam-countdown');
-  const label = document.querySelector('.exam-countdown-label')?.textContent.trim();
-  const value = document.getElementById('exam-countdown-value')?.textContent.trim();
-  if (card && card.style.display !== 'none' && label && value) parts.push(`${label} ${value.replace(/^(\d+)(\D)/, '$1 $2')}`);
   status.textContent = parts.filter(Boolean).join(' · ');
+}
+
+// 今天's countdowns: one card per event, side by side (swipe when there are
+// several), in the editor's order. Each says how far off it is in large type
+// (15 天), or that it starts today, is on, or is over; the last card adds one.
+// Tapping any opens the editor at 倒數. Redrawn only when the events or the
+// date change (update() asks every second).
+const DAY_MS = 86400000;
+function countdownState(event, today) {
+  const at = value => {
+    const [y, m, d] = value.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  };
+  const start = Math.round((at(event.startDate) - today) / DAY_MS);
+  const end = Math.round((at(event.endDate) - today) / DAY_MS);
+  if (start > 0) return { kind: 'ahead', days: start };
+  if (start === 0) return { kind: 'today' };
+  if (end >= 0) return { kind: 'on' };
+  return { kind: 'over' };
+}
+let countdownsKey = '';
+function renderCountdowns() {
+  const box = document.getElementById('cx-countdowns');
+  if (!box) return;
+  const events = getCountdownEvents();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const key = `${today.getTime()}|${t('dashboard.countdowns')}|${JSON.stringify(events)}`;
+  if (key === countdownsKey) return;
+  countdownsKey = key;
+  const make = (tag, cls, text) => {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text != null) el.textContent = text;
+    return el;
+  };
+  const edit = () => {
+    window.openEditor?.();
+    window.openEditorFold?.('editor-fold-countdown');
+  };
+  const row = make('div', 'cx-cd-row');
+  for (const event of events) {
+    const st = countdownState(event, today);
+    const card = make('button', `cx-cd is-${st.kind}`);
+    card.type = 'button';
+    card.addEventListener('click', edit);
+    const words = make('span', 'cx-cd-words');
+    words.append(make('span', 'cx-cd-name', event.name), make('span', 'cx-cd-date', formatCountdownEventDate(event).replace(new RegExp(`^${today.getFullYear()}\\.`), '')));
+    const big = make('span', 'cx-cd-big');
+    if (st.kind === 'ahead') {
+      big.append(make('b', '', String(st.days)), make('small', '', t('dashboard.countdownDayUnit')));
+      card.setAttribute('aria-label', t('dashboard.countdownAriaDays', { name: event.name, days: st.days }));
+    } else {
+      const word = { today: 'countdownToday', on: 'countdownInProgress', over: 'countdownEnded' }[st.kind];
+      big.append(make('em', '', t(`dashboard.${word}`)));
+    }
+    card.append(words, big);
+    row.append(card);
+  }
+  const add = make('button', 'cx-cd cx-cd-add');
+  add.type = 'button';
+  add.setAttribute('aria-label', t('dashboard.addCountdown'));
+  add.append(make('span', 'cx-cd-plus', '+'), make('span', 'cx-cd-addtext', t('dashboard.addCountdown')));
+  add.addEventListener('click', edit);
+  row.append(add);
+  box.classList.toggle('is-many', events.length > 1);
+  box.replaceChildren(make('h2', 'cx-section', t('dashboard.countdowns')), row);
 }
 
 const countdownCard = document.getElementById('exam-countdown');
@@ -527,6 +589,7 @@ function updateExamCountdownIfDayChanged() {
 
 function update() {
   updateExamCountdownIfDayChanged();
+  renderCountdowns();
   const dom = getDashboardDom();
   const now = new Date();
   if (window.MANUALLY_TEST) {
