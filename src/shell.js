@@ -4,7 +4,7 @@
 // tab bar: 今天 (now, and today's classes), 課表 (any day's) and 工具 (editing,
 // sharing and importing, the colours). 今天 and 課表 are one panel: the
 // list and the day switcher stay put, 今天 only pins the list to today.
-import { tabBar, topActions } from '#kit/quadra.mjs';
+import * as kit from '#kit/quadra.mjs';
 import { state } from './state.js';
 import { orbitSession } from './sync.js';
 import { t } from './strings.js';
@@ -29,8 +29,17 @@ function show(id) {
   if (id !== 'tools') window.update?.();
 }
 
-const nav = tabBar({ tabs: TABS.map(x => ({ ...x, label: t(`tab.${x.id}`) })), onSelect: (id, { again }) => !again && show(id), hash: id => `#${id}` });
-topActions(orbitSession);
+// Through the kit's module, each with a fallback: an older kit on a phone,
+// or a test's stand-in, without them.
+const has = name => {
+  try {
+    return typeof kit[name] === 'function';
+  } catch {
+    return false;
+  }
+};
+const nav = has('tabBar') ? kit.tabBar({ tabs: TABS.map(x => ({ ...x, label: t(`tab.${x.id}`) })), onSelect: (id, { again }) => !again && show(id), hash: id => `#${id}` }) : { select() {} };
+if (has('topActions')) kit.topActions(orbitSession);
 const start = (location.hash || '').slice(1);
 show(TABS.some(x => x.id === start) ? start : 'today');
 
