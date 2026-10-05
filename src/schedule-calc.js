@@ -111,6 +111,8 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
   let progressPercent = 0;
   let activeClassKey = '';
   let upcomingClassKey = '';
+  // The stretch now is in, as a clock range (10:10–11:00): the card's corner.
+  let spanText = '';
 
   if (isSchoolDay) {
     if (activeBreak) {
@@ -123,6 +125,7 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
       progressVisible = true;
       progressIsClass = false;
       progressPercent = breakView.progressPercent;
+      spanText = `${activeBreak.start}–${activeBreak.end}`;
       curIdx = -1;
       // nxtIdx is left exactly as the forEach above already computed it -
       // the first today's-class whose start time hasn't passed yet,
@@ -151,6 +154,7 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
       progressVisible = true;
       progressIsClass = true;
       progressPercent = Math.min(100, ((secs - startSec) / (endSec - startSec)) * 100);
+      spanText = `${today[curIdx].s}–${today[curIdx].e}`;
     } else {
       dotState = 'wait';
       const firstStart = parseTime('08:00');
@@ -176,6 +180,7 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
           progressVisible = true;
           progressIsClass = false;
           progressPercent = Math.min(100, ((secs - prevEnd) / (nextStart - prevEnd)) * 100);
+          if (nxtIdx > 0) spanText = `${today[nxtIdx - 1].e}–${today[nxtIdx].s}`;
         } else {
           progressVisible = false;
         }
@@ -237,7 +242,8 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
     compactStatus,
     metaRowVisible,
     activeClassKey,
-    upcomingClassKey
+    upcomingClassKey,
+    spanText
   };
 }
 

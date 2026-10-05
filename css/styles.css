@@ -2475,3 +2475,63 @@ body[data-tab="week"] .cx-section#cx-list-title,#panel-tools .cx-section{margin-
 html{min-height:100%}
 body{min-height:100vh;min-height:100lvh}
 .cx-page{min-height:calc(100vh - 60px);min-height:calc(100lvh - 60px)}
+
+/* ============================================================================
+   Redesign (2026-10-05, second pass): a calmer, typographic card and an
+   agenda list. The card: one top line (第 3 節 · 上課中, the clock range on
+   its right), the class in large type, teacher and room under it, then the
+   time left as a sentence (30:00 後下課) over a slim bar, and the next class
+   along the foot behind a hairline. No tile (the top line says the period).
+   The list: the times down the left like a calendar's agenda, the class and
+   its teacher and room beside them, the period's number quiet on the right;
+   the class on now on a soft wash with an accent edge, what's over quieter.
+   The countdown lives in the app bar's status (單週 · 第一次段考 15 天).
+   ========================================================================= */
+.dashboard > .label-row{display:none}
+.cx-tile,.cx-tile:not(:empty){display:none}
+.cx-hero{
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"kicker span" "now now" "timer timer" "bar bar" "next next";
+  column-gap:12px;row-gap:0;padding:20px 20px 16px;align-items:baseline;
+  border-radius:calc(var(--q-radius) + 4px)
+}
+.cx-kicker{grid-area:kicker;align-self:baseline;color:var(--q-muted);font-size:13.5px;font-weight:700;letter-spacing:.01em}
+.dashboard[data-mode="class"] .cx-kicker{color:var(--q-accent)}
+.dashboard[data-mode="break"] .cx-kicker{color:var(--pro-secondary)}
+.cx-span{grid-area:span;justify-self:end;color:var(--q-muted);font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.cx-span:empty{display:none}
+.now-stack{grid-area:now;margin-top:6px;gap:6px}
+.title-now,.now-stack.is-status .title-now{font-size:36px!important;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+#now-teacher,#now-place,#now-class-label{font-size:15px;color:var(--q-text-2)}
+.timer-container,.time-card.v3-11-next-module .timer-container{grid-area:timer;flex-direction:row;align-items:baseline;justify-content:flex-start;gap:8px;margin:18px 0 0;align-self:end}
+.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.timer-label,.time-card:has(#progress-bar.is-class) .timer-label{font-size:15px;font-weight:600;color:var(--q-muted)}
+.break-progress-wrap,.time-card.v3-11-next-module .break-progress-wrap{height:6px;margin:12px 0 0}
+.next-box,.time-card.v3-11-next-module .next-box{margin:18px -20px 0;padding:14px 20px 0;border-radius:0;background:none;border-top:1px solid var(--q-divider)}
+.dashboard[data-mode="off"] .next-box,.dashboard:not([data-mode]) .next-box{margin-top:16px}
+.next-content > .label,.time-card.v3-11-next-module .next-content > .label{color:var(--q-muted);font-weight:600;font-size:14px}
+.title-next,.time-card.v3-11-next-module .title-next{font-size:16px!important}
+
+/* The list: an agenda. */
+#schedule-list{border-radius:calc(var(--q-radius) + 4px)}
+#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{grid-template-columns:50px minmax(0,1fr) auto;column-gap:14px;padding:13px 18px 13px 16px;min-height:0}
+#schedule-list .row-time{order:1;justify-items:start;align-self:start;padding-top:2px}
+#schedule-list .row-time b{font-size:15px}
+#schedule-list .row .content{order:2;padding-left:14px;border-left:2px solid var(--q-divider)}
+#schedule-list .row.is-now .content{border-left-color:var(--q-accent)}
+#schedule-list .row.is-next .content{border-left-color:color-mix(in srgb,var(--q-accent) 45%,transparent)}
+#schedule-list .period-badge,#schedule-list .row.is-next .period-badge,#schedule-list .row.is-now .period-badge{order:3;width:auto;height:auto;min-width:0;background:none;color:var(--q-muted);font-size:13px;font-weight:700}
+#schedule-list .row.is-now .period-badge{background:none;color:var(--q-accent)}
+#schedule-list .row.is-next .period-badge{background:none}
+#schedule-list .row.is-now{box-shadow:none}
+#schedule-list .row-name{font-size:17px}
+.now-meta-row,.now-stack .now-meta-row{max-width:none;width:auto;align-self:flex-start;justify-content:flex-start;min-height:0}
+#now-teacher,#now-place,#now-class-label{max-width:none;width:auto;text-align:left;flex:0 1 auto}
+.cx-hero{padding-bottom:14px}
+.next-box,.time-card.v3-11-next-module .next-box{padding-bottom:0}
+.next-content{align-items:center}
+.now-stack,.now-stack.is-status{display:flex;flex-direction:column;align-items:flex-start;justify-items:start}
+.now-stack > *{justify-self:start;margin-left:0}
+.cx-hero{padding-bottom:16px}
+.dashboard,.top-stack .dashboard{padding-bottom:0;min-height:0}
+.next-box,.time-card.v3-11-next-module .next-box,.next-content{min-height:0;height:auto}

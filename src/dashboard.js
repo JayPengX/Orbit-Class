@@ -267,6 +267,10 @@ function fitCountdownLabelText() {
   shrinkFontToFit(label, available, defaultSize, minSize);
 }
 function updateExamCountdown() {
+  showCountdown();
+  showStatus();
+}
+function showCountdown() {
   const el = document.getElementById('exam-countdown-value');
   const card = document.getElementById('exam-countdown');
   if (!el || !card) return;
@@ -327,6 +331,21 @@ function updateExamCountdown() {
     el.textContent = t('dashboard.countdownEnded');
     card.setAttribute('aria-label', t('dashboard.countdownAriaEnded', { name: event.name }));
   }
+}
+
+// The app bar's status: the week, then the countdown (第一次段考 15 天), as
+// Words puts its day's goal and streak there.
+let statusWeek = null;
+function showStatus(week = statusWeek) {
+  statusWeek = week;
+  const status = document.getElementById('status');
+  if (!status) return;
+  const parts = [week == null ? '' : getWeekLabelHtml(week).replace(/<[^>]+>/g, '')];
+  const card = document.getElementById('exam-countdown');
+  const label = document.querySelector('.exam-countdown-label')?.textContent.trim();
+  const value = document.getElementById('exam-countdown-value')?.textContent.trim();
+  if (card && card.style.display !== 'none' && label && value) parts.push(`${label} ${value.replace(/^(\d+)(\D)/, '$1 $2')}`);
+  status.textContent = parts.filter(Boolean).join(' · ');
 }
 
 const countdownCard = document.getElementById('exam-countdown');
@@ -397,7 +416,7 @@ function renderDashboard(viewModel, week) {
   if (changed('week', week)) dom.weekDisplay.innerHTML = getWeekLabelHtml(week);
   // The app bar's status (the family's: a few words of where you are): today's week.
   const status = document.getElementById('status');
-  if (status && changed('week', week)) status.textContent = getWeekLabelHtml(week).replace(/<[^>]+>/g, '');
+  if (status && changed('week', week)) showStatus(week);
 
   if (changed('dotState', viewModel.dotState)) {
     dom.dot.className =
@@ -411,8 +430,9 @@ function renderDashboard(viewModel, week) {
   if (changed('timerVisible', viewModel.timerVisible))
     dom.timerGroup.style.display = viewModel.timerVisible ? 'flex' : 'none';
   if (viewModel.timerVisible) {
-    if (changed('timerLabel', viewModel.timerLabel))
-      dom.timerLabel.innerText = viewModel.timerLabel;
+    // "30:00 後下課": the time left reads as a sentence.
+    const timerLabel = viewModel.progressVisible ? t(viewModel.progressIsClass ? 'dashboard.untilEnd' : 'dashboard.untilStart') : viewModel.timerLabel;
+    if (changed('timerLabel', timerLabel)) dom.timerLabel.innerText = timerLabel;
     // The countdown digits are the one field expected to change every tick.
     dom.timerVal.innerText = viewModel.timerValue;
   }
@@ -429,13 +449,15 @@ function renderDashboard(viewModel, week) {
   // The card's colour and ring: in class, on a break, or neither.
   const mode = viewModel.progressVisible ? (viewModel.progressIsClass ? 'class' : 'break') : 'off';
   if (dom.dashboard) {
-    if (changed('mode', mode)) {
-      dom.dashboard.dataset.mode = mode;
-      const kicker = document.getElementById('cx-kicker');
-      if (kicker) kicker.textContent = mode === 'class' ? t('dashboard.inProgress') : mode === 'break' ? t('dashboard.betweenClasses') : '';
-    }
-    // The tile: the period on now (in class) or coming (on a break).
+    if (changed('mode', mode)) dom.dashboard.dataset.mode = mode;
+    // The card's top line: the period on now (in class) or coming (on a
+    // break), and the stretch's clock range on its right.
     const n = mode === 'class' ? viewModel.curIdx : mode === 'break' ? viewModel.nxtIdx : -1;
+    const kickerText = n < 0 ? '' : t(mode === 'class' ? 'dashboard.periodNow' : 'dashboard.breakThen', { n: n + 1 });
+    const kicker = document.getElementById('cx-kicker');
+    if (kicker && changed('kicker', kickerText)) kicker.textContent = kickerText;
+    const span = document.getElementById('cx-span');
+    if (span && changed('span', viewModel.spanText || '')) span.textContent = viewModel.spanText || '';
     const tile = document.getElementById('cx-tile');
     if (tile && changed('tileN', n)) tile.textContent = n >= 0 ? String(n + 1) : '';
     if (viewModel.progressVisible) dom.dashboard.style.setProperty('--p', String(viewModel.progressPercent));
