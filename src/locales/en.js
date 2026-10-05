@@ -101,6 +101,7 @@ export default {
   'dashboard.countdownAriaInProgress': '{name} is in progress',
   'dashboard.countdownEnded': 'Ended',
   'dashboard.countdownAriaEnded': '{name} has ended',
+  'dashboard.timetable': 'Timetable',
   'dashboard.inProgress': 'In progress',
   'dashboard.nextPeriod': 'Next period',
   'dashboard.noClassesToday': 'No classes on this day',

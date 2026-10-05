@@ -423,6 +423,16 @@ function renderDashboard(viewModel, week) {
     dom.progressBar.style.width = viewModel.progressPercent + '%';
   }
 
+  // The card's colour and ring: in class, on a break, or neither.
+  const mode = viewModel.progressVisible ? (viewModel.progressIsClass ? 'class' : 'break') : 'off';
+  if (dom.dashboard) {
+    if (changed('mode', mode)) {
+      dom.dashboard.dataset.mode = mode;
+      const kicker = document.getElementById('cx-kicker');
+      if (kicker) kicker.textContent = mode === 'class' ? t('dashboard.inProgress') : mode === 'break' ? t('dashboard.betweenClasses') : '';
+    }
+    if (viewModel.progressVisible) dom.dashboard.style.setProperty('--p', String(viewModel.progressPercent));
+  }
   if (changed('statusText', viewModel.statusText)) dom.nowName.innerText = viewModel.statusText;
   const classColorKey = viewModel.activeClassKey || viewModel.upcomingClassKey || '';
   if (dom.dashboard && changed('classColorKey', classColorKey)) {
@@ -467,7 +477,7 @@ function renderDashboard(viewModel, week) {
     fitNextMetaText();
   }
 
-  lastRendered = { week, ...viewModel };
+  lastRendered = { week, mode, ...viewModel };
 }
 
 // updateExamCountdown() computes a day-granularity D-day count (it can't

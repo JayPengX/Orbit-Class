@@ -598,11 +598,19 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     }
     const meta = document.createElement('div');
     meta.className = 'row-meta';
+    // The times in a column of their own (the timeline's), the chip kept for small screens' old layout.
+    const time = document.createElement('div');
+    time.className = 'row-time';
+    const start = document.createElement('b');
+    start.textContent = c.s;
+    const end = document.createElement('span');
+    end.textContent = c.e;
+    time.append(start, end);
     meta.append(createMetaChip(`${c.s} – ${c.e}`, 'meta-time'));
     if (info.t) meta.append(createMetaChip(info.t, 'meta-teacher'));
     if (c.loc) meta.append(createMetaChip(c.loc, 'meta-location'));
     content.append(name, meta);
-    row.append(badge, content);
+    row.append(time, badge, content);
     list.appendChild(row);
   });
   if (!rows.length) {

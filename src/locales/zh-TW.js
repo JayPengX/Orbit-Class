@@ -79,6 +79,7 @@ export default {
   'dashboard.countdownAriaInProgress': '{name}進行中',
   'dashboard.countdownEnded': '已結束',
   'dashboard.countdownAriaEnded': '{name}已結束',
+  'dashboard.timetable': '課表',
   'dashboard.inProgress': '進行中',
   'dashboard.nextPeriod': '下一節',
   'dashboard.noClassesToday': '這天沒有課',

@@ -29,8 +29,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* ---- Design tokens ---- */
 :root{
-  --orbit-panel:#10232c;
-  --orbit-panel-strong:#172f39;
+  --orbit-panel:var(--q-surface-2);
+  --orbit-panel-strong:var(--q-surface-2);
   --orbit-coral:#ef8b77;
   --orbit-white:#f4f8f7;
   --orbit-muted:#9db1b5;
@@ -79,7 +79,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
      JS only ever overrides --pro-accent/--pro-secondary on <body>, an alias
      resolved here at :root would forever read the default, never the user's
      chosen color, no matter how many times --pro-accent changes on body. */
-  --card:rgba(255,255,255,.075);
+  --card:color-mix(in srgb,var(--q-text) 7.5%,transparent);
   --txt:#EFF8FF;
   --sub:#92A8B9;
 
@@ -118,9 +118,9 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
      or shadow color), which is what makes promoting them from a flat color
      to a layer list safe to do in one place. */
   --glass-specular:
-    linear-gradient(157deg,rgba(255,255,255,.10),rgba(255,255,255,.03) 24%,rgba(255,255,255,0) 47%,rgba(255,255,255,0) 74%,rgba(255,255,255,.055)),
-    radial-gradient(130% 95% at 10% -14%,rgba(255,255,255,.095),transparent 56%),
-    radial-gradient(95% 75% at 106% 114%,rgba(255,255,255,.055),transparent 60%);
+    linear-gradient(157deg,color-mix(in srgb,var(--q-text) 10%,transparent),color-mix(in srgb,var(--q-text) 3%,transparent) 24%,color-mix(in srgb,var(--q-text) 0%,transparent) 47%,color-mix(in srgb,var(--q-text) 0%,transparent) 74%,color-mix(in srgb,var(--q-text) 5.5%,transparent)),
+    radial-gradient(130% 95% at 10% -14%,color-mix(in srgb,var(--q-text) 9.5%,transparent),transparent 56%),
+    radial-gradient(95% 75% at 106% 114%,color-mix(in srgb,var(--q-text) 5.5%,transparent),transparent 60%);
   --glass-fill:var(--glass-specular),color-mix(in srgb,var(--orbit-panel) 22%,transparent);
   --glass-fill-strong:var(--glass-specular),color-mix(in srgb,var(--orbit-panel-strong) 30%,transparent);
   /* The real technique (verified against a from-scratch Apple Liquid Glass
@@ -135,12 +135,12 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
      something in between — which is what makes the panel read as a curved
      slab with thickness instead of a flat outlined rectangle. */
   --glass-edge-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.15),
-    inset 0 1.5px 1px -.5px rgba(255,255,255,.55),
-    inset 0 -1.5px 1px -.5px rgba(255,255,255,.22),
-    inset 1.5px 0 1.5px -1.5px rgba(255,255,255,.28),
-    inset -1.5px 0 1.5px -1.5px rgba(255,255,255,.28),
-    inset 0 0 18px rgba(255,255,255,.06),
+    inset 0 0 0 1px color-mix(in srgb,var(--q-text) 15%,transparent),
+    inset 0 1.5px 1px -.5px color-mix(in srgb,var(--q-text) 55%,transparent),
+    inset 0 -1.5px 1px -.5px color-mix(in srgb,var(--q-text) 22%,transparent),
+    inset 1.5px 0 1.5px -1.5px color-mix(in srgb,var(--q-text) 28%,transparent),
+    inset -1.5px 0 1.5px -1.5px color-mix(in srgb,var(--q-text) 28%,transparent),
+    inset 0 0 18px color-mix(in srgb,var(--q-text) 6%,transparent),
     inset 0 10px 26px -6px rgba(0,0,0,.10);
   /* Three falloffs instead of two: a 1px contact shadow that keeps the panel
      visually touching what's under it, a mid-range one for the body of the
@@ -163,7 +163,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
      glass sitting above it has something with visible depth to sit against
      rather than a flat dark rectangle. */
   --well-fill:linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,0) 42%),rgba(3,9,13,.42);
-  --well-shadow:inset 0 1px 4px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.03),inset 0 -1px 0 rgba(255,255,255,.045);
+  --well-shadow:inset 0 1px 4px rgba(0,0,0,.45),inset 0 0 0 1px color-mix(in srgb,var(--q-text) 3%,transparent),inset 0 -1px 0 color-mix(in srgb,var(--q-text) 4.5%,transparent);
   --ease-glass:cubic-bezier(.16,1,.3,1);
   /* Overshoots slightly on the way back. Used for the release half of a
      press (the push itself stays short and linear-ish) so a tapped control
@@ -279,7 +279,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 }
 .dashboard::before{
   content:"";position:absolute;inset:-30%;z-index:0;pointer-events:none;
-  background:radial-gradient(38% 46% at 30% 22%,rgba(255,255,255,.085),transparent 62%);
+  background:radial-gradient(38% 46% at 30% 22%,color-mix(in srgb,var(--q-text) 8.5%,transparent),transparent 62%);
   animation:glassDrift 26s var(--ease-glass) infinite alternate;
 }
 @media (prefers-reduced-motion:reduce){.dashboard::before{animation:none}}
@@ -306,9 +306,9 @@ body.orbit-motion-paused .dashboard::before{animation-play-state:paused}
 }
 
 /* ---- Base ---- */
-html{color-scheme:dark;height:100%;overflow:hidden;overscroll-behavior:none;background:#0B1117}
+html{color-scheme:dark;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--q-page)}
 /* The kit's strip under the status bar (it keeps iOS's edge blur off the header), in Orbit's page colour. */
-:root{--q-status-bg:#0B1117}
+:root{--q-status-bg:var(--q-page)}
 body{
   /* Derived from the --pro-* tokens JS overrides on this same element — see the
      note in the :root design-tokens block above for why these live here and
@@ -365,14 +365,14 @@ body{
     radial-gradient(115% 55% at 15% -10%,color-mix(in srgb,var(--pro-accent) 30%,transparent),transparent 62%),
     radial-gradient(95% 60% at 105% 6%,color-mix(in srgb,var(--pro-secondary) 26%,transparent),transparent 68%),
     radial-gradient(80% 50% at 30% 96%,color-mix(in srgb,var(--pro-accent) 12%,transparent),transparent 70%),
-    #0B1117;
+    var(--q-page);
 }
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   mask-image:linear-gradient(180deg,rgba(0,0,0,.9),transparent 75%);
   background:
-    linear-gradient(180deg,rgba(255,255,255,.025),transparent 32%),
-    repeating-linear-gradient(90deg,rgba(255,255,255,.012) 0 1px,transparent 1px 76px),
+    linear-gradient(180deg,color-mix(in srgb,var(--q-text) 2.5%,transparent),transparent 32%),
+    repeating-linear-gradient(90deg,color-mix(in srgb,var(--q-text) 1.2%,transparent) 0 1px,transparent 1px 76px),
     linear-gradient(90deg,color-mix(in srgb,var(--pro-accent) 3.5%,transparent) 1px,transparent 1px) 0 0/72px 72px,
     linear-gradient(color-mix(in srgb,var(--pro-accent) 2.5%,transparent) 1px,transparent 1px) 0 0/72px 72px;
 }
@@ -423,14 +423,14 @@ body::before{
    comment) so the space that used to go to a visible gap between those two
    cards goes to now-stack's own height instead. */
 .dashboard > .label-row{margin-bottom:6px}
-@supports not (backdrop-filter:blur(1px)){.dashboard{background:#15232B}}
+@supports not (backdrop-filter:blur(1px)){.dashboard{background:var(--q-surface-2)}}
 @media (max-width:430px){.dashboard{margin-top:3px;padding:12px;flex-basis:calc(40% - 11px);border-radius:20px}.dashboard > .label-row{margin-bottom:9px}}
 @media (max-height:700px){.dashboard{padding:9px 10px 11px}.dashboard > .label-row{margin-bottom:5px}}
 
 .dashboard-boot-loader{display:none}
 body.orbit-booting .dashboard{visibility:hidden}
-body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;position:absolute;inset:0;align-items:center;justify-content:center;background:linear-gradient(145deg,#2c2c2e,#1c1c1e);border-radius:var(--v31-radius-xl);z-index:5}
-.dashboard-boot-spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.78);animation:orbit-boot-spin .8s linear infinite}
+body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;position:absolute;inset:0;align-items:center;justify-content:center;background:linear-gradient(145deg,var(--q-surface-2),#1c1c1e);border-radius:var(--v31-radius-xl);z-index:5}
+.dashboard-boot-spinner{width:26px;height:26px;border-radius:50%;border:3px solid color-mix(in srgb,var(--q-text) 18%,transparent);border-top-color:color-mix(in srgb,var(--q-text) 78%,transparent);animation:orbit-boot-spin .8s linear infinite}
 
 /* Label row: exam countdown (leading, anchored left) + tool menu (trailing,
    anchored right via .top-actions' own margin-left:auto). The week-parity
@@ -525,7 +525,7 @@ body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;positi
 .exam-countdown-unit{font-size:.42em;font-weight:800;letter-spacing:0;margin-left:3px;color:var(--orbit-muted);vertical-align:.2em}
 .exam-countdown-dots{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;pointer-events:none;z-index:1}
 .exam-countdown-dots[hidden]{display:none}
-.exam-countdown-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.28);transition:background .2s,width .2s}
+.exam-countdown-dot{width:4px;height:4px;border-radius:50%;background:color-mix(in srgb,var(--q-text) 28%,transparent);transition:background .2s,width .2s}
 .exam-countdown-dot.active{width:10px;border-radius:3px;background:var(--pro-secondary)}
 @media (max-width:360px){.exam-countdown{min-height:54px;padding:7px 11px;min-width:190px}.exam-countdown-label{font-size:15px}.exam-countdown-date{font-size:12px}.exam-countdown-value{font-size:clamp(22px,7.6vw,26px)}}
 @media (max-height:700px){.exam-countdown{min-height:52px;padding:6px 10px}.exam-countdown-value{font-size:clamp(21px,7vw,25px)}}
@@ -565,7 +565,7 @@ body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;positi
    read as a cluster of mismatched colored badges rather than one coherent
    tool menu; a single icon-only accent keeps them individually identifiable
    without the menu itself looking like a confetti of brand colors. */
-.top-actions-menu .top-action-btn{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.055);box-shadow:0 6px 16px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06)}
+.top-actions-menu .top-action-btn{border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);background:color-mix(in srgb,var(--q-text) 5.5%,transparent);box-shadow:0 6px 16px rgba(0,0,0,.22),inset 0 1px 0 color-mix(in srgb,var(--q-text) 6%,transparent)}
 .top-actions-menu #btn-edit.top-action-btn{color:var(--pro-accent-readable)}
 .top-actions-menu #btn-style.top-action-btn{color:var(--pro-secondary-readable)}
 .top-actions-menu #btn-transfer.top-action-btn{color:var(--pro-blend)}
@@ -607,7 +607,7 @@ body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;positi
   box-shadow:var(--well-shadow);
   overflow-x:hidden;
 }
-@supports not (backdrop-filter:blur(1px)){.now-stack{background:#0F1A20}}
+@supports not (backdrop-filter:blur(1px)){.now-stack{background:var(--q-surface-2)}}
 .now-stack.is-status .now-meta-row{width:100%;display:none}
 /* font-size here is a fallback only - dashboard-render.js's
    fitNowTitleText() sets an inline font-size on every render (it has to,
@@ -651,8 +651,8 @@ body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;positi
   -webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
   box-shadow:var(--well-shadow);
 }
-@supports not (backdrop-filter:blur(1px)){.time-card{background:#0F1A20}}
-.break-progress-wrap{margin:0;background:rgba(255,255,255,.08);backdrop-filter:blur(8px) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(8px) saturate(var(--glass-sat));border-radius:999px;overflow:hidden;display:none;height:9px;margin-bottom:1px;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+@supports not (backdrop-filter:blur(1px)){.time-card{background:var(--q-surface-2)}}
+.break-progress-wrap{margin:0;background:color-mix(in srgb,var(--q-text) 8%,transparent);backdrop-filter:blur(8px) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(8px) saturate(var(--glass-sat));border-radius:999px;overflow:hidden;display:none;height:9px;margin-bottom:1px;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
 /* One hue per state, not a two-hue accent/secondary blend that read as a
    decorative rainbow strip regardless of what the bar was actually tracking
    - break time tints toward --pro-secondary, class time toward --pro-accent,
@@ -704,7 +704,7 @@ body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;positi
 @media (max-width:360px){.time-card.v3-11-next-module{grid-template-columns:minmax(0,1fr) 108px;column-gap:9px}.timer-badge{font-size:clamp(23px,7.2vw,26px)}.time-card.v3-11-next-module .title-next{font-size:clamp(17px,4.8vw,20px)}}
 @media (max-height:700px){.time-card{padding-block:7px}.time-card.v3-11-next-module .title-next{font-size:clamp(16px,4.6vw,19px)}.timer-badge{font-size:clamp(22px,6.6vw,25px)}}
 
-.next-box{margin-top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:49px;padding:8px 10px;border:1px solid var(--orbit-line);border-radius:var(--orbit-radius-md);background:color-mix(in srgb,var(--pro-accent) 8%,var(--orbit-panel));box-shadow:inset 0 1px 0 rgba(255,255,255,.055)}
+.next-box{margin-top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:49px;padding:8px 10px;border:1px solid var(--orbit-line);border-radius:var(--orbit-radius-md);background:color-mix(in srgb,var(--pro-accent) 8%,var(--orbit-panel));box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 5.5%,transparent)}
 .next-box>div:first-child{min-width:0;flex:1}
 .next-content{flex:1;min-width:0}
 .title-next{font-weight:700;line-height:1.15;font-size:clamp(15px,4.3vw,19px);color:var(--pro-accent-readable)}
@@ -871,13 +871,13 @@ body.orbit-booting .dashboard-boot-loader{visibility:visible;display:flex;positi
      growing (see .row.is-pressed below), so it never needs clearance from
      this container's own overflow-x:hidden edge the way a scale-up did -
      rows go back to spanning the container's full width edge to edge. */
-  scrollbar-color:rgba(255,255,255,.3) transparent;scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--q-text) 30%,transparent) transparent;scrollbar-width:thin;
   transition:filter .35s ease,opacity .35s ease,transform .35s ease;
   overflow-x:hidden;
 }
 .list-container::-webkit-scrollbar{width:6px;background:transparent}
 .list-container::-webkit-scrollbar-track{background:transparent}
-.list-container::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(255,255,255,.3)}
+.list-container::-webkit-scrollbar-thumb{border-radius:999px;background:color-mix(in srgb,var(--q-text) 30%,transparent)}
 
 /* fill-mode is `backwards`, not `both`: this only needs to hold the FROM
    keyframe during animation-delay (so a later-staggered row doesn't flash
@@ -964,10 +964,10 @@ body.orbit-suppress-list-animation .animate-list .row{animation:none}
 .row-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto}
 .row-name .status-tag,.row-name .row-name-week-label{flex:0 0 auto}
 .row-meta{color:var(--orbit-muted);display:flex;flex-wrap:nowrap;overflow:hidden;align-items:center;gap:2px 6px;font-size:11.5px;line-height:1.32;background:transparent}
-.row-meta .meta-chip{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.08);color:rgba(248,250,252,.72);padding:1px 6px;border-radius:6px}
+.row-meta .meta-chip{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:color-mix(in srgb,var(--q-text) 7.5%,transparent);border:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);color:color-mix(in srgb,var(--q-text) 72%,transparent);padding:1px 6px;border-radius:6px}
 .row-meta .meta-time{font-family:ui-monospace,SFMono-Regular,monospace;background:transparent;border:0;box-shadow:none;padding:0}
 .row-meta .meta-location{color:var(--row-accent);font-weight:700;border-color:color-mix(in srgb,var(--row-accent) 30%,transparent);background:color-mix(in srgb,var(--row-accent) 16%,var(--orbit-panel))}
-.period-badge{background:color-mix(in srgb,var(--row-accent) 22%,rgba(255,255,255,.07));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--row-accent);flex-shrink:0;margin-top:1px;width:26px;height:26px;border-radius:9px;border:1px solid color-mix(in srgb,var(--row-accent) 34%,rgba(255,255,255,.10));box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.period-badge{background:color-mix(in srgb,var(--row-accent) 22%,color-mix(in srgb,var(--q-text) 7%,transparent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--row-accent);flex-shrink:0;margin-top:1px;width:26px;height:26px;border-radius:9px;border:1px solid color-mix(in srgb,var(--row-accent) 34%,color-mix(in srgb,var(--q-text) 10%,transparent));box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 8%,transparent)}
 .status-tag{font-size:9px;font-weight:800;padding:1px 5px 1px 4px;border-radius:4px;white-space:nowrap;margin-left:2px;display:inline-flex;align-items:center;gap:3px}
 /* A dot (is-now) vs a chevron (is-next) so the two states read apart by
    shape, not just by which accent color happens to be picked - a user free
@@ -1081,19 +1081,19 @@ body.modal-open > .dashboard,body.modal-open > .nav-bar,body.modal-open > #sched
 .split-info-card{margin-bottom:14px;background:color-mix(in srgb,var(--pro-accent) 12%,transparent);border-radius:20px;padding:14px;border:1px solid color-mix(in srgb,var(--pro-accent) 20%,transparent)}
 .split-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .split-col{text-align:center}
-.split-col-right{border-left:1px solid color-mix(in srgb,var(--pro-accent) 20%,rgba(255,255,255,.1))}
+.split-col-right{border-left:1px solid color-mix(in srgb,var(--pro-accent) 20%,color-mix(in srgb,var(--q-text) 10%,transparent))}
 .split-col-label{font-size:9px;font-weight:800;margin-bottom:2px;color:var(--sub)}
 .split-col-label.accent{color:var(--accent)}
 .split-col-value{font-weight:700;font-size:14px}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 .stat-grid.has-location{grid-template-columns:1fr 1fr 1fr}
-.stat-card{padding:10px;border-radius:14px;text-align:center;background:color-mix(in srgb,var(--pro-accent) 8%,rgba(255,255,255,.07));border:1px solid color-mix(in srgb,var(--pro-accent) 16%,rgba(255,255,255,.10))}
+.stat-card{padding:10px;border-radius:14px;text-align:center;background:color-mix(in srgb,var(--pro-accent) 8%,color-mix(in srgb,var(--q-text) 7%,transparent));border:1px solid color-mix(in srgb,var(--pro-accent) 16%,color-mix(in srgb,var(--q-text) 10%,transparent))}
 .stat-label{font-size:9px;color:var(--sub);text-transform:uppercase;margin-bottom:3px;display:block;font-weight:700}
 .stat-value{font-size:14px;font-weight:700}
 .m-occ-section{flex-shrink:0;margin-top:8px;margin-bottom:12px}
 .m-occ-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--sub);margin-bottom:6px}
-.m-occ-list{max-height:118px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--bd);background:color-mix(in srgb,var(--pro-accent) 6%,rgba(255,255,255,.04))}
-.occ-row{box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid color-mix(in srgb,var(--pro-accent) 12%,rgba(255,255,255,.06));min-height:44px}
+.m-occ-list{max-height:118px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--bd);background:color-mix(in srgb,var(--pro-accent) 6%,color-mix(in srgb,var(--q-text) 4%,transparent))}
+.occ-row{box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid color-mix(in srgb,var(--pro-accent) 12%,color-mix(in srgb,var(--q-text) 6%,transparent));min-height:44px}
 .occ-row:last-child{border-bottom:none}
 .occ-row-day{font-weight:600;font-size:13px;flex-shrink:0}
 .occ-row-meta{text-align:right;min-width:0}
@@ -1145,8 +1145,8 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
 .editor-header{display:flex;align-items:center;justify-content:space-between;min-height:32px;margin-bottom:12px;padding-top:0}
 .editor-sheet .editor-title{font-size:21px;font-weight:800;letter-spacing:-.4px}
 .editor-title{color:var(--pro-accent);font-weight:800;letter-spacing:-.04em}
-.editor-close{font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:rgba(255,255,255,.1);color:var(--orbit-white);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);border-radius:12px;transition:transform .15s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.editor-close:active{transform:scale(.9);background:rgba(255,255,255,.16)}
+.editor-close{font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:color-mix(in srgb,var(--q-text) 10%,transparent);color:var(--orbit-white);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);border-radius:12px;transition:transform .15s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.editor-close:active{transform:scale(.9);background:color-mix(in srgb,var(--q-text) 16%,transparent)}
 
 /* Every section inside the schedule editor (選項/倒數活動/科目與教師/課表/節次時間/特殊時段
    etc.) is its own small glass card now, not a flat-color box sitting inside
@@ -1156,12 +1156,12 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
    instead of "floating chrome is glass, the content inside it isn't". */
 .editor-fold{margin-bottom:10px;overflow:hidden;border-radius:16px;border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 10%,transparent),var(--glass-fill-card) 78%);backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright))}
 .editor-sheet .editor-fold{margin-bottom:14px;border-radius:14px}
-.editor-fold-summary{list-style:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;font-weight:700;color:rgba(236,245,255,.92);-webkit-tap-highlight-color:transparent;padding:13px 14px;transition:opacity .12s,background .15s}
-.editor-fold-summary:active{opacity:.7;background:rgba(255,255,255,.04)}
+.editor-fold-summary{list-style:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;font-weight:700;color:color-mix(in srgb,var(--q-text) 92%,transparent);-webkit-tap-highlight-color:transparent;padding:13px 14px;transition:opacity .12s,background .15s}
+.editor-fold-summary:active{opacity:.7;background:color-mix(in srgb,var(--q-text) 4%,transparent)}
 .editor-fold-summary::-webkit-details-marker{display:none}
 .editor-fold-summary::after{content:"";width:7px;height:7px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .2s;flex-shrink:0;opacity:.9}
 .editor-fold[open]>.editor-fold-summary::after{transform:rotate(-135deg)}
-.editor-fold[open]>.editor-fold-body{border-top:1px solid rgba(255,255,255,.09)}
+.editor-fold[open]>.editor-fold-body{border-top:1px solid color-mix(in srgb,var(--q-text) 9%,transparent)}
 .editor-fold-body{padding:12px 12px 14px}
 .editor-sheet .editor-fold-body{display:flex;flex-direction:column;gap:9px}
 @keyframes editorFoldReveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
@@ -1178,12 +1178,12 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
    Forcing a permanent layer with translateZ(0)/backface-visibility/
    will-change, exactly like .nav-item, keeps that layer alive across the
    whole press so there's nothing to promote/demote/mis-rasterize. */
-.editor-drill-btn{min-height:34px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,rgba(255,255,255,.14));background:color-mix(in srgb,var(--pro-accent) 15%,rgba(255,255,255,.05));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.editor-drill-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,rgba(255,255,255,.05))}
+.editor-drill-btn{min-height:34px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.editor-drill-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,color-mix(in srgb,var(--q-text) 5%,transparent))}
 .editor-back-row{display:flex;justify-content:flex-start;margin-bottom:8px}
-.editor-back-btn{min-height:32px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,rgba(255,255,255,.14));background:color-mix(in srgb,var(--pro-accent) 15%,rgba(255,255,255,.05));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;padding:7px 10px;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.editor-back-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,rgba(255,255,255,.05))}
-.editor-import-diff{margin-top:10px;margin-bottom:18px;padding:10px 11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);color:var(--sub);font-size:12px;line-height:1.45;text-align:left;max-height:220px;overflow:auto;white-space:pre-line}
+.editor-back-btn{min-height:32px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;padding:7px 10px;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.editor-back-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,color-mix(in srgb,var(--q-text) 5%,transparent))}
+.editor-import-diff{margin-top:10px;margin-bottom:18px;padding:10px 11px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);color:var(--sub);font-size:12px;line-height:1.45;text-align:left;max-height:220px;overflow:auto;white-space:pre-line}
 
 .editor-confirm-overlay{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity .28s,visibility .28s}
 .editor-confirm-overlay.show{opacity:1;visibility:visible}
@@ -1196,7 +1196,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .editor-confirm-title{font-size:19px;font-weight:800;text-align:center;letter-spacing:-.4px;margin:0 0 12px}
 .editor-confirm-msg{font-size:14px;font-weight:500;color:var(--sub);text-align:center;line-height:1.5;margin:0 auto 22px;max-width:30ch}
 .editor-confirm-actions{display:flex;flex-direction:column;gap:12px}
-.editor-confirm-btn{width:100%;min-height:var(--action-btn-h);padding:13px 18px;border-radius:var(--action-btn-radius);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,rgba(255,255,255,.12));background:color-mix(in srgb,var(--pro-accent) 10%,rgba(255,255,255,.09));color:#F8FAFC;font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;touch-action: pan-x pan-y;font-family:inherit;white-space:normal;line-height:1.2}
+.editor-confirm-btn{width:100%;min-height:var(--action-btn-h);padding:13px 18px;border-radius:var(--action-btn-radius);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,color-mix(in srgb,var(--q-text) 12%,transparent));background:color-mix(in srgb,var(--pro-accent) 10%,color-mix(in srgb,var(--q-text) 9%,transparent));color:var(--q-text);font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;touch-action: pan-x pan-y;font-family:inherit;white-space:normal;line-height:1.2}
 .editor-confirm-btn:active{transform:scale(.96);opacity:.88}
 .editor-confirm-btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
 /* Filled red, not the outlined red of an in-panel entry button (.settings-transfer-btn.danger):
@@ -1224,7 +1224,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    around (see .nav-item's comment): a real button's own native tap
    treatment plus the blur background can flash on real Safari without
    -webkit-appearance:none and a permanent GPU layer here. */
-.toggle-switch{width:44px;height:26px;border-radius:13px;border:1px solid rgba(255,255,255,.14);background:color-mix(in srgb,#3a3a3c 72%,transparent);cursor:pointer;position:relative;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:background .2s;flex-shrink:0;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.toggle-switch{width:44px;height:26px;border-radius:13px;border:1px solid color-mix(in srgb,var(--q-text) 14%,transparent);background:color-mix(in srgb,#3a3a3c 72%,transparent);cursor:pointer;position:relative;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:background .2s;flex-shrink:0;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .toggle-switch::after{content:"";position:absolute;width:20px;height:20px;top:2px;left:2px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .toggle-switch.on{background:color-mix(in srgb,var(--accent) 78%,transparent);border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
 .toggle-switch.on::after{transform:translateX(18px)}
@@ -1236,7 +1236,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    nested card. Fewer independently-boxed layers stacked inside each other. */
 .teacher-list,.bell-list,.countdown-editor-list,.schedule-grid{
   display:flex;flex-direction:column;gap:0;border-radius:16px;
-  border:1px solid var(--bd);background:rgba(255,255,255,.04);
+  border:1px solid var(--bd);background:color-mix(in srgb,var(--q-text) 4%,transparent);
 }
 /* Rounded on the container, not clipped with overflow:hidden - a row's own
    content (the 順序 box, 排課/delete buttons) sits close enough to the first
@@ -1246,14 +1246,14 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    without ever clipping anything inside it. */
 .teacher-list>:first-child,.bell-list>:first-child,.countdown-editor-list>:first-child,.schedule-grid>:first-child{border-top-left-radius:15px;border-top-right-radius:15px}
 .teacher-list>:last-child,.bell-list>:last-child,.countdown-editor-list>:last-child,.schedule-grid>:last-child{border-bottom-left-radius:15px;border-bottom-right-radius:15px}
-.teacher-card{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;width:100%;max-width:100%;box-sizing:border-box;transition:box-shadow .15s,transform .15s,opacity .15s,background .15s}
+.teacher-card{background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);border-radius:0;width:100%;max-width:100%;box-sizing:border-box;transition:box-shadow .15s,transform .15s,opacity .15s,background .15s}
 .teacher-card:last-child{border-bottom:none}
-.teacher-card.is-dragging{transform:scale(.985);box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:.55;background:rgba(255,255,255,.07);outline:2px solid var(--accent)}
+.teacher-card.is-dragging{transform:scale(.985);box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:.55;background:color-mix(in srgb,var(--q-text) 7%,transparent);outline:2px solid var(--accent)}
 .teacher-card-summary{display:flex;flex-wrap:nowrap;align-items:center;gap:9px;padding:13px 12px;cursor:pointer;user-select:none}
 .teacher-avatar{--avatar-hue:210;width:28px;height:28px;border-radius:50%;background:hsla(var(--avatar-hue),70%,55%,.18);color:hsl(var(--avatar-hue),70%,60%);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid hsla(var(--avatar-hue),70%,55%,.35)}
 .teacher-summary-text{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14.5px;font-weight:650;color:var(--txt)}
 .teacher-summary-text.is-empty{color:var(--sub);font-weight:500}
-.teacher-card-toggle{flex:0 0 auto;width:26px;height:26px;border:0;border-radius:8px;background:rgba(255,255,255,.06);color:var(--sub);font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .18s,background .15s}
+.teacher-card-toggle{flex:0 0 auto;width:26px;height:26px;border:0;border-radius:8px;background:color-mix(in srgb,var(--q-text) 6%,transparent);color:var(--sub);font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .18s,background .15s}
 .teacher-card.is-expanded .teacher-card-toggle{transform:rotate(180deg)}
 .teacher-card-body{display:none;flex-wrap:wrap;align-items:center;gap:9px;padding:0 12px 13px}
 .teacher-card.is-expanded .teacher-card-body{display:flex}
@@ -1266,7 +1266,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .teacher-card-buttons{display:flex;align-items:center;gap:8px}
 .teacher-card .delete-btn{flex:0 0 auto}
 .teacher-order-actions{display:flex;gap:4px;flex:0 0 auto}
-.teacher-drag-handle{min-width:40px;border-radius:12px;line-height:1;background:rgba(255,255,255,.06);display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;color:var(--sub);font-size:18px;user-select:none;touch-action:none;cursor:grab;transition:background .15s}
+.teacher-drag-handle{min-width:40px;border-radius:12px;line-height:1;background:color-mix(in srgb,var(--q-text) 6%,transparent);display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;color:var(--sub);font-size:18px;user-select:none;touch-action:none;cursor:grab;transition:background .15s}
 .teacher-drag-handle:active{cursor:grabbing;background:color-mix(in srgb,var(--accent) 18%,transparent)}
 
 .break-row{align-items:flex-start}
@@ -1281,7 +1281,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    onto a line of its own beneath it - full name width, full time-input
    width, instead of both fighting over one row. */
 .break-row .break-name{flex-basis:100%}
-.editor-input{flex:1;background:rgba(255,255,255,.07);border:1px solid var(--bd);color:var(--txt);padding:9px 11px;border-radius:11px;font-size:14.5px;font-family:inherit;min-width:0;transition:border-color .2s,box-shadow .2s;line-height:1.25;text-align:left;text-align-last:left}
+.editor-input{flex:1;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid var(--bd);color:var(--txt);padding:9px 11px;border-radius:11px;font-size:14.5px;font-family:inherit;min-width:0;transition:border-color .2s,box-shadow .2s;line-height:1.25;text-align:left;text-align-last:left}
 .editor-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 .editor-input::placeholder{opacity:.55;color:var(--sub);font-size:14px}
 .editor-sheet input,.editor-sheet select,.editor-sheet textarea{text-align:left;text-align-last:left}
@@ -1298,7 +1298,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    two-column shape .assign-day-row already uses for the assign sheet - one
    consistent "weekday + its slots" grammar across both editors instead of
    the label sitting stacked above its own row here but beside it there. */
-.schedule-day-row{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:12px;display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:start}
+.schedule-day-row{background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);border-radius:0;padding:12px;display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:start}
 .schedule-day-row:last-child{border-bottom:none}
 .schedule-day-label{font-size:13px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;padding-top:11px}
 /* auto-fill (not flex-wrap, not a fixed column count) so the browser packs
@@ -1311,17 +1311,17 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    width viewport - auto-fill can't overflow the same way since it only ever
    picks a column count its minmax(70px,...) floor actually fits. */
 .schedule-periods{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px}
-.period-select{width:100%;min-width:0;background:rgba(255,255,255,.07);border:1px solid var(--bd);color:var(--txt);padding:8px 9px;border-radius:11px;font-size:13px;font-family:inherit;text-overflow:ellipsis;cursor:pointer;transition:border-color .2s;text-align:left;text-align-last:left}
+.period-select{width:100%;min-width:0;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid var(--bd);color:var(--txt);padding:8px 9px;border-radius:11px;font-size:13px;font-family:inherit;text-overflow:ellipsis;cursor:pointer;transition:border-color .2s;text-align:left;text-align-last:left}
 .period-select:focus{outline:none;border-color:var(--accent)}
 .editor-sheet .period-select{padding:8px 9px;font-size:13px;border-radius:11px;min-height:44px}
 
-.bell-row{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:13px;display:flex;gap:9px;align-items:center}
+.bell-row{background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);border-radius:0;padding:13px;display:flex;gap:9px;align-items:center}
 .bell-row:last-child{border-bottom:none}
 .editor-sheet .bell-row{gap:9px;padding:14px 14px 14px 12px}
-.bell-num{width:29px;height:29px;border-radius:8px;background:rgba(255,255,255,.05);color:var(--sub);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bell-num{width:29px;height:29px;border-radius:8px;background:color-mix(in srgb,var(--q-text) 5%,transparent);color:var(--sub);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .editor-sheet .bell-num{width:28px;height:28px;font-size:13px}
 .bell-inputs{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.time-input{flex:1;background:rgba(255,255,255,.07);border:1px solid var(--bd);color:var(--txt);padding:9px 4px;border-radius:11px;font-size:14.5px;font-family:ui-monospace,SFMono-Regular,monospace;text-align:center;min-width:0;transition:border-color .2s}
+.time-input{flex:1;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid var(--bd);color:var(--txt);padding:9px 4px;border-radius:11px;font-size:14.5px;font-family:ui-monospace,SFMono-Regular,monospace;text-align:center;min-width:0;transition:border-color .2s}
 .time-input:focus{outline:none;border-color:var(--accent)}
 .editor-sheet .time-input{padding:9px 4px;border-radius:11px;font-size:14.5px;min-height:44px}
 /* Chromium/WebKit both draw a calendar/clock icon (plus spin/clear buttons
@@ -1372,7 +1372,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    a second nested card. Pairs with .ocr-import-box's own background further
    down so Sync and AI Import read as two distinct panels while skimming,
    not just two labels in one continuous list of boxes. */
-.transfer-sync-box{padding:10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--bd)}
+.transfer-sync-box{padding:10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 5%,transparent);border:1px solid var(--bd)}
 .settings-transfer-text{width:100%;min-height:142px;resize:vertical;padding:10px 11px;border-radius:12px;border:1px solid var(--bd);background:rgba(0,0,0,.18);color:var(--txt);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;line-height:1.45;outline:none}
 .settings-transfer-text:focus{border-color:color-mix(in srgb,var(--accent) 58%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
 .settings-transfer-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
@@ -1382,8 +1382,8 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    matches - without this the one remaining visible button would sit in a
    single grid column instead of taking the full row like it visually should. */
 .settings-transfer-actions:has(>[hidden])>:not([hidden]){grid-column:1/-1}
-.settings-transfer-btn{min-height:var(--action-btn-h);font-size:var(--action-btn-font);border-radius:var(--action-btn-radius);padding:11px 12px;background:color-mix(in srgb,var(--pro-accent) 10%,rgba(255,255,255,.09));color:#F8FAFC;border:1px solid color-mix(in srgb,var(--pro-accent) 18%,rgba(255,255,255,.12));font-weight:800;cursor:pointer;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.settings-transfer-btn:active{transform:scale(.97);background:color-mix(in srgb,var(--pro-accent) 18%,rgba(255,255,255,.16))}
+.settings-transfer-btn{min-height:var(--action-btn-h);font-size:var(--action-btn-font);border-radius:var(--action-btn-radius);padding:11px 12px;background:color-mix(in srgb,var(--pro-accent) 10%,color-mix(in srgb,var(--q-text) 9%,transparent));color:var(--q-text);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,color-mix(in srgb,var(--q-text) 12%,transparent));font-weight:800;cursor:pointer;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.settings-transfer-btn:active{transform:scale(.97);background:color-mix(in srgb,var(--pro-accent) 18%,color-mix(in srgb,var(--q-text) 16%,transparent))}
 .settings-transfer-btn:disabled{opacity:.5;cursor:default;pointer-events:none}
 .settings-transfer-btn.primary{box-shadow:none;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
 .settings-transfer-btn.danger{background:rgba(255,69,58,.08);color:#ff453a;border-color:rgba(255,69,58,.35)}
@@ -1421,7 +1421,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 /* A manager device can always redisplay its own stored passcode (see
    copySyncManagerPasscode) - hidden by default per toggleSyncManagerPasscodeReveal,
    so it isn't just sitting on screen in plain text every time this panel opens. */
-.sync-manager-passcode-box{display:flex;flex-direction:column;gap:7px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--bd)}
+.sync-manager-passcode-box{display:flex;flex-direction:column;gap:7px;padding:9px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 6%,transparent);border:1px solid var(--bd)}
 .sync-manager-passcode-box[hidden]{display:none}
 .sync-manager-passcode-box .editor-hint-body{margin:0}
 .sync-manager-passcode-box .sync-active-code{min-width:0}
@@ -1429,7 +1429,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    the manager passcode (see orbitSyncUpgradeToManager) - same shape as the
    passcode box above, shown instead of it (never both - see
    renderSyncPanel) since a viewer has nothing to reveal yet. */
-.sync-upgrade-box{display:flex;flex-direction:column;gap:7px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--bd)}
+.sync-upgrade-box{display:flex;flex-direction:column;gap:7px;padding:9px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 6%,transparent);border:1px solid var(--bd)}
 .sync-upgrade-box[hidden]{display:none}
 .sync-upgrade-box .editor-hint-body{margin:0}
 
@@ -1476,7 +1476,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .legacy-fold-summary::-webkit-details-marker{display:none}
 .legacy-fold-body{padding:0 12px 10px;display:flex;flex-direction:column;gap:7px}
 
-.ocr-import-box{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:12px 10px 10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--bd)}
+.ocr-import-box{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:12px 10px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 5%,transparent);border:1px solid var(--bd)}
 .ocr-import-file-input{display:none}
 .ocr-import-file-row{display:flex;align-items:center;gap:10px}
 .ocr-import-file-row .settings-transfer-btn{width:auto;flex:0 0 auto;min-height:38px;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:12.5px;padding:0 18px}
@@ -1574,14 +1574,14 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 /* Same 7-equal-column grid shape as .nav-item above (.assign-day-tabs uses
    grid-template-columns:repeat(7,minmax(0,1fr))) - same overflow risk from
    an over-long weekday translation, so the same nowrap+ellipsis safety net. */
-.assign-day-tab{min-height:48px;padding:0 3px;border:1px solid color-mix(in srgb,var(--pro-accent) 24%,var(--bd));border-radius:10px;background:color-mix(in srgb,var(--pro-accent) 6%,rgba(255,255,255,.055));color:var(--sub);font:800 14px/1 inherit;cursor:pointer;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.assign-day-tab{min-height:48px;padding:0 3px;border:1px solid color-mix(in srgb,var(--pro-accent) 24%,var(--bd));border-radius:10px;background:color-mix(in srgb,var(--pro-accent) 6%,color-mix(in srgb,var(--q-text) 5.5%,transparent));color:var(--sub);font:800 14px/1 inherit;cursor:pointer;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .assign-day-tab:active{transform:scale(.95)}
 .assign-day-tab.active{background:var(--accent);border-color:var(--accent);color:var(--pro-accent-text);box-shadow:0 5px 14px color-mix(in srgb,var(--accent) 28%,transparent)}
 .assign-day-row{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;align-items:center}
 .assign-day-label{font-size:12px;font-weight:800;color:var(--sub)}
 .assign-grid{display:grid;gap:8px;margin:8px 0 14px}
 .assign-periods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.assign-box{transition:background .16s,border-color .16s,color .16s,transform .12s;border:1px solid var(--bd);border-radius:9px;background:rgba(255,255,255,.06);color:var(--txt);font-weight:700;cursor:pointer;min-height:42px;padding:4px 3px;font-size:11px;line-height:1.15}
+.assign-box{transition:background .16s,border-color .16s,color .16s,transform .12s;border:1px solid var(--bd);border-radius:9px;background:color-mix(in srgb,var(--q-text) 6%,transparent);color:var(--txt);font-weight:700;cursor:pointer;min-height:42px;padding:4px 3px;font-size:11px;line-height:1.15}
 .assign-box:active{transform:scale(.95)}
 .assign-box.occupied{border-color:color-mix(in srgb,var(--accent) 50%,transparent);color:var(--accent)}
 .assign-box.assigned{background:color-mix(in srgb,var(--ok) 22%,transparent);border-color:var(--ok);color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 35%,transparent)}
@@ -1592,8 +1592,8 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 @media (max-width:430px){.assign-day-tabs{gap:4px}.assign-sheet{padding:15px;width:calc(100vw - 20px);border-radius:20px}}
 @media (max-width:390px){.editor-confirm-btn{flex:1 1 0}}
 
-.order-position-label{display:inline-flex;align-items:center;gap:5px;padding:4px 6px 4px 8px;border:1px solid var(--bd);border-radius:11px;background:rgba(255,255,255,.055);color:var(--sub);font-size:10px;font-weight:750;line-height:1;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .16s,background .16s,box-shadow .16s}
-.order-position-label:focus-within{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,rgba(255,255,255,.055));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.order-position-label{display:inline-flex;align-items:center;gap:5px;padding:4px 6px 4px 8px;border:1px solid var(--bd);border-radius:11px;background:color-mix(in srgb,var(--q-text) 5.5%,transparent);color:var(--sub);font-size:10px;font-weight:750;line-height:1;white-space:nowrap;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 6%,transparent);transition:border-color .16s,background .16s,box-shadow .16s}
+.order-position-label:focus-within{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,color-mix(in srgb,var(--q-text) 5.5%,transparent));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 .order-position{width:32px;min-width:32px;height:28px;padding:2px 3px;border:0;border-radius:7px;background:color-mix(in srgb,var(--accent) 14%,var(--card));color:var(--txt);font:800 14px/1 inherit;text-align:center;text-align-last:center;box-shadow:none;outline:0}
 .order-position::-webkit-inner-spin-button,.order-position::-webkit-outer-spin-button{opacity:.7;margin:0}
 @media (max-width:480px){.order-position-label{padding:5px 7px 5px 9px}.order-position{width:36px;min-width:36px;height:30px}.order-position-label{min-height:40px}}
@@ -1653,7 +1653,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .test-panel .editor-hint{margin-top:0;margin-bottom:8px;border-radius:12px;background:color-mix(in srgb,var(--pro-accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);color:var(--orbit-muted)}
 .test-panel h4{margin:0;color:var(--accent);font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .test-panel label{font-size:11px;color:var(--sub);font-weight:600}
-.test-panel select,.test-panel input[type="number"]{background:#2c2c2e;color:#fff;border:1px solid var(--bd);padding:7px 10px;border-radius:9px;font-size:14px;width:100%;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}
+.test-panel select,.test-panel input[type="number"]{background:var(--q-surface-2);color:#fff;border:1px solid var(--bd);padding:7px 10px;border-radius:9px;font-size:14px;width:100%;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}
 .test-panel select:focus,.test-panel input[type="number"]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
 .test-panel input[type="range"]{width:100%;cursor:pointer;margin:6px 0 2px;touch-action: pan-x pan-y}
 
@@ -1691,7 +1691,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
   border-radius:12px;background:transparent;color:var(--pro-accent);border:1px solid color-mix(in srgb,var(--pro-accent) 58%,var(--orbit-line));box-shadow:none;
 }
 .sim-btn:active{transform:scale(.95);background:color-mix(in srgb,var(--pro-accent) 22%,transparent);box-shadow:inset 0 2px 6px rgba(0,0,0,.25)}
-.sim-btn.active{background:var(--pro-accent);color:var(--pro-accent-text,#092027);border-color:var(--pro-accent);box-shadow:0 7px 18px color-mix(in srgb,var(--pro-accent) 24%,transparent)}
+.sim-btn.active{background:var(--pro-accent);color:var(--pro-accent-text,var(--q-surface-2));border-color:var(--pro-accent);box-shadow:0 7px 18px color-mix(in srgb,var(--pro-accent) 24%,transparent)}
 .sim-btn.active:active{transform:scale(.95);background:color-mix(in srgb,var(--pro-accent) 78%,#000 10%);box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
 #test-play-pause-btn:hover{background:color-mix(in srgb,var(--pro-accent) 10%,transparent)}
 #test-play-pause-btn.active:hover{background:color-mix(in srgb,var(--pro-accent) 88%,#fff)}
@@ -1788,7 +1788,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    keep its natural height so there is real overflow for the body's own
    scrolling to work with. */
 .editor-sheet-body>*{flex-shrink:0}
-.style-panel select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:10px;background:#2c2c2e;color:var(--txt);font:inherit}
+.style-panel select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--q-surface-2);color:var(--txt);font:inherit}
 .style-panel input[type="color"]{width:100%;height:42px;padding:3px;border:1px solid var(--bd);border-radius:10px;background:transparent;cursor:pointer}
 .style-panel .editor-fold-body{min-width:0}
 /* Unlike the schedule editor's folds, these two sections (自訂配色/樣式庫)
@@ -1806,17 +1806,17 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .style-fold-heading{cursor:default}
 .style-fold-heading:active{opacity:1;background:none}
 .style-fold-heading::after{display:none}
-.style-fold-fixed .editor-fold-body{border-top:1px solid rgba(255,255,255,.09)}
+.style-fold-fixed .editor-fold-body{border-top:1px solid color-mix(in srgb,var(--q-text) 9%,transparent)}
 .style-panel .style-color-well{background:color-mix(in srgb,var(--orbit-panel-strong) 55%,transparent)}
-.style-panel .style-preset-chip{min-height:62px;background:color-mix(in srgb,#0b1418 62%,transparent);color:#fff;border:1px solid rgba(255,255,255,.18);padding:8px 5px;gap:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 5px 12px rgba(0,0,0,.16)}
-.style-panel .style-preset-chip:hover{border-color:color-mix(in srgb,var(--pro-accent) 58%,var(--orbit-line));transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 16px rgba(0,0,0,.22)}
+.style-panel .style-preset-chip{min-height:62px;background:color-mix(in srgb,#0b1418 62%,transparent);color:#fff;border:1px solid color-mix(in srgb,var(--q-text) 18%,transparent);padding:8px 5px;gap:7px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 8%,transparent),0 5px 12px rgba(0,0,0,.16)}
+.style-panel .style-preset-chip:hover{border-color:color-mix(in srgb,var(--pro-accent) 58%,var(--orbit-line));transform:translateY(-1px);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 12%,transparent),0 8px 16px rgba(0,0,0,.22)}
 .style-panel .style-preset-chip:active{transform:scale(.97)}
-.style-panel .style-preset-swatch{width:100%;height:20px;border-radius:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 3px 8px rgba(0,0,0,.2)}
+.style-panel .style-preset-swatch{width:100%;height:20px;border-radius:7px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 28%,transparent),0 3px 8px rgba(0,0,0,.2)}
 .style-panel .style-slot{background:color-mix(in srgb,var(--orbit-panel-strong) 60%,transparent);border-color:var(--orbit-line)}
 .style-panel .style-slot:hover{border-color:color-mix(in srgb,var(--pro-accent) 58%,var(--orbit-line))}
 .style-panel .style-color-well{border-color:var(--orbit-line)}
 .style-panel .style-cancel-btn{background:transparent;border-color:var(--orbit-line);color:var(--orbit-muted)}
-.style-panel .style-apply-btn{font-size:var(--action-btn-font);font-weight:700;background:color-mix(in srgb,var(--pro-accent) 78%,transparent);color:var(--pro-action-text,#092027);box-shadow:0 8px 18px color-mix(in srgb,var(--pro-accent) 18%,transparent)}
+.style-panel .style-apply-btn{font-size:var(--action-btn-font);font-weight:700;background:color-mix(in srgb,var(--pro-accent) 78%,transparent);color:var(--pro-action-text,var(--q-surface-2));box-shadow:0 8px 18px color-mix(in srgb,var(--pro-accent) 18%,transparent)}
 /* Each swatch is one hue now, not two unrelated ones split diagonally - the
    second stop is the exact same lighter-tint formula
    deriveSingleHueSecondary() computes at runtime (mix toward white 32%),
@@ -1844,19 +1844,19 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .style-preset-chip{border:1px solid var(--bd);cursor:pointer;display:grid;justify-items:center;gap:5px;min-height:54px;padding:7px 3px;border-radius:11px;color:var(--txt);font:800 10px inherit;background:var(--glass-fill-card);transition:transform .12s,border-color .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .style-preset-chip:hover{border-color:var(--accent)}
 .style-preset-chip:active{transform:scale(.97)}
-.style-preset-swatch{width:24px;height:14px;border-radius:5px;background:#747E88}
-.style-color-well{display:grid;gap:6px;padding:9px;border:1px solid rgba(255,255,255,.1);border-radius:12px;color:var(--sub);font-size:10px;font-weight:800;background:var(--glass-fill-card);backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.style-preset-swatch{width:24px;height:14px;border-radius:5px;background:var(--q-muted)}
+.style-color-well{display:grid;gap:6px;padding:9px;border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);border-radius:12px;color:var(--sub);font-size:10px;font-weight:800;background:var(--glass-fill-card);backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .style-color-well input{width:100%;height:34px;padding:2px;border:0;border-radius:8px;background:transparent;cursor:pointer}
 .style-slot-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:100%}
 .style-slot-row{display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:4px;min-width:0}
-.style-slot{min-width:0;min-height:38px;padding:5px 3px;border:1px solid rgba(255,255,255,.1);border-radius:9px;color:var(--sub);font:800 9px inherit;cursor:pointer;background:var(--glass-fill-card);transition:transform .12s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.style-slot-swatch{display:block;width:24px;height:14px;margin:auto;border-radius:5px;background:linear-gradient(135deg,var(--slot-primary,#747E88),var(--slot-secondary,#4B5560))}
+.style-slot{min-width:0;min-height:38px;padding:5px 3px;border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);border-radius:9px;color:var(--sub);font:800 9px inherit;cursor:pointer;background:var(--glass-fill-card);transition:transform .12s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.style-slot-swatch{display:block;width:24px;height:14px;margin:auto;border-radius:5px;background:linear-gradient(135deg,var(--slot-primary,var(--q-muted)),var(--slot-secondary,#4B5560))}
 .style-slot.has-style{color:var(--txt);border-color:color-mix(in srgb,var(--slot-primary) 45%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--slot-primary) 30%,transparent),color-mix(in srgb,#20252D 62%,transparent))}
 .style-slot.has-style .style-slot-swatch{background:linear-gradient(135deg,var(--slot-primary),var(--slot-secondary))}
 .style-slot:not(.has-style){position:relative}
 .style-slot:not(.has-style)::after{content:"";position:absolute;left:18%;right:18%;top:50%;height:1px;transform:rotate(-28deg);opacity:.8;background:var(--sub)}
 .style-slot:active{transform:scale(.97)}
-.style-slot-save{min-height:38px;padding:0;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:#252A32;color:var(--accent);font-size:16px;cursor:pointer;transition:transform .12s}
+.style-slot-save{min-height:38px;padding:0;border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);border-radius:9px;background:#252A32;color:var(--accent);font-size:16px;cursor:pointer;transition:transform .12s}
 .style-slot-save:active{transform:scale(.9)}
 
 .style-preview-state{display:flex;flex-direction:column;gap:7px}
@@ -1865,7 +1865,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .style-panel-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:8px;margin-top:2px;position:sticky;bottom:0;z-index:2;padding-top:8px;background:inherit}
 .style-panel-actions button{min-height:var(--action-btn-h);border-radius:var(--action-btn-radius);font-size:var(--action-btn-font);font-weight:900;font-family:inherit;cursor:pointer;transition:transform .12s}
 .style-panel-actions button:active{transform:scale(.96)}
-.style-apply-btn{border:none;background:color-mix(in srgb,var(--pro-accent) 78%,transparent);color:var(--pro-accent-text,#092027);box-shadow:0 8px 20px color-mix(in srgb,var(--pro-accent) 24%,transparent);min-height:var(--action-btn-h);border-radius:var(--action-btn-radius);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%)}
+.style-apply-btn{border:none;background:color-mix(in srgb,var(--pro-accent) 78%,transparent);color:var(--pro-accent-text,var(--q-surface-2));box-shadow:0 8px 20px color-mix(in srgb,var(--pro-accent) 24%,transparent);min-height:var(--action-btn-h);border-radius:var(--action-btn-radius);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%)}
 .style-cancel-btn{background:transparent;border:1px solid color-mix(in srgb,var(--pro-accent) 20%,transparent);color:var(--orbit-coral);min-height:var(--action-btn-h);border-radius:var(--action-btn-radius)}
 
 @media (max-width:390px){#style-editor-content{max-height:calc(100dvh - 138px)}.style-panel{max-width:none}}
@@ -2055,7 +2055,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
     box-sizing:border-box;
   }
   .top-stack{display:flex;flex-direction:column;flex:0 0 min(460px,46%);width:min(460px,46%);min-height:0}
-  html{background:#0B1117}
+  html{background:var(--q-page)}
   .dashboard{width:100%;margin:0 0 12px;flex:1 1 auto;padding:16px 16px 18px}
   .nav-bar{width:100%;margin:0;flex:0 0 auto;min-height:64px}
   .list-container{flex:1 1 auto;width:auto;min-height:0;margin:0;max-width:none}
@@ -2136,8 +2136,8 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
    that references either variable for free. Screenshotted next to the
    website version at several strengths to land here: strong enough to
    read as colour, not so strong it looks painted on.
-   The flat mix itself uses html/body's own near-black (#0B1117), not
-   --orbit-panel/--orbit-panel-strong (#10232c/#172f39): those read as a
+   The flat mix itself uses html/body's own near-black (var(--q-page)), not
+   --orbit-panel/--orbit-panel-strong (var(--q-surface-2)/var(--q-surface-2)): those read as a
    subtle blue-grey tint under blur at the website's ~22-30% fill, but at
    the opacity this fallback needs to stay legible without blur, that same
    blue hue took over the whole panel - "blue-grey plastic" instead of the
@@ -2157,7 +2157,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
       var(--glass-specular),
       radial-gradient(120% 70% at 10% -10%,color-mix(in srgb,var(--pro-accent) 14%,transparent),transparent 60%),
       radial-gradient(100% 70% at 110% 0%,color-mix(in srgb,var(--pro-secondary) 12%,transparent),transparent 65%),
-      color-mix(in srgb,#0B1117 68%,transparent);
+      color-mix(in srgb,var(--q-page) 68%,transparent);
     --glass-fill-strong:
       var(--glass-specular),
       radial-gradient(120% 70% at 10% -10%,color-mix(in srgb,var(--pro-accent) 10%,transparent),transparent 60%),
@@ -2197,14 +2197,14 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 }
 
 /* The Quadra Pass panel (src/sync.js): a status card, then sharing. */
-.qp-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--pro-accent) 9%,rgba(255,255,255,.06));border:1px solid color-mix(in srgb,var(--pro-accent) 20%,var(--bd))}
+.qp-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--pro-accent) 9%,color-mix(in srgb,var(--q-text) 6%,transparent));border:1px solid color-mix(in srgb,var(--pro-accent) 20%,var(--bd))}
 .qp-icon{width:40px;height:40px;border-radius:11px;flex:0 0 auto}
 .qp-card-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
-.qp-card-text strong{font-size:14px;font-weight:800;color:var(--text,#F8FAFC)}
+.qp-card-text strong{font-size:14px;font-weight:800;color:var(--text,var(--q-text))}
 .qp-card-text span{font-size:11.5px;line-height:1.4;color:var(--sub)}
 .settings-transfer-btn.qp-account{flex:0 0 auto;min-height:38px;padding:0 14px;font-size:12.5px;border-radius:11px}
 .qp-section{display:flex;flex-direction:column;gap:8px;padding-top:12px;margin-top:4px;border-top:1px solid var(--bd)}
-.qp-section-title{font-size:13px;font-weight:800;color:var(--text,#F8FAFC)}
+.qp-section-title{font-size:13px;font-weight:800;color:var(--text,var(--q-text))}
 .qp-key-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
 .qp-key-row .sync-input{text-transform:uppercase;letter-spacing:.12em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
 .qp-key-row .settings-transfer-btn{min-height:42px;padding:0 14px}
@@ -2212,16 +2212,16 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 /* Dialogs over the dashboard: nearly solid, so the page behind never reads
    through their text (where the backdrop blur isn't drawn, and in bright
    themes). */
-.editor-confirm-sheet{background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),#0e141c}
+.editor-confirm-sheet{background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),var(--q-surface-2)}
 /* The welcome card (onboarding.js): a top-layer dialog, solid, three ways in. */
-.orbit-welcome{width:min(calc(100vw - 28px),400px);max-height:calc(100dvh - 40px);margin:auto;padding:0;border:1px solid var(--bd);border-radius:28px;background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),#0e141c;color:var(--txt);box-shadow:var(--glass-shadow);overflow:auto}
+.orbit-welcome{width:min(calc(100vw - 28px),400px);max-height:calc(100dvh - 40px);margin:auto;padding:0;border:1px solid var(--bd);border-radius:28px;background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),var(--q-surface-2);color:var(--txt);box-shadow:var(--glass-shadow);overflow:auto}
 .orbit-welcome::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .orbit-welcome-box{display:grid;gap:12px;padding:24px 20px 16px}
 .orbit-welcome-kicker{margin:0;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--pro-accent)}
 .orbit-welcome-title{margin:0;font-size:24px;font-weight:900;letter-spacing:-.02em;line-height:1.2}
 .orbit-welcome-lede{margin:0 0 4px;font-size:14px;line-height:1.55;color:var(--sub)}
 .orbit-welcome-choices{display:grid;gap:9px}
-.orbit-welcome-choice{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--pro-accent) 22%,var(--bd));background:color-mix(in srgb,var(--pro-accent) 9%,rgba(255,255,255,.04));color:var(--txt);font:inherit;text-align:left;cursor:pointer;transition:transform .12s}
+.orbit-welcome-choice{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--pro-accent) 22%,var(--bd));background:color-mix(in srgb,var(--pro-accent) 9%,color-mix(in srgb,var(--q-text) 4%,transparent));color:var(--txt);font:inherit;text-align:left;cursor:pointer;transition:transform .12s}
 .orbit-welcome-choice:active{transform:scale(.98)}
 .orbit-welcome-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--pro-accent) 18%,transparent);font-size:20px}
 .orbit-welcome-text{display:grid;gap:2px;min-width:0}
@@ -2242,11 +2242,11 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 :root{
   /* The rim without the all-round 1px ring: light only where glass turns. */
   --glass-edge-shadow:
-    inset 0 1px 0 rgba(255,255,255,.34),
-    inset 0 -1px 0 rgba(255,255,255,.08),
-    inset 1px 0 0 rgba(255,255,255,.07),
-    inset -1px 0 0 rgba(255,255,255,.07),
-    inset 0 0 22px rgba(255,255,255,.045);
+    inset 0 1px 0 color-mix(in srgb,var(--q-text) 34%,transparent),
+    inset 0 -1px 0 color-mix(in srgb,var(--q-text) 8%,transparent),
+    inset 1px 0 0 color-mix(in srgb,var(--q-text) 7%,transparent),
+    inset -1px 0 0 color-mix(in srgb,var(--q-text) 7%,transparent),
+    inset 0 0 22px color-mix(in srgb,var(--q-text) 4.5%,transparent);
   --orbit-radius-md:22px;
 }
 /* The days: one glass capsule, the chosen day a brighter lens inside it. */
@@ -2261,7 +2261,7 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .nav-item.is-tomorrow{
   border:0;border-radius:999px;background:transparent;box-shadow:none;
   backdrop-filter:none;-webkit-backdrop-filter:none;
-  color:rgba(255,255,255,.72);font-weight:650;
+  color:color-mix(in srgb,var(--q-text) 72%,transparent);font-weight:650;
 }
 /* Today and tomorrow: their colour as a dot under the name, not a frame. */
 .nav-item.is-today,.nav-item.is-tomorrow{position:relative;color:#fff}
@@ -2275,9 +2275,9 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
 .nav-item.active.is-tomorrow{
   color:#fff;border:0;
   background:
-    linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.10)),
+    linear-gradient(180deg,color-mix(in srgb,var(--q-text) 26%,transparent),color-mix(in srgb,var(--q-text) 10%,transparent)),
     color-mix(in srgb,var(--pro-accent) 30%,transparent);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.12),0 4px 14px rgba(0,0,0,.28);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 55%,transparent),inset 0 -1px 0 color-mix(in srgb,var(--q-text) 12%,transparent),0 4px 14px rgba(0,0,0,.28);
 }
 @media (max-width:480px){.nav-bar{gap:0;padding:4px}.nav-item{min-height:42px}}
 
@@ -2300,111 +2300,127 @@ body.editor-open .editor-confirm-sheet,body.style-panel-open .editor-confirm-she
   50%{box-shadow:var(--glass-shadow-soft),0 0 26px color-mix(in srgb,var(--pro-secondary) 30%,transparent)}
 }
 /* The period number: a small glass disc, its colour from the row. */
-.row .period-badge{border:0;border-radius:50%;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.row .period-badge{border:0;border-radius:50%;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 30%,transparent)}
 
 /* ============================================================================
-   Redesign (2026-10-05): a timetable, not a stack of boxes.
-   The glass, and then the solid cards, both read as cheap: every part in a
-   box of its own, boxes inside boxes, tinted rims and glows. This is how a
-   good timetable reads instead: the class on now in big type straight on
-   the page, its teacher and room as plain words under it, one thin line of
-   progress, the next class and the time left side by side; the days as
-   plain tabs; the classes as one list with hairlines between them, the
-   ones over faded, the one on now on a soft panel. Colour only where it
-   means something (now, next, today). Later rules win, so this block is
-   the whole look.
+   The family's layout (2026-10-05): Orbit Class as Words, Securities and
+   Sports are built. A thin top row (a short status on the left, round icon
+   buttons on the right); a summary card first (a small label, the big
+   value, the secondary figure on its right, a progress bar, the next thing
+   along its foot); a bold section title; the kit's sunken switcher for the
+   days; the classes as one card of rows with dividers. The kit's tokens
+   for every colour (light and dark follow the phone), the user's colour as
+   the one accent. Later rules win, so this block is the whole look.
    ========================================================================= */
-:root,body{
-  --page:#0B0B0D;
-  --surface:#151518;
-  --surface-2:#1D1D21;
-  --surface-3:#2A2A30;
-  --hairline:rgba(255,255,255,.08);
-  --ink:#F5F5F7;
-  --ink-2:#A1A1AA;
-  --ink-3:#6E6E78;
-  --q-status-bg:var(--page);
-  --glass-fill:var(--surface);
-  --glass-fill-strong:var(--surface-2);
-  --glass-fill-card:var(--surface);
-  --glass-specular:linear-gradient(transparent,transparent);
-  --glass-shadow:none;
-  --glass-shadow-soft:none;
-  --glass-dispersion:none;
-  --well-fill:transparent;
-  --well-shadow:none;
-  --sub:var(--ink-2);
-  --txt:var(--ink);
+html{color-scheme:light dark;background:var(--q-page)}
+:root{--q-status-bg:var(--q-page)}
+body{
+  --q-accent:var(--pro-accent);
+  --q-accent-ink:var(--pro-accent-text);
+  --q-accent-wash:color-mix(in srgb,var(--pro-accent) 12%,transparent);
+  --orbit-panel:var(--q-surface);--orbit-panel-strong:var(--q-surface-2);--orbit-white:var(--q-text);--orbit-muted:var(--q-muted);
+  --txt:var(--q-text);--sub:var(--q-muted);--text:var(--q-text);--card:var(--q-surface-2);--bd:var(--q-border);--orbit-line:var(--q-border);
+  --glass-fill:var(--q-surface);--glass-fill-strong:var(--q-surface);--glass-fill-card:var(--q-surface);
+  --glass-specular:linear-gradient(transparent,transparent);--glass-shadow:var(--q-shadow);--glass-shadow-soft:var(--q-shadow-sm);
+  --glass-dispersion:none;--well-fill:transparent;--well-shadow:none;
+  background:var(--q-page);color:var(--q-text);font-family:var(--q-font);letter-spacing:0;
 }
-html,body{background:var(--page)}
-body{color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC",sans-serif;letter-spacing:0}
 body::before,.dashboard::before{display:none}
 *,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .dashboard::after,.top-action-btn::after,.top-actions-menu::after,.modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{display:none}
-.modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.6)}
+.modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.42)}
+.top-stack{width:min(440px,100%);margin:0 auto;padding:0 2px}
 
-/* ---- Now: on the page itself ---- */
-.dashboard{background:transparent;border:0;box-shadow:none;border-radius:0;padding:4px 6px 14px;justify-content:space-between}
-.dashboard > .label-row{margin-bottom:0}
-.exam-countdown{background:transparent;border:0;box-shadow:none;padding:0;gap:8px;min-height:0}
-.exam-countdown-copy{flex-direction:row;align-items:baseline;gap:8px}
-.exam-countdown-label{color:var(--ink-2);font-size:13px;font-weight:600}
-.exam-countdown-date{color:var(--ink-3);font-size:12px;font-weight:500}
-.exam-countdown-value{color:var(--ink);font-family:inherit;font-variant-numeric:tabular-nums;font-size:15px;font-weight:700}
-.top-action-btn,#btn-menu.top-action-btn{width:36px;height:36px;border-radius:50%;background:var(--surface-2);border:0;box-shadow:none;color:var(--ink)}
-.top-actions-menu{background:var(--surface-2);border:1px solid var(--hairline);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,.55)}
-.now-stack{background:transparent;border:0;box-shadow:none;border-radius:0;padding:0;align-items:flex-start;justify-content:center}
-.title-now,.now-stack.is-status .title-now{color:var(--ink);text-align:left;justify-self:start;align-self:flex-start;letter-spacing:-.025em;font-weight:750}
+/* ---- The top row: a status, round buttons ---- */
+.dashboard{display:block;background:transparent;border:0;box-shadow:none;border-radius:0;padding:6px 0 0;margin:0;width:100%;height:auto;min-height:0;flex:0 0 auto;color:var(--q-text)}
+.dashboard > .label-row{display:flex;align-items:center;gap:10px;min-height:44px;margin:0 0 14px}
+.exam-countdown{background:none;border:0;box-shadow:none;padding:0;gap:6px;min-height:0;width:auto;flex-direction:row;align-items:baseline}
+.exam-countdown-copy{flex-direction:row;align-items:baseline;gap:6px}
+.exam-countdown-label{color:var(--q-muted);font-size:14px;font-weight:600}
+.exam-countdown-date{display:none}
+.exam-countdown-value{color:var(--q-text-2);font-family:inherit;font-variant-numeric:tabular-nums;font-size:14px;font-weight:700}
+.exam-countdown-value::before{content:"·";margin-right:6px;color:var(--q-muted);font-weight:600}
+.top-actions{margin-left:auto}
+#btn-menu.top-action-btn{display:none}
+.top-actions-menu,.top-actions .top-actions-menu{position:static!important;display:flex!important;flex-direction:row;gap:10px;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;background:none;border:0;box-shadow:none;padding:0;width:auto;height:auto}
+.top-action-btn,.top-actions-menu .top-action-btn{width:44px;height:44px;border-radius:50%;background:var(--q-surface);border:1px solid var(--q-border);box-shadow:var(--q-shadow-sm);color:var(--q-text);opacity:1!important;transform:none!important}
+
+/* ---- The summary card ---- */
+.cx-hero{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"kicker kicker" "now timer" "bar bar" "next next";
+  column-gap:16px;row-gap:6px;padding:18px 20px;
+  border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow)
+}
+.cx-kicker{grid-area:kicker;color:var(--q-muted);font-size:14px;font-weight:600}
+.cx-kicker:empty{display:none}
+.dashboard[data-mode="class"] .cx-kicker{color:var(--q-accent)}
+.now-stack{grid-area:now;background:transparent;border:0;box-shadow:none;border-radius:0;padding:0;margin:0;align-items:flex-start;justify-content:flex-start;gap:4px;min-width:0}
+.title-now,.now-stack.is-status .title-now{
+  color:var(--q-text);text-align:left;justify-self:start;align-self:flex-start;
+  font-size:30px!important;font-weight:800;letter-spacing:-.02em;line-height:1.15;
+  white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical
+}
 .now-meta-row{justify-content:flex-start;align-self:flex-start;gap:0}
-#now-teacher,#now-place,#now-class-label{background:none;padding:0;border:0;border-radius:0;color:var(--ink-2);font-size:15px;font-weight:500;max-width:none}
-#now-place::before{content:"·";margin:0 7px;color:var(--ink-3)}
-.time-card,.time-card.v3-11-next-module{background:transparent;box-shadow:none;border:0;border-radius:0;padding:0;row-gap:12px}
-.time-card.v3-11-next-module .break-progress-wrap,.break-progress-wrap{height:3px;border:0;background:var(--surface-3);box-shadow:none;margin:0}
-.break-progress-bar,.break-progress-bar.is-class{background:var(--pro-secondary)}
-.break-progress-bar.is-class{background:var(--pro-accent)}
-.next-box,.time-card.v3-11-next-module .next-box{background:transparent;border:0;box-shadow:none}
-.time-card.v3-11-next-module .next-content{text-align:left}
-.time-card.v3-11-next-module .next-content > .label{text-align:left;opacity:1;color:var(--ink-3);font-size:12px;font-weight:600;letter-spacing:.02em;margin-bottom:3px}
-.time-card.v3-11-next-module .title-next,.title-next{color:var(--ink);font-weight:650;-webkit-box-pack:start;text-align:left}
-.time-card.v3-11-next-module .next-box .next-meta,.time-card.v3-11-next-module .next-box .next-meta #next-meta-text{justify-content:flex-start;text-align:left;color:var(--ink-2)}
-.time-card.v3-11-next-module .timer-container{align-items:flex-end}
-.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{color:var(--ink);font-family:inherit;font-variant-numeric:tabular-nums;font-weight:650;letter-spacing:-.02em}
-.timer-label,.time-card:has(#progress-bar.is-class) .timer-label{color:var(--ink-3);font-weight:600;font-size:12px}
+#now-teacher,#now-place,#now-class-label{background:none;padding:0;border:0;border-radius:0;color:var(--q-muted);font-size:15px;font-weight:500;max-width:none;min-height:0}
+#now-teacher.show + #now-place.show::before{content:"·";margin:0 6px}
+.time-card,.time-card.v3-11-next-module{display:contents}
+.break-progress-wrap,.time-card.v3-11-next-module .break-progress-wrap{grid-area:bar;height:8px;margin:12px 0 2px;border:0;border-radius:999px;background:var(--q-sunken);box-shadow:none}
+.break-progress-bar,.break-progress-bar.is-class{background:var(--pro-secondary);border-radius:999px}
+.break-progress-bar.is-class{background:var(--q-accent)}
+.timer-container,.time-card.v3-11-next-module .timer-container{grid-area:timer;align-self:start;align-items:flex-end;justify-content:flex-start;gap:3px;margin:0}
+.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{color:var(--q-text);font-family:inherit;font-variant-numeric:tabular-nums;font-weight:800;font-size:24px;letter-spacing:-.01em;line-height:1.1}
+.timer-label,.time-card:has(#progress-bar.is-class) .timer-label{color:var(--q-muted);font-weight:600;font-size:13px}
+.next-box,.time-card.v3-11-next-module .next-box{grid-area:next;display:block;background:transparent;border:0;border-top:1px solid var(--q-divider);border-radius:0;box-shadow:none;padding:12px 0 0;margin:8px 0 0;overflow:hidden;min-width:0}
+.next-content,.time-card.v3-11-next-module .next-content{display:flex;align-items:baseline;gap:10px;text-align:left;min-width:0}
+.time-card.v3-11-next-module .next-content > .label,.next-content > .label{flex:0 0 auto;margin:0;opacity:1;color:var(--q-muted);font-size:14px;font-weight:600;letter-spacing:0;text-align:left}
+.time-card.v3-11-next-module .title-next,.title-next{flex:0 1 auto;min-width:0;color:var(--q-text);font-size:16px!important;font-weight:700;height:auto;-webkit-line-clamp:1;line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block;overflow:hidden;text-align:left}
+.time-card.v3-11-next-module .next-box .next-meta,.next-meta{flex:1 1 auto;width:auto;min-width:0;justify-content:flex-end;display:flex}
+.time-card.v3-11-next-module .next-box .next-meta #next-meta-text,#next-meta-text{color:var(--q-muted);font-size:14px!important;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ---- The days: plain tabs ---- */
-.nav-bar{background:transparent;border:0;border-bottom:1px solid var(--hairline);border-radius:0;box-shadow:none;padding:0 2px;gap:0}
+/* ---- 課表: a section title, the kit's switcher, one card of rows ---- */
+.cx-section{text-align:left;align-self:stretch;width:100%;margin:26px 4px 12px;font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--q-text)}
+.nav-bar{display:flex;background:var(--q-sunken);border:0;border-radius:14px;box-shadow:none;padding:4px;gap:2px;margin:0 0 12px}
 .nav-item,.nav-item.is-today,.nav-item.is-tomorrow,.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{
-  background:transparent;border:0;border-radius:0;box-shadow:none;color:var(--ink-3);font-weight:600;min-height:44px
+  flex:1 1 0;background:transparent;border:0;border-radius:10px;box-shadow:none;color:var(--q-text-2);font-size:15px;font-weight:700;min-height:40px;position:relative
 }
-.nav-item.is-today,.nav-item.is-tomorrow{color:var(--ink-2)}
-.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
-.nav-item.is-today::before,.nav-item.is-tomorrow::before{top:auto;bottom:6px;left:50%;right:auto;margin-left:-2.5px;width:5px;height:5px}
-
-/* ---- The classes: one list ---- */
-#schedule-list{gap:0}
+.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{background:var(--q-surface);border:1px solid var(--q-border);color:var(--q-accent);box-shadow:var(--q-shadow-sm)}
+.nav-item.is-today::before,.nav-item.is-tomorrow::before{top:auto;bottom:3px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px;background:var(--q-accent)}
+.nav-item.is-tomorrow::before{background:var(--pro-secondary)}
+#schedule-list{width:min(440px,calc(100% - 4px));margin:0 auto 16px;gap:0;flex:1 1 auto;min-height:0;border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden auto}
 #schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{
-  background:transparent;border:0;border-bottom:1px solid var(--hairline);border-radius:0;box-shadow:none;animation:none;
-  padding:12px 8px;margin:0;height:auto;min-height:74px;gap:14px
+  position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;column-gap:14px;
+  background:transparent;border:0;border-bottom:1px solid var(--q-divider);border-radius:0;box-shadow:none;animation:none;
+  padding:14px 18px;margin:0;height:auto;min-height:66px
 }
-#schedule-list .row.is-now{background:var(--surface-2);border-radius:16px;border-bottom-color:transparent}
-#schedule-list .row.is-past{opacity:.42}
+#schedule-list .row:last-child{border-bottom:0}
+#schedule-list .row.is-now{background:var(--q-accent-wash)}
+#schedule-list .row.is-past .content,#schedule-list .row.is-past .row-time,#schedule-list .row.is-past .period-badge{opacity:.45}
+/* The time on the right, as the family's lists put their figure. */
+.row-time{order:3;display:grid;justify-items:end;gap:1px;font-variant-numeric:tabular-nums;line-height:1.15}
+.row-time b{color:var(--q-text);font-size:15px;font-weight:700}
+.row-time span{color:var(--q-muted);font-size:12.5px;font-weight:600}
 #schedule-list .period-badge,#schedule-list .row.is-next .period-badge,#schedule-list .row.is-now .period-badge{
-  width:26px;height:26px;min-width:26px;border-radius:50%;border:0;box-shadow:none;background:transparent;color:var(--ink-3);font-weight:650;font-size:14px
+  order:1;width:28px;height:28px;min-width:28px;margin:0;border-radius:50%;border:0;box-shadow:none;
+  background:var(--q-sunken);color:var(--q-text-2);font-weight:700;font-size:13px
 }
-#schedule-list .row.is-now .period-badge{background:var(--pro-secondary);color:var(--pro-secondary-text)}
-#schedule-list .row.is-next .period-badge{box-shadow:inset 0 0 0 1.5px var(--pro-accent);color:var(--ink)}
-.row .content{border:0;padding:0;gap:3px}
-#schedule-list .row-name{color:var(--ink);font-size:17px;font-weight:600;letter-spacing:-.01em}
-.status-tag{background:none!important;color:var(--pro-secondary)!important;padding:0;border:0;box-shadow:none;font-size:12px;font-weight:600;margin-left:8px}
-.row.is-next .status-tag{color:var(--pro-accent)!important}
-#schedule-list .row-meta{gap:0;color:var(--ink-2)}
-.row-meta .meta-chip{background:none;border:0;box-shadow:none;padding:0;border-radius:0;color:var(--ink-2);font-family:inherit;font-variant-numeric:tabular-nums;font-size:14px;font-weight:500}
-.row-meta .meta-chip + .meta-chip::before{content:"·";margin:0 7px;color:var(--ink-3)}
+#schedule-list .row.is-now .period-badge{background:var(--q-accent);color:var(--q-accent-ink)}
+#schedule-list .row.is-next .period-badge{background:var(--q-accent-wash);color:var(--q-accent)}
+#schedule-list .row .content{order:2;border:0;padding:0;gap:3px;min-width:0}
+#schedule-list .row-name{color:var(--q-text);font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.status-tag{background:var(--q-accent-wash)!important;color:var(--q-accent)!important;padding:2px 8px;border:0;border-radius:999px;box-shadow:none;font-size:11.5px;font-weight:700;margin-left:8px;animation:none!important}
+#schedule-list .row-meta{gap:0;color:var(--q-muted);min-height:0}
+#schedule-list .row-meta .meta-time{display:none}
+#schedule-list .row-meta .meta-chip{background:none;border:0;box-shadow:none;padding:0;border-radius:0;color:var(--q-muted);font-family:inherit;font-size:13.5px;font-weight:500}
+#schedule-list .row-meta .meta-chip:not(.meta-time) ~ .meta-chip::before{content:"·";margin:0 6px}
+#schedule-list .row-meta:not(:has(.meta-chip:not(.meta-time))){display:none}
 
-/* ---- Sheets and dialogs: solid, quiet ---- */
-.modal-sheet,.editor-confirm-sheet,.orbit-welcome,.test-panel{background:var(--surface);border:1px solid var(--hairline);box-shadow:0 24px 60px rgba(0,0,0,.6)}
-.editor-fold,.toggle-row,.orbit-welcome-choice{background:var(--surface-2);border:1px solid var(--hairline)}
-.editor-close,.editor-drill-btn,.editor-back-btn{background:var(--surface-2);border:1px solid var(--hairline);color:var(--ink)}
-.orbit-welcome-icon{background:var(--surface-3)}
-.close-btn,.editor-confirm-btn.primary,.editor-primary-btn{background:var(--ink);color:var(--page);box-shadow:none}
+/* ---- Sheets, dialogs, controls: the kit's ---- */
+.modal-sheet,.editor-confirm-sheet,.orbit-welcome,.test-panel,.editor-sheet,.assign-sheet{background:var(--q-sheet,var(--q-surface));color:var(--q-text);border:1px solid var(--q-border);box-shadow:var(--q-shadow)}
+.editor-fold,.toggle-row,.orbit-welcome-choice,.qp-card{background:var(--q-surface-2);border:1px solid var(--q-border);color:var(--q-text)}
+.editor-fold-summary{color:var(--q-text)}
+.editor-close,.editor-drill-btn,.editor-back-btn{background:var(--q-surface-2);border:1px solid var(--q-border);color:var(--q-text)}
+.editor-input,.time-input,.sync-input,.settings-transfer-text,.period-select,.test-panel select,.test-panel input[type="number"]{background:var(--q-surface);border:1px solid var(--q-border);color:var(--q-text)}
+.orbit-welcome-icon{background:var(--q-sunken)}
+.orbit-welcome-kicker{color:var(--q-accent)}
+.close-btn,.editor-confirm-btn.primary,.editor-primary-btn,.settings-transfer-btn.primary,.save-btn{background:var(--q-accent);color:var(--q-accent-ink);border:0;box-shadow:none}
 .occ-row-period,.time-input{font-family:inherit;font-variant-numeric:tabular-nums}
