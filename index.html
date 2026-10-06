@@ -50,6 +50,10 @@
 <!-- /kit:head -->
   </head>
 <body class="orbit-booting">
+<div id="loading" data-title="Orbit Class" data-cache="orbit-cache-"></div>
+<!-- kit:boot: right after <div id="loading">. -->
+<script>document.write('<script src="'+QUADRA_KIT.url('boot.js')+'"><\/script>')</script>
+<!-- /kit:boot -->
 <div id="test-banner" class="test-banner" data-i18n="testsim.simulating">
   模擬中
 </div>
@@ -70,7 +74,6 @@
   <div id="panel-today" class="tab-panel" role="tabpanel">
 <div class="top-stack">
 <div class="dashboard">
-  <div class="dashboard-boot-loader" aria-hidden="true"><span class="dashboard-boot-spinner"></span></div>
   <div class="label-row">
     <div id="dot" class="status-dot" aria-hidden="true" style="display:none">
     </div>
