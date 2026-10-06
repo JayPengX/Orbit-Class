@@ -362,8 +362,10 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   }
   if (!rows.length) {
     const empty = document.createElement('div');
-    empty.className = 'row';
-    empty.innerHTML = `<div class="period-badge">×</div><div class="content"><div class="row-name">${t('dashboard.noClassesToday')}</div><div class="row-meta"><span class="meta-chip">${t('dashboard.restOrStudy')}</span></div></div>`;
+    // No time and no period: the agenda's three columns would put the words
+    // in the time's 50px column, so this row is one column of its own.
+    empty.className = 'row is-empty';
+    empty.innerHTML = `<div class="content"><div class="row-name">${t('dashboard.noClassesToday')}</div><div class="row-meta"><span class="meta-chip">${t('dashboard.restOrStudy')}</span></div></div>`;
     list.appendChild(empty);
   }
   keepActiveClassVisible(
