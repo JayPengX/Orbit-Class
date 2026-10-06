@@ -226,6 +226,7 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
     isSchoolDay,
     isDayFinished,
     activeBreakName: activeBreak ? activeBreak.name : '',
+    activeBreak: activeBreak || null,
     statusText,
     teacherText,
     placeText,
@@ -273,11 +274,90 @@ export function classStartingSoon({ now, week, todaySchedule }) {
   if (parseTime(next.s) - mins > lead) return null;
   const info = processSplitName(next, week);
   const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const secsLeft = parseTime(next.s) * 60 - (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
   return {
     tag: `class:${day}:${next.s}`,
     name: info.n,
     start: next.s,
     lead,
+    // Minutes to go now, and whether this is the notice's own minute: an app
+    // opened later in the break already shows the time left on its card.
+    left: Math.max(1, Math.ceil(secsLeft / 60)),
+    due: secsLeft > (lead - 1) * 60,
     meta: [next.s, info.t, next.loc].filter(Boolean).join(' · ')
   };
+}
+
+// The summary card on 今天, as one thing to read (src/dashboard.js draws it).
+// In class: the class, the time left, the next class along the foot. Waiting
+// for a class (a break, lunch, the morning): the class coming is the card,
+// its time to start the sentence, the break named on the top line, the class
+// after it along the foot. A break that stands on its own (bedtime, one that
+// ends long before the next class) is the card itself, with the time until
+// it ends. Otherwise the day's state, and the next school day's first class
+// along the foot (`nextDay`: { label, first, week }).
+// Returns { mode, kicker, span, title, teacher, place, label, timer, progress, foot },
+// foot either { label, name, time, sub } or { note }, timer { value, label }.
+export function heroView(vm, { now, week, todaySchedule, nextDay = null }) {
+  const today = todaySchedule || [];
+  const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const about = (c, w) => {
+    const info = processSplitName(c, w);
+    return { title: info.n, teacher: info.t || '', place: c.loc || '', label: info.label || '' };
+  };
+  const footFor = (c, w, label) => {
+    const info = processSplitName(c, w);
+    return { label, name: info.n, time: c.s, sub: [info.t, c.loc].filter(Boolean).join(' · ') };
+  };
+  const last = today[today.length - 1];
+  const lastNote = () => ({ note: t('dashboard.lastPeriodNote', { time: last.e }) });
+  const dayFoot = () => (nextDay?.first ? footFor(nextDay.first, nextDay.week, nextDay.label) : null);
+  const none = { teacher: '', place: '', label: '' };
+
+  if (vm.curIdx >= 0) {
+    const c = today[vm.curIdx];
+    return {
+      mode: 'class',
+      kicker: t('dashboard.periodNow', { n: vm.curIdx + 1 }),
+      span: `${c.s}–${c.e}`,
+      ...about(c, week),
+      timer: { value: vm.timerValue, label: t('dashboard.untilEnd') },
+      progress: vm.progressPercent,
+      foot: vm.nxtIdx >= 0 ? footFor(today[vm.nxtIdx], week, t('dashboard.nextPeriod')) : lastNote()
+    };
+  }
+  const next = vm.isSchoolDay && vm.nxtIdx >= 0 ? today[vm.nxtIdx] : null;
+  const startSec = next ? parseTime(next.s) * 60 : 0;
+  // A break leads only when it isn't simply the wait for the next class:
+  // nothing comes after it today, or it ends more than a long break before.
+  const brk = vm.activeBreakName ? vm.activeBreak : null;
+  const breakLeads = brk && (!next || startSec - parseTime(brk.end) * 60 > LONG_BREAK * 60 || parseTime(brk.end) < parseTime(brk.start));
+  if (next && !breakLeads) {
+    const n = vm.nxtIdx + 1;
+    const prev = today[vm.nxtIdx - 1];
+    const from = prev ? parseTime(prev.e) * 60 : brk ? parseTime(brk.start) * 60 : null;
+    const waiting = brk || prev;
+    return {
+      mode: waiting ? 'break' : 'before',
+      kicker: waiting ? t('dashboard.breakThen', { name: brk?.name || t('dashboard.betweenClasses'), n }) : t('dashboard.firstThen', { n }),
+      span: `${next.s}–${next.e}`,
+      ...about(next, week),
+      timer: { value: formatCountdown(Math.max(0, startSec - secs)), label: t('dashboard.untilStart') },
+      progress: from != null && startSec > from ? Math.min(100, Math.max(0, ((secs - from) / (startSec - from)) * 100)) : null,
+      foot: today[vm.nxtIdx + 1] ? footFor(today[vm.nxtIdx + 1], week, t('dashboard.thenLabel')) : lastNote()
+    };
+  }
+  if (brk) {
+    return {
+      mode: 'break',
+      kicker: '',
+      span: `${brk.start}–${brk.end}`,
+      title: brk.name,
+      ...none,
+      timer: { value: vm.timerValue, label: t('dashboard.untilBreakEnd') },
+      progress: vm.progressPercent,
+      foot: next ? footFor(next, week, t('dashboard.nextPeriod')) : dayFoot()
+    };
+  }
+  return { mode: 'off', kicker: '', span: '', title: vm.statusText, ...none, timer: null, progress: null, foot: dayFoot() };
 }

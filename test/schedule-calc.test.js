@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classStartingSoon, computeDashboardViewModel, noticeLead } from '../src/schedule-calc.js';
+import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from '../src/schedule-calc.js';
 
 // A 3-period Monday with one split (單/雙 week) class in the middle, and the
 // default 打掃時間 break sitting exactly between periods 0 and 1 - same
@@ -260,13 +260,50 @@ describe('classStartingSoon', () => {
   const at = (h, m) => new Date(2026, 8, 28, h, m, 0);
   it('announces the next class in the five minutes before it', () => {
     const soon = classStartingSoon({ now: at(9, 6), week: '單', todaySchedule });
-    expect(soon).toEqual({ tag: 'class:2026-09-28:09:10', name: '國文', start: '09:10', lead: 5, meta: '09:10 · 李老師 · 102' });
+    expect(soon).toEqual({ tag: 'class:2026-09-28:09:10', name: '國文', start: '09:10', lead: 5, left: 4, due: false, meta: '09:10 · 李老師 · 102' });
     expect(classStartingSoon({ now: at(9, 9), week: '雙', todaySchedule }).name).toBe('公民');
+  });
+  it('is due only in the notice\'s own minute, with the minutes really left', () => {
+    // Opened later in the break: the card says how long is left; no banner
+    // saying the notice's full lead (the bug: "10 分鐘後上課" five minutes in).
+    expect(classStartingSoon({ now: at(9, 5), week: '單', todaySchedule })).toMatchObject({ due: true, left: 5 });
+    expect(classStartingSoon({ now: new Date(2026, 8, 28, 9, 5, 40), week: '單', todaySchedule })).toMatchObject({ due: true, left: 5 });
+    expect(classStartingSoon({ now: at(9, 7), week: '單', todaySchedule })).toMatchObject({ due: false, left: 3 });
   });
   it('says nothing earlier, during a class, or after the last one', () => {
     expect(classStartingSoon({ now: at(9, 0), week: '單', todaySchedule })).toBeNull();
     expect(classStartingSoon({ now: at(9, 10), week: '單', todaySchedule })).toBeNull();
     expect(classStartingSoon({ now: at(12, 0), week: '單', todaySchedule })).toBeNull();
     expect(classStartingSoon({ now: at(9, 6), week: '單', todaySchedule: [] })).toBeNull();
+  });
+});
+
+describe('heroView: the card says one thing', () => {
+  const hero = (now, extra = {}) => heroView(compute(now), { now, week: '單', todaySchedule, ...extra });
+  it('in class: the class, the time left, the next class along the foot', () => {
+    const h = hero(at(8, 20));
+    expect(h).toMatchObject({ mode: 'class', kicker: '第 1 節 · 上課中', span: '08:00–08:50', title: '數學', teacher: '王老師', place: '101' });
+    expect(h.timer).toEqual({ value: '30:00', label: '後下課' });
+    expect(h.foot).toEqual({ label: '下一節', name: '國文', time: '09:10', sub: '李老師 · 102' });
+  });
+  it('on a break: the class coming is the card, the break on its top line, the class after along the foot', () => {
+    const h = hero(at(10, 5, 7));
+    expect(h).toMatchObject({ mode: 'break', kicker: '下課 · 接著第 3 節', span: '10:10–11:00', title: '英文', teacher: '林老師' });
+    expect(h.timer).toEqual({ value: '4:53', label: '後上課' });
+    expect(Math.round(h.progress)).toBe(51);
+    expect(h.foot).toEqual({ note: '最後一節，11:00 放學' });
+  });
+  it('a break that stands on its own is the card, with the time until it ends', () => {
+    const night = [{ name: '就寢時間', start: '22:00', end: '06:00' }];
+    const now = at(23, 0);
+    const h = heroView(compute(now, { breakTimes: night }), { now, week: '單', todaySchedule, nextDay: { label: '明天', first: todaySchedule[0], week: '雙' } });
+    expect(h).toMatchObject({ mode: 'break', title: '就寢時間', span: '22:00–06:00' });
+    expect(h.timer.label).toBe('後結束');
+    expect(h.foot).toEqual({ label: '明天', name: '數學', time: '08:00', sub: '王老師 · 101' });
+  });
+  it('the day over: its state, and the next school day along the foot', () => {
+    const h = hero(at(12, 0), { nextDay: { label: '明天', first: todaySchedule[1], week: '雙' } });
+    expect(h).toMatchObject({ mode: 'off', title: '放學時間', timer: null, progress: null });
+    expect(h.foot).toMatchObject({ label: '明天', name: '公民' });
   });
 });

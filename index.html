@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-    <meta name="theme-color" content="#0B1117">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f5f8">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0b0f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <!-- brand: Shared-Proxy/brand/generate.mjs writes this block -->
 <title>Orbit Class</title>
 <meta name="description" content="Orbit Class：即時算出現在是哪一堂、還剩幾分鐘、下一堂在哪的課表儀表板。">
@@ -95,50 +96,21 @@
       </div>
     </div>
   </div>
-  <section class="cx-hero">
-        <span class="cx-tile" id="cx-tile" aria-hidden="true"></span>
-        <span class="cx-kicker" id="cx-kicker"></span>
-        <span class="cx-span" id="cx-span"></span>
-        <div class="now-stack">
-    <div class="title-now" id="now-name" data-i18n="dashboard.loading">
-      載入中…
+  <section class="cx-hero" id="cx-hero" data-mode="off">
+    <div class="cx-h-top">
+      <span class="cx-h-kicker" id="cx-kicker"></span>
+      <span class="cx-h-span" id="cx-span"></span>
     </div>
-    <div class="now-meta-row">
-      <div id="now-teacher">
-      </div>
-      <div id="now-place">
-      </div>
-      <div id="now-class-label" class="dashboard-class-label">
-      </div>
+    <div class="cx-h-title" id="now-name" data-i18n="dashboard.loading">載入中…</div>
+    <div class="cx-h-meta" id="cx-meta"><span id="now-teacher"></span><span id="now-place"></span><span id="now-class-label"></span></div>
+    <div class="cx-h-time" id="timer-group"><b id="timer-val"></b><span id="timer-label"></span></div>
+    <div class="cx-h-bar" id="cx-bar"><i id="cx-fill"></i></div>
+    <div class="cx-h-foot" id="cx-foot">
+      <div class="cx-h-foot-l"><span id="next-label"></span><b id="next-name"></b></div>
+      <div class="cx-h-foot-r"><b id="next-time"></b><span id="next-sub"></span></div>
+      <p class="cx-h-note" id="next-note"></p>
     </div>
-  </div>
-  <div class="time-card">
-    <div id="progress-wrap" class="break-progress-wrap">
-      <div id="progress-bar" class="break-progress-bar"></div>
-    </div>
-    <div id="timer-group" class="timer-container">
-      <div id="timer-val" class="timer-badge">
-        00:00
-      </div>
-      <span class="timer-label" data-i18n="dashboard.betweenClasses">
-        下課
-      </span>
-    </div>
-  </div>
-  <div class="next-box">
-    <div class="next-content">
-      <span class="label" data-i18n="dashboard.nextPeriod">
-        下一節
-      </span>
-      <div class="title-next" id="next-name">
-        ---
-      </div>
-      <div class="next-meta" aria-label="下一節資訊" data-i18n-aria-label="dashboard.nextPeriodInfoAriaLabel">
-        <div id="next-meta-text"></div>
-      </div>
-    </div>
-  </div>
-      </section>
+  </section>
       </div>
 <section class="cx-countdowns" id="cx-countdowns"></section>
 <h2 class="cx-section" id="cx-list-title" data-i18n="dashboard.timetable">課表</h2>

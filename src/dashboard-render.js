@@ -1,12 +1,11 @@
 // ---- src/dashboard-render.js ----
-import { DEFAULT_STYLE_PRIMARY } from './constants.js';
 // DOM rendering for the schedule list (not the live "now" card - that's
 // dashboard.js) and viewport-driven layout fitting (title sizing, accordion).
+import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { normalizeProAccent } from './appearance.js';
 import { keepActiveClassVisible, openModal } from './dashboard.js';
 import { openEditorFold } from './editor-core.js';
-import { getNextSchoolDay, processSplitName } from './schedule.js';
+import { getNextSchoolDay, parseTime, processSplitName } from './schedule.js';
 import { t } from './strings.js';
 
 // Updates the simulation play/pause button and indicator. (Simulator controls
@@ -221,307 +220,18 @@ function shrinkFontToFit(el, available, defaultSize, minSize) {
   }
   el.style.fontSize = Math.floor(best) + 'px';
 }
-const titleFitState = { key: '', raf: 0 };
-function fitNowTitleText(force = false) {
-  const title = document.getElementById('now-name');
-  const stack = document.querySelector('.now-stack');
-  const meta = document.querySelector('.now-meta-row');
-  if (!title || !stack) return;
-
-  const raw = (title.textContent || '').trim();
-  const isStatus = stack.classList.contains('is-status');
-  const hasLatin = /[A-Za-z]/.test(raw);
-  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-  // Floor for the current-class name's size, not the actual value used -
-  // see the height-driven default computed inside the rAF callback below.
-  // CSS's own .title-now font-size is dead weight the moment this function
-  // runs (every render: shrinkFontToFit() below always sets an inline
-  // font-size, overriding whatever the stylesheet said). The current
-  // class is the one thing everything else on the dashboard is secondary
-  // to, so this has to stay clearly above every other card's own largest
-  // text - specifically .timer-badge's 30px ceiling and .title-next's
-  // 22px ceiling (see styles.css) - or a short name here reads as smaller
-  // than the "remaining time" and "next class" it's supposed to outrank.
-  const minDefaultSize = vw <= 430 ? 52 : 50;
-  const minSize = hasLatin ? 18 : 22;
-  const stackWidth = Math.round(stack.getBoundingClientRect().width);
-  // Hidden (the sign-in screen is still up on a first sign-in): nothing to
-  // measure, and a fit made now would shrink the title to its floor and be
-  // remembered. The ResizeObserver below fits it once the box has a size.
-  if (!stackWidth) return;
-  const metaText = meta ? (meta.textContent || '').trim() : '';
-  const metaDisplay = meta ? getComputedStyle(meta).display : '';
-  const key = [
-    raw,
-    isStatus ? 'status' : 'class',
-    stackWidth,
-    metaText,
-    metaDisplay,
-    vw <= 430 ? 'm' : 'w'
-  ].join('|');
-  if (!force && titleFitState.key === key) return;
-  titleFitState.key = key;
-  if (titleFitState.raf) cancelAnimationFrame(titleFitState.raf);
-
-  titleFitState.raf = requestAnimationFrame(() => {
-    const styles = getComputedStyle(stack);
-    const paddingX = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
-    const paddingY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
-    const gap = parseFloat(styles.rowGap || styles.gap) || 0;
-    const metaVisible = meta && getComputedStyle(meta).display !== 'none';
-    // Reserve the meta row's own min-height (see .now-meta-row in
-    // styles.css) even when it's hidden (.is-status), rather than 0 - a
-    // no-class/break status message has nothing to put there, but sizing it
-    // off the extra room that leaves would make it noticeably bigger than an
-    // actual class name sitting above its teacher/room tag, for no reason
-    // other than having nothing below it. Reserving the same slot either way
-    // keeps status text sized to resonate with class text instead of
-    // ballooning past it.
-    const metaHeight = metaVisible ? Math.ceil(meta.getBoundingClientRect().height) : 20;
-    // Width-wise, the meta row costs the title nothing - .now-stack stacks
-    // the title and meta row as separate rows (see its own grid-template-
-    // columns: a single column), not side by side, so the title always gets
-    // the box's full width regardless of how wide the teacher/room chips
-    // happen to be. (An earlier layout did put them side by side, which is
-    // why a metaWidth subtraction briefly lived here - stale after the
-    // redesign, and directly at fault for names that should wrap onto two
-    // big lines instead getting squeezed into a much narrower column than
-    // they actually had.)
-    const available = Math.max(72, Math.floor(stack.clientWidth - paddingX));
-    // The starting size used to be a flat constant, which left a title sized
-    // for a short/cramped box surrounded by dead air once .now-stack had
-    // more room than that guess assumed (a tall dashboard share, a short
-    // name, no meta row) - .now-stack is a flex:1 absorber specifically so
-    // extra height goes here, so the title needs to actually grow into it
-    // instead of stopping at a number picked for the smallest case. Sized
-    // off the box's real available height (minus meta row + gap) rather
-    // than guessed. .78 bumps up the ratio from an earlier, more
-    // conservative .6 picked back when .now-stack and .time-card still had a
-    // visible gap between them - now that they sit flush as one merged panel
-    // (see styles.css's own comment on that), .now-stack has more real
-    // height to work with in the common case (a class or break name sitting
-    // above its meta row), so the ratio was retuned against that.
-    // The 70px cap, on the other hand, is deliberately NOT raised to match -
-    // .now-stack's height varies far more wildly than the ratio bump was
-    // meant for once a no-class/day-finished state hides .time-card
-    // entirely and hands the whole dashboard over to .now-stack alone (see
-    // the v3-15/16/orbit-no-school-day rules in styles.css). Left uncapped
-    // (or capped generously), that state's status text (今日無課 etc.)
-    // would end up visibly bigger than an actual class name ever gets,
-    // reading as its own inconsistent hero size instead of "the same kind of
-    // headline, just with nothing scheduled" - the cap keeps it in the same
-    // ballpark a class name with its meta row actually reaches (typically
-    // high-60s/low-70s), so the two resonate instead of the status text
-    // ballooning just because it happened to land in a taller box. Also
-    // still short of the once-tried .92/no-cap pass that read as oversized/
-    // blocky in its own right. minDefaultSize (see above) is still the
-    // floor, so it never drops below timer-badge/title-next's own ceilings
-    // even in a short box.
-    const availableHeight = Math.max(0, stack.clientHeight - paddingY - (metaHeight + gap));
-    const heightDefaultSize = Math.floor(availableHeight * 0.78);
-    const defaultSize = Math.max(minDefaultSize, Math.min(heightDefaultSize, 70));
-
-    title.style.whiteSpace = 'nowrap';
-    title.style.wordBreak = 'keep-all';
-    title.style.overflowWrap = 'normal';
-    title.style.textOverflow = 'clip';
-    title.style.overflow = 'visible';
-    title.style.display = 'block';
-    title.style.webkitLineClamp = '';
-    title.style.lineHeight = '.98';
-    title.style.letterSpacing = hasLatin ? '-.95px' : '-.8px';
-    title.style.width = available + 'px';
-    title.style.maxWidth = available + 'px';
-    shrinkFontToFit(title, available, defaultSize, minSize);
-
-    // shrinkFontToFit only ever slims the name down to fit one line, even
-    // when the box still has plenty of height to spare - that's the "empty
-    // gap" between the current-class card and the next-class/timer card
-    // below it that a long single-line name leaves unused once it's been
-    // shrunk small enough to fit. If that shrink was substantial (the name
-    // didn't just barely miss defaultSize) and there's enough headroom for
-    // two lines, prefer wrapping onto a second line at a bigger size over
-    // squeezing further onto one - it fills that space with legible text
-    // instead of leaving it blank. The 15%-of-defaultSize floor here matters:
-    // without it, a short fixed status string (今日無課 etc.) that only
-    // barely overflows one line at the new, taller defaultSize would get
-    // needlessly split across two much-too-large lines for a few px of
-    // single-line savings that nobody would even notice.
-    const singleLineSize = parseFloat(title.style.fontSize) || defaultSize;
-    if (singleLineSize < defaultSize * 0.85 - 0.5) {
-      // 0 means no size between singleLineSize and defaultSize gets the
-      // *whole* name onto two lines - never settle for a bigger two-line
-      // size that would need to cut the name off to fit. Bigger-but-
-      // incomplete is not an improvement over smaller-but-complete.
-      const wrapSize = fitTwoLineTitle(title, availableHeight, singleLineSize, defaultSize);
-      if (wrapSize > singleLineSize + 1) {
-        title.style.whiteSpace = 'normal';
-        title.style.wordBreak = 'normal';
-        title.style.display = 'block';
-        title.style.overflow = 'visible';
-        title.style.textOverflow = 'clip';
-        title.style.textWrap = 'balance';
-        title.style.fontSize = Math.floor(wrapSize) + 'px';
-      } else {
-        // Wrapping didn't buy enough to be worth it (or couldn't fit the
-        // whole name at all) - back out the wrap styling the search below
-        // applied while probing and keep the one-line fit instead.
-        title.style.whiteSpace = 'nowrap';
-        title.style.wordBreak = 'keep-all';
-        title.style.textWrap = '';
-        title.style.display = 'block';
-        title.style.overflow = 'visible';
-        title.style.textOverflow = 'clip';
-        title.style.fontSize = Math.floor(singleLineSize) + 'px';
-      }
-    }
-    // Neither path above is actually guaranteed complete on its own:
-    // shrinkFontToFit's minSize is a legibility floor, not a fit guarantee -
-    // an extreme enough name can still overflow at minSize, and since
-    // .now-stack clips overflow-x, that would silently cut text off with no
-    // visual cue at all (worse than an ellipsis, which at least says
-    // "there's more"). If the one-line result currently in effect still
-    // doesn't fit, keep applying the same shrink rule below the normal
-    // floor, all the way down to 8px if it has to, rather than let that
-    // happen - so the name is always fully visible, just very small in the
-    // rare case it has to be.
-    if (title.style.whiteSpace === 'nowrap' && title.scrollWidth > available + 1) {
-      shrinkFontToFit(title, available, minSize, 8);
-    }
-
-    // Everything above only ever measures WIDTH - shrinkFontToFit binary-
-    // searches scrollWidth, fitTwoLineTitle's own wrap check is triggered by
-    // a WIDTH-driven shrink, and the recheck just above is a width overflow
-    // too. None of it verifies the chosen size's actual line height against
-    // the box's real HEIGHT - which is fine normally: minDefaultSize's own
-    // comment already explains why a few px of harmless overflow at the
-    // floor size, on an ordinary box that's merely a LITTLE tighter than
-    // usual (an iPhone SE, a taller meta row), is an accepted, deliberate
-    // tradeoff, not a bug - and this must never second-guess that judgment
-    // call by nudging the size down "just in case", or it quietly drifts
-    // every one-line/two-line decision above along with it (a previous
-    // version of this safety net did exactly that, proactively capping
-    // defaultSize itself, and ended up visibly shrinking the class name and
-    // shifting the two-line wrap threshold on completely ordinary phones
-    // that were never actually broken). It only matters once the box has
-    // collapsed well past "a little tighter than usual" - a landscape
-    // phone, a short laptop/tablet browser window (see the short-viewport
-    // fallback in styles.css) - where the same floor can overshoot the box
-    // by tens of px, painting the title over the progress bar and meta row
-    // beneath it. availableHeight < minSize - the box can't even fit the
-    // smallest LEGIBLE size, not merely less than the preferred one - is the
-    // line between those two cases: a normal box, however tight, never
-    // crosses it, so this never touches one; only a genuinely collapsed box
-    // does, and only then does it step in, no further than the box's own
-    // height actually needs.
-    if (availableHeight < minSize) {
-      shrinkFontToFit(title, available, Math.max(8, Math.floor(availableHeight)), 8);
-    }
-  });
-}
-// Finds the font-size to use if `el` wraps onto two lines instead of the one
-// shrinkFontToFit already fit it to - called only once that one-line fit has
-// already had to shrink below defaultSize, meaning there's width pressure a
-// second line could relieve. Two lines share out availableHeight, which
-// bounds how big either line can get (`geometryMax`) regardless of how much
-// text there actually is. Only ever returns a size that fits the *entire*
-// name within two real lines with no truncation - checked by measuring `el`
-// itself with wrapping turned on, since that's the only way to know how many
-// lines a given size wraps a given name into. Returns 0 (never adopted by
-// the caller) when nothing between minSize and geometryMax manages that: a
-// bigger two-line rendering that has to cut the name off is never preferred
-// over the smaller, already-complete one-line result the caller falls back
-// to instead - there is no ellipsis fallback here on purpose.
-function fitTwoLineTitle(el, availableHeight, minSize, maxSize) {
-  el.style.whiteSpace = 'normal';
-  el.style.wordBreak = 'normal';
-  el.style.display = 'block';
-  el.style.overflow = 'visible';
-  el.style.textWrap = 'balance';
-  const lineHeightRatio = 1.02;
-  const geometryMax = availableHeight / (2 * lineHeightRatio);
-  let lo = minSize,
-    hi = Math.min(maxSize, geometryMax),
-    best = 0;
-  for (let i = 0; i < 18; i++) {
-    const mid = (lo + hi) / 2;
-    el.style.fontSize = mid + 'px';
-    if (el.scrollHeight <= mid * lineHeightRatio * 2 + 3) {
-      best = mid;
-      lo = mid;
-    } else {
-      hi = mid;
-    }
-  }
-  return best;
-}
-// A single line reads better than two, so try shrinking the "10:10 · 徐蓉莉
-// · 第三會議室" line to fit before ever wrapping it - only fall back to a
-// real (balanced, keep-all) two-line wrap when even the smallest legible
-// size still can't fit it, so long teacher/room names never get clipped or
-// shrunk into illegibility.
-const nextMetaFitState = { key: '', raf: 0 };
-function fitNextMetaText(force = false) {
-  const el = document.getElementById('next-meta-text');
+// The card's title on one line: its full size, shrunk as far as 24px for a
+// long name, then an ellipsis (TRUTH.md: shrink, then one line with an
+// ellipsis; never a second line it wasn't drawn for).
+function fitNowTitleText() {
+  const el = document.getElementById('now-name');
   if (!el) return;
-  const raw = (el.textContent || '').trim();
-  if (!raw) return;
-  const key = raw + '|' + Math.round(el.parentElement?.getBoundingClientRect().width || 0);
-  if (!force && nextMetaFitState.key === key) return;
-  nextMetaFitState.key = key;
-  if (nextMetaFitState.raf) cancelAnimationFrame(nextMetaFitState.raf);
-
-  nextMetaFitState.raf = requestAnimationFrame(() => {
-    el.classList.remove('wrap-2l');
-    el.style.fontSize = '';
-    const defaultSize = parseFloat(getComputedStyle(el).fontSize) || 15;
-    const minSize = Math.max(9, Math.round(defaultSize * 0.62));
-    const available = Math.floor(el.clientWidth);
-    if (!available) return;
-    shrinkFontToFit(el, available, defaultSize, minSize);
-    if (el.scrollWidth > available + 1) {
-      el.style.fontSize = defaultSize + 'px';
-      el.classList.add('wrap-2l');
-    }
-  });
-}
-// Shrink only, unlike fitNextMetaText's shrink-then-wrap - these chips sit
-// in .now-meta-row, inside the same .now-stack box as the current-class
-// title, so a chip that wraps onto a second line grows taller and eats into
-// the title's own share of that box's height. #next-meta-text doesn't have
-// that problem (it's alone in .time-card, not fighting anything else for
-// room), which is exactly why it can afford to wrap. Here, ellipsis - not a
-// second line - is the true last resort once even minSize doesn't fit,
-// which is just what happens if shrinkFontToFit alone can't get it under
-// `available`: the chip's own CSS (white-space:nowrap;text-overflow:
-// ellipsis) takes over with no extra styling needed from this function.
-const nowMetaFitState = { key: '', raf: 0 };
-function fitNowMetaChips(force = false) {
-  const chips = ['now-teacher', 'now-place']
-    .map(id => document.getElementById(id))
-    .filter(el => el && el.classList.contains('show'));
-  if (!chips.length) return;
-  const key = chips
-    .map(el => el.textContent + '|' + Math.round(el.getBoundingClientRect().width))
-    .join('~');
-  if (!force && nowMetaFitState.key === key) return;
-  nowMetaFitState.key = key;
-  if (nowMetaFitState.raf) cancelAnimationFrame(nowMetaFitState.raf);
-
-  nowMetaFitState.raf = requestAnimationFrame(() => {
-    chips.forEach(el => {
-      el.style.fontSize = '';
-      const defaultSize = parseFloat(getComputedStyle(el).fontSize) || 11.5;
-      const minSize = Math.max(9, Math.round(defaultSize * 0.62));
-      // clientWidth, not the content box alone - scrollWidth (what
-      // shrinkFontToFit compares it against) is measured on that same
-      // padding-included basis, so the two have to match or a short name
-      // that fits perfectly reads as overflowing by exactly paddingX.
-      const available = Math.floor(el.clientWidth);
-      if (!available) return;
-      shrinkFontToFit(el, available, defaultSize, minSize);
-    });
-  });
+  el.style.fontSize = '';
+  const width = el.clientWidth;
+  // Hidden (the sign-in screen is still up): fitted once it has a size (below).
+  if (!width || el.scrollWidth <= width + 1) return;
+  const size = parseFloat(getComputedStyle(el).fontSize) || 34;
+  shrinkFontToFit(el, width, size, Math.min(size, 24));
 }
 function createMetaChip(text, cls = '') {
   const span = document.createElement('span');
@@ -529,9 +239,11 @@ function createMetaChip(text, cls = '') {
   span.textContent = text;
   return span;
 }
-// Class's own colour, as every app in the family has one (no colour choice).
-function getClassColor() {
-  return normalizeProAccent(DEFAULT_STYLE_PRIMARY);
+// The day's named break that sits wholly between two classes, if any.
+function breakBetween(end, start) {
+  const from = parseTime(end);
+  const to = parseTime(start);
+  return (state.applicationData.breakTimes || []).find(b => b.name && b.start && b.end && parseTime(b.start) >= from && parseTime(b.end) <= to && parseTime(b.end) > parseTime(b.start));
 }
 function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   const list = document.getElementById('schedule-list');
@@ -549,6 +261,10 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
 
   list.innerHTML = '';
   const rows = state.runtimeSchedule[state.viewDay] || [];
+  // 今天: the classes still to come first, what's over below them under its
+  // own line (the rest of the day within reach without scrolling past it).
+  const ahead = [];
+  const done = [];
   rows.forEach((c, i) => {
     const isToday = state.viewDay === (window.MANUALLY_TEST ? window.TEST_DAY : curDay);
     const info = processSplitName(c, week);
@@ -560,6 +276,7 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     const isPast = isToday && i < upTo;
     row.className = `row ${isNow ? 'is-now' : ''} ${isNext ? 'is-next' : ''} ${isPast ? 'is-past' : ''}`.replace(/\s+/g, ' ').trim();
     row.style.setProperty('--row-i', String(i));
+    row.dataset.i = String(i * 2);
     row.tabIndex = 0;
     row.role = 'button';
     row.addEventListener('click', () => openModal(c));
@@ -587,11 +304,11 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
       labelWrap.innerHTML = info.label;
       name.append(labelWrap);
     }
+    // The class on now and the next one say so where the period's number
+    // goes, so the name keeps its whole line.
     if (isNow || isNext) {
-      const tag = document.createElement('span');
-      tag.className = 'status-tag';
-      tag.textContent = isNow ? t('dashboard.inProgress') : t('dashboard.nextPeriod');
-      name.append(tag);
+      badge.classList.add('row-state');
+      badge.textContent = isNow ? t('dashboard.inProgress') : t('dashboard.nextPeriod');
     }
     const meta = document.createElement('div');
     meta.className = 'row-meta';
@@ -608,8 +325,41 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     if (c.loc) meta.append(createMetaChip(c.loc, 'meta-location'));
     content.append(name, meta);
     row.append(time, badge, content);
-    list.appendChild(row);
+    (isPast ? done : ahead).push(row);
+    // A named break between this class and the next (打掃時間, 午休): a quiet
+    // line between them, as a calendar's agenda shows a gap.
+    const after = rows[i + 1];
+    const gap = after && !isPast && breakBetween(c.e, after.s);
+    if (gap) {
+      const line = document.createElement('div');
+      line.className = 'row-gap';
+      line.dataset.i = String(i * 2 + 1);
+      const label = document.createElement('span');
+      label.textContent = gap.name;
+      const span = document.createElement('span');
+      span.textContent = `${gap.start}–${gap.end}`;
+      line.append(label, span);
+      ahead.push(line);
+    }
   });
+  const onToday = document.body?.dataset.tab === 'today';
+  // 今天 shows the next school day's once today is over: its title says so.
+  const title = document.getElementById('cx-list-title');
+  if (onToday && title) {
+    const shown = state.viewDay === (window.MANUALLY_TEST ? window.TEST_DAY : curDay);
+    const ahead1 = (state.viewDay - curDay + 7) % 7 === 1;
+    title.textContent = shown ? t('dashboard.todayClasses') : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
+  }
+  if (onToday && done.length && ahead.length) {
+    const head = document.createElement('div');
+    head.className = 'row-done-head';
+    head.textContent = t('dashboard.doneHeader', { count: done.length });
+    list.append(...ahead, head, ...done);
+  } else {
+    // Any other day, or 課表: the day in order (what's over stays where it was).
+    const order = [...done, ...ahead].sort((a, b) => (a.dataset.i ?? 0) - (b.dataset.i ?? 0));
+    list.append(...order);
+  }
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.className = 'row';
@@ -622,41 +372,19 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     `${state.viewDay}-${curIdx}-${nxtIdx}-${isDayFinished}`
   );
 }
-window.addEventListener('resize', () => {
-  fitNowTitleText(true);
-  fitNowMetaChips(true);
-  fitNextMetaText(true);
-});
-window.addEventListener('orientationchange', () =>
-  setTimeout(() => {
-    fitNowTitleText(true);
-    fitNowMetaChips(true);
-    fitNextMetaText(true);
-  }, 120)
-);
-window.addEventListener('load', () => {
-  fitNowTitleText(true);
-  fitNowMetaChips(true);
-  fitNextMetaText(true);
-});
-// The dashboard's box changes size without a window resize: shown after the
-// sign-in screen, or the layout around it settling. Refit then.
+window.addEventListener('resize', () => fitNowTitleText());
+// The card changes size without a window resize (shown after the sign-in
+// screen, the layout settling): fitted again then.
 if (typeof ResizeObserver !== 'undefined') {
   let lastWidth = -1;
   const observer = new ResizeObserver(entries => {
     const width = Math.round(entries[0]?.contentRect.width || 0);
     if (!width || width === lastWidth) return;
     lastWidth = width;
-    fitNowTitleText(true);
-    fitNowMetaChips(true);
-    fitNextMetaText(true);
+    fitNowTitleText();
   });
-  const watch = () => {
-    const stack = document.querySelector('.now-stack');
-    if (stack) observer.observe(stack);
-    else requestAnimationFrame(watch);
-  };
-  watch();
+  const hero = document.getElementById('cx-hero');
+  if (hero) observer.observe(hero);
 }
 
 /* Test mode advances from one clock tick; the consolidated controller handles input changes. */
@@ -670,10 +398,7 @@ function mainClockTick() {
 }
 
 export {
-  fitNextMetaText,
-  fitNowMetaChips,
   fitNowTitleText,
-  getClassColor,
   mainClockTick,
   renderList,
   shrinkFontToFit,

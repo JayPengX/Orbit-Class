@@ -2593,3 +2593,96 @@ body[data-tab="week"] .cx-countdowns,.cx-countdowns:empty{display:none}
 .cx-way-words{display:grid;gap:3px}
 .cx-way-words strong{font-size:16px;font-weight:800}
 .cx-way-words small{color:var(--q-muted);font-size:13px;font-weight:500;line-height:1.35}
+
+/* ============================================================================
+   Third pass (2026-10-06): the card says one thing, and nothing wraps.
+   The card (src/schedule-calc.js heroView): in class, the class and the time
+   left; on a break or in the morning, the class coming is the card (its name
+   large, teacher and room under it, "4:53 後上課"), the break named on the top
+   line; the foot is what comes after, on two designed lines (the label over
+   the name on the left, the time over the teacher and room on the right), so
+   neither is cut short. Every line is one line: long names shrink, then end
+   in an ellipsis. The list: the class on now and the next one say so where
+   the period number goes, a named break is a quiet line between two classes.
+   ========================================================================= */
+.cx-hero{
+  display:block;position:relative;padding:18px 20px 16px;
+  border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow)
+}
+.cx-hero [hidden]{display:none!important}
+.cx-h-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-height:18px}
+.cx-h-kicker{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--q-muted);font-size:13.5px;font-weight:700;letter-spacing:.01em}
+.cx-hero[data-mode="class"] .cx-h-kicker{color:var(--q-accent)}
+.cx-hero[data-mode="break"] .cx-h-kicker,.cx-hero[data-mode="before"] .cx-h-kicker{color:var(--pro-secondary)}
+.cx-h-span{flex:none;color:var(--q-muted);font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cx-h-top:has(.cx-h-kicker:empty):has(.cx-h-span:empty){display:none}
+.cx-h-title{
+  margin-top:6px;color:var(--q-text);font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.cx-h-meta{display:flex;align-items:center;gap:0;min-width:0;margin-top:4px;color:var(--q-text-2);font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden}
+.cx-h-meta > :is(#now-teacher,#now-place,#now-class-label){display:block;width:auto;max-width:none;min-height:0;padding:0;border:0;border-radius:0;background:none;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:0 1 auto;color:var(--q-text-2);font-size:15px;font-weight:500;line-height:1.3;text-align:left}
+.cx-h-meta > :is(#now-teacher,#now-place,#now-class-label):empty{display:none}
+.cx-h-meta > #now-place:not(:empty)::before{content:"·";margin:0 6px;color:var(--q-muted)}
+.cx-h-meta > #now-teacher:empty + #now-place::before{content:none}
+.cx-h-meta > #now-class-label:not(:empty){flex:none;margin-left:8px;overflow:visible}
+.cx-h-meta .week-label{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--q-accent-wash);color:var(--q-accent);font-size:12px;font-weight:700}
+.cx-h-time{display:flex;align-items:baseline;gap:8px;margin-top:16px;white-space:nowrap}
+.cx-h-time b{color:var(--q-text);font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.cx-h-time span{color:var(--q-muted);font-size:15px;font-weight:600}
+.cx-h-bar{height:6px;margin-top:12px;border-radius:999px;background:var(--q-sunken);overflow:hidden}
+.cx-h-bar i{display:block;height:100%;width:0;border-radius:inherit;background:var(--pro-secondary);transition:width 1s linear}
+.cx-hero[data-mode="class"] .cx-h-bar i{background:var(--q-accent)}
+.cx-h-foot{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;column-gap:16px;
+  margin:16px -20px 0;padding:13px 20px 0;border-top:1px solid var(--q-divider)
+}
+.cx-hero[data-mode="off"] .cx-h-foot{margin-top:14px}
+.cx-h-foot-l,.cx-h-foot-r{display:grid;gap:2px;min-width:0}
+.cx-h-foot-r{justify-items:end;max-width:46vw;text-align:right}
+.cx-h-foot-l > span{color:var(--q-muted);font-size:12.5px;font-weight:700}
+.cx-h-foot-l > b{color:var(--q-text);font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-h-foot-r > b{color:var(--q-text);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.cx-h-foot-r > span{max-width:100%;color:var(--q-muted);font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-h-note{grid-column:1 / -1;margin:0;color:var(--q-muted);font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-h-foot[data-kind="note"] .cx-h-foot-l,.cx-h-foot[data-kind="note"] .cx-h-foot-r,.cx-h-foot:not([data-kind="note"]) .cx-h-note{display:none}
+
+/* The list: every line one line; the state where the period number was. */
+#schedule-list .row-name{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap}
+#schedule-list .row-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#schedule-list .row-name-week-label{flex:none}
+#schedule-list .row-meta{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#schedule-list .row-meta .meta-chip:not(.meta-time){display:inline}
+#schedule-list .row .period-badge.row-state{padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background:var(--q-accent-wash);color:var(--q-accent)}
+#schedule-list .row.is-now .period-badge.row-state{background:var(--q-accent);color:var(--q-accent-ink)}
+#schedule-list .row.is-now .row-time b{color:var(--q-accent)}
+#schedule-list .row-gap{display:flex;align-items:baseline;gap:8px;padding:7px 18px 7px 80px;border-bottom:1px solid var(--q-divider);background:var(--q-surface-2);color:var(--q-muted);font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden}
+#schedule-list .row-gap span:first-child{overflow:hidden;text-overflow:ellipsis}
+#schedule-list .row-gap span:last-child{flex:none;font-variant-numeric:tabular-nums}
+
+/* 倒數: one line each, the days a step under the card's own time. */
+.cx-cd{min-height:78px;padding:14px 18px}
+.cx-cd-words{flex:1 1 auto}
+.cx-cd-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16.5px}
+.cx-cd-date{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-cd-big b{font-size:34px}
+.cx-cd-big small{font-size:14px}
+
+/* 工具's ways in: one grouped list, as the family's settings rows. */
+.cx-ways{grid-template-columns:minmax(0,1fr);gap:0;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden}
+.cx-way{grid-template-columns:40px minmax(0,1fr) auto;align-items:center;align-content:center;gap:14px;min-height:0;padding:14px 18px;border:0;border-bottom:1px solid var(--q-divider);border-radius:0;box-shadow:none;background:none}
+.cx-way:last-child{border-bottom:0}
+.cx-way-icon{width:40px;height:40px;border-radius:12px}
+.cx-way-words{min-width:0}
+.cx-way-words strong,.cx-way-words small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-way-go{color:var(--q-muted);font-size:22px;line-height:1}
+.cx-way:active{transform:none;background:var(--q-surface-2)}
+/* 今天: what's over below the classes still to come, under its own line. */
+#schedule-list .row-done-head{padding:10px 18px 8px 16px;border-bottom:1px solid var(--q-divider);background:var(--q-surface-2);color:var(--q-muted);font-size:12.5px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.cx-cd-addtext{white-space:nowrap;font-size:10.5px;letter-spacing:-.01em}
+.cx-tl-figures{gap:clamp(14px,5vw,22px)}
+.cx-tl-figure b{font-size:min(24px,6.2vw);text-overflow:clip}
+/* 工具's grid: every subject's own short name (src/tools.js shortNames), a tap opens the class. */
+.cx-tl-cell{padding:0 2px;border:0;font:inherit;font-size:12.5px;font-weight:700;text-overflow:clip;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cx-tl-cell.is-long{font-size:min(11px,2.9vw);letter-spacing:-.04em}
+button.cx-tl-cell:active{transform:scale(.94)}

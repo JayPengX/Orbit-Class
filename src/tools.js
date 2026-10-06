@@ -3,14 +3,41 @@
 // the week as a small grid (today's column lit, the class on now filled) and
 // three figures (subjects, classes a week, the school day's span), the
 // editor's button and a shortcut to each of its parts; then the two ways in
-// from elsewhere (a photo read by AI, a classmate's share key) as two tiles.
+// from elsewhere (a photo read by AI, a classmate's share key) as rows.
 // Drawn each time the tab opens, from the saved timetable.
 import { state } from './state.js';
 import { getWeekType, processSplitName } from './schedule.js';
+import { openModal } from './dashboard.js';
 import { isSyncViewer } from './sync.js';
 import { t } from './strings.js';
 
 const DAYS = [1, 2, 3, 4, 5, 6];
+
+// The grid's short names, one per subject and never two alike: a name of up
+// to four characters whole (自主學習), a longer one by its first two
+// (民主政治與法律 → 民主), and where two would read the same, its first
+// character and the first one that tells it apart (社會經濟補給站 beside
+// 社會 → 社經; 英文閱讀 and 英文寫作 → 英閱, 英寫). A name in Latin letters
+// by its first word, cut to six.
+const FULL = 4;
+function shortNames(names) {
+  const list = [...new Set(names.filter(Boolean))];
+  const chars = name => [...name];
+  const latin = name => /^[ -~]+$/.test(name);
+  const base = name => (latin(name) ? name.split(/\s+/)[0].slice(0, 6) : chars(name).length <= FULL ? name : chars(name).slice(0, 2).join(''));
+  const first = new Map(list.map(name => [name, base(name)]));
+  const out = new Map(first);
+  for (const name of list) {
+    if (chars(name).length <= FULL || latin(name)) continue;
+    const rivals = list.filter(other => other !== name && first.get(other) === first.get(name));
+    if (!rivals.length) continue;
+    const mine = chars(name);
+    // The first character that isn't the same in a rival at that place.
+    const at = mine.findIndex((ch, i) => i > 0 && rivals.every(other => chars(other)[i] !== ch));
+    if (at > 0) out.set(name, mine[0] + mine[at]);
+  }
+  return out;
+}
 const PARTS = [
   ['editor-fold-teachers', 'tools.partTeachers'],
   ['editor-fold-bells', 'tools.partPeriods'],
@@ -80,6 +107,7 @@ function weekCard() {
     figure(total ? `${clock(first)}–${clock(last)}` : '—', t('tools.schoolDay'))
   );
 
+  const short = shortNames(days.flatMap(d => (schedule[d] || []).map(item => processSplitName(item, week).n || '')));
   const grid = el('div', 'cx-tl-grid');
   grid.style.setProperty('--days', String(days.length));
   grid.append(el('span', 'cx-tl-corner'));
@@ -89,11 +117,17 @@ function weekCard() {
     for (const d of days) {
       const item = (schedule[d] || [])[r];
       const on = item && d === today && nowMin >= minutes(item.s) && nowMin < minutes(item.e);
-      const cell = el('span', `cx-tl-cell${item ? '' : ' is-empty'}${d === today ? ' is-today' : ''}${on ? ' is-now' : ''}`);
+      const cell = el(item ? 'button' : 'span', `cx-tl-cell${item ? '' : ' is-empty'}${d === today ? ' is-today' : ''}${on ? ' is-now' : ''}`);
       if (item) {
         const name = processSplitName(item, week).n || '';
-        cell.textContent = [...name].slice(0, 2).join('');
+        const label = short.get(name) || name;
+        cell.type = 'button';
+        cell.textContent = label;
         cell.title = name;
+        cell.setAttribute('aria-label', name);
+        if ([...label].length > 2) cell.classList.add('is-long');
+        // The whole class (its teacher, room and every period) a tap away.
+        cell.addEventListener('click', () => openModal(item));
       }
       grid.append(cell);
     }
@@ -119,12 +153,20 @@ function wayTile(kind, icon, title, sub) {
   iconBox.innerHTML = svg;
   const words = el('span', 'cx-way-words');
   words.append(el('strong', '', title), el('small', '', sub));
-  return button(`cx-way is-${kind}`, () => openTransfer(kind), [iconBox, words]);
+  return button(`cx-way is-${kind}`, () => openTransfer(kind), [iconBox, words, el('span', 'cx-way-go', '›')]);
 }
 
+let drawn = '';
 function renderTools() {
   const box = document.getElementById('cx-tools');
   if (!box) return;
+  // Drawn again only when what it shows changed: the timetable (one from the
+  // pass arriving after the tab opened), the week, the minute, or the language.
+  const testing = window.MANUALLY_TEST;
+  const minute = testing ? `${window.TEST_DAY}-${Math.floor((window.TEST_TIME_SEC || 0) / 60)}` : Math.floor(Date.now() / 60_000);
+  const key = `${JSON.stringify(state.runtimeSchedule)}|${getWeekType()}|${minute}|${t('tools.myTimetable')}|${isSyncViewer()}`;
+  if (key === drawn && box.childElementCount) return;
+  drawn = key;
   const ways = el('div', 'cx-ways');
   ways.append(
     wayTile('photo', '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3.5"/>', t('tools.photoTitle'), t('tools.photoSub')),
@@ -138,9 +180,10 @@ function renderTools() {
   );
 }
 
-// Kept current while it's on screen (the class on now moves along).
+// Kept current while it's on screen (a schedule arriving, the class on now
+// moving along): checked every second, drawn only on a change.
 setInterval(() => {
   if (document.body.dataset.tab === 'tools' && !document.hidden) renderTools();
-}, 60_000);
+}, 1000);
 
-export { renderTools };
+export { renderTools, shortNames };

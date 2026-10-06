@@ -25,7 +25,7 @@ function setSimTime(hours, minutes) {
 }
 
 function text(id) {
-  return document.getElementById(id).innerText;
+  return document.getElementById(id).textContent;
 }
 
 describe('dashboard update() against the real app', () => {
@@ -57,10 +57,17 @@ describe('dashboard update() against the real app', () => {
     expect(text('now-place')).toBe('101');
   });
 
-  it('shows the auto-injected default break between periods 0 and 1', () => {
-    setSimTime(9, 0); // inside 打掃時間 (08:50-09:10)
+  it('on a break, the class coming is the card, the break named on its top line', () => {
+    setSimTime(9, 0); // inside 打掃時間 (08:50-09:10), period 2 (09:10) next
     window.update();
-    expect(text('now-name')).toBe('打掃時間');
+    expect(text('now-name')).toBe('公民');
+    expect(text('cx-kicker')).toBe('打掃時間 · 接著第 2 節');
+    expect(text('timer-val')).toBe('10:00');
+    expect(text('timer-label')).toBe('後上課');
+    // The foot: the class after it, on its own two lines.
+    expect(text('next-label')).toBe('接著');
+    expect(text('next-name')).toBe('英文');
+    expect(text('next-time')).toBe('10:10');
   });
 
   it('shows "放學時間" once the last period of the day ends, and auto-advances the viewed day', () => {
@@ -72,10 +79,20 @@ describe('dashboard update() against the real app', () => {
     expect(state.viewDay).toBe(3);
   });
 
-  it('shows "尚未開始" before the first period starts', () => {
+  it('before the first period, the first class and the time until it', () => {
     setSimTime(7, 30);
     window.update();
-    expect(text('now-name')).toBe('尚未開始');
+    expect(text('now-name')).toBe('數學');
+    expect(text('cx-kicker')).toBe('今天 · 第 1 節');
+    expect(text('timer-val')).toBe('30:00');
+    expect(document.getElementById('cx-bar').hidden).toBe(true);
+  });
+
+  it('once the day is over, the next school day\'s first class along the foot', () => {
+    setSimTime(11, 1);
+    window.update();
+    expect(document.getElementById('timer-group').style.display).toBe('none');
+    expect(text('next-label')).toBe('週三');
   });
 
   it('redirects an empty Saturday/Sunday viewDay to Monday instead of showing "這天沒有課"', () => {

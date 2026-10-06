@@ -5,14 +5,7 @@
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { closeStylePanel } from './appearance.js';
-import {
-  fitNextMetaText,
-  fitNowMetaChips,
-  fitNowTitleText,
-  getClassColor,
-  renderList,
-  shrinkFontToFit
-} from './dashboard-render.js';
+import { fitNowTitleText, renderList, shrinkFontToFit } from './dashboard-render.js';
 import { formatCountdownEventDate, normalizeCountdownEvents } from './data.js';
 import { isEditorDirty } from './editor-backup.js';
 import {
@@ -32,9 +25,9 @@ import {
   pad2,
   processSplitName
 } from './schedule.js';
-import { classStartingSoon, computeDashboardViewModel, noticeLead } from './schedule-calc.js';
+import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
 import { notifyClassSoon, scheduleClassNotices } from './sync.js';
-import { t } from './strings.js';
+import { getLocale, t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
 // Modal and toolbar state is separate from saved schedule settings.
@@ -333,13 +326,15 @@ function showCountdown() {
   }
 }
 
-// The app bar's status: the week.
+// The app bar's status: the date and the week (10月6日 週二 · 雙週).
 let statusWeek = null;
 function showStatus(week = statusWeek) {
   statusWeek = week;
   const status = document.getElementById('status');
   if (!status) return;
-  const parts = [week == null ? '' : getWeekLabelHtml(week).replace(/<[^>]+>/g, '')];
+  const en = getLocale() === 'en';
+  const date = new Date().toLocaleDateString(en ? 'en-US' : 'zh-TW', { month: en ? 'short' : 'long', day: 'numeric', weekday: 'short' });
+  const parts = [date, week == null ? '' : getWeekLabelHtml(week).replace(/<[^>]+>/g, '')];
   status.textContent = parts.filter(Boolean).join(' · ');
 }
 
@@ -436,139 +431,88 @@ window.addEventListener('orientationchange', () => setTimeout(() => fitCountdown
 let dashboardDom = null;
 function getDashboardDom() {
   if (dashboardDom) return dashboardDom;
+  const $ = id => document.getElementById(id);
   dashboardDom = {
-    simStatus: document.getElementById('sim-status'),
-    weekDisplay: document.getElementById('week-display-main'),
-    dot: document.getElementById('dot'),
-    progressWrap: document.getElementById('progress-wrap'),
-    progressBar: document.getElementById('progress-bar'),
-    timerGroup: document.getElementById('timer-group'),
-    timerLabel: document.querySelector('.timer-label'),
-    timerVal: document.getElementById('timer-val'),
-    nowName: document.getElementById('now-name'),
-    nowStack: document.querySelector('.now-stack'),
-    dashboard: document.querySelector('.dashboard'),
-    nowTeacher: document.getElementById('now-teacher'),
-    nowPlace: document.getElementById('now-place'),
-    nowClassLabel: document.getElementById('now-class-label'),
-    metaRow: document.querySelector('.now-meta-row'),
-    nextName: document.getElementById('next-name'),
-    nextMetaText: document.getElementById('next-meta-text')
+    simStatus: $('sim-status'),
+    weekDisplay: $('week-display-main'),
+    hero: $('cx-hero'),
+    kicker: $('cx-kicker'),
+    span: $('cx-span'),
+    title: $('now-name'),
+    meta: $('cx-meta'),
+    teacher: $('now-teacher'),
+    place: $('now-place'),
+    classLabel: $('now-class-label'),
+    timer: $('timer-group'),
+    timerVal: $('timer-val'),
+    timerLabel: $('timer-label'),
+    bar: $('cx-bar'),
+    fill: $('cx-fill'),
+    foot: $('cx-foot'),
+    nextLabel: $('next-label'),
+    nextName: $('next-name'),
+    nextTime: $('next-time'),
+    nextSub: $('next-sub'),
+    nextNote: $('next-note')
   };
   return dashboardDom;
 }
 
-// Last-rendered values, so renderDashboard() below can skip a DOM write
-// when nothing actually changed since the previous tick. Everything here
-// changes only a handful of times a day (a name, a room, a status label) -
-// only the countdown digits and the progress-bar width genuinely need a
-// write every second, and those are cheap style/text updates rather than
-// the ~20 unconditional writes (several of them class-list/style toggles
-// that force a style recalc) the unguarded version did every tick.
-let lastRendered = null;
-function changed(key, value) {
-  return !lastRendered || lastRendered[key] !== value;
+// Last-drawn values: the card is asked every second, but only the time left
+// and the bar change that often; everything else is written when it changes.
+const lastRendered = {};
+function put(key, value, write) {
+  if (lastRendered[key] === value) return false;
+  lastRendered[key] = value;
+  write(value);
+  return true;
 }
 
-// Applies a schedule-calc view-model (see computeDashboardViewModel) to the
-// DOM. Pure data in, DOM writes out - no scheduling logic lives here.
-function renderDashboard(viewModel, week) {
+// Draws heroView()'s card (src/schedule-calc.js). Pure data in, DOM writes out.
+function renderDashboard(week, hero) {
   const dom = getDashboardDom();
+  if (put('week', week, w => dom.weekDisplay && (dom.weekDisplay.innerHTML = getWeekLabelHtml(w)))) showStatus(week);
+  if (!dom.hero) return;
+  put('mode', hero.mode, v => (dom.hero.dataset.mode = v));
+  put('kicker', hero.kicker, v => (dom.kicker.textContent = v));
+  put('span', hero.span, v => (dom.span.textContent = v));
+  if (put('title', hero.title, v => (dom.title.textContent = v))) fitNowTitleText();
+  put('teacher', hero.teacher, v => (dom.teacher.textContent = v));
+  put('place', hero.place, v => (dom.place.textContent = v));
+  put('classLabel', hero.label, v => (dom.classLabel.innerHTML = v));
+  put('hasMeta', Boolean(hero.teacher || hero.place || hero.label), v => (dom.meta.hidden = !v));
+  put('hasTimer', Boolean(hero.timer), v => (dom.timer.style.display = v ? 'flex' : 'none'));
+  if (hero.timer) {
+    put('timerLabel', hero.timer.label, v => (dom.timerLabel.textContent = v));
+    put('timerVal', hero.timer.value, v => (dom.timerVal.textContent = v));
+  }
+  put('hasBar', hero.progress != null, v => (dom.bar.hidden = !v));
+  if (hero.progress != null) put('progress', hero.progress.toFixed(2), v => (dom.fill.style.width = v + '%'));
+  const foot = hero.foot;
+  put('foot', foot ? (foot.note ? 'note' : 'class') : 'none', v => {
+    dom.foot.hidden = v === 'none';
+    dom.foot.dataset.kind = v;
+  });
+  if (foot?.note) put('note', foot.note, v => (dom.nextNote.textContent = v));
+  else if (foot) {
+    put('nextLabel', foot.label, v => (dom.nextLabel.textContent = v));
+    put('nextName', foot.name, v => (dom.nextName.textContent = v));
+    put('nextTime', foot.time, v => (dom.nextTime.textContent = v));
+    put('nextSub', foot.sub, v => {
+      dom.nextSub.textContent = v;
+      dom.nextSub.hidden = !v;
+    });
+  }
+}
 
-  if (changed('week', week)) dom.weekDisplay.innerHTML = getWeekLabelHtml(week);
-  // The app bar's status (the family's: a few words of where you are): today's week.
-  const status = document.getElementById('status');
-  if (status && changed('week', week)) showStatus(week);
-
-  if (changed('dotState', viewModel.dotState)) {
-    dom.dot.className =
-      viewModel.dotState === 'active'
-        ? 'status-dot status-active'
-        : viewModel.dotState === 'wait'
-          ? 'status-dot status-wait'
-          : 'status-dot';
-  }
-
-  if (changed('timerVisible', viewModel.timerVisible))
-    dom.timerGroup.style.display = viewModel.timerVisible ? 'flex' : 'none';
-  if (viewModel.timerVisible) {
-    // "30:00 後下課": the time left reads as a sentence.
-    const timerLabel = viewModel.progressVisible ? t(viewModel.progressIsClass ? 'dashboard.untilEnd' : 'dashboard.untilStart') : viewModel.timerLabel;
-    if (changed('timerLabel', timerLabel)) dom.timerLabel.innerText = timerLabel;
-    // The countdown digits are the one field expected to change every tick.
-    dom.timerVal.innerText = viewModel.timerValue;
-  }
-
-  if (changed('progressVisible', viewModel.progressVisible))
-    dom.progressWrap.style.display = viewModel.progressVisible ? 'block' : 'none';
-  if (viewModel.progressVisible) {
-    if (changed('progressIsClass', viewModel.progressIsClass))
-      dom.progressBar.classList.toggle('is-class', viewModel.progressIsClass);
-    // The progress-bar width is the other field expected to change every tick.
-    dom.progressBar.style.width = viewModel.progressPercent + '%';
-  }
-
-  // The card's colour and ring: in class, on a break, or neither.
-  const mode = viewModel.progressVisible ? (viewModel.progressIsClass ? 'class' : 'break') : 'off';
-  if (dom.dashboard) {
-    if (changed('mode', mode)) dom.dashboard.dataset.mode = mode;
-    // The card's top line: the period on now (in class) or coming (on a
-    // break), and the stretch's clock range on its right.
-    const n = mode === 'class' ? viewModel.curIdx : mode === 'break' ? viewModel.nxtIdx : -1;
-    const kickerText = n < 0 ? '' : t(mode === 'class' ? 'dashboard.periodNow' : 'dashboard.breakThen', { n: n + 1 });
-    const kicker = document.getElementById('cx-kicker');
-    if (kicker && changed('kicker', kickerText)) kicker.textContent = kickerText;
-    const span = document.getElementById('cx-span');
-    if (span && changed('span', viewModel.spanText || '')) span.textContent = viewModel.spanText || '';
-    const tile = document.getElementById('cx-tile');
-    if (tile && changed('tileN', n)) tile.textContent = n >= 0 ? String(n + 1) : '';
-    if (viewModel.progressVisible) dom.dashboard.style.setProperty('--p', String(viewModel.progressPercent));
-  }
-  if (changed('statusText', viewModel.statusText)) dom.nowName.innerText = viewModel.statusText;
-  const classColorKey = viewModel.activeClassKey || viewModel.upcomingClassKey || '';
-  if (dom.dashboard && changed('classColorKey', classColorKey)) {
-    dom.dashboard.style.setProperty('--current-class-color', getClassColor());
-  }
-  if (changed('compactStatus', viewModel.compactStatus)) {
-    dom.nowName.classList.toggle('is-status', viewModel.compactStatus);
-    if (dom.nowStack) dom.nowStack.classList.toggle('is-status', viewModel.compactStatus);
-  }
-  const metaChipsTextChanged =
-    changed('teacherText', viewModel.teacherText) || changed('placeText', viewModel.placeText);
-  if (changed('teacherText', viewModel.teacherText)) {
-    dom.nowTeacher.innerText = viewModel.teacherText || '';
-    dom.nowTeacher.classList.toggle('show', !!viewModel.teacherText);
-  }
-  if (changed('placeText', viewModel.placeText)) {
-    dom.nowPlace.innerText = viewModel.placeText || '';
-    dom.nowPlace.classList.toggle('show', !!viewModel.placeText);
-  }
-  if (dom.nowClassLabel && changed('classLabel', viewModel.classLabel)) {
-    dom.nowClassLabel.innerHTML = viewModel.classLabel || '';
-    dom.nowClassLabel.classList.toggle('show', !!viewModel.classLabel);
-  }
-  const titleTextChanged =
-    changed('statusText', viewModel.statusText) ||
-    changed('compactStatus', viewModel.compactStatus) ||
-    changed('metaRowVisible', viewModel.metaRowVisible);
-  if (dom.metaRow && changed('metaRowVisible', viewModel.metaRowVisible))
-    dom.metaRow.style.display = viewModel.metaRowVisible ? 'flex' : 'none';
-  // Same reasoning as fitNowTitleText() below - only worth re-measuring the
-  // teacher/room chips when the text (or their row's own visibility) that
-  // could change how they fit actually did.
-  if (metaChipsTextChanged || changed('metaRowVisible', viewModel.metaRowVisible))
-    fitNowMetaChips();
-  // fitNowTitleText() measures layout (getBoundingClientRect) every call it
-  // makes regardless of its own internal memoization, so it's only worth
-  // calling again when something that could change the fit actually did.
-  if (titleTextChanged) fitNowTitleText();
-  if (changed('nextText', viewModel.nextText)) dom.nextName.innerText = viewModel.nextText;
-  if (changed('nextMeta', viewModel.nextMeta)) {
-    dom.nextMetaText.innerText = viewModel.nextMeta;
-    fitNextMetaText();
-  }
-
-  lastRendered = { week, mode, tileN: mode === 'class' ? viewModel.curIdx : mode === 'break' ? viewModel.nxtIdx : -1, ...viewModel };
+// The next school day after `day`, for the card's foot once today is over.
+function nextSchoolDay(now, curDay) {
+  const day = getNextSchoolDay(curDay);
+  const first = (state.runtimeSchedule[day] || [])[0];
+  if (!first) return null;
+  const ahead = (day - curDay + 7) % 7 || 7;
+  const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ahead);
+  return { label: ahead === 1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[day], first, week: getWeekType(date) };
 }
 
 // updateExamCountdown() computes a day-granularity D-day count (it can't
@@ -639,13 +583,17 @@ function update() {
     state.autoAdvancedAfterFinishedDay = curDay;
   }
 
-  renderDashboard(viewModel, week);
+  renderDashboard(
+    week,
+    heroView(viewModel, { now, week, todaySchedule: state.runtimeSchedule[curDay], nextDay: nextSchoolDay(now, curDay) })
+  );
 
   // As the break before a class starts (five minutes before, after a long
-  // one): a notice (once per class; not in test mode).
+  // one): a notice (once per class; not in test mode), only in its own
+  // minute: opened later, the card already says how long is left.
   if (!window.MANUALLY_TEST) {
     const soon = classStartingSoon({ now, week, todaySchedule: state.runtimeSchedule[curDay] });
-    if (soon) notifyClassSoon(soon);
+    if (soon?.due) notifyClassSoon({ ...soon, lead: soon.left });
     // The coming week's, for the Worker (again every ten minutes).
     const slot = Math.floor(now.getTime() / 600_000);
     if (slot !== state.classPushSlot) {
@@ -654,7 +602,7 @@ function update() {
     }
   }
 
-  const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}`;
+  const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${document.body.dataset.tab}`;
   if (state.lastListKey !== liveStateKey) {
     renderList(week, viewModel.curIdx, viewModel.nxtIdx, curDay, viewModel.isDayFinished);
     state.lastListKey = liveStateKey;
