@@ -2326,7 +2326,10 @@ body{
   background:var(--q-page);color:var(--q-text);font-family:var(--q-font);letter-spacing:0;
 }
 body::before,.dashboard::before{display:none}
-*,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* Class's own surfaces are solid; the kit's glass (its tab bar, the moved
+   notice, the update veil) keeps its blur, so the tab bar reads as every
+   app's does. */
+*:not(.q-tabbar):not(.q-moved),*::before,:root:not(.quadra-updating) *::after,:root.quadra-updating *:not(body)::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .dashboard::after,.top-action-btn::after,.top-actions-menu::after,.modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{display:none}
 .modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.42)}
 .top-stack{width:100%;margin:0;padding:0;position:static;flex:none}
