@@ -7,6 +7,7 @@ import { keepActiveClassVisible, openModal } from './dashboard.js';
 import { openEditorFold } from './editor-core.js';
 import { getNextSchoolDay, parseTime, processSplitName } from './schedule.js';
 import { t } from './strings.js';
+import { subjectIcon } from './subjects.js';
 
 // Updates the simulation play/pause button and indicator. (Simulator controls
 // change the displayed clock only - never the saved schedule data.)
@@ -324,7 +325,16 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     if (info.t) meta.append(createMetaChip(info.t, 'meta-teacher'));
     if (c.loc) meta.append(createMetaChip(c.loc, 'meta-location'));
     content.append(name, meta);
-    row.append(time, badge, content);
+    // The subject's picture beside its name (src/subjects.js); the period's
+    // number moves to the meta line, the state pill keeps the right.
+    const icon = subjectIcon(info.n, 'row-icon');
+    if (!isNow && !isNext) {
+      badge.textContent = '';
+      badge.classList.add('is-quiet');
+    }
+    // (The class on now and the next one: their pill says so, the line keeps its teacher and room whole.)
+    if (!isNow && !isNext) meta.prepend(createMetaChip(t('dashboard.periodNumber', { number: i + 1 }), 'meta-period'));
+    row.append(time, icon, content, badge);
     (isPast ? done : ahead).push(row);
     // A named break between this class and the next (打掃時間, 午休): a quiet
     // line between them, as a calendar's agenda shows a gap.

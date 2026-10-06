@@ -2691,3 +2691,101 @@ body[data-tab="week"] .cx-countdowns,.cx-countdowns:empty{display:none}
 .cx-tl-cell{padding:0 2px;border:0;font:inherit;font-size:12.5px;font-weight:700;text-overflow:clip;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cx-tl-cell.is-long{font-size:min(11px,2.9vw);letter-spacing:-.04em}
 button.cx-tl-cell:active{transform:scale(.94)}
+
+/* ============================================================================
+   Fourth pass (2026-10-06): pictures, and the family's sheets.
+   Every subject has its picture (src/subjects.js: an icon on a tile of the
+   subject's colour), as Sports gives every team its logo: on the card, every
+   row of the list, the 工具 grid (each cell in its subject's colour) and the
+   class's sheet. 倒數's events have theirs (段考 a pen, 運動會 a trophy).
+   The sheets are the kit's (quadra.css .q-sheet): the screen's full width,
+   attached to the bottom, the grabber, the title on the left in the text's
+   colour and a round × on the right; no full-width 完成 bar.
+   ========================================================================= */
+.subject-icon{--s:38px;display:inline-grid;place-items:center;flex:none;width:var(--s);height:var(--s);border-radius:calc(var(--s) * .3);
+  background:color-mix(in srgb,var(--subject,var(--q-accent)) 15%,transparent);color:var(--subject,var(--q-accent))}
+.subject-icon svg{width:56%;height:56%}
+.subject-icon.is-state{background:var(--q-accent-wash);color:var(--q-accent)}
+.cx-hero[data-mode="break"] .subject-icon.is-state{background:color-mix(in srgb,var(--pro-secondary) 15%,transparent);color:var(--pro-secondary)}
+
+/* The card: the class's picture beside its name. */
+.cx-h-main{display:flex;align-items:center;gap:14px;margin-top:10px;min-width:0}
+.cx-h-icon{display:contents}
+.cx-h-icon .hero-icon{--s:58px;border-radius:18px}
+.cx-h-words{flex:1 1 auto;min-width:0}
+.cx-h-main .cx-h-title{margin-top:0}
+.cx-h-main .cx-h-meta{margin-top:2px}
+.cx-hero[data-mode="class"] .cx-h-bar i{background:var(--subject,var(--q-accent))}
+.cx-hero[data-mode="class"] .cx-h-kicker{color:var(--subject,var(--q-accent))}
+#next-name-row{display:flex;align-items:center;gap:8px;min-width:0}
+#next-name-row #next-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cx-h-foot-icon{display:contents}
+.cx-h-foot-icon .foot-icon{--s:24px;border-radius:7px}
+.cx-h-foot-icon:empty{display:none}
+
+/* The list: time, the subject's picture, the class; the state on the right. */
+#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{grid-template-columns:46px 38px minmax(0,1fr) auto;column-gap:12px;padding:12px 16px;align-items:center}
+#schedule-list .row-time{order:1;align-self:center;padding-top:0}
+#schedule-list .row .row-icon{order:2}
+#schedule-list .row .content{order:3;padding-left:0;border-left:0}
+#schedule-list .period-badge,#schedule-list .row .period-badge{order:4}
+#schedule-list .period-badge.is-quiet{display:none}
+#schedule-list .row.is-past .row-icon{opacity:.5;filter:saturate(.6)}
+#schedule-list .row.is-now{background:color-mix(in srgb,var(--q-accent) 8%,var(--q-surface))}
+#schedule-list .row-meta .meta-period{font-variant-numeric:tabular-nums}
+#schedule-list .row-meta .meta-chip.meta-period ~ .meta-chip:not(.meta-time)::before{content:"·";margin:0 6px}
+#schedule-list .row-gap{padding-left:124px}
+#schedule-list .row.is-empty .content{padding-left:0}
+
+/* 工具's grid: each class in its subject's colour; today's column outlined,
+   the class on now filled. */
+.cx-tl-cell[style*="--subject"]{background:color-mix(in srgb,var(--subject) 15%,var(--q-surface));color:color-mix(in srgb,var(--subject) 82%,var(--q-text))}
+.cx-tl-cell.is-today[style*="--subject"]{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--subject) 45%,transparent)}
+.cx-tl-cell.is-now[style*="--subject"]{background:var(--subject);color:#fff;box-shadow:none}
+
+/* 倒數: the event's picture. */
+.cx-cd-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:var(--q-accent-wash);color:var(--q-accent)}
+.cx-cd-icon svg{width:22px;height:22px}
+.cx-cd.is-over .cx-cd-icon{background:var(--q-sunken);color:var(--q-muted)}
+.cx-cd{gap:12px}
+
+/* The sheets: the kit's. */
+.modal-sheet,.test-panel,.editor-sheet,.transfer-sheet{
+  left:50%!important;right:auto!important;bottom:0!important;width:min(100vw,460px)!important;max-width:none!important;
+  border:0!important;border-radius:24px 24px 0 0!important;
+  background:var(--q-sheet,var(--q-surface))!important;box-shadow:0 -10px 40px rgba(0,0,0,.25)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  padding-left:18px!important;padding-right:18px!important;padding-bottom:calc(18px + env(safe-area-inset-bottom))!important
+}
+.modal-sheet{transform:translate(-50%,calc(100% + 24px));height:auto!important;max-height:min(88dvh,760px)!important}
+.modal-sheet.show{transform:translate(-50%,0)}
+.test-panel-handle::after{width:36px;height:5px;background:var(--q-muted);opacity:.45}
+.editor-header,.test-panel .editor-header{min-height:40px;margin:2px 0 10px}
+.editor-title,.test-panel .editor-title{color:var(--q-text);font-size:19px;font-weight:800;letter-spacing:-.01em}
+.editor-close,.test-panel .editor-close{width:34px;height:34px;border-radius:50%;border:0;background:var(--q-sunken);color:var(--q-text-2);font-size:20px;line-height:1;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+/* The class's sheet: its picture, name and teacher · room, then its figures and its periods. */
+.class-head{display:flex;align-items:center;gap:14px;padding:6px 0 14px}
+.class-head-icon{display:contents}
+.class-head .sheet-icon{--s:52px;border-radius:16px}
+.class-head-words{flex:1 1 auto;min-width:0}
+.class-head .modal-title-text{margin:0;color:var(--q-text);font-size:22px;font-weight:800;letter-spacing:-.01em;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.class-head .modal-teacher-text{margin:2px 0 0;color:var(--q-muted);font-size:14px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.class-head .modal-teacher-text:empty{display:none}
+.class-head .sheet-close{flex:none;align-self:flex-start}
+.modal-sheet .stat-grid{gap:10px;margin-bottom:16px}
+.modal-sheet .stat-card{padding:12px 14px;border:0;border-radius:14px;background:var(--q-surface-2);text-align:left;display:grid;gap:2px}
+.modal-sheet .stat-label{color:var(--q-muted);font-size:12px;font-weight:700;text-transform:none;letter-spacing:0}
+.modal-sheet .stat-value{font-size:18px;font-weight:800;color:var(--q-text)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modal-sheet .m-occ-label{font-size:13px;font-weight:700;text-transform:none;letter-spacing:0;color:var(--q-muted);margin:0 2px 8px}
+.modal-sheet .m-occ-list{max-height:none;border:0;border-radius:14px;background:var(--q-surface-2)}
+.modal-sheet .occ-row{border-bottom:1px solid var(--q-divider);padding:11px 14px}
+.modal-sheet .occ-row:last-child{border-bottom:0}
+.modal-sheet .occ-row-day{font-size:15px;font-weight:700}
+.modal-sheet .occ-row-period{font-family:inherit;font-size:14px;font-weight:700}
+.modal-sheet .occ-row-time{font-size:12.5px}
+.modal-sheet .split-info-card{border:0;border-radius:14px;background:var(--q-surface-2)}
+/* Inside the sheets: flat grouped boxes, as the kit's (no tinted gradients, no box in a box in a box). */
+.editor-sheet .editor-fold,.test-panel .editor-fold,.transfer-sheet .settings-transfer-box,.transfer-sheet .ocr-import-box{background:var(--q-surface-2)!important;border:0!important;border-radius:16px!important;box-shadow:none!important}
+.editor-sheet .editor-fold .ocr-import-box,.editor-sheet .editor-fold .toggle-row,.editor-sheet .editor-fold .schedule-grid > *{background:var(--q-surface)!important;border:0!important;box-shadow:none!important}
+.editor-drill-btn{background:var(--q-surface)!important;border:0!important;border-radius:999px!important;font-weight:700}
+.transfer-section-heading > span:first-child,.editor-sheet .transfer-section-heading > span:first-child{color:var(--q-text)}

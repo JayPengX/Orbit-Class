@@ -101,12 +101,17 @@
       <span class="cx-h-kicker" id="cx-kicker"></span>
       <span class="cx-h-span" id="cx-span"></span>
     </div>
-    <div class="cx-h-title" id="now-name" data-i18n="dashboard.loading">載入中…</div>
-    <div class="cx-h-meta" id="cx-meta"><span id="now-teacher"></span><span id="now-place"></span><span id="now-class-label"></span></div>
+    <div class="cx-h-main">
+      <span class="cx-h-icon" id="cx-icon"></span>
+      <div class="cx-h-words">
+        <div class="cx-h-title" id="now-name" data-i18n="dashboard.loading">載入中…</div>
+        <div class="cx-h-meta" id="cx-meta"><span id="now-teacher"></span><span id="now-place"></span><span id="now-class-label"></span></div>
+      </div>
+    </div>
     <div class="cx-h-time" id="timer-group"><b id="timer-val"></b><span id="timer-label"></span></div>
     <div class="cx-h-bar" id="cx-bar"><i id="cx-fill"></i></div>
     <div class="cx-h-foot" id="cx-foot">
-      <div class="cx-h-foot-l"><span id="next-label"></span><b id="next-name"></b></div>
+      <div class="cx-h-foot-l"><span id="next-label"></span><b id="next-name-row"><span class="cx-h-foot-icon" id="next-icon"></span><span id="next-name"></span></b></div>
       <div class="cx-h-foot-r"><b id="next-time"></b><span id="next-sub"></span></div>
       <p class="cx-h-note" id="next-note"></p>
     </div>
@@ -128,13 +133,15 @@
 </div>
 <div id="sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="m-title">
   <div class="test-panel-handle" aria-hidden="true"></div>
+  <div class="sheet-head class-head">
+    <span id="m-icon" class="class-head-icon"></span>
+    <div class="class-head-words">
+      <h2 id="m-title" class="modal-title-text">---</h2>
+      <div id="m-teacher" class="modal-teacher-text">---</div>
+    </div>
+    <button type="button" class="editor-close sheet-close" onclick="closeModal()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
+  </div>
   <div class="modal-sheet-body">
-    <div id="m-title" class="modal-title-text">
-      ---
-    </div>
-    <div id="m-teacher" class="modal-teacher-text">
-      ---
-    </div>
     <div id="split-info-card" class="split-info-card" style="display:none">
       <div class="split-grid">
         <div class="split-col">
@@ -189,9 +196,6 @@
       </div>
     </div>
   </div>
-  <button type="button" id="modal-close-btn" onclick="closeModal()" class="close-btn" data-i18n="common.done">
-    完成
-  </button>
 </div>
 <div id="editor-sheet-overlay" class="test-panel-overlay" onclick="closeEditor()" aria-hidden="true"></div>
 <div id="editor-sheet" class="test-panel editor-sheet" role="dialog" aria-modal="true" aria-label="編輯課表" data-i18n-aria-label="sync.editTitle">

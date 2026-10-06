@@ -5,6 +5,7 @@
 // editor's button and a shortcut to each of its parts; then the two ways in
 // from elsewhere (a photo read by AI, a classmate's share key) as rows.
 // Drawn each time the tab opens, from the saved timetable.
+import { subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getWeekType, processSplitName } from './schedule.js';
 import { openModal } from './dashboard.js';
@@ -124,6 +125,8 @@ function weekCard() {
         cell.type = 'button';
         cell.textContent = label;
         cell.title = name;
+        // In its subject's colour (src/subjects.js), as on 今天's list.
+        cell.style.setProperty('--subject', subjectLook(name).color);
         cell.setAttribute('aria-label', name);
         if ([...label].length > 2) cell.classList.add('is-long');
         // The whole class (its teacher, room and every period) a tap away.

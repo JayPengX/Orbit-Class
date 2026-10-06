@@ -303,11 +303,11 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null }) {
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   const about = (c, w) => {
     const info = processSplitName(c, w);
-    return { title: info.n, teacher: info.t || '', place: c.loc || '', label: info.label || '' };
+    return { title: info.n, subject: info.n, teacher: info.t || '', place: c.loc || '', label: info.label || '' };
   };
   const footFor = (c, w, label) => {
     const info = processSplitName(c, w);
-    return { label, name: info.n, time: c.s, sub: [info.t, c.loc].filter(Boolean).join(' · ') };
+    return { label, name: info.n, subject: info.n, time: c.s, sub: [info.t, c.loc].filter(Boolean).join(' · ') };
   };
   const last = today[today.length - 1];
   const lastNote = () => ({ note: t('dashboard.lastPeriodNote', { time: last.e }) });

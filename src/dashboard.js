@@ -26,6 +26,7 @@ import {
   processSplitName
 } from './schedule.js';
 import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
+import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
 import { notifyClassSoon, scheduleClassNotices } from './sync.js';
 import { getLocale, t } from './strings.js';
 
@@ -392,7 +393,10 @@ function renderCountdowns() {
       const word = { today: 'countdownToday', on: 'countdownInProgress', over: 'countdownEnded' }[st.kind];
       big.append(make('em', '', t(`dashboard.${word}`)));
     }
-    card.append(words, big);
+    // The event's picture (段考 a pen, 運動會 a trophy) beside its name.
+    const pic = make('span', 'cx-cd-icon');
+    pic.innerHTML = eventLook(event.name);
+    card.append(pic, words, big);
     row.append(card);
   }
   const add = make('button', 'cx-cd cx-cd-add');
@@ -453,7 +457,9 @@ function getDashboardDom() {
     nextName: $('next-name'),
     nextTime: $('next-time'),
     nextSub: $('next-sub'),
-    nextNote: $('next-note')
+    nextNote: $('next-note'),
+    icon: $('cx-icon'),
+    nextIcon: $('next-icon')
   };
   return dashboardDom;
 }
@@ -477,6 +483,13 @@ function renderDashboard(week, hero) {
   put('kicker', hero.kicker, v => (dom.kicker.textContent = v));
   put('span', hero.span, v => (dom.span.textContent = v));
   if (put('title', hero.title, v => (dom.title.textContent = v))) fitNowTitleText();
+  // The class's picture (src/subjects.js); a break's cup, a day over the moon.
+  put('icon', hero.subject ? `s:${hero.subject}` : `m:${hero.mode}`, () => {
+    dom.icon?.replaceChildren(hero.subject ? subjectIcon(hero.subject, 'hero-icon') : stateIcon(hero.mode, 'hero-icon'));
+    // The bar and the top line in the class's colour.
+    if (hero.subject) dom.hero.style.setProperty('--subject', subjectLook(hero.subject).color);
+    else dom.hero.style.removeProperty('--subject');
+  });
   put('teacher', hero.teacher, v => (dom.teacher.textContent = v));
   put('place', hero.place, v => (dom.place.textContent = v));
   put('classLabel', hero.label, v => (dom.classLabel.innerHTML = v));
@@ -497,6 +510,7 @@ function renderDashboard(week, hero) {
   else if (foot) {
     put('nextLabel', foot.label, v => (dom.nextLabel.textContent = v));
     put('nextName', foot.name, v => (dom.nextName.textContent = v));
+    put('nextIcon', foot.subject || '', v => dom.nextIcon?.replaceChildren(...(v ? [subjectIcon(v, 'foot-icon')] : [])));
     put('nextTime', foot.time, v => (dom.nextTime.textContent = v));
     put('nextSub', foot.sub, v => {
       dom.nextSub.textContent = v;
@@ -750,7 +764,8 @@ function openModal(c) {
   }
   const info = processSplitName(c, week);
   document.getElementById('m-title').innerText = info.n;
-  document.getElementById('m-teacher').innerText = t('dashboard.teacherLabel') + info.t;
+  document.getElementById('m-icon')?.replaceChildren(subjectIcon(info.n, 'sheet-icon'));
+  document.getElementById('m-teacher').innerText = [info.t, c.loc].filter(Boolean).join(' · ');
   document.getElementById('m-count').innerText = t('dashboard.periodCount', { count });
   document.getElementById('m-occ-list').innerHTML =
     occHtml ||
