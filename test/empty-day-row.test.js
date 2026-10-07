@@ -15,3 +15,15 @@ describe("a day without classes in the agenda", () => {
     expect(src).toContain("empty.className = 'row is-empty'");
   });
 });
+
+// 工具's timetable: an empty period in today's column was filled with
+// is-today's accent wash (a later rule of the same weight).
+describe("an empty period in today's column", () => {
+  const css = readFileSync(resolve(process.cwd(), 'css/styles.css'), 'utf8');
+  it('stays empty (no wash), after is-today', () => {
+    const today = css.indexOf('.cx-tl-cell.is-today{');
+    const empty = css.indexOf('.cx-tl-cell.is-empty.is-today{background:transparent');
+    expect(today).toBeGreaterThan(-1);
+    expect(empty).toBeGreaterThan(today);
+  });
+});

@@ -2581,6 +2581,8 @@ body[data-tab="week"] .cx-countdowns,.cx-countdowns:empty{display:none}
 .cx-tl-cell.is-empty{background:transparent;border:1px dashed var(--q-divider)}
 .cx-tl-cell.is-today{background:var(--q-accent-wash);color:var(--q-accent)}
 .cx-tl-cell.is-now{background:var(--q-accent);color:var(--q-accent-ink)}
+/* An empty period stays empty in today's column too (is-today's wash, a later rule, filled it). */
+.cx-tl-cell.is-empty.is-today{background:transparent;border-color:color-mix(in srgb,var(--q-accent) 40%,var(--q-divider))}
 .cx-tl-empty{grid-column:1 / -1;margin:10px 0 4px;color:var(--q-muted);font-size:14px;text-align:center}
 .cx-tl-edit{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:16px 0 0;border:0;border-radius:14px;background:var(--q-accent);color:var(--q-accent-ink);font:inherit;font-size:16px;font-weight:800;cursor:pointer}
 .cx-tl-parts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
