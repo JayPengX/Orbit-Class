@@ -422,11 +422,15 @@ function clearSyncInputFields() {
 
 // The next class is about to start: the kit's notice (a banner on screen, a
 // system notice in the background once turned on in the account sheet).
-const soonTitle = (name, lead = 5) => (lang === 'en' ? `${name} in ${lead} minutes` : `${name} ${lead} 分鐘後上課`);
+// The class alone in the title (iOS gives a web app's title one line, then
+// "from Class": "安全教育與傷害防護 10 分鐘後…" was cut), when it starts
+// first in the body, which wraps: "10 分鐘後上課 · 14:00 · 李榮哲 · 314 教室".
+const soonTitle = name => name;
+const soonBody = (meta, lead = 5) => [lang === 'en' ? `In ${lead} minutes` : `${lead} 分鐘後上課`, meta].filter(Boolean).join(' · ');
 function notifyClassSoon({ tag, name, meta, lead }) {
   notify(q, {
-    title: soonTitle(name, lead),
-    body: meta,
+    title: soonTitle(name),
+    body: soonBody(meta, lead),
     tag,
     kind: 'class'
   });
@@ -439,8 +443,8 @@ function scheduleClassNotices(classes) {
     q,
     classes.map(c => ({
       at: c.at,
-      title: soonTitle(c.name, c.lead),
-      body: c.meta,
+      title: soonTitle(c.name),
+      body: soonBody(c.meta, c.lead),
       tag: c.tag,
       kind: 'class'
     }))
