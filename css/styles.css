@@ -2398,7 +2398,11 @@ body[data-tab="week"] .cx-section#cx-list-title,#panel-tools .cx-section{margin-
 .cx-section{text-align:left;align-self:stretch;width:auto;margin:26px 2px 12px;font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--q-text)}
 .nav-bar{display:flex;background:var(--q-sunken);border:0;border-radius:14px;box-shadow:none;padding:4px;gap:2px;margin:0 0 12px}
 .nav-item,.nav-item.is-today,.nav-item.is-tomorrow,.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{
-  flex:1 1 0;background:transparent;border:0;border-radius:10px;box-shadow:none;color:var(--q-text-2);font-size:15px;font-weight:700;min-height:40px;position:relative
+  flex:1 1 0;background:transparent;border:1px solid transparent;border-radius:10px;box-shadow:none;color:var(--q-text-2);font-size:15px;font-weight:700;min-height:40px;position:relative;
+  /* Only the press animates. A border that came from nothing (border:0's
+     colour is the text's, a light grey) eased into the chosen day's for
+     .2s: a white ring flashing on the tapped day. */
+  transition:transform .3s var(--ease-liquid)
 }
 .nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{background:var(--q-surface);border:1px solid var(--q-border);color:var(--q-accent);box-shadow:var(--q-shadow-sm)}
 .nav-item.is-today::before,.nav-item.is-tomorrow::before{top:auto;bottom:3px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px;background:var(--q-accent)}
