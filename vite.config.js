@@ -44,7 +44,7 @@ function readGitVersion() {
 const APP_VERSION = readGitVersion();
 
 // Replaces the literal token "__APP_VERSION__" (used for cache-busting query
-// strings in index.html, and for public/sw.js's own cache name) with the
+// strings and the build-version tag in index.html, and for public/sw.js's own cache name) with the
 // real version everywhere it appears - index.html via Vite's own HTML
 // transform, and public/sw.js by patching the copy Vite already places in
 // dist/ once the build has finished writing it.
@@ -58,6 +58,9 @@ function injectAppVersion() {
       const swPath = 'dist/sw.js';
       const content = readFileSync(swPath, 'utf8').replaceAll('__APP_VERSION__', APP_VERSION.hash);
       writeFileSync(swPath, content);
+      // What the shared kit's watchUpdates (and boot.js) compare the page's
+      // build-version against: a newer deploy is loaded at once.
+      writeFileSync('dist/version.json', JSON.stringify({ version: APP_VERSION.hash }) + '\n');
     }
   };
 }

@@ -58,6 +58,9 @@ self.addEventListener('fetch', event => {
   // Never intercept cross-origin requests (the Gemini OCR API call, etc.) -
   // this cache is for this app's own shell and assets only.
   if (url.origin !== self.location.origin) return;
+  // The deploy check (the kit's watchUpdates, boot.js) always asks the
+  // network, and its copies (a new ?t= each time) are never kept.
+  if (url.pathname.endsWith('/version.json')) return;
 
   const isNavigation = request.mode === 'navigate' || request.destination === 'document';
   event.respondWith(isNavigation ? networkFirst(request) : cacheFirst(request));
