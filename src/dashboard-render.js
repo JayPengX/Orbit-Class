@@ -221,18 +221,25 @@ function shrinkFontToFit(el, available, defaultSize, minSize) {
   }
   el.style.fontSize = Math.floor(best) + 'px';
 }
-// The card's title on one line: its full size, shrunk as far as 24px for a
-// long name, then an ellipsis (TRUTH.md: shrink, then one line with an
-// ellipsis; never a second line it wasn't drawn for).
+// The card's title: one line at its full size, shrunk as far as 24px for a
+// long name; a name still too long (族群、性別與國家的歷史 beside the icon)
+// on the second line drawn for it (.is-two: at 24px, ending in an ellipsis
+// only past that), never cut short on one.
 function fitNowTitleText() {
   const el = document.getElementById('now-name');
   if (!el) return;
   el.style.fontSize = '';
+  el.classList.remove('is-two');
   const width = el.clientWidth;
   // Hidden (the sign-in screen is still up): fitted once it has a size (below).
   if (!width || el.scrollWidth <= width + 1) return;
   const size = parseFloat(getComputedStyle(el).fontSize) || 34;
-  shrinkFontToFit(el, width, size, Math.min(size, 24));
+  const min = Math.min(size, 24);
+  shrinkFontToFit(el, width, size, min);
+  if (el.scrollWidth > width + 1) {
+    el.style.fontSize = min + 'px';
+    el.classList.add('is-two');
+  }
 }
 function createMetaChip(text, cls = '') {
   const span = document.createElement('span');

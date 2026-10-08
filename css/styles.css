@@ -2712,6 +2712,8 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .cx-h-icon .hero-icon{--s:58px;border-radius:18px}
 .cx-h-words{flex:1 1 auto;min-width:0}
 .cx-h-main .cx-h-title{margin-top:0}
+/* A name too long for one line at 24px: the two lines drawn for it. */
+.cx-h-title.is-two{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance}
 .cx-h-main .cx-h-meta{margin-top:2px}
 .cx-hero[data-mode="class"] .cx-h-bar i{background:var(--subject,var(--q-accent))}
 .cx-hero[data-mode="class"] .cx-h-kicker{color:var(--subject,var(--q-accent))}
