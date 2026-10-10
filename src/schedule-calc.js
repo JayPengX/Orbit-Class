@@ -298,7 +298,7 @@ export function classStartingSoon({ now, week, todaySchedule }) {
 // along the foot (`nextDay`: { label, first, week }).
 // Returns { mode, kicker, span, title, teacher, place, label, timer, progress, foot },
 // foot either { label, name, time, sub } or { note }, timer { value, label }.
-export function heroView(vm, { now, week, todaySchedule, nextDay = null }) {
+export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday = null }) {
   const today = todaySchedule || [];
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   const about = (c, w) => {
@@ -359,5 +359,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null }) {
       foot: next ? footFor(next, week, t('dashboard.nextPeriod')) : dayFoot()
     };
   }
+  // A national holiday: its name, and the next school day's first class.
+  if (holiday) return { mode: 'off', kicker: t('dashboard.holidayKicker'), span: '', title: t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }), ...none, timer: null, progress: null, foot: dayFoot() };
   return { mode: 'off', kicker: '', span: '', title: vm.statusText, ...none, timer: null, progress: null, foot: dayFoot() };
 }

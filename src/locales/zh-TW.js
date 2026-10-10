@@ -123,6 +123,8 @@ export default {
   'dashboard.inProgress': '上課中',
   'dashboard.nextPeriod': '下一節',
   'dashboard.noClassesToday': '這天沒有課',
+  'dashboard.holidayKicker': '今天放假',
+  'dashboard.holidayTitle': '{zh}',
   'dashboard.restOrStudy': '可以休息或安排自習',
   'dashboard.periodNumber': '第 {number} 節',
   'dashboard.typeSplit': '雙週',

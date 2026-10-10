@@ -28,6 +28,8 @@ import {
 import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
 import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
 import { notifyClassSoon, scheduleClassNotices } from './sync.js';
+import { bindSheetDragToDismiss } from './sheet-drag.js';
+import { holidayOn, holidaysReady } from './holidays.js';
 import { getLocale, t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
@@ -80,79 +82,12 @@ function syncTestToolbar() {
   btn.classList.toggle('manual-test-on', !!window.MANUALLY_TEST);
   btn.classList.toggle('sim-running', !!window.IS_SIMULATING);
 }
-// Wires the grab handle on a bottom sheet (test/style panel) to an actual
-// swipe-down-to-dismiss gesture, matching the affordance the handle implies.
-// closeFn is called on a successful dismiss so guards like the style panel's
-// unsaved-changes confirm still run; if it declines to close (panel keeps
-// the 'show' class), the sheet snaps back open instead of staying hidden.
-function bindSheetDragToDismiss(panelId, closeFn) {
-  const panel = document.getElementById(panelId);
-  const handle = panel && panel.querySelector('.test-panel-handle');
-  if (!panel || !handle) return;
-  // Test/style panels are horizontally centered via left:50% + translateX(-50%)
-  // baked into their CSS transform (modal-sheet isn't - it's positioned with
-  // left/right instead). Dragging must preserve that -50% or the panel loses
-  // its centering and ends up shoved off to the right of the screen.
-  const centered = panel.classList.contains('test-panel');
-  const translate = y => (centered ? `translate(-50%,${y}px)` : `translateY(${y}px)`);
-  let dragging = false;
-  let startY = 0;
-  const threshold = 90;
-  const settle = open => {
-    panel.style.transition = open
-      ? 'transform .35s cubic-bezier(.16,1,.3,1)'
-      : 'transform .22s cubic-bezier(.4,0,1,1)';
-    panel.style.transform = open ? translate(0) : translate(panel.offsetHeight + 40);
-    setTimeout(
-      () => {
-        panel.style.transition = '';
-        panel.style.transform = '';
-      },
-      open ? 360 : 230
-    );
-  };
-  const move = event => {
-    if (!dragging) return;
-    const deltaY = Math.max(0, event.clientY - startY);
-    panel.style.transform = translate(deltaY);
-  };
-  const finish = event => {
-    if (!dragging) return;
-    dragging = false;
-    handle.classList.remove('is-dragging');
-    window.removeEventListener('pointermove', move);
-    window.removeEventListener('pointerup', finish);
-    window.removeEventListener('pointercancel', finish);
-    if (handle.hasPointerCapture?.(event.pointerId)) handle.releasePointerCapture(event.pointerId);
-    const deltaY = Math.max(0, event.clientY - startY);
-    if (deltaY <= threshold) {
-      settle(true);
-      return;
-    }
-    panel.style.transition = 'transform .22s cubic-bezier(.4,0,1,1)';
-    panel.style.transform = translate(panel.offsetHeight + 40);
-    setTimeout(async () => {
-      // closeFn may be async (e.g. closeEditor's unsaved-changes check) - await
-      // it so the 'show' class check below reflects the actual outcome instead
-      // of racing an in-flight promise.
-      await closeFn();
-      requestAnimationFrame(() => settle(panel.classList.contains('show')));
-    }, 220);
-  };
-  handle.addEventListener('pointerdown', event => {
-    if (event.button !== undefined && event.button !== 0) return;
-    event.preventDefault();
-    dragging = true;
-    startY = event.clientY;
-    panel.style.transition = 'none';
-    handle.classList.add('is-dragging');
-    handle.setPointerCapture?.(event.pointerId);
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', finish);
-    window.addEventListener('pointercancel', finish);
-  });
-}
 bindSheetDragToDismiss('debug-panel', closeTestPanel);
+// The holidays arrive after the first draw (the card redraws every second):
+// the week's notices worked out again without a holiday's classes.
+holidaysReady.then(() => {
+  state.classPushSlot = null;
+});
 bindSheetDragToDismiss('style-panel', closeStylePanel);
 bindSheetDragToDismiss('sheet', closeModal);
 bindSheetDragToDismiss('editor-sheet', () => closeEditor());
@@ -520,14 +455,20 @@ function renderDashboard(week, hero) {
 }
 
 // The next school day after `day`, for the card's foot once today is over.
+// The next day with classes, past any national holiday (國慶日補假 on a
+// Friday: Monday's first class, not Friday's).
 function nextSchoolDay(now, curDay) {
-  const day = getNextSchoolDay(curDay);
-  const first = (state.runtimeSchedule[day] || [])[0];
-  if (!first) return null;
-  const ahead = (day - curDay + 7) % 7 || 7;
-  const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ahead);
-  return { label: ahead === 1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[day], first, week: getWeekType(date) };
+  for (let ahead = 1; ahead <= 21; ahead++) {
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ahead);
+    const day = (curDay + ahead) % 7;
+    const first = (state.runtimeSchedule[day] || [])[0];
+    if (!first || holidayOn(date)) continue;
+    return { label: ahead === 1 ? t('dashboard.tomorrow') : ahead < 7 ? WEEKDAY_LABELS[day] : `${date.getMonth() + 1}/${date.getDate()}`, first, week: getWeekType(date) };
+  }
+  return null;
 }
+// Today's classes: none on a national holiday.
+const classesOn = (date, day) => (holidayOn(date) ? [] : state.runtimeSchedule[day] || []);
 
 // updateExamCountdown() computes a day-granularity D-day count (it can't
 // change more than once a day - it uses the real calendar date, not Test
@@ -577,11 +518,14 @@ function update() {
     state.viewDay = getNextSchoolDay(state.viewDay);
   }
 
+  // A national holiday: no classes today, whatever the timetable says (Test Mode's simulated days as they are).
+  const holiday = window.MANUALLY_TEST ? null : holidayOn(now);
+  const todaySchedule = window.MANUALLY_TEST ? state.runtimeSchedule[curDay] : classesOn(now, curDay);
   const viewModel = computeDashboardViewModel({
     now,
     curDay,
     week,
-    todaySchedule: state.runtimeSchedule[curDay],
+    todaySchedule,
     breakTimes: state.applicationData.breakTimes
   });
 
@@ -599,14 +543,14 @@ function update() {
 
   renderDashboard(
     week,
-    heroView(viewModel, { now, week, todaySchedule: state.runtimeSchedule[curDay], nextDay: nextSchoolDay(now, curDay) })
+    heroView(viewModel, { now, week, todaySchedule, nextDay: nextSchoolDay(now, curDay), holiday })
   );
 
   // As the break before a class starts (five minutes before, after a long
   // one): a notice (once per class; not in test mode), only in its own
   // minute: opened later, the card already says how long is left.
   if (!window.MANUALLY_TEST) {
-    const soon = classStartingSoon({ now, week, todaySchedule: state.runtimeSchedule[curDay] });
+    const soon = classStartingSoon({ now, week, todaySchedule });
     if (soon?.due) notifyClassSoon({ ...soon, lead: soon.left });
     // The coming week's, for the Worker (again every ten minutes).
     const slot = Math.floor(now.getTime() / 600_000);
@@ -630,7 +574,7 @@ function weekClasses(now) {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
     const week = getWeekType(date);
     const day = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-    const list = state.runtimeSchedule[date.getDay()] || [];
+    const list = classesOn(date, date.getDay());
     for (const [i, c] of list.entries()) {
       const [h, m] = String(c.s || '')
         .split(':')

@@ -145,6 +145,8 @@ export default {
   'dashboard.inProgress': 'Now',
   'dashboard.nextPeriod': 'Next period',
   'dashboard.noClassesToday': 'No classes on this day',
+  'dashboard.holidayKicker': 'A day off',
+  'dashboard.holidayTitle': '{en}',
   'dashboard.restOrStudy': 'Feel free to rest or plan your own study time',
   'dashboard.periodNumber': 'Period {number}',
   'dashboard.typeSplit': 'Alternating weeks',
