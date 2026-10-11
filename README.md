@@ -35,15 +35,14 @@ A browser-based class-schedule dashboard that tells you what's happening right n
 
 Orbit Class is a class-schedule dashboard that runs entirely in the browser. It doesn't just display a timetable — it continuously computes which period is happening right now, how many minutes are left, and what's coming up next, so opening the page gives you the answer immediately instead of making you cross-reference a printed schedule yourself.
 
-It's a purely static front-end site: no accounts, no backend database. By default, your schedule lives only in your own browser's local storage.
+It's an Orbit app (the everyday tools of the Quadra family), a static front-end site built with Vite, and **signed in with the Quadra Pass like every app**. The schedule lives on the pass (the Worker's `/eco`, app `orbit`), with a cache in the browser so it opens at once. The family's rules are `Shared-Proxy/docs/TRUTH.md`; the kit (sign-in, the account button, notices, the update watch, the glass look) is Shared-Proxy's `kit/`, loaded from its Pages.
 
-Three features are optional and each talks to a shared service the deployment site has already configured (a Cloudflare Workers proxy, a Firestore project), so that individual users never need to sign up for a Gemini API key or set up their own Firebase project themselves:
+Two features use the shared Worker (`orbit-workers-proxy`, in Shared-Proxy), both needing the pass's session:
 
-- **AI schedule-photo import** (OCR via Gemini)
-- **AI natural-language schedule editing**
-- **Cross-device sync**
+- **AI schedule-photo import** (`/gemini`)
+- **AI natural-language schedule editing** (`/nl-edit`)
 
-All three are deliberately built on top of services whose free tier has a hard usage cap and requires no credit card. The worst case if the shared infrastructure is abused is that the quota runs out and the feature pauses until it resets — never an unexpected bill. Security details for each feature are covered in their respective sections below, and overall caveats are summarized in [Known Limitations](#known-limitations).
+Both run on free tiers with hard caps and no credit card: the worst case of abuse is the quota running out and the feature pausing, never a bill.
 
 ---
 
@@ -52,7 +51,8 @@ All three are deliberately built on top of services whose free tier has a hard u
 - **"Right now" front and center**: the top of the dashboard always shows the current class, teacher, room, and time remaining (progress bar + countdown), followed by a preview of the next period, then the full day's schedule list — tap any period for a detail card.
 - **Fully automatic transitions**: period changes, day changes, and end-of-class all recompute automatically — no manual refresh or "next period" button needed.
 - **Made for phones**: on a computer the page shows a QR code and the link to open Orbit Class on a phone, with how to add it to the home screen (the kit's `phoneOnlyGate`; only in the built site, so `vite dev` and the tests still run on a computer).
-- **A notice before each class**: five minutes before a class starts, a banner (on screen) or a system notification (in the background, once notifications are turned on in the Quadra account sheet) names it with its time, teacher and room (`classStartingSoon` in `src/schedule-calc.js`, the kit's `notify`).
+- **A notice before each class**: five minutes before a class starts, a banner (on screen) or a system notification names it with its time, teacher and room (`classStartingSoon` in `src/schedule-calc.js`, the kit's `notify`; the kit's `orbit:class` kind, its switch following the pass). The week's notices are handed to the Worker (`schedulePush`) so they arrive with the app closed.
+- **National holidays**: no classes and no class notices on Taiwan's days off and their 補假 (`src/holidays.js`, from the kit's `holidays.mjs`); the "next day with classes" skips them.
 - **Non-class periods handled properly**: lunch break, cleaning time, and similar special periods are shown by name with their own countdown on the main screen, rather than being forced into the "class" display format.
 
 ---
@@ -151,7 +151,7 @@ An internet connection is required; without one, every other feature is unaffect
 
 ### Where the key lives, and how secure it is
 
-Ordinary users **never need** to obtain or enter their own Gemini API key. The deployment site already has a server-side proxy configured (`worker.js` in the separate [JayPengX/shared-proxy](https://github.com/JayPengX/shared-proxy) repo, at the `/gemini` path — the same Worker also serves the `/sync` path for cross-device sync; see [Cross-Device Sync](#cross-device-sync-the-quadra-pass) below). The real key exists only as that Worker's encrypted secret and never ships in client-side code.
+Ordinary users **never need** to obtain or enter their own Gemini API key. The deployment site already has a server-side proxy configured (`worker.js` in the separate [Shared-Proxy](https://github.com/JayPengX/Shared-Proxy) repo, at the `/gemini` path — the same Worker also serves `/eco`, where the schedule lives on the pass; see [Cross-Device Sync](#cross-device-sync-the-quadra-pass) below). The real key exists only as that Worker's encrypted secret and never ships in client-side code.
 
 The proxy isn't a dumb pass-through: the client can only send `{model, files}` (file count, per-file and total size limits, and allowed MIME types are all enforced Worker-side); the actual prompt, response schema, and generation parameters sent to Gemini are hardcoded in the Worker itself. Even if someone extracts the Worker URL (it's already sitting in public front-end code) and calls it directly, all they can do is run "recognize the schedule in this image" — they cannot repurpose it as a general-purpose free AI proxy for arbitrary questions. This is deliberate, since the Worker URL was never meant to be secret.
 
@@ -163,11 +163,11 @@ Without internet, recognition simply can't happen; without a deployed proxy, the
 
 ### One-Time Deployment Setup
 
-The Worker's source code, deployment steps, and detailed configuration (Cloudflare account setup, `GEMINI_API_KEY`, KV rate limiting, why `[placement] region` is set the way it is, GitHub Actions auto-deploy) have all moved to the separate [JayPengX/shared-proxy](https://github.com/JayPengX/shared-proxy) repo — because this one Worker has served Orbit, Orbit Vocab, and Match Find (three independent sites) from day one, and keeping it inside Orbit's own repo would make "which repo do I change the proxy in" an open question. Full steps are in that repo's README.
+The Worker's source code, deployment steps, and detailed configuration (Cloudflare account setup, `GEMINI_API_KEY`, KV rate limiting, why `[placement] region` is set the way it is, GitHub Actions auto-deploy) have all moved to the separate [Shared-Proxy](https://github.com/JayPengX/Shared-Proxy) repo — because this one Worker has served Orbit, Orbit Vocab, and Match Find (three independent sites) from day one, and keeping it inside Orbit's own repo would make "which repo do I change the proxy in" an open question. Full steps are in that repo's README.
 
 Once the Worker is deployed, this repo only needs one step:
 
-1. Copy the Worker URL (`https://<worker-name>.<subdomain>.workers.dev`) — **without a path suffix**. This one Worker serves AI import (`/gemini`), AI schedule editing (`/nl-edit`, see below), and cross-device sync (`/sync`, see below) — the path is appended by the front-end code itself (see `src/proxy-config.js`); the config value only needs to be the Worker's base URL.
+1. Copy the Worker URL (`https://<worker-name>.<subdomain>.workers.dev`) — **without a path suffix**. This one Worker serves AI import (`/gemini`), AI schedule editing (`/nl-edit`, see below), and the Quadra Pass (`/eco`, through the kit) — the path is appended by the front-end code itself (see `src/proxy-config.js`); the config value only needs to be the Worker's base URL.
 2. In the GitHub project's Settings → Secrets and variables → Actions → **Variables** (not Secrets — this value is meant to end up in public front-end code), add `PROXY_URL` with the value copied above. On the next push to `main`, the deployed site starts using the proxy — enabling all three features at once (whether the latter two are actually usable also depends on shared-proxy having its own required secrets configured — see that repo's README).
 
 Gemini occasionally reports `AI recognition request failed (400): User location is not supported for the API use.` (see `src/gemini-ocr.js`). The client automatically retries the whole request when this happens (up to 2 retries; `/nl-edit` uses the same retry logic — see [AI Natural-Language Schedule Editing](#ai-natural-language-schedule-editing) below). The error message also includes a Cloudflare colo code (`X-Worker-Colo` header, e.g. "colo: IAD") to help with bug reports. Why this error actually happens, and how shared-proxy is configured to avoid it, is documented in that repo's README under `[placement]`.
@@ -186,7 +186,7 @@ At the top of the **Schedule** tab in the "Edit Schedule" panel (not the "Sync /
 - **A misunderstood instruction, or a reference to something that doesn't exist, are both clean failure states, not crashes**: when the AI returns "couldn't understand this instruction," it explains why in one sentence; when it returns "the thing you're referring to doesn't exist" (e.g. the schedule has no ninth period), it explains that too. Both cases show a dismissible message dialog — no error screen, and no data changes.
 - **Anything the server returns is treated as untrusted and re-validated**: the client first does a shape check (are the expected fields present, with the expected types), then feeds the result into `normalizeSettingsData()` — the same content-level validation and sanitization shared with manual save, AI import, and backup restore. Any structurally implausible content is rejected before it reaches the confirmation screen; an unreasonable AI suggestion is never shown to the user as something to confirm. If the instruction produces no actual field changes, the UI shows "no changes" instead of an empty confirmation screen.
 - **Automatic retry on Gemini's "User location is not supported" error**: this error comes from Google inferring a region from the Cloudflare Worker's egress IP rather than the user's actual location, so the same user can get a different result simply because Cloudflare routed them to a different edge node. On this error, the client automatically retries the whole request (not a retry within the same node), up to 2 times, before showing an error — the user never has to manually re-click submit. This uses the same retry logic as AI import (`gemini-ocr.js`).
-- **This is an optional feature and is simply unavailable when not deployed/configured**: with `PROXY_URL` empty, the input box shows "AI schedule editing is not configured yet — please contact your schedule administrator," with no fallback mode — consistent with AI import and cross-device sync. A read-only sync device can't open the schedule editor at all, so this feature is naturally unreachable for it too (the same lock as the rest of the editor — see [Manager vs. Read-Only Role](#cross-device-sync-the-quadra-pass) below).
+- **This is an optional feature and is simply unavailable when not deployed/configured**: with `PROXY_URL` empty, the input box shows "AI schedule editing is not configured yet — please contact your schedule administrator," with no fallback mode — consistent with AI import.
 
 ### One-Time Deployment Setup
 
@@ -220,16 +220,10 @@ A device uploads only its own saved edits, and only while the pass still holds t
 
 ### Sharing: merge keys
 
-Only the pass that owns a schedule edits it. Its owner makes a **merge key**
+Only the pass that owns a schedule edits it. Its owner makes a **key**
 (8 characters, valid 24 hours, `op: 'share-create'`); another pass that
-enters it (`share-redeem`) either
-
-- **follows** it: a read-only copy that stays up to date (the link is kept in
-  the pass's wallet settings as `orbitFollow`, so it holds on every device;
-  editing, AI import and manual import are locked), or
-- **takes a copy**: the schedule becomes that pass's own, to edit.
-
-"Stop all sharing" (`share-revoke`) cuts every follower off at once.
+enters it (`share-redeem`) gets **its own copy** of the schedule, to edit
+as it likes. (Following another pass's schedule read-only is gone.)
 
 ### Older data
 
@@ -264,8 +258,11 @@ Every save carries an internal schema-version marker, checked on read; a mismatc
 
 Other independent keys:
 
-- `orbitSyncCode` / `orbitSyncManagerPasscode` / `orbitSyncLastUpdateTime` — cross-device sync pairing info; absent entirely when sync isn't enabled. An empty string for `orbitSyncManagerPasscode` means this device is read-only; a non-empty string is the manager passcode it holds (see [Manager vs. Read-Only Role](#manager-vs-read-only-role) above). Leftovers from the old direct-Firestore mode (`orbitSyncProjectId`) and an even earlier two-code design (`orbitSyncRole`) are cleared out on the next pair/unpair.
-- `orbitOnboardingSeen` — whether the first-time-use prompt has been shown; the value is only ever `1` or absent.
+- `orbitSetAside` — the last ten edits set aside when the pass held a newer schedule (see above).
+- `orbitOnboardingSeen` — whether the first-time-use prompt has been shown; `1` or absent.
+- `orbitLocaleOverride` — the language chosen by hand.
+- `orbitTestState` — the time simulation's state.
+- The kit's own keys (the device's sign-in, never the pass; the pass's cached copy). Signing out removes every Quadra key on the origin.
 
 ---
 
@@ -286,7 +283,7 @@ src/editor-schedule.js   Weekly scheduling interface
 src/dashboard-render.js  Actual DOM rendering for the main screen
 src/gemini-ocr.js        File pre-processing (image/HEIC/PDF) and Gemini proxy calls
 src/editor-nl-edit.js    AI schedule editing: natural-language instruction parsing, validation, pre-apply preview
-src/sync.js              Cross-device sync: reads/writes via the Worker proxy, polling
+src/sync.js              The schedule on the Quadra Pass (the kit's quadraSession('orbit')): read, write, never over a newer copy, share keys, old sync codes merged
 src/onboarding.js        First-time-use prompt flow
 src/bootstrap.js         Startup flow: load data, build schedule, start the per-second timer
 src/testsim-runtime.js   Time simulation state machine
@@ -296,7 +293,7 @@ src/strings.js           UI text lookup table
 src/main.js              Entry point, imports every module above in order
 ```
 
-Server-side code (the `/gemini`, `/sync`, etc. paths) does not live in this repo — that Cloudflare Worker is now the independent [JayPengX/shared-proxy](https://github.com/JayPengX/shared-proxy) repo, is not part of `src/`'s dependency graph, and is naturally not bundled by Vite. Without it deployed and its environment variables configured, the corresponding feature is simply unavailable — there is no fallback mode.
+Server-side code (`/gemini`, `/nl-edit`, `/eco`) does not live in this repo — that Cloudflare Worker is now the independent [Shared-Proxy](https://github.com/JayPengX/Shared-Proxy) repo, is not part of `src/`'s dependency graph, and is naturally not bundled by Vite. Without it deployed and its environment variables configured, the corresponding feature is simply unavailable — there is no fallback mode.
 
 Each file starts with a one-line comment describing its responsibility. A few conventions worth knowing before changing code:
 
@@ -361,11 +358,9 @@ There's no framework and no backend at runtime; development uses Vite + Vitest +
 
 ## Known Limitations
 
-- Data defaults to a single browser; without sync enabled, clearing the browser's site data wipes the schedule along with it — periodic export backups are recommended.
-- No account system, no real-time multi-user collaboration. Cross-device sync is not push-based: a save uploads immediately, but a receiving device only checks for updates once it's actually touched (click/key/tap, or a refresh/tab switch) — a device nobody touches never picks up a new version on its own.
-- Neither cross-device sync nor the AI proxy features (photo recognition, schedule editing) have user identity verification — the pairing code / Worker URL is the sole gate. This isn't designed to protect privacy; if that matters to you, don't enable it (see the security subsection in the relevant sections above for details).
+- Sync is not push-based: a save uploads immediately, and another device picks it up when it comes back on screen or is used (the kit's heartbeat also reads the pass every two minutes while open).
+- No real-time multi-user editing: one pass owns a schedule; others get copies.
 - AI schedule editing reads and rewrites the entire set of editable data at once (classes, scheduling, bell times, special periods, countdown events, odd/even-week setting); anything it doesn't understand, or that refers to something nonexistent, is never guessed at, and a diff preview must be reviewed and confirmed before anything applies. Like AI import, it requires an internet connection and shares the same hourly request limit.
-- Unused sync pairing codes never expire and are never passively cleaned up — they accumulate in Firestore indefinitely until a manager actively clicks "Delete Sync Entirely" to remove that document.
 - AI recognition, AI schedule editing, and cross-device sync all run on the deployer's shared infrastructure, and quota is counted against the deployer, not the individual user; the worst case of abuse is the quota running out and the feature pausing, not a bill — unless the deployer has personally attached their Gemini key to a paid, credit-card-backed billing account.
 - AI recognition accuracy depends on photo clarity and schedule layout — always review the preview before confirming an import; an internet connection is required. To keep wait times short, the fastest model is tried first, with escalation to stronger models only when the result is structurally unusable — this is much faster on average than always starting with the largest model, though occasionally a couple of extra fields may need manual correction even at the same photo quality.
 - Automated tests cover schedule computation, data validation, backup format, the sync module, and the AI proxy logic, but editor UI flows, the style panel, and actual AI-recognition accuracy still rely primarily on time simulation and manual verification.
@@ -380,9 +375,17 @@ Schedule display, scheduling, odd/even-week switching, bell times, special perio
 
 ## Related Projects
 
-- **[Shared-Proxy](https://github.com/JayPengX/Shared-Proxy)** — the shared Cloudflare Worker backend behind AI recognition, AI schedule editing, and cross-device sync.
-- **[Orbit-Vocab](https://github.com/JayPengX/Orbit-Vocab)** — a sibling site sharing the same Worker infrastructure (vocabulary learning-progress sync and personalized mnemonics).
-- **[Match-Find](https://github.com/JayPengX/Match-Find)** — a sibling site sharing the same Worker infrastructure (game recommendations and settings sync).
+- **[Shared-Proxy](https://github.com/JayPengX/Shared-Proxy)** — the Workers (`/eco`, `/gemini`, `/nl-edit`, `/push`), the kit and the brand; its README describes the whole family.
+- The other apps of the family, the same pass: Quadra Securities, Quadra Play, Orbit Weather, Orbit Transit, Orbit Sports, Orbit Words.
+
+## What depends on what
+
+| If you change… | Also check |
+| --- | --- |
+| The saved schedule's shape (`src/data.js`) | `normalize*`/`validate*`, the v2 backup string (`editor-backup.js`: the pass's copy is the same string), older copies opening |
+| Class times or the notice rule | `classStartingSoon`, the Worker's list (`schedulePush`), holidays |
+| The prompts or schema of `/gemini`, `/nl-edit` | They live in Shared-Proxy's `worker.js`; `normalizeAIOutput` here reads both old and new shapes |
+| The look | The kit's glass tokens (`kit-glass.test.js`), dark mode, 375 px |
 
 ---
 
