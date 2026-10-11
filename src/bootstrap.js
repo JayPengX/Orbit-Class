@@ -76,7 +76,7 @@ if (!gated) whenReady().then(() => setTimeout(showOnboardingPrompt, 400));
 // The family's loading screen (the kit's boot.js, drawn into #loading)
 // lifts once, onto the finished first screen: the pass's schedule in
 // (sync.js), or after 3 s the copy on this device, swapped in place if the
-// pass's comes later (TRUTH §5). A gate (signing in, add to the home
+// pass's comes later (TRUTH §9). A gate (signing in, add to the home
 // screen, open on a phone) lifts it itself. __fxStarted tells boot.js the
 // app ran (no "didn't start" after 15 s).
 window.__fxStarted = true;
