@@ -52,4 +52,29 @@ describe('a sheet swiped down closes from anywhere on it, as on iOS', () => {
     expect(close).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
+  it('the page behind never scrolls with it, and it comes straight down', () => {
+    const { panel } = sheet();
+    // Centred by its CSS (left:50% + translateX(-50%)): kept while dragged.
+    const real = window.getComputedStyle;
+    window.getComputedStyle = el => (el === panel ? { transform: 'matrix(1, 0, 0, 1, -180, 0)' } : real(el));
+    globalThis.DOMMatrixReadOnly ??= class {
+      constructor(m) {
+        this.m41 = Number(String(m).split(',')[4]);
+      }
+    };
+    const p = panel.querySelector('p');
+    const at = (x, y) => ({ clientX: x, clientY: y, identifier: 0, target: p });
+    const ev = (type, y) => {
+      const e = new Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(e, 'touches', { value: [at(100, y)] });
+      p.dispatchEvent(e);
+      return e;
+    };
+    ev('touchstart', 100);
+    // The first few px down are the sheet's already (Safari would scroll the page with them).
+    expect(ev('touchmove', 103).defaultPrevented).toBe(true);
+    ev('touchmove', 160);
+    expect(panel.style.transform).toBe('translate(-180px,60px)');
+    window.getComputedStyle = real;
+  });
 });

@@ -1069,7 +1069,7 @@ body.modal-open > .dashboard,body.modal-open > .nav-bar,body.modal-open > #sched
 .test-panel-handle{width:56px;height:18px;align-self:center;margin:-7px 0 -5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
 .test-panel-handle::after{content:"";display:block;width:36px;height:4px;border-radius:3px;background:var(--sub);opacity:.35;transition:opacity .15s,width .15s}
 .test-panel-handle:active::after,.test-panel-handle.is-dragging::after{opacity:.7;width:44px;background:var(--accent)}
-.modal-sheet-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;margin-right:-2px}
+.modal-sheet-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-right:2px;margin-right:-2px}
 .modal-sheet-body::-webkit-scrollbar{width:4px}
 .modal-sheet-body::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px}
 .modal-title-text{font-size:clamp(18px,5vw,22px);font-weight:800;margin-bottom:4px;text-align:center;letter-spacing:-.5px;color:var(--accent)}

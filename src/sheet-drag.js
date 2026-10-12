@@ -22,12 +22,14 @@ export function bindSheetDragToDismiss(panelId, closeFn) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
   const handle = panel.querySelector('.test-panel-handle');
-  // Test/style panels are horizontally centered via left:50% + translateX(-50%)
-  // baked into their CSS transform (modal-sheet isn't - it's positioned with
-  // left/right instead). Dragging must preserve that -50% or the panel loses
-  // its centering and ends up shoved off to the right of the screen.
-  const centered = panel.classList.contains('test-panel');
-  const translate = y => (centered ? `translate(-50%,${y}px)` : `translateY(${y}px)`);
+  // Sideways the sheet stays where its CSS puts it open: the panels and the
+  // class sheet are centred with left:50% + translateX(-50%) in their
+  // transform, and a drag that dropped it (the class sheet's did, once its
+  // restyle centred it that way) shoved the sheet off to the right as it
+  // came down. Read from the sheet itself when a drag begins, not assumed
+  // by its class.
+  let baseX = 0;
+  const translate = y => `translate(${baseX}px,${y}px)`;
   const threshold = 90;
   const settle = open => {
     panel.style.transition = open
@@ -43,6 +45,9 @@ export function bindSheetDragToDismiss(panelId, closeFn) {
     );
   };
   const begin = () => {
+    panel.style.transform = '';
+    const open = getComputedStyle(panel).transform;
+    baseX = open && open !== 'none' && typeof DOMMatrixReadOnly === 'function' ? new DOMMatrixReadOnly(open).m41 : 0;
     panel.style.transition = 'none';
     handle?.classList.add('is-dragging');
   };
@@ -85,6 +90,10 @@ export function bindSheetDragToDismiss(panelId, closeFn) {
       if (!touch.dragging) {
         // Up, or sideways: the sheet scrolls, the strip slides; not a swipe down.
         if (dy < -4 || Math.abs(dx) > Math.abs(dy) + 4) return void (touch = null);
+        // Downward from the first move on, the finger is the sheet's: left
+        // alone below 8 px, Safari began scrolling the page behind with it
+        // and went on (once a scroll starts, it can't be stopped).
+        if (dy > 0 && dy >= Math.abs(dx) && event.cancelable) event.preventDefault();
         if (dy < 8) return;
         touch.dragging = true;
         begin();
