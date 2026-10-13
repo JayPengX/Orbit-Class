@@ -42,7 +42,7 @@ Two features use the shared Worker (`orbit-workers-proxy`, in Shared-Proxy), bot
 - **AI schedule-photo import** (`/gemini`)
 - **AI natural-language schedule editing** (`/nl-edit`)
 
-Both run on free tiers with hard caps and no credit card: the worst case of abuse is the quota running out and the feature pausing, never a bill.
+Both run with hard caps: Gemini's daily cap on billed calls, and Cloudflare's $5 plan held by Shared-Proxy's `quota-guard`, which stops the Workers before anything past the plan is billed. The worst case of abuse is a cap running out and the feature pausing until it resets, never a bigger bill.
 
 ---
 
@@ -157,7 +157,7 @@ The proxy isn't a dumb pass-through: the client can only send `{model, files}` (
 
 **Hourly request limits**: when bound to a KV namespace (`RATE_LIMIT_KV`, see deployment steps below), this becomes a real counter shared across edge nodes, not a soft per-instance tally — without it, the count falls back to in-memory per-instance state, and since Cloudflare's edge runs many parallel instances, that's trivially bypassed by spreading requests across them. Whether or not KV is bound, this layer can only catch "a lot of requests from one IP in a short window" — it can't stop abuse spread across many IPs, and it isn't a cryptographic security mechanism.
 
-The real, un-bypassable backstop is the **Cloudflare Workers free-tier daily request cap**: exceeding it simply fails until the next day's reset, requires no extra configuration, and cannot generate a bill (unless someone deliberately attaches their own Gemini key to a paid, credit-card-backed billing account — see [Known Limitations](#known-limitations)).
+The real backstop is **Shared-Proxy's `quota-guard`** (its README §8.1): Cloudflare's Workers Paid plan ($5) has no spending cap of its own, so the guard reads the account's real use every five minutes and turns the Workers off at 90% of any included amount until the next billing period; it cannot generate a bill past the $5 (unless someone deliberately attaches their own Gemini key to a paid, credit-card-backed billing account — see [Known Limitations](#known-limitations)).
 
 Without internet, recognition simply can't happen; without a deployed proxy, the whole feature is unavailable (`PROXY_URL` left empty, or the Worker never deployed) — it does not fall back to a bring-your-own-key flow. All other schedule features are unaffected.
 
