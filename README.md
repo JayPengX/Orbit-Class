@@ -159,16 +159,13 @@ The proxy isn't a dumb pass-through: the client can only send `{model, files}` (
 
 The real backstop is **Shared-Proxy's `quota-guard`** (its README §8.1): Cloudflare's Workers Paid plan ($5) has no spending cap of its own, so the guard reads the account's real use every five minutes and turns the Workers off at 90% of any included amount until the next billing period; it cannot generate a bill past the $5 (unless someone deliberately attaches their own Gemini key to a paid, credit-card-backed billing account — see [Known Limitations](#known-limitations)).
 
-Without internet, recognition simply can't happen; without a deployed proxy, the whole feature is unavailable (`PROXY_URL` left empty, or the Worker never deployed) — it does not fall back to a bring-your-own-key flow. All other schedule features are unaffected.
+Without internet, recognition simply can't happen; without a deployed proxy, the whole feature is unavailable (`VITE_PROXY_URL` set to `''`, or the Worker down) — it does not fall back to a bring-your-own-key flow. All other schedule features are unaffected.
 
 ### One-Time Deployment Setup
 
 The Worker's source code, deployment steps, and detailed configuration (Cloudflare account setup, `GEMINI_API_KEY`, KV rate limiting, why `[placement] region` is set the way it is, GitHub Actions auto-deploy) have all moved to the separate [Shared-Proxy](https://github.com/JayPengX/Shared-Proxy) repo — because this one Worker has served Orbit, Orbit Vocab, and Match Find (three independent sites) from day one, and keeping it inside Orbit's own repo would make "which repo do I change the proxy in" an open question. Full steps are in that repo's README.
 
-Once the Worker is deployed, this repo only needs one step:
-
-1. Copy the Worker URL (`https://<worker-name>.<subdomain>.workers.dev`) — **without a path suffix**. This one Worker serves AI import (`/gemini`), AI schedule editing (`/nl-edit`, see below), and the Quadra Pass (`/eco`, through the kit) — the path is appended by the front-end code itself (see `src/proxy-config.js`); the config value only needs to be the Worker's base URL.
-2. In the GitHub project's Settings → Secrets and variables → Actions → **Variables** (not Secrets — this value is meant to end up in public front-end code), add `PROXY_URL` with the value copied above. On the next push to `main`, the deployed site starts using the proxy — enabling all three features at once (whether the latter two are actually usable also depends on shared-proxy having its own required secrets configured — see that repo's README).
+This repo needs no setting for it: the Worker's address is public (every visitor's browser calls it), so it's the default in `src/proxy-config.js` (`https://orbit-workers-proxy.pengzjay.workers.dev`; each feature appends its own path: `/gemini`, `/nl-edit`). A fork builds with `VITE_PROXY_URL` set to its own Worker, or `''` for none (the tests run that way).
 
 Gemini occasionally reports `AI recognition request failed (400): User location is not supported for the API use.` (see `src/gemini-ocr.js`). The client automatically retries the whole request when this happens (up to 2 retries; `/nl-edit` uses the same retry logic — see [AI Natural-Language Schedule Editing](#ai-natural-language-schedule-editing) below). The error message also includes a Cloudflare colo code (`X-Worker-Colo` header, e.g. "colo: IAD") to help with bug reports. Why this error actually happens, and how shared-proxy is configured to avoid it, is documented in that repo's README under `[placement]`.
 
@@ -176,7 +173,7 @@ Gemini occasionally reports `AI recognition request failed (400): User location 
 
 ## AI Natural-Language Schedule Editing
 
-This is a separate feature from AI schedule-photo import (independent requests, validation, and failure handling), but shares the same `PROXY_URL`, the same deployed Worker, and the same `GEMINI_API_KEY` — once `PROXY_URL` is set, the `/gemini` and `/nl-edit` paths are enabled **together**, with no way to turn on just one (whether the Worker actually implements a given path is the real switch — see the deployment setup below).
+This is a separate feature from AI schedule-photo import (independent requests, validation, and failure handling), but shares the same Worker address and the same `GEMINI_API_KEY` — the `/gemini` and `/nl-edit` paths are enabled **together**, with no way to turn on just one (whether the Worker actually implements a given path is the real switch — see the deployment setup below).
 
 At the top of the **Schedule** tab in the "Edit Schedule" panel (not the "Sync / Import-Export" panel — the schedule editor is where the schedule is actually changed, so this tool lives here rather than in the sync panel) there is an "AI Schedule Edit" text input. Type a sentence (or several requests at once) describing what you want changed — e.g. "change Tuesday's third period to Physics," "move Wednesday's first period to Thursday's first period," or several things at once: "change Tuesday's third period to Physics, then clear Thursday's first period." After submitting, the AI translates the sentence into one or more structured edit operations, and applying them always shows a diff preview for confirmation first — the same preview/confirm flow used for AI import (the same `describeSettingsDiff()` / `showEditorSaveConfirm` path) — there's no such thing as a submission that changes the schedule directly.
 
@@ -186,13 +183,13 @@ At the top of the **Schedule** tab in the "Edit Schedule" panel (not the "Sync /
 - **A misunderstood instruction, or a reference to something that doesn't exist, are both clean failure states, not crashes**: when the AI returns "couldn't understand this instruction," it explains why in one sentence; when it returns "the thing you're referring to doesn't exist" (e.g. the schedule has no ninth period), it explains that too. Both cases show a dismissible message dialog — no error screen, and no data changes.
 - **Anything the server returns is treated as untrusted and re-validated**: the client first does a shape check (are the expected fields present, with the expected types), then feeds the result into `normalizeSettingsData()` — the same content-level validation and sanitization shared with manual save, AI import, and backup restore. Any structurally implausible content is rejected before it reaches the confirmation screen; an unreasonable AI suggestion is never shown to the user as something to confirm. If the instruction produces no actual field changes, the UI shows "no changes" instead of an empty confirmation screen.
 - **Automatic retry on Gemini's "User location is not supported" error**: this error comes from Google inferring a region from the Cloudflare Worker's egress IP rather than the user's actual location, so the same user can get a different result simply because Cloudflare routed them to a different edge node. On this error, the client automatically retries the whole request (not a retry within the same node), up to 2 times, before showing an error — the user never has to manually re-click submit. This uses the same retry logic as AI import (`gemini-ocr.js`).
-- **This is an optional feature and is simply unavailable when not deployed/configured**: with `PROXY_URL` empty, the input box shows "AI schedule editing is not configured yet — please contact your schedule administrator," with no fallback mode — consistent with AI import.
+- **This is an optional feature and is simply unavailable when not deployed/configured**: with no proxy (`VITE_PROXY_URL=''`), the input box shows "AI schedule editing is not configured yet — please contact your schedule administrator," with no fallback mode — consistent with AI import.
 
 ### One-Time Deployment Setup
 
-This uses the **same** shared-proxy Worker, the **same** `GEMINI_API_KEY`, and the **same** `PROXY_URL` as AI import (see the deployment setup under [AI Schedule-Photo Import](#ai-schedule-photo-import) above) — if you've already set that up, there's nothing else to do here. The `/nl-edit` path is already implemented in that Worker's `worker.js`, and setting `PROXY_URL` enables it automatically.
+This uses the **same** shared-proxy Worker, the **same** `GEMINI_API_KEY`, and the **same** Worker address as AI import (see the deployment setup under [AI Schedule-Photo Import](#ai-schedule-photo-import) above) — if you've already set that up, there's nothing else to do here. The `/nl-edit` path is already implemented in that Worker's `worker.js`, so it works as soon as the Worker is up.
 
-If the Worker isn't deployed, or `PROXY_URL` is left empty, this feature is simply unavailable — it doesn't affect AI import, cross-device sync, or any other schedule feature.
+If the Worker is down, or the build has no proxy, this feature is simply unavailable — it doesn't affect AI import, cross-device sync, or any other schedule feature.
 
 ---
 

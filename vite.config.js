@@ -99,6 +99,9 @@ export default defineConfig({
     // graph once per file.
     isolate: true,
     setupFiles: ['./test/helpers/setupEnv.js'],
+    // Tests run unconfigured (no proxy) unless one stubs VITE_PROXY_URL: the
+    // real address is src/proxy-config.js's default.
+    env: { VITE_PROXY_URL: '' },
     // Nearly every file boots the whole app through loadApp(), so building
     // jsdom - not running assertions - dominated the suite. vmThreads builds
     // it once per worker instead of once per file and keeps the per-file

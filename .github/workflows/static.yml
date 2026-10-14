@@ -44,8 +44,6 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Build
-        env:
-          VITE_PROXY_URL: ${{ vars.PROXY_URL }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v5
