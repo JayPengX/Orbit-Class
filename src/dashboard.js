@@ -6,7 +6,7 @@ import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { closeStylePanel } from './appearance.js';
 import { fitNowTitleText, renderList, shrinkFontToFit } from './dashboard-render.js';
-import { formatCountdownEventDate, normalizeCountdownEvents } from './data.js';
+import { countdownsNotOver, formatCountdownEventDate, normalizeCountdownEvents, saveData } from './data.js';
 import { isEditorDirty } from './editor-backup.js';
 import {
   closeEditor,
@@ -27,7 +27,7 @@ import {
 } from './schedule.js';
 import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
 import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
-import { notifyClassSoon, scheduleClassNotices } from './sync.js';
+import { isSyncViewer, notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
 import { getLocale, t } from './strings.js';
@@ -479,6 +479,21 @@ const classesOn = (date, day) => (holidayOn(date) ? [] : state.runtimeSchedule[d
 // still calls updateExamCountdown() directly, bypassing this guard, since
 // that's a real, immediate change the user just made.
 let lastCountdownDateKey = null;
+// 結束後自動刪除 on: a countdown whose last day is over leaves the list,
+// saved and synced (not on a device that only views the timetable, nor
+// under an editor with changes not saved).
+function prunePastCountdowns(now = new Date()) {
+  const data = state.applicationData;
+  if (!data?.pruneCountdowns || isSyncViewer() || isEditorDirty()) return;
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const kept = countdownsNotOver(data.countdownEvents, today);
+  if (kept.length === (data.countdownEvents || []).length) return;
+  data.countdownEvents = kept;
+  saveData(data);
+  pushSyncSnapshot();
+  activeCountdownIndex = 0;
+  updateExamCountdown();
+}
 function updateExamCountdownIfDayChanged() {
   const dateKey = new Date().toDateString();
   if (dateKey === lastCountdownDateKey) return;
@@ -487,6 +502,7 @@ function updateExamCountdownIfDayChanged() {
 }
 
 function update() {
+  if (!window.MANUALLY_TEST) prunePastCountdowns();
   updateExamCountdownIfDayChanged();
   renderCountdowns();
   const dom = getDashboardDom();
@@ -674,8 +690,10 @@ function openModal(c) {
   const week = getWeekType();
   const terms = c.isSplit ? c.n.split('/').map(t => t.trim()) : [c.n];
   const teachers = c.isSplit ? c.t.split('/').map(t => t.trim()) : [c.t];
-  let count = 0,
-    occHtml = '';
+  let count = 0;
+  // Its week as five days side by side (the sheet one height for a class met
+  // twice a week or four times): each day the periods it meets and when.
+  const days = {};
   const locCard = document.getElementById('m-location-card');
   const statGrid = locCard.closest('.stat-grid');
   if (c.loc) {
@@ -691,10 +709,19 @@ function openModal(c) {
       const match = c.isSplit ? terms.some(t => item.n.includes(t)) : item.n === c.n;
       if (match) {
         count++;
-        occHtml += `<div class="occ-row"><span class="occ-row-day">${WEEKDAY_LABELS[d]}</span><div class="occ-row-meta"><div class="occ-row-period">${t('dashboard.periodNumber', { number: idx + 1 })}</div><div class="occ-row-time">${esc(item.s)} – ${esc(item.e)}</div></div></div>`;
+        (days[d] ||= []).push({ n: idx + 1, s: item.s });
       }
     });
   });
+  const occHtml = count
+    ? [1, 2, 3, 4, 5]
+        .map(d => {
+          const on = days[d];
+          const periods = on ? (on.length === 1 ? t('dashboard.occPeriod', { number: on[0].n }) : t('dashboard.occPeriods', { list: on.map(x => x.n).join(t('dashboard.occJoin')) })) : '—';
+          return `<div class="occ-day${on ? '' : ' is-off'}"><span class="occ-day-name">${WEEKDAY_LABELS[d]}</span><span class="occ-day-period">${esc(periods)}</span><span class="occ-day-time">${on ? esc(on[0].s) : ''}</span></div>`;
+        })
+        .join('')
+    : '';
   const sc = document.getElementById('split-info-card');
   if (c.isSplit) {
     sc.style.display = 'block';
@@ -711,6 +738,7 @@ function openModal(c) {
   document.getElementById('m-icon')?.replaceChildren(subjectIcon(info.n, 'sheet-icon'));
   document.getElementById('m-teacher').innerText = [info.t, c.loc].filter(Boolean).join(' · ');
   document.getElementById('m-count').innerText = t('dashboard.periodCount', { count });
+  document.getElementById('m-occ-list').classList.toggle('is-week', Boolean(count));
   document.getElementById('m-occ-list').innerHTML =
     occHtml ||
     `<div class="occ-row"><span class="occ-row-day">×</span><div class="occ-row-meta"><div class="occ-row-period">${t('dashboard.noOccurrences')}</div></div></div>`;

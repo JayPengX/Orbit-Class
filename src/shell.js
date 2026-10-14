@@ -25,6 +25,10 @@ function show(id) {
   const title = document.getElementById('cx-list-title');
   if (id === 'today') {
     state.viewDay = today();
+    // Today over: 今天 goes on to the next school day's every time it's shown
+    // (update's once-a-day move had already been spent, so coming back to the
+    // tab left the finished day's list up).
+    state.autoAdvancedAfterFinishedDay = null;
     if (title) title.textContent = t('dashboard.todayClasses');
   } else if (title) title.textContent = t('dashboard.timetable');
   if (id === 'tools') renderTools();

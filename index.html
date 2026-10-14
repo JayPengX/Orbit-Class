@@ -244,6 +244,10 @@
       <div class="editor-fold-body">
         <div class="countdown-editor-list" id="countdown-event-list"></div>
         <button type="button" class="add-btn" onclick="addCountdownEventRow()" data-i18n="editorCore.addCountdownButton">新增倒數</button>
+        <div class="toggle-row">
+          <div class="toggle-label" data-i18n="editorCore.pruneCountdownsLabel">結束後自動刪除</div>
+          <button type="button" class="toggle-switch" id="toggle-prune-countdowns" onclick="togglePruneCountdowns()" aria-label="結束後自動刪除" data-i18n-aria-label="editorCore.pruneCountdownsLabel"></button>
+        </div>
         <div class="editor-hint"><div class="editor-hint-body" data-i18n="editorCore.countdownHint">首頁顯示第一個倒數活動，可在首頁左右滑動切換。日期可設定一段範圍（例如考試週），單日活動請將開始與結束日期設為同一天。</div></div>
       </div>
     </details>

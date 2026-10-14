@@ -197,6 +197,11 @@ function normalizeCountdownEvents(value) {
       ? []
       : DEFAULT_COUNTDOWN_EVENTS.map(event => ({ ...event }));
 }
+// The countdowns still to come or on (its last day counts): with 結束後自動刪除
+// on, the others leave the list. `today` is the local day, YYYY-MM-DD.
+function countdownsNotOver(events, today) {
+  return (events || []).filter(e => (e.endDate || e.startDate) >= today);
+}
 const ORBIT_APP_ID = 'Orbit_Color';
 const ORBIT_STORAGE_SCHEMA = 'r8N3wL0yS5qM9uV7';
 
@@ -210,6 +215,7 @@ function getDefaultData() {
     breakTimes: DEFAULT_BREAK_TIMES.map(item => ({ ...item })),
     countdownEvents: DEFAULT_COUNTDOWN_EVENTS.map(event => ({ ...event })),
     reverseWeek: REVERSE_WEEK_LOGIC_DEFAULT,
+    pruneCountdowns: false,
     proAccent: DEFAULT_STYLE_PRIMARY,
     proSecondary: DEFAULT_STYLE_SECONDARY,
     styleSlots: normalizeStyleSlots([])
@@ -341,6 +347,7 @@ function loadData() {
       countdownEvents: normalizeCountdownEvents(parsed.countdownEvents),
       reverseWeek:
         typeof parsed.reverseWeek === 'boolean' ? parsed.reverseWeek : REVERSE_WEEK_LOGIC_DEFAULT,
+      pruneCountdowns: parsed.pruneCountdowns === true,
       proAccent: normalizeProAccent(parsed.proAccent),
       proSecondary: normalizeProSecondary(parsed.proSecondary),
       styleSlots: normalizeStyleSlots(parsed.styleSlots)
@@ -365,6 +372,7 @@ function saveData(d) {
   }
 }
 export {
+  countdownsNotOver,
   ORBIT_APP_ID,
   ORBIT_STORAGE_SCHEMA,
   REVERSE_WEEK_LOGIC_DEFAULT,

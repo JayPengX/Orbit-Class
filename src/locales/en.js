@@ -153,6 +153,9 @@ export default {
   'dashboard.typeFixed': 'Fixed',
   'dashboard.teacherLabel': 'Teacher　',
   'dashboard.periodCount': '{count} periods',
+  'dashboard.occPeriod': 'P{number}',
+  'dashboard.occPeriods': 'P{list}',
+  'dashboard.occJoin': ', ',
   'dashboard.noOccurrences': 'Not scheduled',
   'editorSchedule.invalidTimeRange': '{label} must have a valid start and end time.',
   'editorSchedule.periodLabel': 'Period {number}',
@@ -555,6 +558,7 @@ export default {
   'editorTeachers.chooseWeekdayAriaLabel': 'Choose weekday',
   'editorTeachers.applyAndFinish': 'Apply and finish',
   'editorCore.optionsFoldLabel': 'Options',
+  'editorCore.pruneCountdownsLabel': 'Delete when over',
   'editorSchedule.reverseWeekToggleLabel': 'Swap odd/even weeks',
   'editorCore.addCountdownButton': 'Add countdown',
   'editorCore.countdownHint':

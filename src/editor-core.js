@@ -912,6 +912,11 @@ async function closeTransferSheet(force) {
 function syncEditorToggles() {
   const btn = document.getElementById('toggle-reverse');
   btn.classList.toggle('on', !!state.applicationData.reverseWeek);
+  document.getElementById('toggle-prune-countdowns')?.classList.toggle('on', !!state.applicationData.pruneCountdowns);
+}
+// Toggles whether a countdown over (its last day passed) is deleted.
+function togglePruneCountdowns() {
+  document.getElementById('toggle-prune-countdowns')?.classList.toggle('on');
 }
 
 // Toggles whether odd/even week logic is reversed.
@@ -932,6 +937,7 @@ window.openEditor = openEditor;
 window.openEditorFold = openEditorFold;
 window.openTransferSheet = openTransferSheet;
 window.toggleReverse = toggleReverse;
+window.togglePruneCountdowns = togglePruneCountdowns;
 
 export {
   applyOfflineLock,

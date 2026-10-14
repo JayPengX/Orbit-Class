@@ -131,6 +131,9 @@ export default {
   'dashboard.typeFixed': '固定',
   'dashboard.teacherLabel': '教師　',
   'dashboard.periodCount': '{count} 節',
+  'dashboard.occPeriod': '第 {number} 節',
+  'dashboard.occPeriods': '{list} 節',
+  'dashboard.occJoin': '、',
   'dashboard.noOccurrences': '無排課',
   'editorSchedule.invalidTimeRange': '{label}時間必須是有效的開始與結束時間。',
   'editorSchedule.periodLabel': '第 {number} 節',
@@ -482,6 +485,7 @@ export default {
   'editorTeachers.chooseWeekdayAriaLabel': '選擇星期',
   'editorTeachers.applyAndFinish': '套用並完成',
   'editorCore.optionsFoldLabel': '選項',
+  'editorCore.pruneCountdownsLabel': '結束後自動刪除',
   'editorSchedule.reverseWeekToggleLabel': '單雙週對調',
   'editorCore.addCountdownButton': '新增倒數',
   'editorCore.countdownHint':

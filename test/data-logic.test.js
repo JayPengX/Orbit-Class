@@ -3,6 +3,7 @@ import { loadApp } from './helpers/loadApp.js';
 import { getISOWeekNumber, parseTime, processSplitName } from '../src/schedule.js';
 import { state } from '../src/state.js';
 import {
+  countdownsNotOver,
   isValidTimeRange,
   normalizeCountdownEvent,
   sanitizeBreakTimes,
@@ -247,5 +248,35 @@ describe('v2 backup encode/decode round-trip', () => {
 describe('runtimeSchedule after boot', () => {
   it('is populated as a plain object keyed by weekday', () => {
     expect(typeof state.runtimeSchedule).toBe('object');
+  });
+});
+
+describe('結束後自動刪除 (pruneCountdowns)', () => {
+  it('keeps a countdown through its last day, drops it the day after', () => {
+    const events = [
+      { name: '段考', startDate: '2026-10-12', endDate: '2026-10-14' },
+      { name: '運動會', startDate: '2026-10-13', endDate: '2026-10-13' },
+      { name: '學測', startDate: '2027-01-22', endDate: '2027-01-24' }
+    ];
+    expect(countdownsNotOver(events, '2026-10-14').map(e => e.name)).toEqual(['段考', '學測']);
+    expect(countdownsNotOver(events, '2026-10-15').map(e => e.name)).toEqual(['學測']);
+  });
+  it('is off unless set, and kept through a backup and the sync payload', async () => {
+    const base = {
+      teacherDB: { A: ['數學', '王老師', '101'] },
+      teacherOrder: ['A'],
+      locationDB: { A: '101' },
+      weeklySchedule: { 1: ['A'] },
+      bellTimes: [['08:00', '08:50']],
+      breakTimes: [],
+      countdownEvents: [],
+      reverseWeek: false,
+      styleSlots: []
+    };
+    expect(normalizeSettingsData(base).pruneCountdowns).toBe(false);
+    const on = normalizeSettingsData({ ...base, pruneCountdowns: true });
+    expect(on.pruneCountdowns).toBe(true);
+    expect((await decodeTransferData(await encodeTransferData(on))).pruneCountdowns).toBe(true);
+    expect((await decodeTransferData(await encodeTransferData(normalizeSettingsData(base)))).pruneCountdowns).toBe(false);
   });
 });

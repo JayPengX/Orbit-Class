@@ -97,6 +97,7 @@ function collectEditorFormState({ includeDraft = false } = {}) {
     if (includeDraft) breakRowsDraft.push([nameRaw, start, end, '']);
   });
   const reverseWeek = document.getElementById('toggle-reverse').classList.contains('on');
+  const pruneCountdowns = !!document.getElementById('toggle-prune-countdowns')?.classList.contains('on');
   const countdownEvents = Array.from(
     document.querySelectorAll('#countdown-event-list .countdown-event-row')
   )
@@ -122,6 +123,7 @@ function collectEditorFormState({ includeDraft = false } = {}) {
     breakTimes: newBreaks,
     countdownEvents: normalizedCountdownEvents,
     reverseWeek,
+    pruneCountdowns,
     proAccent,
     proSecondary,
     styleSlots: normalizeStyleSlots(state.applicationData.styleSlots),
@@ -133,6 +135,7 @@ function editorFormSnapshotString() {
   const s = collectEditorFormState({ includeDraft: true });
   return JSON.stringify({
     reverseWeek: s.reverseWeek,
+    pruneCountdowns: s.pruneCountdowns,
     countdownEvents: s.countdownEvents,
     proAccent: s.proAccent,
     proSecondary: s.proSecondary,
@@ -329,7 +332,9 @@ function encodeTransferPayloadV2(data) {
     data.reverseWeek ? 1 : 0,
     data.proAccent,
     data.proSecondary,
-    styleSlotEntries
+    styleSlotEntries,
+    // (Appended: an older copy of the app reads the ten before it and ignores this.)
+    data.pruneCountdowns ? 1 : 0
   ];
 }
 function decodeTransferPayloadV2(array) {
@@ -343,7 +348,8 @@ function decodeTransferPayloadV2(array) {
     reverseWeekFlag,
     proAccent,
     proSecondary,
-    styleSlotEntries
+    styleSlotEntries,
+    pruneCountdownsFlag
   ] = array;
   const teacherDB = {},
     locationDB = {};
@@ -375,6 +381,7 @@ function decodeTransferPayloadV2(array) {
     breakTimes,
     countdownEvents,
     reverseWeek: !!reverseWeekFlag,
+    pruneCountdowns: pruneCountdownsFlag === 1,
     proAccent,
     proSecondary,
     styleSlots,
@@ -508,6 +515,7 @@ function normalizeSettingsData(raw, { requireMarker = false } = {}) {
     countdownEvents,
     reverseWeek:
       typeof source.reverseWeek === 'boolean' ? source.reverseWeek : REVERSE_WEEK_LOGIC_DEFAULT,
+    pruneCountdowns: source.pruneCountdowns === true,
     proAccent: normalizeProAccent(source.proAccent),
     proSecondary: normalizeProSecondary(source.proSecondary),
     styleSlots: normalizeStyleSlots(source.styleSlots)

@@ -2787,6 +2787,16 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .modal-sheet .occ-row-day{font-size:15px;font-weight:700}
 .modal-sheet .occ-row-period{font-family:inherit;font-size:14px;font-weight:700}
 .modal-sheet .occ-row-time{font-size:12.5px}
+/* A class's week: five days side by side, the same height however often it meets. */
+.modal-sheet .m-occ-list.is-week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:4px}
+.occ-day{display:grid;justify-items:center;gap:2px;padding:10px 2px;border-radius:11px;min-width:0;text-align:center}
+.occ-day:not(.is-off){background:color-mix(in srgb,var(--pro-accent, var(--q-accent)) 13%,transparent)}
+.occ-day > span{white-space:nowrap;max-width:100%}
+.occ-day-name{font-size:13px;font-weight:700;color:var(--q-muted)}
+.occ-day:not(.is-off) .occ-day-name{color:var(--pro-accent, var(--q-accent))}
+.occ-day-period{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.occ-day-time{font-size:12px;color:var(--q-muted);font-variant-numeric:tabular-nums;min-height:15px}
+.occ-day.is-off .occ-day-period{color:var(--q-muted);font-weight:500}
 .modal-sheet .split-info-card{border:0;border-radius:14px;background:var(--q-surface-2)}
 /* Inside the sheets: flat grouped boxes, as the kit's (no tinted gradients, no box in a box in a box). */
 .editor-sheet .editor-fold,.test-panel .editor-fold,.transfer-sheet .settings-transfer-box,.transfer-sheet .ocr-import-box{background:var(--q-surface-2)!important;border:0!important;border-radius:16px!important;box-shadow:none!important}
