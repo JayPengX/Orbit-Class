@@ -319,7 +319,7 @@ function renderCountdowns() {
     card.type = 'button';
     card.addEventListener('click', edit);
     const words = make('span', 'cx-cd-words');
-    words.append(make('span', 'cx-cd-name', event.name), make('span', 'cx-cd-date', formatCountdownEventDate(event).replace(new RegExp(`^${today.getFullYear()}\\.`), '')));
+    words.append(make('span', 'cx-cd-name', event.name), make('span', 'cx-cd-date', formatCountdownEventDate(event, { withYear: Date.parse(event.startDate) - today.getTime() > 330 * 86_400_000 })));
     const big = make('span', 'cx-cd-big');
     if (st.kind === 'ahead') {
       big.append(make('b', '', String(st.days)), make('small', '', t('dashboard.countdownDayUnit')));

@@ -175,14 +175,18 @@ function normalizeCountdownEvent(value) {
   return { name, startDate, endDate };
 }
 // Formats a countdown event's date(s) for display, e.g. "2027.01.22" or "2027.01.22–01.24".
-function formatCountdownEventDate(event) {
+// 2027.01.22, 2027.01.22–24 (one month), 2027.01.30–02.01 (one year),
+// 2026.12.30–2027.01.02. `withYear: false`: the year left off (a date within
+// the coming year, where the countdown says how far it is).
+function formatCountdownEventDate(event, { withYear = true } = {}) {
   const dot = value => String(value || '').replaceAll('-', '.');
   if (!event) return '';
-  if (event.startDate === event.endDate) return dot(event.startDate);
-  const endShort = event.endDate.slice(
-    event.startDate.slice(0, 4) === event.endDate.slice(0, 4) ? 5 : 0
-  );
-  return `${dot(event.startDate)}–${dot(endShort)}`;
+  const start = withYear ? event.startDate : event.startDate.slice(5);
+  if (event.startDate === event.endDate) return dot(start);
+  const sameYear = event.startDate.slice(0, 4) === event.endDate.slice(0, 4);
+  const sameMonth = sameYear && event.startDate.slice(5, 7) === event.endDate.slice(5, 7);
+  const endShort = event.endDate.slice(sameMonth ? 8 : sameYear || !withYear ? 5 : 0);
+  return `${dot(start)}–${dot(endShort)}`;
 }
 function normalizeCountdownEvents(value) {
   const source = Array.isArray(value) ? value : [];
