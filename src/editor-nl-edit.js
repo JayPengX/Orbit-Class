@@ -56,10 +56,9 @@ import { parseLocalNlEdit } from './nl-edit-local.js';
 // as AIVisionProcessor.callGemini).
 const NL_EDIT_MODELS = ['gemini-3.7-flash', 'gemini-3.5-flash-lite'];
 
-// Same shared PROXY_URL as gemini-ocr.js and sync.js (see proxy-config.js) -
-// a fork that hasn't deployed the Worker simply doesn't get this feature
-// (see isNlEditConfigured's callers), no bring-your-own-key fallback. The
-// `/nl-edit` path is hardcoded here, not part of the env var.
+// The same Worker as gemini-ocr.js (proxy-config.js) - a build without a
+// proxy simply doesn't get this feature (see isNlEditConfigured's callers),
+// no bring-your-own-key fallback. The `/nl-edit` path is hardcoded here.
 const NL_EDIT_PROXY_URL = proxyPath('/nl-edit');
 function isNlEditConfigured() {
   return !!NL_EDIT_PROXY_URL;

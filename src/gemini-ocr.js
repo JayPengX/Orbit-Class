@@ -168,8 +168,8 @@ async function encodeSourceForUpload(source) {
 // the client) and forwards the request, so users never need a Gemini key of their
 // own. A fork built from source without the proxy deployed just leaves the feature
 // unavailable (see isGeminiProxyConfigured's callers) rather than asking for a key.
-// The `/gemini` path is hardcoded here, not part of the env var - see
-// proxy-config.js, which is what actually reads PROXY_URL.
+// The `/gemini` path is hardcoded here; the Worker's address is
+// proxy-config.js's.
 const GEMINI_PROXY_URL = proxyPath('/gemini');
 function isGeminiProxyConfigured() {
   return !!GEMINI_PROXY_URL;
