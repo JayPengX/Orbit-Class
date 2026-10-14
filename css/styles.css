@@ -2808,3 +2808,51 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .editor-back-btn{border-radius:999px}
 .orbit-welcome-later{border-radius:999px}
 .orbit-welcome-choice:active,.editor-close:active,.editor-back-btn:active{transform:scale(.97);transition:transform .3s var(--q-spring,ease)}
+
+/* ==== On the kit's iOS 27 design (Shared-Proxy kit/quadra.css) ====
+   Class's own pieces drawn as the kit's: capsule buttons at iOS's large
+   size, the sheets' deep corners, the kit's springs for every movement, and
+   iOS 26's switch (the kit's .q-switch, in Class's .toggle-switch markup). */
+:root {
+  --action-btn-h: 50px;
+  --action-btn-radius: 999px;
+  --action-btn-font: 17px;
+  --ease-glass: var(--q-ease);
+  --ease-liquid: var(--q-spring-bouncy);
+  --orbit-radius-lg: var(--q-r-card);
+}
+.modal-sheet {
+  border-radius: var(--q-r-sheet);
+}
+.toggle-switch {
+  width: 64px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--q-fill-1);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: background-color 0.3s;
+}
+.toggle-switch::after {
+  width: 38px;
+  height: 24px;
+  top: 2px;
+  left: 2px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14), 0 0.5px 1px rgba(0, 0, 0, 0.08);
+  transition: transform var(--q-dur-bouncy) var(--q-spring-bouncy), width var(--q-dur-snappy) var(--q-spring-snappy);
+}
+.toggle-switch:active::after {
+  width: 44px;
+}
+.toggle-switch.on {
+  background: var(--q-green);
+  border-color: transparent;
+}
+.toggle-switch.on::after {
+  transform: translateX(22px);
+}
+.toggle-switch.on:active::after {
+  transform: translateX(16px);
+}
