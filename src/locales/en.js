@@ -692,7 +692,5 @@ export default {
   'swap.undo': 'Undo swap',
   'swap.undoTitle': 'Undo this swap?',
   'swap.undone': 'Swap undone',
-  'swap.otherWeek': '{week}: {name}',
-  'swap.otherHalf': 'Swap {name} ({week})',
   'editorBackup.classSwapsChange': 'Class swaps: {before} -> {after}'
 };

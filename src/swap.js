@@ -33,17 +33,6 @@ function classAt({ date, p }) {
   const c = slotClass(d.getDay(), p);
   return c ? processSplitName(c, getWeekType(d)) : null;
 }
-// The same day in the other week, for a 單/雙週 class's other half. Weeks
-// from this one pair up (this and next, the two after...), so switching
-// twice comes back to the same day and never lands in the past.
-function otherWeekDate(key) {
-  const d = dateFromKey(key);
-  const now = new Date();
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
-  const weeks = Math.floor(Math.round((d - monday) / 86400000) / 7);
-  return dateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + (weeks % 2 ? -7 : 7)));
-}
-const weekWord = w => (w === '單' ? t('week.odd') : t('week.even'));
 const nameAt = slot => classAt(slot)?.n || t('swap.free');
 // The swap a side is in, if any.
 function swapOf(slot) {
@@ -155,29 +144,11 @@ function drawSheet() {
   }
   box.replaceChildren();
   const date = dateFromKey(shownDate);
-  const week = getWeekType(date);
-  // 單週 / 雙週: the same day in the other week, so a class met every other
-  // week can be swapped in either of its weeks.
-  const weekBox = document.getElementById('swap-week');
-  if (weekBox) {
-    weekBox.replaceChildren(
-      ...['單', '雙'].map(w => {
-        const b = el('button', w === week ? 'is-on' : '', weekWord(w));
-        b.type = 'button';
-        b.setAttribute('aria-pressed', String(w === week));
-        if (w !== week)
-          b.addEventListener('click', () => {
-            shownDate = otherWeekDate(shownDate);
-            drawSheet();
-          });
-        return b;
-      })
-    );
-  }
   if (holidayOn(date)) {
     box.append(el('p', 'swap-note', t('swap.holiday')));
     return;
   }
+  const week = getWeekType(date);
   const bells = state.applicationData.bellTimes || [];
   bells.forEach(([start], p) => {
     const slot = { date: shownDate, p };
@@ -194,14 +165,7 @@ function drawSheet() {
     when.append(el('b', '', t('dashboard.periodNumber', { number: p + 1 })), el('span', '', start));
     const words = el('span', 'swap-slot-words');
     words.append(el('strong', '', info ? info.n : t('swap.free')));
-    // A 單/雙週 class says what the other week has there.
-    const other = c?.isSplit ? processSplitName(c, week === '單' ? '雙' : '單').n : '';
-    const otherNote = other ? t('swap.otherWeek', { week: weekWord(week === '單' ? '雙' : '單'), name: other }) : '';
-    const note = isFirst
-      ? t('swap.thisOne')
-      : taken
-        ? t('swap.taken')
-        : [info?.t, otherNote].filter(Boolean).join(' · ');
+    const note = isFirst ? t('swap.thisOne') : taken ? t('swap.taken') : info?.t || '';
     if (note) words.append(el('small', '', note));
     row.append(when, words);
     row.addEventListener('click', () => pick(slot));
@@ -231,4 +195,4 @@ async function pick(slot) {
 
 window.closeSwapSheet = closeSwapSheet;
 
-export { addSwap, closeSwapSheet, nameAt, openSwapSheet, otherWeekDate, slotText, swapOf, undoSwap };
+export { addSwap, closeSwapSheet, nameAt, openSwapSheet, slotText, swapOf, undoSwap };

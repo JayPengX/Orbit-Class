@@ -2869,7 +2869,7 @@ button.cx-tl-cell:active{transform:scale(.94)}
 
 /* ---- 調課 (src/swap.js): the class sheet's button, the swap sheet, 工具's list ---- */
 .m-swap{display:grid;gap:10px;margin:4px 0 8px}
-.m-swap[hidden],.m-swap-note[hidden],.m-swap-btn[hidden]{display:none}
+.m-swap[hidden],.m-swap-note[hidden]{display:none}
 .m-swap-note{margin:0 2px;color:var(--q-muted);font-size:14px;font-weight:600}
 .m-swap-btn{width:100%}
 .m-swap-btn.is-danger{background:var(--q-fill-2);color:var(--q-red)}
@@ -2882,9 +2882,6 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .swap-first-change{flex:none;color:var(--q-accent);font-size:15px;font-weight:600}
 .swap-date{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin:0 0 12px;padding:0 14px;border-radius:14px;background:var(--q-sheet-cell,var(--q-surface));color:var(--q-text);font-size:16px;font-weight:600}
 .swap-date input{min-width:0;border:0;background:none;color:var(--q-accent);font:inherit;font-weight:600;text-align:right}
-.swap-week{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:0 0 12px;padding:4px;border-radius:14px;background:var(--q-sheet-cell,var(--q-surface))}
-.swap-week button{min-height:40px;border:0;border-radius:10px;background:none;color:var(--q-muted);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
-.swap-week button.is-on{background:var(--q-accent-wash);color:var(--q-accent)}
 .swap-periods{display:grid;border-radius:14px;background:var(--q-sheet-cell,var(--q-surface));overflow:hidden}
 .swap-slot{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:12px;min-height:52px;padding:10px 14px;border:0;border-bottom:1px solid var(--q-divider);background:none;color:var(--q-text);font:inherit;text-align:left;cursor:pointer}
 .swap-slot:last-child{border-bottom:0}

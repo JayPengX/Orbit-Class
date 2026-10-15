@@ -34,7 +34,7 @@ import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
 import { isSyncViewer, notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
-import { openSwapSheet, otherWeekDate, slotText, swapOf, undoSwap } from './swap.js';
+import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
 import { getLocale, t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
@@ -765,27 +765,11 @@ function drawModalSwap(c, date) {
   const box = document.getElementById('m-swap');
   const note = document.getElementById('m-swap-note');
   const btn = document.getElementById('m-swap-btn');
-  const nextBtn = document.getElementById('m-swap-next');
   if (!box || !note || !btn) return;
   const here = date && Number.isInteger(c.p) ? { date: dateKey(date), p: c.p } : null;
   const swap = here && swapOf(here);
   box.hidden = !here || isSyncViewer();
-  if (nextBtn) nextBtn.hidden = true;
   if (box.hidden) return;
-  // A 單/雙週 class: its other week's half is swapped from the other week.
-  if (nextBtn && !swap && c.isSplit && !c.swap) {
-    const there = { date: otherWeekDate(here.date), p: here.p };
-    nextBtn.hidden = false;
-    const week = getWeekType(dateFromKey(there.date));
-    nextBtn.textContent = t('swap.otherHalf', {
-      week: week === '單' ? t('week.odd') : t('week.even'),
-      name: processSplitName(c, week).n
-    });
-    nextBtn.onclick = () => {
-      closeModal();
-      openSwapSheet(there);
-    };
-  }
   note.hidden = !swap;
   if (swap) note.textContent = t('swap.with', { slot: slotText(swap.a.date === here.date && swap.a.p === here.p ? swap.b : swap.a) });
   btn.textContent = swap ? t('swap.undo') : t('swap.button');

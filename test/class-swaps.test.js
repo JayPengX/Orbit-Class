@@ -137,25 +137,4 @@ describe('making a swap', () => {
     expect(next[0].disabled).toBe(false);
     window.closeSwapSheet();
   });
-
-  it('a 單/雙週 class can be swapped in either of its weeks', () => {
-    const odd = getWeekType(dateFromKey(MON)) === '單';
-    const [here, there] = odd ? ['國文', '公民'] : ['公民', '國文'];
-    openSwapSheet();
-    const input = document.getElementById('swap-date');
-    input.value = MON;
-    input.dispatchEvent(new Event('change'));
-    const row = () => document.querySelectorAll('#swap-periods .swap-slot')[1];
-    expect(row().querySelector('strong').textContent).toBe(here);
-    expect(row().querySelector('small').textContent).toContain(`${odd ? '雙週' : '單週'}：${there}`);
-    const weeks = () => [...document.querySelectorAll('#swap-week button')];
-    expect(weeks().map(b => b.textContent)).toEqual(['單週', '雙週']);
-    expect(weeks()[odd ? 0 : 1].classList.contains('is-on')).toBe(true);
-    weeks()[odd ? 1 : 0].click();
-    expect([NEXT_MON, '2029-12-31']).toContain(input.value);
-    expect(row().querySelector('strong').textContent).toBe(there);
-    weeks()[odd ? 0 : 1].click();
-    expect(input.value).toBe(MON);
-    window.closeSwapSheet();
-  });
 });
