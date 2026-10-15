@@ -534,48 +534,6 @@
     結束模擬
   </button>
 </div>
-<div id="style-panel-overlay" class="test-panel-overlay style-panel-overlay" onclick="closeStylePanel()" aria-hidden="true"></div>
-<div class="test-panel style-panel" id="style-panel" role="dialog" aria-modal="true" aria-label="樣式工具" data-i18n-aria-label="sync.styleToolTitle">
-  <div class="test-panel-handle" aria-hidden="true"></div>
-  <div class="editor-header">
-    <div class="editor-title" data-i18n="sync.styleToolTitle">樣式工具</div>
-    <button type="button" class="editor-close" onclick="closeStylePanel()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
-  </div>
-  <div id="style-editor-content">
-  <div class="editor-fold style-fold-fixed" id="style-fold-custom">
-    <div class="editor-fold-summary style-fold-heading" data-i18n="appearance.customColorFoldHeading">自訂配色</div>
-    <div class="editor-fold-body">
-      <label class="style-color-well"><span data-i18n="appearance.colorLabel">顏色</span><input type="color" id="style-primary-input" aria-label="選擇顏色" oninput="previewStyleSettings()" data-i18n-aria-label="appearance.chooseColorAriaLabel"></label>
-    </div>
-  </div>
-  <div class="editor-fold style-fold-fixed" id="style-fold-library">
-    <div class="editor-fold-summary style-fold-heading" data-i18n="appearance.styleLibraryFoldHeading">樣式庫</div>
-    <div class="editor-fold-body">
-      <div class="style-section-label" data-i18n="appearance.builtInPresetsLabel">內建預設</div>
-      <div class="style-preset-grid" id="style-preset-grid">
-        <button type="button" class="style-preset-chip default" onclick="applyStylePreset('default')"><span class="style-preset-swatch"></span><span>Orbit Color</span></button>
-        <button type="button" class="style-preset-chip rose" onclick="applyStylePreset('rose')"><span class="style-preset-swatch"></span><span data-i18n="appearance.presetRose">餘燼</span></button>
-        <button type="button" class="style-preset-chip ocean" onclick="applyStylePreset('ocean')"><span class="style-preset-swatch"></span><span data-i18n="appearance.presetOcean">潟湖</span></button>
-        <button type="button" class="style-preset-chip midnight" onclick="applyStylePreset('midnight')"><span class="style-preset-swatch"></span><span data-i18n="appearance.presetMidnight">墨夜</span></button>
-        <button type="button" class="style-preset-chip graphite" onclick="applyStylePreset('graphite')"><span class="style-preset-swatch"></span><span data-i18n="appearance.presetGraphite">柑橘</span></button>
-        <button type="button" class="style-preset-chip amber" onclick="applyStylePreset('amber')"><span class="style-preset-swatch"></span><span data-i18n="appearance.presetAmber">琥珀</span></button>
-        <button type="button" class="style-preset-chip ruby" onclick="applyStylePreset('ruby')"><span class="style-preset-swatch"></span><span data-i18n="appearance.presetRuby">胭脂</span></button>
-        <button type="button" class="style-preset-chip lilac" onclick="applyStylePreset('lilac')"><span class="style-preset-swatch"></span><span data-i18n="appearance.presetLilac">丁香</span></button>
-      </div>
-      <div class="style-section-label style-library-label" data-i18n="appearance.myStylesLabel">我的樣式</div>
-      <div class="style-slot-grid" id="style-slot-grid"></div>
-      <div class="editor-hint">
-        <div class="editor-hint-body" data-i18n="appearance.styleSlotHint">點空位旁的「＋」儲存目前配色，之後可直接點選套用。</div>
-      </div>
-    </div>
-  </div>
-  </div>
-  <div id="style-preview-state" class="style-preview-state" hidden>
-    <div class="style-preview-status"><span class="style-preview-status-dot"></span><span data-i18n="appearance.previewingNotSaved">預覽中，尚未儲存</span></div>
-    <div class="style-panel-actions"><button type="button" class="style-cancel-btn" onclick="exitStylePreview()" data-i18n="appearance.exitPreviewButton">離開預覽</button><button type="button" class="style-apply-btn" onclick="confirmStyleSettings()" data-i18n="appearance.saveStyleButton">儲存樣式</button></div>
-  </div>
-  <div class="style-panel-actions" id="style-editor-actions"><button type="button" class="style-apply-btn" onclick="enterStylePreview()" data-i18n="appearance.previewAndSaveButton">預覽並儲存</button></div>
-</div>
   <script type="module" src="src/main.js?v=__APP_VERSION__"></script>
 </body>
 </html>

@@ -1,23 +1,9 @@
 // ---- src/appearance.js ----
-// Theme colors, light/dark mode, and the style panel's preview/save flow.
+// Class's own colour (no choice of colour: the style panel is gone), and the
+// readers for the colours and style slots older saves still carry.
 import { state } from './state.js';
-import { closeTestPanel, setOverlayVisible } from './dashboard.js';
 import { fitNowTitleText } from './dashboard-render.js';
 import { DEFAULT_STYLE_PRIMARY, DEFAULT_STYLE_SECONDARY } from './constants.js';
-import { applyEditorSettingsData, cloneSettingsData, isEditorDirty } from './editor-backup.js';
-import {
-  closeEditor,
-  closeTransferSheet,
-  esc,
-  hasUnconsumedImportData,
-  hideEditorDiscardConfirm,
-  setEditorConfirmContent,
-  showEditorConfirmSheet,
-  showEditorDiscardConfirm,
-  showTransferDiscardConfirm
-} from './editor-core.js';
-import { getSyncKeepLocalStyle, isSyncViewer } from './sync.js';
-import { t } from './strings.js';
 
 function normalizeHexColor(value, fallback) {
   const color = String(value || '')
@@ -102,16 +88,6 @@ function deriveSingleHueSecondary(primary) {
   const toHex = value => Math.round(value).toString(16).padStart(2, '0').toUpperCase();
   return `#${rgb.map(channel => toHex(channel + (255 - channel) * 0.32)).join('')}`;
 }
-const PRO_PALETTE_PRESETS = {
-  default: DEFAULT_STYLE_PRIMARY,
-  rose: '#F06F61',
-  ocean: '#18B7A0',
-  midnight: '#263B68',
-  graphite: '#A7C957',
-  amber: '#E8A33D',
-  ruby: '#E23D5B',
-  lilac: '#9B7EDE'
-};
 // Class's own colour, whatever an old save or a synced device says: the
 // family's apps don't offer a colour choice (樣式工具 is gone).
 // eslint-disable-next-line no-unused-vars
@@ -129,12 +105,10 @@ function applyProAccent(data = state.applicationData) {
   document.body.style.setProperty('--pro-accent-readable', getReadableSurfaceColor(accent));
   document.body.style.setProperty('--pro-secondary-readable', getReadableSurfaceColor(secondary));
 }
-// Style-panel changes are previewed first, then committed through the save pipeline.
 // Switches to the Orbit Color visual skin.
 function setStyleMode() {
   document.body.classList.add('pro-style');
   applyProAccent();
-  renderStylePanel();
   refreshStyleModeLayout();
 }
 function refreshStyleModeLayout() {
@@ -149,299 +123,10 @@ function refreshStyleModeLayout() {
     });
   });
 }
-function renderStylePanel() {
-  state.stylePanelDraft = {
-    ...state.applicationData,
-    styleSlots: normalizeStyleSlots(state.applicationData.styleSlots)
-  };
-  const primary = document.getElementById('style-primary-input');
-  if (primary) primary.value = normalizeProAccent(state.applicationData.proAccent);
-  document.getElementById('style-panel')?.classList.remove('style-draft-dirty');
-  renderStyleSlots();
-  setStylePanelMode('editor');
-}
-function getStyleDraftFromControls() {
-  const primary = document.getElementById('style-primary-input');
-  const proAccent = normalizeProAccent(primary?.value || state.stylePanelDraft.proAccent);
-  return {
-    ...state.stylePanelDraft,
-    proAccent,
-    proSecondary: deriveSingleHueSecondary(proAccent)
-  };
-}
-function previewStyleSettings() {
-  state.stylePanelDraft = getStyleDraftFromControls();
-  applyStyleVisual(state.stylePanelDraft);
-  document.getElementById('style-panel')?.classList.add('style-draft-dirty');
-}
-function setStylePanelMode(mode) {
-  const editor = document.getElementById('style-editor-content');
-  const preview = document.getElementById('style-preview-state');
-  const editorActions = document.getElementById('style-editor-actions');
-  const isPreview = mode === 'preview';
-  if (editor) editor.hidden = isPreview;
-  if (preview) preview.hidden = !isPreview;
-  if (editorActions) editorActions.hidden = isPreview;
-}
-function enterStylePreview() {
-  state.stylePanelDraft = getStyleDraftFromControls();
-  applyStyleVisual(state.stylePanelDraft);
-  document.getElementById('style-panel')?.classList.add('style-draft-dirty');
-  setStylePanelMode('preview');
-}
-function exitStylePreview() {
-  setStylePanelMode('editor');
-}
-function applyStyleVisual(style) {
-  document.body.classList.add('pro-style');
-  applyProAccent(style);
-  if (typeof window.update === 'function') window.update();
-}
-// Builds the preview draft into a full settings object and saves it with the
-// same settings pipeline used by the class editor.
-function confirmStyleSettings() {
-  state.stylePanelDraft = state.stylePanelDraft || getStyleDraftFromControls();
-  const next = cloneSettingsData(state.applicationData);
-  next.proAccent = normalizeProAccent(state.stylePanelDraft.proAccent);
-  next.proSecondary = normalizeProSecondary(state.stylePanelDraft.proSecondary);
-  next.styleSlots = normalizeStyleSlots(state.stylePanelDraft.styleSlots);
-  state.pendingStyleSaveData = next;
-  applyPendingStyleSave();
-}
-// Commits a confirmed style change through the same applyEditorSettingsData
-// pipeline as saving or importing the class editor (saves, rebuilds the
-// schedule, refreshes the editor baseline, and shows the save toast).
-function applyPendingStyleSave() {
-  if (!state.pendingStyleSaveData) {
-    hideEditorDiscardConfirm();
-    return;
-  }
-  applyEditorSettingsData(state.pendingStyleSaveData, {
-    statusMessage: t('appearance.styleSaved')
-  });
-  setStyleMode();
-  state.pendingStyleSaveData = null;
-  document.getElementById('style-panel')?.classList.remove('style-draft-dirty');
-  hideEditorDiscardConfirm();
-  closeStylePanel();
-}
-function renderStyleSlots() {
-  const grid = document.getElementById('style-slot-grid');
-  if (!grid) return;
-  const slots = normalizeStyleSlots(
-    state.stylePanelDraft?.styleSlots || state.applicationData.styleSlots
-  );
-  grid.innerHTML = slots
-    .map(
-      (slot, index) =>
-        `<div class="style-slot-row"><button type="button" class="style-slot ${slot.name ? 'has-style' : ''}" style="--slot-primary:${slot.primary};--slot-secondary:${slot.secondary}" onclick="loadStyleSlot(${index})" aria-label="${esc(slot.name || t('appearance.emptySlot', { number: index + 1 }))}" title="${esc(slot.name || t('appearance.emptySlot', { number: index + 1 }))}"><span class="style-slot-swatch" aria-hidden="true"></span></button><button type="button" class="style-slot-save" onclick="saveStyleSlot(${index})" aria-label="${esc(t('appearance.saveToSlot', { number: index + 1 }))}">＋</button></div>`
-    )
-    .join('');
-}
-// True when `style` is one of the built-in palette presets - i.e. a color
-// the user picked off the shelf rather than one they mixed themselves.
-// Losing one of these costs a single tap to get back, which is what lets
-// loadStyleSlot below skip its "目前的樣式將被替換" warning: a warning about
-// discarding something nobody authored is a popup with nothing behind it.
-// Comparing proAccent alone is enough now that proSecondary is always a
-// pure function of it - two styles can never agree on one and disagree on
-// the other.
-function isBuiltInPresetStyle(style) {
-  const primary = normalizeProAccent(style?.proAccent);
-  return Object.values(PRO_PALETTE_PRESETS).some(
-    presetPrimary => normalizeProAccent(presetPrimary) === primary
-  );
-}
-function sameSlotColors(slot, style) {
-  return normalizeProAccent(slot?.primary) === normalizeProAccent(style?.proAccent);
-}
-// Both directions of "am I about to lose a color I mixed myself" get a
-// confirmation, and neither asks when the answer is obviously no:
-//   - an occupied slot warns that its saved pair is being replaced;
-//   - an empty slot still confirms, but only to name which of the five
-//     positions the new preset is going into - the grid's five identical
-//     swatches make mis-taps easy, and a save that lands in the wrong slot
-//     is otherwise indistinguishable from one that worked.
-function saveStyleSlot(index) {
-  state.stylePanelDraft = getStyleDraftFromControls();
-  const slots = normalizeStyleSlots(state.stylePanelDraft.styleSlots);
-  const slot = slots[index];
-  const occupied = !!slot?.name;
-  // Re-saving the exact colors a slot already holds changes nothing, so
-  // there is nothing to confirm either way.
-  if (occupied && sameSlotColors(slot, state.stylePanelDraft)) {
-    saveStyleSlotDraft(index);
-    return;
-  }
-  state.pendingStyleSlotSaveIndex = index;
-  setEditorConfirmContent(
-    occupied
-      ? t('appearance.overwritePersonalStyleTitle')
-      : t('appearance.saveAsStyleTitle', { number: index + 1 }),
-    occupied
-      ? t('appearance.overwriteSlotMessage', { name: slot.name })
-      : t('appearance.saveToSlotMessage', { number: index + 1 }),
-    '',
-    occupied ? t('common.overwrite') : t('common.save'),
-    applyPendingStyleSlotSave,
-    t('common.cancel'),
-    { danger: occupied }
-  );
-  showEditorConfirmSheet();
-}
-function saveStyleSlotDraft(index) {
-  const slots = normalizeStyleSlots(state.stylePanelDraft.styleSlots);
-  slots[index] = {
-    name: slots[index].name || t('appearance.styleSlotLabel', { number: index + 1 }),
-    primary: state.stylePanelDraft.proAccent,
-    secondary: state.stylePanelDraft.proSecondary
-  };
-  state.stylePanelDraft.styleSlots = slots;
-  // Saving a slot only ever touches the in-memory draft - it isn't real
-  // until confirmStyleSettings()/applyPendingStyleSave() commits the whole
-  // draft. Without marking dirty here, closeStylePanel() saw nothing to
-  // warn about and let the panel close with no confirmation, silently
-  // losing the slot save the moment renderStylePanel() next rebuilds the
-  // draft fresh from the (still unchanged) applicationData - same risk
-  // loadStyleSlot already avoids via previewStyleSettings().
-  document.getElementById('style-panel')?.classList.add('style-draft-dirty');
-  renderStyleSlots();
-  setStylePanelMode('editor');
-}
-function applyPendingStyleSlotSave() {
-  const index = state.pendingStyleSlotSaveIndex;
-  state.pendingStyleSlotSaveIndex = null;
-  hideEditorDiscardConfirm();
-  if (index !== null) saveStyleSlotDraft(index);
-}
-function loadStyleSlot(index) {
-  const slot = normalizeStyleSlots(
-    state.stylePanelDraft?.styleSlots || state.applicationData.styleSlots
-  )[index];
-  if (!slot || !slot.name) return;
-  state.pendingStyleSlotIndex = index;
-  // Nothing of the user's own is on screen to lose - the current colors are
-  // either a built-in preset, or already exactly what this slot holds - so
-  // apply straight away instead of asking about a replacement that costs
-  // nothing.
-  const current = state.stylePanelDraft || state.applicationData;
-  if (isBuiltInPresetStyle(current) || sameSlotColors(slot, current)) {
-    applyPendingStyleSlot();
-    return;
-  }
-  setEditorConfirmContent(
-    t('appearance.applySavedStyleTitle'),
-    t('appearance.currentStyleWillBeReplaced'),
-    '',
-    t('common.apply'),
-    applyPendingStyleSlot,
-    t('common.back')
-  );
-  showEditorConfirmSheet();
-}
-function applyPendingStyleSlot() {
-  const slot = normalizeStyleSlots(
-    state.stylePanelDraft?.styleSlots || state.applicationData.styleSlots
-  )[state.pendingStyleSlotIndex];
-  if (!slot || !slot.name) return;
-  document.getElementById('style-primary-input').value = slot.primary;
-  state.pendingStyleSlotIndex = null;
-  hideEditorDiscardConfirm();
-  previewStyleSettings();
-}
-async function toggleStylePanel() {
-  // Belt-and-suspenders, same as saveEditor()/gemini-ocr.js's run button:
-  // src/sync.js's applyEditorRoleLock already greys #btn-style out and
-  // disables its pointer events for exactly this case, but that's a
-  // CSS/pointer-events lock, not real access control. A viewer still
-  // accepting synced colors has no real use for the style tool anyway -
-  // any local change here would just get overwritten by the next pulled
-  // update.
-  if (isSyncViewer() && !getSyncKeepLocalStyle()) return;
-  const editor = document.getElementById('editor-sheet');
-  if (editor.classList.contains('show')) {
-    if (isEditorDirty()) {
-      state.pendingAfterEditorDiscard = 'style';
-      showEditorDiscardConfirm();
-      return;
-    }
-    closeEditor(true);
-  }
-  const transferSheet = document.getElementById('transfer-sheet');
-  if (transferSheet && transferSheet.classList.contains('show')) {
-    if (await hasUnconsumedImportData()) {
-      state.pendingAfterEditorDiscard = 'style';
-      showTransferDiscardConfirm();
-      return;
-    }
-    await closeTransferSheet(true);
-  }
-  const panel = document.getElementById('style-panel');
-  if (panel.classList.contains('show')) {
-    closeStylePanel();
-  } else {
-    closeTestPanel();
-    openStylePanel();
-  }
-}
-// Opens Style Mode directly (used by the toolbar toggle and, after
-// discarding editor changes, by discardEditorChangesAndClose).
-function openStylePanel(resetDraft = true) {
-  if (resetDraft || !state.stylePanelDraft) renderStylePanel();
-  setOverlayVisible('style-panel-overlay', 'style-panel', true, 'style-panel-open');
-}
-function closeStylePanel() {
-  const panel = document.getElementById('style-panel');
-  if (panel.classList.contains('show') && panel.classList.contains('style-draft-dirty')) {
-    showStyleDiscardConfirm();
-    return;
-  }
-  setOverlayVisible('style-panel-overlay', 'style-panel', false, 'style-panel-open');
-}
-function showStyleDiscardConfirm() {
-  setEditorConfirmContent(
-    t('appearance.styleNotAppliedTitle'),
-    t('appearance.leaveWillDiscardPreview'),
-    '',
-    t('appearance.discardAndLeave'),
-    discardStyleChangesAndClose,
-    t('common.back'),
-    { danger: true }
-  );
-  showEditorConfirmSheet();
-}
-function discardStyleChangesAndClose() {
-  hideEditorDiscardConfirm();
-  setOverlayVisible('style-panel-overlay', 'style-panel', false, 'style-panel-open');
-  setStyleMode();
-  document.getElementById('style-panel')?.classList.remove('style-draft-dirty');
-}
-function applyStylePreset(name) {
-  const presetPrimary = PRO_PALETTE_PRESETS[name];
-  if (!presetPrimary) return;
-  const primary = document.getElementById('style-primary-input');
-  if (primary) primary.value = presetPrimary;
-  previewStyleSettings();
-}
-
-// Exposed on window for inline HTML event handlers (onclick="..." in
-// index.html and in generated template strings).
-window.applyStylePreset = applyStylePreset;
-window.closeStylePanel = closeStylePanel;
-window.confirmStyleSettings = confirmStyleSettings;
-window.enterStylePreview = enterStylePreview;
-window.exitStylePreview = exitStylePreview;
-window.loadStyleSlot = loadStyleSlot;
-window.previewStyleSettings = previewStyleSettings;
-window.saveStyleSlot = saveStyleSlot;
-window.toggleStylePanel = toggleStylePanel;
-
 export {
   applyProAccent,
-  closeStylePanel,
   normalizeProAccent,
   normalizeProSecondary,
   normalizeStyleSlots,
-  openStylePanel,
   setStyleMode
 };

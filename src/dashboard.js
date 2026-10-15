@@ -4,7 +4,6 @@
 // the toolbar/modal/countdown-card UI around it.
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { closeStylePanel } from './appearance.js';
 import { fitNowTitleText, renderList, shrinkFontToFit } from './dashboard-render.js';
 import { countdownsNotOver, formatCountdownEventDate, normalizeCountdownEvents, saveData } from './data.js';
 import { isEditorDirty } from './editor-backup.js';
@@ -64,7 +63,6 @@ async function toggleTestPanel() {
   }
   state.testPanelOpen = !state.testPanelOpen;
   setOverlayVisible('test-panel-overlay', 'debug-panel', state.testPanelOpen);
-  closeStylePanel();
   syncTestToolbar();
 }
 // Closes the manual time simulation panel.
@@ -93,7 +91,6 @@ bindSheetDragToDismiss('debug-panel', closeTestPanel);
 holidaysReady.then(() => {
   state.classPushSlot = null;
 });
-bindSheetDragToDismiss('style-panel', closeStylePanel);
 bindSheetDragToDismiss('sheet', closeModal);
 bindSheetDragToDismiss('editor-sheet', () => closeEditor());
 bindSheetDragToDismiss('transfer-sheet', () => closeTransferSheet());
@@ -148,7 +145,6 @@ document.addEventListener('keydown', event => {
   else if (document.getElementById('editor-confirm-sheet')?.classList.contains('show'))
     hideEditorDiscardConfirm();
   else if (document.getElementById('debug-panel')?.classList.contains('show')) closeTestPanel();
-  else if (document.getElementById('style-panel')?.classList.contains('show')) closeStylePanel();
   else if (document.getElementById('editor-sheet')?.classList.contains('show')) closeEditor();
   else if (document.getElementById('transfer-sheet')?.classList.contains('show'))
     closeTransferSheet();

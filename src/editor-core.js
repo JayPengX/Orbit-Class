@@ -3,7 +3,6 @@
 // sheets (unsaved-changes, delete-row); the other editor-*.js modules own
 // one specific sub-form each and are driven from here.
 import { state } from './state.js';
-import { closeStylePanel, openStylePanel } from './appearance.js';
 import { closeTestPanel, getCountdownEvents, setOverlayVisible } from './dashboard.js';
 import {
   applyPendingSaveEditor,
@@ -249,7 +248,6 @@ function openTransferSheet(focus = 'key') {
   }
   hideEditorDiscardConfirm();
   closeTestPanel();
-  closeStylePanel();
   document.querySelector('.top-actions')?.classList.remove('open');
   setOverlayVisible('transfer-sheet-overlay', 'transfer-sheet', true, 'transfer-open');
   setTransferStatus('');
@@ -754,9 +752,6 @@ function hideEditorDiscardConfirm() {
   state.pendingEditorSaveData = null;
   state.pendingBellDelete = null;
   state.pendingTeacherDelete = null;
-  state.pendingStyleSaveData = null;
-  state.pendingStyleSlotIndex = null;
-  state.pendingStyleSlotSaveIndex = null;
   const diffEl = document.getElementById('editor-import-diff');
   if (diffEl) diffEl.scrollTop = 0;
   setOverlayVisible('editor-confirm-overlay', 'editor-confirm-sheet', false);
@@ -780,7 +775,7 @@ function discardTransferChangesAndClose() {
 }
 // Shared by both discard-and-close flows above - whichever sheet the user
 // was actually trying to switch to when the discard warning interrupted
-// them (see openTransferSheet/toggleTestPanel/toggleStylePanel, which each
+// them (see openTransferSheet/toggleTestPanel, which each
 // set state.pendingAfterEditorDiscard before showing the warning).
 function applyPendingSheetAfterDiscard(pending) {
   if (pending === 'test') {
@@ -789,8 +784,6 @@ function applyPendingSheetAfterDiscard(pending) {
     // assignment) - go through window here so that patch still applies,
     // same reasoning as window.update() elsewhere.
     window.openTestPanel();
-  } else if (pending === 'style') {
-    openStylePanel();
   } else if (pending === 'transfer') {
     openTransferSheet(document.getElementById('transfer-sheet')?.dataset.focus);
   }

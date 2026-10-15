@@ -115,7 +115,7 @@ The app computes the ISO week number from the current date and maps even/odd to 
 
 ## Appearance & Theming
 
-Appearance settings are stored separately from schedule data and don't affect each other. You can switch between light/dark mode, pick a preset color scheme, or choose a custom accent color (secondary and supporting colors are automatically derived to stay readable). Color changes go through a two-step "preview" then "confirm apply" flow — nothing is actually saved until you confirm. There are also several custom style save-slots you can switch between with one click.
+Class has one look: its own accent colour (`applyProAccent` in `src/appearance.js`), light or dark with the device. There is no colour choice; the style panel (presets, a custom colour, style slots) was deleted (the owner, 2026-10-15). Colours and style slots an older save or pass still carries (`proAccent`, `proSecondary`, `styleSlots`) are still read and kept in the transfer format, never applied.
 
 ---
 
@@ -277,7 +277,7 @@ The browser only ever loads static files: `index.html`, `css/styles.css`, and on
 src/data.js              Data read/write, validation, normalization, localStorage access
 src/schedule.js          Assembles settings data into a "running schedule," weekday/week-parity computation
 src/schedule-calc.js     Pure computation: which class/period should be shown right now
-src/appearance.js        Theme color and light/dark mode
+src/appearance.js        Class's own colour; readers for older saves' colours and style slots
 src/dashboard.js         Main-screen live-update core, including the update() state machine
 src/editor-backup.js     Backup export/import, v2 transfer-format encode/decode
 src/editor-core.js       Schedule editor main flow, unsaved-changes detection
@@ -354,7 +354,7 @@ There's no framework and no backend at runtime; development uses Vite + Vitest +
 - Don't add a front-end framework (React/Vue/etc.) — Vite here is purely a bundler/dev-server/test-runner.
 - Put new features into whichever existing module is the closest semantic fit (see [Project Structure / Architecture](#project-structure--architecture)); mutable state shared across modules belongs in `state.js`.
 - New `localStorage` fields should follow the pattern already used by the `normalize*`/`validate*`/`sanitize*` functions in `src/data.js`: validate before storing, and make sure old data loading in won't blow up.
-- After changing schedule-computation or countdown logic, run `npm test` first; scenarios not covered by automated tests (most editor UI, the style panel, the AI import flow) should be manually spot-checked at boundary times using the time simulation panel.
+- After changing schedule-computation or countdown logic, run `npm test` first; scenarios not covered by automated tests (most editor UI, the AI import flow) should be manually spot-checked at boundary times using the time simulation panel.
 - After a style change, check both dark mode and mobile width.
 - After finishing a change, run `npm run build` and confirm `dist/` is a fully working site, not just something that runs fine in dev mode.
 
@@ -367,7 +367,7 @@ There's no framework and no backend at runtime; development uses Vite + Vitest +
 - AI schedule editing reads and rewrites the entire set of editable data at once (classes, scheduling, bell times, special periods, countdown events, odd/even-week setting); anything it doesn't understand, or that refers to something nonexistent, is never guessed at, and a diff preview must be reviewed and confirmed before anything applies. Like AI import, it requires an internet connection and shares the same hourly request limit.
 - AI recognition, AI schedule editing, and cross-device sync all run on the deployer's shared infrastructure, and quota is counted against the deployer, not the individual user; the worst case of abuse is the quota running out and the feature pausing, not a bill — unless the deployer has personally attached their Gemini key to a paid, credit-card-backed billing account.
 - AI recognition accuracy depends on photo clarity and schedule layout — always review the preview before confirming an import; an internet connection is required. To keep wait times short, the fastest model is tried first, with escalation to stronger models only when the result is structurally unusable — this is much faster on average than always starting with the largest model, though occasionally a couple of extra fields may need manual correction even at the same photo quality.
-- Automated tests cover schedule computation, data validation, backup format, the sync module, and the AI proxy logic, but editor UI flows, the style panel, and actual AI-recognition accuracy still rely primarily on time simulation and manual verification.
+- Automated tests cover schedule computation, data validation, backup format, the sync module, and the AI proxy logic, but editor UI flows and actual AI-recognition accuracy still rely primarily on time simulation and manual verification.
 
 ---
 

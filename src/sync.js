@@ -42,9 +42,6 @@ function isSyncConfigured() {
 function isSyncViewer() {
   return false;
 }
-function getSyncKeepLocalStyle() {
-  return false;
-}
 function setSyncStatusUi(message, isError) {
   setStatusText('sync-status', message, isError);
 }
@@ -514,7 +511,6 @@ export {
   notifyClassSoon,
   scheduleClassNotices,
   clearSyncInputFields,
-  getSyncKeepLocalStyle,
   isSyncConfigured,
   isSyncViewer,
   pullSyncSnapshot,
