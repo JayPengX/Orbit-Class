@@ -611,5 +611,7 @@ export default {
   'swap.undo': '取消調課',
   'swap.undoTitle': '取消這次調課？',
   'swap.undone': '已取消調課',
+  'swap.otherWeek': '{week}：{name}',
+  'swap.otherHalf': '調{week}的{name}',
   'editorBackup.classSwapsChange': '調課：{before} 筆 -> {after} 筆'
 };
