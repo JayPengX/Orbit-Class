@@ -5,7 +5,9 @@ import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { keepActiveClassVisible, openModal } from './dashboard.js';
 import { openEditorFold } from './editor-core.js';
-import { classesOnDate, dateOfDay, getNextSchoolDay, getWeekType, parseTime, processSplitName } from './schedule.js';
+import * as ui from '#kit/ui.mjs';
+import { classesOnDate, dateOfDayInWeek, getNextSchoolDay, getWeekType, parseTime, processSplitName } from './schedule.js';
+import { renderSwaps } from './swap.js';
 import { t } from './strings.js';
 import { subjectIcon } from './subjects.js';
 
@@ -253,6 +255,38 @@ function breakBetween(end, start) {
   const to = parseTime(start);
   return (state.applicationData.breakTimes || []).find(b => b.name && b.start && b.end && parseTime(b.start) >= from && parseTime(b.end) <= to && parseTime(b.end) > parseTime(b.start));
 }
+// 課表's 單週 / 雙週: the day shown in either of its weeks, each with its
+// date, so a class met every other week can be opened (and 調課'd) in
+// either. Drawn again only when the day or its dates change.
+let weekSwitch = null;
+let weekSwitchKey = '';
+function drawWeekSwitch(date) {
+  const box = document.getElementById('cx-week-switch');
+  if (!box || !date) {
+    box?.replaceChildren();
+    weekSwitchKey = '';
+    return;
+  }
+  // The sooner date first.
+  const items = ['單', '雙']
+    .map(w => ({ w, d: dateOfDayInWeek(state.viewDay, w, new Date()) }))
+    .sort((a, b) => a.d - b.d)
+    .map(({ w, d }) => ({ id: w, label: `${w === '單' ? t('week.odd') : t('week.even')} ${d.getMonth() + 1}/${d.getDate()}` }));
+  const key = JSON.stringify(items);
+  const value = getWeekType(date);
+  if (key !== weekSwitchKey || !box.childElementCount) {
+    weekSwitchKey = key;
+    weekSwitch = ui.segmented(items, {
+      value,
+      label: t('dashboard.weekSwitchLabel'),
+      onChange: w => {
+        state.viewWeek = w;
+        window.update?.();
+      }
+    });
+    box.replaceChildren(weekSwitch);
+  } else weekSwitch?.set(value);
+}
 function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   const list = document.getElementById('schedule-list');
   if (!list) return;
@@ -268,17 +302,24 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   });
 
   list.innerHTML = '';
-  // The day shown is a date (today's, or the coming one): its 調課 applied,
-  // its own odd/even week. (Test Mode simulates a weekday: the timetable's.)
-  const date = window.MANUALLY_TEST ? null : dateOfDay(state.viewDay, new Date());
+  // The day shown is a date (today's, or the coming one; on 課表 the one in
+  // the week its switch picks): its 調課 applied, its own odd/even week.
+  // (Test Mode simulates a weekday: the timetable's.)
+  const onWeek = document.body?.dataset.tab === 'week';
+  const date = window.MANUALLY_TEST ? null : dateOfDayInWeek(state.viewDay, onWeek ? state.viewWeek : null, new Date());
   const rows = date ? classesOnDate(date) : state.runtimeSchedule[state.viewDay] || [];
   if (date) week = getWeekType(date);
+  if (onWeek) {
+    drawWeekSwitch(date);
+    renderSwaps();
+  }
   // 今天: the classes still to come first, what's over below them under its
   // own line (the rest of the day within reach without scrolling past it).
   const ahead = [];
   const done = [];
   rows.forEach((c, i) => {
-    const isToday = state.viewDay === (window.MANUALLY_TEST ? window.TEST_DAY : curDay);
+    // (On 課表 the day can be a week on: not today then.)
+    const isToday = state.viewDay === (window.MANUALLY_TEST ? window.TEST_DAY : curDay) && (!date || date.toDateString() === new Date().toDateString());
     const info = processSplitName(c, week);
     const isNow = isToday && i === curIdx;
     const isNext = isToday && i === nxtIdx;

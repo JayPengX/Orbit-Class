@@ -4,8 +4,8 @@
 // with the timetable (data.js classSwaps, on the pass like the rest) and
 // applied by schedule.js classesOnDate wherever a date's classes are read
 // (今天, 課表, the card, the notices). Made from a class's sheet (調課) or
-// 工具's 新增調課, in one sheet: the period, then the one it swaps with;
-// undone from the class's sheet or 工具's list. Swaps whose days are over
+// 課表's 新增調課, in one sheet: the period, then the one it swaps with;
+// undone from the class's sheet or 課表's list (renderSwaps). Swaps whose days are over
 // leave the list at the next change.
 import * as kit from '#kit/quadra.mjs';
 import { WEEKDAY_LABELS } from './constants.js';
@@ -193,6 +193,49 @@ async function pick(slot) {
   }
 }
 
+// ---- 課表's 調課: each swap still to come (both sides, a tap to undo it),
+// then 新增調課. Drawn again only when the swaps or the viewer change.
+const SWAP_ICON = '<path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/>';
+function swapIcon() {
+  const box = el('span', 'cx-way-icon');
+  box.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SWAP_ICON}</svg>`;
+  return box;
+}
+let swapsDrawn = '';
+function renderSwaps() {
+  const page = document.getElementById('cx-swaps');
+  if (!page) return;
+  const viewer = isSyncViewer();
+  const coming = swapsNotOver(swaps(), todayKey());
+  const key = `${JSON.stringify(coming)}|${viewer}|${t('swap.section')}`;
+  if (key === swapsDrawn && page.childElementCount) return;
+  swapsDrawn = key;
+  const box = el('div', 'cx-ways cx-swaps');
+  for (const swap of coming) {
+    const words = el('span', 'cx-swap-sides');
+    for (const side of [swap.a, swap.b]) {
+      const line = el('span', 'cx-swap-side');
+      line.append(el('small', '', slotText(side)), el('strong', '', nameAt(side)));
+      words.append(line);
+    }
+    const row = el('button', 'cx-way cx-swap');
+    row.type = 'button';
+    row.append(swapIcon(), words);
+    row.addEventListener('click', () => undoSwap(swap));
+    row.disabled = viewer;
+    box.append(row);
+  }
+  const words = el('span', 'cx-way-words');
+  words.append(el('strong', '', t('swap.add')), el('small', '', t('swap.addSub')));
+  const add = el('button', 'cx-way is-swap');
+  add.type = 'button';
+  add.append(swapIcon(), words, el('span', 'cx-way-go', '›'));
+  add.addEventListener('click', () => openSwapSheet());
+  add.disabled = viewer;
+  box.append(add);
+  page.replaceChildren(el('h2', 'cx-section', t('swap.section')), box);
+}
+
 window.closeSwapSheet = closeSwapSheet;
 
-export { addSwap, closeSwapSheet, nameAt, openSwapSheet, slotText, swapOf, undoSwap };
+export { addSwap, closeSwapSheet, nameAt, openSwapSheet, renderSwaps, slotText, swapOf, undoSwap };

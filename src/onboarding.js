@@ -26,14 +26,12 @@ function markOnboardingSeen() {
   }
 }
 
-// Sync setup and AI import both live in the "同步 / 匯入匯出" sheet.
 function focusShareKeyField() {
-  window.openTransferSheet();
+  window.openTransferSheet('key');
   document.getElementById('quadra-key')?.focus();
 }
 function focusAIImportSection() {
-  window.openTransferSheet();
-  document.getElementById('ocr-import-box')?.scrollIntoView({ block: 'center' });
+  window.openTransferSheet('photo');
 }
 
 const CHOICES = [

@@ -228,8 +228,17 @@ function openEditor() {
 // schedule editor at all (see openEditor above), can still reach this -
 // pairing status, unlink, and AI import/manual import each have their own
 // narrower guard instead (see applyEditorRoleLock).
-function openTransferSheet() {
+// One sheet, opened for one thing: 'photo' (AI 匯入 alone) or 'key' (the
+// Quadra Pass and 分享金鑰 alone); its title says which.
+const TRANSFER_TITLES = { photo: 'tools.photoTitle', key: 'tools.keyTitle' };
+function openTransferSheet(focus = 'key') {
   const editor = document.getElementById('editor-sheet');
+  const sheet = document.getElementById('transfer-sheet');
+  if (sheet) {
+    sheet.dataset.focus = TRANSFER_TITLES[focus] ? focus : 'key';
+    const title = sheet.querySelector('.editor-title');
+    if (title) title.textContent = t(TRANSFER_TITLES[sheet.dataset.focus]);
+  }
   if (editor && editor.classList.contains('show')) {
     if (isEditorDirty()) {
       state.pendingAfterEditorDiscard = 'transfer';
@@ -311,7 +320,8 @@ function orderEditorFolds() {
     'editor-fold-countdown',
     'editor-fold-teachers',
     'editor-fold-bells',
-    'editor-fold-breaks'
+    'editor-fold-breaks',
+    'editor-fold-ai'
   ].forEach(id => {
     const section = document.getElementById(id);
     if (section) body.insertBefore(section, saveBtn);
@@ -782,7 +792,7 @@ function applyPendingSheetAfterDiscard(pending) {
   } else if (pending === 'style') {
     openStylePanel();
   } else if (pending === 'transfer') {
-    openTransferSheet();
+    openTransferSheet(document.getElementById('transfer-sheet')?.dataset.focus);
   }
 }
 

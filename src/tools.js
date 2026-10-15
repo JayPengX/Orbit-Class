@@ -1,19 +1,15 @@
 // ---- src/tools.js ----
 // 工具: the timetable at a glance, then the ways to change it. A card with
-// the week as a small grid (today's column lit, the class on now filled) and
-// three figures (subjects, classes a week, the school day's span), the
-// editor's button and a shortcut to each of its parts; then the two ways in
-// from elsewhere (a photo read by AI, a classmate's share key) as rows.
-// Between them 調課: the one-time swaps still to come, and 新增調課.
+// the week as a small grid (today's column lit, the class on now filled),
+// three figures (subjects, classes a week, the school day's span) and the
+// editor's button; then AI (AI 改課表, a sentence; 拍照匯入, a photo) and
+// 分享 (a classmate's share key) as rows. 調課 is 課表's (src/swap.js).
 // Drawn each time the tab opens, from the saved timetable.
 import { subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getWeekType, processSplitName } from './schedule.js';
 import { openModal } from './dashboard.js';
 import { isSyncViewer } from './sync.js';
-import { nameAt, openSwapSheet, slotText, undoSwap } from './swap.js';
-import { swapsNotOver } from './data.js';
-import { dateKey } from './schedule.js';
 import { t } from './strings.js';
 
 const DAYS = [1, 2, 3, 4, 5, 6];
@@ -43,13 +39,6 @@ function shortNames(names) {
   }
   return out;
 }
-const PARTS = [
-  ['editor-fold-teachers', 'tools.partTeachers'],
-  ['editor-fold-bells', 'tools.partPeriods'],
-  ['editor-fold-breaks', 'tools.partBreaks'],
-  ['editor-fold-countdown', 'tools.partCountdown']
-];
-
 function el(tag, cls, text) {
   const node = document.createElement(tag);
   if (cls) node.className = cls;
@@ -72,9 +61,8 @@ function openPart(id) {
   if (id !== 'editor-fold-schedule') window.openEditorFold?.(id);
 }
 function openTransfer(focus) {
-  window.openTransferSheet?.();
-  if (focus === 'photo') document.getElementById('ocr-import-box')?.scrollIntoView({ block: 'center' });
-  else document.getElementById('quadra-key')?.focus();
+  window.openTransferSheet?.(focus);
+  if (focus === 'key') document.getElementById('quadra-key')?.focus();
 }
 
 function weekCard() {
@@ -144,54 +132,24 @@ function weekCard() {
   const viewer = isSyncViewer();
   const edit = button('cx-tl-edit', () => openPart('editor-fold-schedule'), [el('span', '', t('sync.editTitle'))]);
   edit.disabled = viewer;
-  const parts = el('div', 'cx-tl-parts');
-  for (const [id, key] of PARTS) {
-    const chip = button('cx-tl-part', () => openPart(id), [el('span', '', t(key))]);
-    chip.disabled = viewer;
-    parts.append(chip);
-  }
-  card.append(figures, grid, edit, parts);
+  card.append(figures, grid, edit);
   return card;
 }
 
-function wayTile(kind, icon, title, sub) {
+// A row: its icon, its title and line, and where it goes.
+function wayTile(kind, icon, title, sub, onClick) {
   const svg = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
   const iconBox = el('span', 'cx-way-icon');
   iconBox.innerHTML = svg;
   const words = el('span', 'cx-way-words');
   words.append(el('strong', '', title), el('small', '', sub));
-  return button(`cx-way is-${kind}`, () => openTransfer(kind), [iconBox, words, el('span', 'cx-way-go', '›')]);
+  return button(`cx-way is-${kind}`, onClick, [iconBox, words, el('span', 'cx-way-go', '›')]);
 }
-
-// 調課: each swap still to come as a row (both sides, a tap to undo it),
-// then 新增調課.
-const SWAP_ICON = '<path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/>';
-function swapIcon() {
-  const box = el('span', 'cx-way-icon');
-  box.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SWAP_ICON}</svg>`;
-  return box;
-}
-function swapList() {
-  const viewer = isSyncViewer();
-  const box = el('div', 'cx-ways cx-swaps');
-  for (const swap of swapsNotOver(state.applicationData.classSwaps, dateKey(new Date()))) {
-    const words = el('span', 'cx-swap-sides');
-    for (const side of [swap.a, swap.b]) {
-      const line = el('span', 'cx-swap-side');
-      line.append(el('small', '', slotText(side)), el('strong', '', nameAt(side)));
-      words.append(line);
-    }
-    const row = button('cx-way cx-swap', () => undoSwap(swap), [swapIcon(), words]);
-    row.disabled = viewer;
-    box.append(row);
-  }
-  const words = el('span', 'cx-way-words');
-  words.append(el('strong', '', t('swap.add')), el('small', '', t('swap.addSub')));
-  const add = button('cx-way is-swap', () => openSwapSheet(), [swapIcon(), words, el('span', 'cx-way-go', '›')]);
-  add.disabled = viewer;
-  box.append(add);
-  return box;
-}
+const ICONS = {
+  ai: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  photo: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3.5"/>',
+  key: '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2"/>'
+};
 
 let drawn = '';
 function renderTools() {
@@ -201,21 +159,23 @@ function renderTools() {
   // pass arriving after the tab opened), the week, the minute, or the language.
   const testing = window.MANUALLY_TEST;
   const minute = testing ? `${window.TEST_DAY}-${Math.floor((window.TEST_TIME_SEC || 0) / 60)}` : Math.floor(Date.now() / 60_000);
-  const key = `${JSON.stringify(state.runtimeSchedule)}|${JSON.stringify(state.applicationData.classSwaps || [])}|${getWeekType()}|${minute}|${t('tools.myTimetable')}|${isSyncViewer()}`;
+  const key = `${JSON.stringify(state.runtimeSchedule)}|${getWeekType()}|${minute}|${t('tools.myTimetable')}|${isSyncViewer()}`;
   if (key === drawn && box.childElementCount) return;
   drawn = key;
-  const ways = el('div', 'cx-ways');
-  ways.append(
-    wayTile('photo', '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3.5"/>', t('tools.photoTitle'), t('tools.photoSub')),
-    wayTile('key', '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2"/>', t('tools.keyTitle'), t('tools.keySub'))
-  );
+  const viewer = isSyncViewer();
+  const aiEdit = wayTile('ai', ICONS.ai, t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-ai'));
+  aiEdit.disabled = viewer;
+  const ai = el('div', 'cx-ways');
+  ai.append(aiEdit, wayTile('photo', ICONS.photo, t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo')));
+  const share = el('div', 'cx-ways');
+  share.append(wayTile('key', ICONS.key, t('tools.keyTitle'), t('tools.keySub'), () => openTransfer('key')));
   box.replaceChildren(
     el('h2', 'cx-section', t('tools.myTimetable')),
     weekCard(),
-    el('h2', 'cx-section', t('swap.section')),
-    swapList(),
-    el('h2', 'cx-section', t('tools.bringIn')),
-    ways
+    el('h2', 'cx-section', t('tools.aiSection')),
+    ai,
+    el('h2', 'cx-section', t('tools.shareSection')),
+    share
   );
 }
 

@@ -1,8 +1,8 @@
 // ---- src/shell.js ----
 // The family's frame, as every Quadra app has it: the kit's app bar (the
 // status on the left; 說明 and the Quadra Pass circle on the right) and its
-// tab bar: 今天 (now, and today's classes), 課表 (any day's) and 工具 (editing,
-// sharing and importing; src/tools.js). 今天 and 課表 are one panel: the
+// tab bar: 今天 (now, and today's classes), 課表 (any day's, in its 單週 or
+// 雙週, and 調課) and 工具 (editing, AI, sharing; src/tools.js). 今天 and 課表 are one panel: the
 // list and the day switcher stay put, 今天 only pins the list to today.
 import * as kit from '#kit/quadra.mjs';
 import { state } from './state.js';
@@ -20,6 +20,8 @@ const today = () => (window.MANUALLY_TEST && Number.isFinite(window.TEST_DAY) ? 
 function show(id) {
   document.body.dataset.tab = id;
   nav.select(id);
+  // 課表 opens on each day's coming date (its 單週 / 雙週 switch unset).
+  state.viewWeek = null;
   // 課表 shares 今天's panel.
   if (id === 'week') document.getElementById('panel-today').hidden = false;
   const title = document.getElementById('cx-list-title');

@@ -586,7 +586,7 @@ function update() {
     }
   }
 
-  const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${document.body.dataset.tab}`;
+  const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${document.body.dataset.tab}`;
   if (state.lastListKey !== liveStateKey) {
     renderList(week, viewModel.curIdx, viewModel.nxtIdx, curDay, viewModel.isDayFinished);
     state.lastListKey = liveStateKey;
@@ -742,6 +742,13 @@ function openModal(shown, { date = null } = {}) {
     const idx = week === '單' ? 0 : 1;
     setSplitWeekClass('this-week-class', terms[idx], teachers[idx] || teachers[0]);
     setSplitWeekClass('next-week-class', terms[1 - idx], teachers[1 - idx] || teachers[0]);
+    // The day's own week first, the other beside it (a day a week on is
+    // not 本週): 單週 / 雙週 by name.
+    const labels = document.querySelectorAll('#split-info-card .split-col-label');
+    if (labels.length === 2) {
+      labels[0].textContent = week === '單' ? t('week.odd') : t('week.even');
+      labels[1].textContent = week === '單' ? t('week.even') : t('week.odd');
+    }
     document.getElementById('m-type-val').innerText = t('dashboard.typeSplit');
   } else {
     sc.style.display = 'none';

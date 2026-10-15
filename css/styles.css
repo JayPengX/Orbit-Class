@@ -2902,3 +2902,13 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .cx-swap-side{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:10px}
 .cx-swap-side small{color:var(--q-muted);font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
 .cx-swap-side strong{font-size:16px;font-weight:700;overflow-wrap:anywhere}
+/* The transfer sheet opened for one thing: 拍照匯入 shows AI 匯入 alone,
+   分享金鑰 the Quadra Pass and the key alone. */
+#transfer-sheet[data-focus="photo"] #quadra-box,#transfer-sheet[data-focus="photo"] #sync-status,#transfer-sheet[data-focus="photo"] #test-mode-fold{display:none}
+#transfer-sheet[data-focus="key"] #ocr-import-box{display:none}
+/* 課表: which week's day is shown (單週 / 雙週, each with its date), and the
+   調課 still to come under the day; neither on 今天. */
+.cx-week-switch{margin:0 0 12px}
+.cx-week-switch:empty,body:not([data-tab="week"]) .cx-week-switch,body:not([data-tab="week"]) .cx-swaps-page{display:none}
+.cx-swaps-page{margin-top:24px}
+#editor-fold-ai #nl-edit-box{margin-top:0}

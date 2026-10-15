@@ -494,9 +494,9 @@ async function submitNlEdit(rawText, { status, onDone, onApplied } = {}) {
   }
 }
 
-// Wires the schedule editor's always-present "AI 課表編輯" box (see
-// index.html - it lives at the top of #editor-sheet-body, not the transfer
-// sheet, since it edits the schedule directly) - unlike gemini-ocr.js's OCR
+// Wires the schedule editor's "AI 課表編輯" page (#editor-fold-ai in
+// index.html, opened from 工具's AI 課表編輯 row: in the editor, not the
+// transfer sheet, since it edits the schedule directly) - unlike gemini-ocr.js's OCR
 // importer, there's no lazy mount here: no image canvas/preview plumbing to
 // defer, just one text input and one button.
 function mountNlEditor() {

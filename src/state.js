@@ -16,6 +16,8 @@
 export const state = {
   runtimeSchedule: {},
   viewDay: new Date().getDay() === 0 || new Date().getDay() === 6 ? 1 : new Date().getDay(),
+  // 課表's 單週 / 雙週 switch: '單' or '雙', or null for each day's coming date.
+  viewWeek: null,
   lastListKey: '',
   autoAdvancedAfterFinishedDay: null,
   lastAutoScrollKey: '',

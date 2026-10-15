@@ -124,11 +124,13 @@
       </div>
 <section class="cx-countdowns" id="cx-countdowns"></section>
 <h2 class="cx-section" id="cx-list-title" data-i18n="dashboard.timetable">課表</h2>
+<div id="cx-week-switch" class="cx-week-switch"></div>
       <div class="nav-bar">
 </div>
 </div>
 <div id="schedule-list" class="list-container">
 </div>
+<div id="cx-swaps" class="cx-swaps-page"></div>
   </div>
   <div id="panel-tools" class="tab-panel" role="tabpanel" hidden>
     <div id="cx-tools" class="cx-tools-page"></div>
@@ -150,16 +152,14 @@
     <div id="split-info-card" class="split-info-card" style="display:none">
       <div class="split-grid">
         <div class="split-col">
-          <div class="split-col-label accent" data-i18n="dashboard.thisWeekLabel">
-            本週
+          <div class="split-col-label accent">
           </div>
           <div id="this-week-class" class="split-col-value">
             ---
           </div>
         </div>
         <div class="split-col split-col-right">
-          <div class="split-col-label" data-i18n="dashboard.nextWeekLabel">
-            下週
+          <div class="split-col-label">
           </div>
           <div id="next-week-class" class="split-col-value" style="opacity:.6">
             ---
@@ -296,22 +296,29 @@
         課表
       </summary>
       <div class="editor-fold-body">
+        <div class="editor-drill-actions">
+          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-teachers')" data-i18n="editorTeachers.subjectPlaceholder">科目</button>
+          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-bells')" data-i18n="editorCore.drillPeriods">節次</button>
+          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-breaks')" data-i18n="editorCore.drillBreaks">時段</button>
+          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-countdown')" data-i18n="editorCore.drillCountdown">倒數</button>
+          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-ai')" data-i18n="editorCore.drillAi">AI</button>
+        </div>
+        <div class="schedule-grid" id="schedule-grid">
+        </div>
+      </div>
+    </details>
+    <details class="editor-fold" id="editor-fold-ai">
+      <summary class="editor-fold-summary" data-i18n="nlEdit.headingLabel">
+        AI 課表編輯
+      </summary>
+      <div class="editor-fold-body">
         <div class="ocr-import-box" id="nl-edit-box">
-          <div class="transfer-section-heading"><span data-i18n="nlEdit.headingLabel">AI 課表編輯</span><span class="transfer-section-tag" data-i18n="nlEdit.confirmBeforeApplyTag">套用前會先確認</span></div>
           <div class="editor-hint-body" data-i18n="nlEdit.hintBody">用一句話描述想改的內容，可一次講多件事，AI 會先提出建議，確認後才套用。</div>
           <input id="nl-edit-input" class="settings-transfer-text sync-input" type="text" maxlength="200" placeholder="例如：把我週二第三節改成物理" autocomplete="off">
           <div class="settings-transfer-actions">
             <button type="button" id="nl-edit-submit" class="settings-transfer-btn primary" data-i18n="common.submit">送出</button>
           </div>
           <div id="nl-edit-status" class="settings-transfer-status" role="status"></div>
-        </div>
-        <div class="editor-drill-actions">
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-teachers')" data-i18n="editorTeachers.subjectPlaceholder">科目</button>
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-bells')" data-i18n="editorCore.drillPeriods">節次</button>
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-breaks')" data-i18n="editorCore.drillBreaks">時段</button>
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-countdown')" data-i18n="editorCore.drillCountdown">倒數</button>
-        </div>
-        <div class="schedule-grid" id="schedule-grid">
         </div>
       </div>
     </details>

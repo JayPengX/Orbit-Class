@@ -145,6 +145,14 @@ function classesOnDate(date) {
 function dateOfDay(day, now = new Date()) {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate() + ((day - now.getDay() + 7) % 7));
 }
+// The weekday's coming date in an odd or even week ('單' / '雙'): its coming
+// date, or the one a week on when that is the other week. No week: the
+// coming date.
+function dateOfDayInWeek(day, week, now = new Date()) {
+  const date = dateOfDay(day, now);
+  if (!week || getWeekType(date) === week) return date;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 7);
+}
 // Chooses the correct subject and teacher for split odd/even-week classes.
 // A swapped class is already one subject; it says so in the week label's place.
 function processSplitName(c, week) {
@@ -182,7 +190,7 @@ export {
   dateFromKey,
   dateKey,
   dateOfDay,
-  slotClass,
+  dateOfDayInWeek,
   getISOWeekNumber,
   getNextSchoolDay,
   getWeekLabelHtml,
@@ -190,5 +198,6 @@ export {
   pad2,
   parseTime,
   processSplitName,
+  slotClass,
   subjectHue
 };
