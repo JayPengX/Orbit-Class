@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { execSync } from 'node:child_process';
 
 // .nojekyll has to ride along in the build output so GitHub Pages serves
@@ -65,6 +66,23 @@ function injectAppVersion() {
   };
 }
 
+// The kit modules the app imports up front, asked for with the page instead
+// of one import level at a time (the kit's build tool, kit/preload.mjs: .kit
+// in CI, the checkout beside this one here). Built pages only.
+function preloadKit() {
+  return {
+    name: 'preload-kit',
+    apply: 'build',
+    async transformIndexHtml(html) {
+      const kitDir = ['.kit/', '../Shared-Proxy/kit/'].find(d => existsSync(`${d}preload.mjs`));
+      if (!kitDir) return html;
+      const { kitPreloads } = await import(pathToFileURL(`${kitDir}preload.mjs`).href);
+      const links = await kitPreloads(['src/main.js'], kitDir);
+      return links ? html.replace('<!-- /kit:head -->', `<!-- /kit:head -->\n${links}`) : html;
+    }
+  };
+}
+
 export default defineConfig({
   // Relative, not absolute ('/'): this site deploys to
   // https://jaypengx.github.io/Orbit-Class/ - a subpath, not domain root.
@@ -74,7 +92,7 @@ export default defineConfig({
   // since the module that would clear it never loads. base: './' emits
   // "./assets/x.js" instead, which resolves correctly under any subpath.
   base: './',
-  plugins: [copyNojekyll(), injectAppVersion()],
+  plugins: [copyNojekyll(), injectAppVersion(), preloadKit()],
   define: {
     // The date alone repeats across every push made the same day - the
     // hash is what keeps the displayed tag actually distinguishing one

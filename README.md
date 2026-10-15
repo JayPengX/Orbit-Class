@@ -66,7 +66,7 @@ Both run with hard caps: Gemini's daily cap on billed calls, and Cloudflare's $5
 
 This is a purely front-end project — no server, no database at runtime. During development, [Vite](https://vitejs.dev/) bundles the ES modules under `src/` and provides a dev server and test runner.
 
-**Online use**: just open [jaypengx.github.io/Orbit-Class](https://jaypengx.github.io/Orbit-Class/) — nothing to install. Every push to `main` triggers `.github/workflows/static.yml`, which runs tests, builds, and deploys — a failing test blocks deployment.
+**Online use**: just open [jaypengx.github.io/Orbit-Class](https://jaypengx.github.io/Orbit-Class/) — nothing to install. Every push to `main` triggers `.github/workflows/static.yml`, which runs tests, builds (the kit modules the app imports up front listed as modulepreload: the kit's `preload.mjs`, from `vite.config.js`), and deploys — a failing test blocks deployment.
 
 **Local development**:
 
