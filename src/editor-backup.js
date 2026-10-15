@@ -792,6 +792,14 @@ function describeSettingsDiff(current, next, { isImport = false } = {}) {
         after: next.reverseWeek ? t('common.on') : t('common.off')
       })
     );
+  if (!!current.pruneCountdowns !== !!next.pruneCountdowns)
+    lines.push(
+      t('editorBackup.pruneCountdownsChange', {
+        label: t('editorCore.pruneCountdownsLabel'),
+        before: current.pruneCountdowns ? t('common.on') : t('common.off'),
+        after: next.pruneCountdowns ? t('common.on') : t('common.off')
+      })
+    );
   const swapCount = data => normalizeClassSwaps(data.classSwaps).length;
   if (JSON.stringify(normalizeClassSwaps(current.classSwaps)) !== JSON.stringify(normalizeClassSwaps(next.classSwaps)))
     lines.push(t('editorBackup.classSwapsChange', { before: swapCount(current), after: swapCount(next) }));

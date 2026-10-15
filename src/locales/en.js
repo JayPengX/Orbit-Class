@@ -245,6 +245,7 @@ export default {
   'editorBackup.sectionCountdownEvents': 'Countdown events',
   'editorBackup.countdownOrderChanged': 'The countdown event order has been changed.',
   'editorBackup.reverseWeekChange': 'Odd/even week swap: {before} -> {after}',
+  'editorBackup.pruneCountdownsChange': '{label}: {before} -> {after}',
   'editorBackup.colorChangeImport': '{label} (current): {before} -> {label} (imported): {after}',
   'editorBackup.colorChangePlain': '{label}: {before} -> {after}',
   'editorBackup.primaryColor': 'Primary color',

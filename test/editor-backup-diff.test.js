@@ -40,6 +40,12 @@ describe('describeSettingsDiff: pure reorder detection', () => {
     expect(describeSettingsDiff(data, data)).toBe('沒有變更。');
   });
 
+  it('reports 結束後自動刪除 being switched', () => {
+    const current = { ...buildFixtureData(), pruneCountdowns: false };
+    const next = { ...current, pruneCountdowns: true };
+    expect(describeSettingsDiff(current, next)).toMatch(/結束後自動刪除：關閉 -> 開啟/);
+  });
+
   it('reports a reorder line when only teacherOrder changes', () => {
     const current = buildFixtureData();
     const next = { ...current, teacherOrder: ['C', 'A', 'B'] };

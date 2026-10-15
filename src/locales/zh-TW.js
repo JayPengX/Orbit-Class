@@ -215,6 +215,7 @@ export default {
   'editorBackup.sectionCountdownEvents': '倒數活動',
   'editorBackup.countdownOrderChanged': '倒數活動順序已調整。',
   'editorBackup.reverseWeekChange': '單雙週對調：{before} -> {after}',
+  'editorBackup.pruneCountdownsChange': '{label}：{before} -> {after}',
   'editorBackup.colorChangeImport': '{label}（目前）：{before} -> {label}（匯入）：{after}',
   'editorBackup.colorChangePlain': '{label}：{before} -> {after}',
   'editorBackup.primaryColor': '主色',
