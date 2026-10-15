@@ -6,6 +6,8 @@ A browser-based class-schedule dashboard that tells you what's happening right n
 
 ---
 
+**Without a connection**: opens on the timetable kept on the phone (the worker opens on its kept page at once and refreshes it behind); the AI features say they need the network. An edit not yet on the pass is remembered on the device with the fingerprint of the pass copy it was made on (`orbit-class.sync.pending`): at the next opening it goes up if the pass is unchanged, and is set aside (never lost) if another device changed it.
+
 ## Table of Contents
 
 - [Overview](#overview)

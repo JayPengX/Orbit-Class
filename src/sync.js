@@ -63,6 +63,43 @@ const failText = error => errorText(error, lang) || error?.message || String(err
 let lastPayload = null;
 let base = null; // null: the pass's copy not seen yet this session
 let localDirty = false;
+
+// An edit not yet on the pass is remembered on the device, with the pass's
+// copy it was made on top of (a fingerprint, kept from the last sync): one
+// made with no connection and the app closed before it went up was lost,
+// the pass's older copy applied over it at the next opening.
+const PENDING_KEY = 'orbit-class.sync.pending';
+const BASE_KEY = 'orbit-class.sync.base';
+const fingerprint = text => {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return `${(h >>> 0).toString(36)}:${text.length}`;
+};
+const readKey = key => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+const writeKey = (key, value) => {
+  try {
+    if (value == null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  } catch {
+    // Storage full: the edit still goes up while the app is open.
+  }
+};
+function setBase(value) {
+  base = value;
+  if (value != null) writeKey(BASE_KEY, fingerprint(value));
+}
+function setDirty(on) {
+  localDirty = on;
+  writeKey(PENDING_KEY, on ? (base != null ? fingerprint(base) : readKey(BASE_KEY) || '?') : null);
+}
+// (An edit still waiting from before this opening counts from the start.)
+localDirty = Boolean(readKey(PENDING_KEY));
 let unreadable = false;
 let chain = Promise.resolve();
 const serial = fn => (chain = chain.then(fn, fn));
@@ -96,9 +133,17 @@ async function readPass() {
   const remote = res.payload || '';
   // An edit made here on top of a copy that's since changed (or one never
   // seen, when the device was offline): conflict, never a silent overwrite.
-  if (localDirty && remote && remote !== base) return { conflict: remote };
+  // (Not seen this session: the copy the waiting edit was made on, by its fingerprint.)
+  const same = base != null ? remote === base : fingerprint(remote) === readKey(PENDING_KEY);
+  if (localDirty && remote && !same) return { conflict: remote };
+  // The edit here is on top of this very copy: it stands (the copy isn't applied over it).
+  if (localDirty) {
+    setBase(remote);
+    lastPayload = remote;
+    return { applied: false };
+  }
   const done = remote ? await applyPayload(remote, t('sync.syncedFromOtherDevice')) : false;
-  base = remote;
+  setBase(remote);
   return { applied: done };
 }
 // This device's change lost to a newer one on the pass: kept aside on the
@@ -111,9 +156,9 @@ async function setAside(remote) {
   } catch {
     // Storage full: the pass's newer copy still wins.
   }
-  localDirty = false;
+  setDirty(false);
   lastPayload = null;
-  base = remote;
+  setBase(remote);
   await applyPayload(remote, t('sync.newerElsewhere'));
   setSyncStatusUi(t('sync.newerElsewhere'), true);
 }
@@ -121,7 +166,7 @@ async function setAside(remote) {
 // Uploads this device's saved schedule (never an unsaved editor draft) to
 // the pass: called after a real local save, marking it as one.
 function pushSyncSnapshot({ mine = true } = {}) {
-  if (mine) localDirty = true;
+  if (mine) setDirty(true);
   return serial(async () => {
     if (!q.pass || !localDirty) return { ok: true, pushed: false };
     try {
@@ -137,13 +182,13 @@ function pushSyncSnapshot({ mine = true } = {}) {
         return { ok: false, error: t('sync.uploadFailed', { message: 'unreadable' }) };
       const payload = await encodeTransferData(state.applicationData);
       if (payload === base) {
-        localDirty = false;
+        setDirty(false);
         return { ok: true, pushed: false };
       }
       await q.write({ payload });
       lastPayload = payload;
-      base = payload;
-      localDirty = false;
+      setBase(payload);
+      setDirty(false);
       return { ok: true, pushed: true };
     } catch (error) {
       if (error.code === 'ECO_SESSION_MOVED') return { ok: true, pushed: false };
@@ -183,8 +228,8 @@ async function absorbInbox(inbox = []) {
     const payload = await encodeTransferData(state.applicationData);
     await q.write({ payload });
     lastPayload = payload;
-    base = payload;
-    localDirty = false;
+    setBase(payload);
+    setDirty(false);
   }
   return applied;
 }
@@ -206,14 +251,26 @@ async function startQuadraOnce() {
   try {
     // The pass's copy wins over this device's; a device's schedule goes up
     // only when the pass has none yet.
+    const pending = readKey(PENDING_KEY);
     if (first?.inbox?.length) await serial(() => absorbInbox(first.inbox));
+    // An edit made here that never went up (no connection, the app closed):
+    // on top of the pass's copy as it still is, it goes up now; the pass
+    // changed elsewhere meanwhile, the newer copy wins and this one is set
+    // aside on the device, never lost.
+    else if (first?.payload && pending)
+      await serial(async () => {
+        if (pending !== fingerprint(first.payload)) return setAside(first.payload);
+        setBase(first.payload);
+        lastPayload = first.payload;
+        localDirty = true;
+      }).then(() => localDirty && pushSyncSnapshot({ mine: false }));
     else if (first?.payload)
       await serial(async () => {
         await applyPayload(first.payload, t('sync.syncedFromOtherDevice'));
-        base = first.payload;
+        setBase(first.payload);
       });
     else if (!first?.offline && 'payload' in (first || {})) {
-      base = '';
+      setBase('');
       if (hasSavedSchedule()) await pushSyncSnapshot();
     }
   } catch (error) {

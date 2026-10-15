@@ -63,7 +63,32 @@ self.addEventListener('fetch', event => {
   if (url.pathname.endsWith('/version.json')) return;
 
   const isNavigation = request.mode === 'navigate' || request.destination === 'document';
+  // Opening the app: the page kept here at once (no wait on a poor
+  // connection, and it opens with none), refreshed behind it for next time.
+  // A newer deploy is caught by the kit's version check (boot.js,
+  // watchUpdates), which reloads under a ?v= address: that one always asks
+  // the network first.
+  if (isNavigation && !url.searchParams.has('v')) return event.respondWith(pageFirst(event));
   event.respondWith(isNavigation ? networkFirst(request) : cacheFirst(request));
+});
+async function pageFirst(event) {
+  const kept = await caches.match(event.request, { ignoreSearch: true });
+  const fresh = networkFirst(event.request);
+  if (!kept) return fresh;
+  event.waitUntil(fresh.catch(() => {}));
+  return kept;
+}
+
+// The page lists the files it loaded before this worker was in charge (the
+// kit's keepOffline), so the very first visit already opens offline next time.
+self.addEventListener('message', event => {
+  if (event.data?.type !== 'cache') return;
+  const urls = (event.data.urls || []).filter(u => new URL(u).origin === self.location.origin && !u.endsWith('/version.json'));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(urls.map(u => cache.match(u, { ignoreSearch: u.split('?')[0].endsWith('/') }).then(hit => hit || fetch(u).then(r => r.ok && cache.put(u.split('?')[0].endsWith('/') ? u.split('?')[0] : u, r)).catch(() => {}))))
+    )
+  );
 });
 
 // HTML shell: always prefer a fresh network copy (and cache it for the
@@ -78,10 +103,13 @@ async function networkFirst(request) {
   // Update the cache whenever the network eventually responds, even if a
   // timeout fallback below already answered this particular load - and
   // swallow a failure here, since that's handled below instead.
+  // (Copied at once: a copy taken after the page has read the response fails,
+  // and the page was never kept, so the app couldn't open offline.)
   fetchPromise
     .then(response => {
       if (response && response.ok) {
-        caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request.mode === 'navigate' ? request.url.split('?')[0] : request, copy));
       }
     })
     .catch(() => {});
@@ -94,7 +122,7 @@ async function networkFirst(request) {
       )
     ]);
   } catch {
-    const cached = await caches.match(request);
+    const cached = (await caches.match(request)) || (await caches.match(request, { ignoreSearch: true }));
     if (cached) return cached;
     // Nothing cached to fall back to (e.g. the very first visit) - there's
     // nothing else to show, so just keep waiting on the real network.
