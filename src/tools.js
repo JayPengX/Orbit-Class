@@ -60,9 +60,9 @@ function openPart(id) {
   window.openEditor?.();
   if (id !== 'editor-fold-schedule') window.openEditorFold?.(id);
 }
+// Opened, not typed into: no keyboard over the sheet until the field is tapped.
 function openTransfer(focus) {
   window.openTransferSheet?.(focus);
-  if (focus === 'key') document.getElementById('quadra-key')?.focus();
 }
 
 function weekCard() {
