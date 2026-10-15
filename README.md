@@ -51,6 +51,7 @@ Both run with hard caps: Gemini's daily cap on billed calls, and Cloudflare's $5
 ## Key Features
 
 - **"Right now" front and center**: the top of the dashboard always shows the current class, teacher, room, and time remaining (progress bar + countdown), followed by a preview of the next period, then the full day's schedule list — tap any period for a detail card. Once the day's last class is over, 今天 shows the next school day's (明天的課) every time it's opened, not today's finished list. A class's detail card shows its week as five days side by side (each day's periods and start time, a day without it dimmed), so the card is the same height for a class met twice a week or six times.
+- **調課, one-time class swaps (across weeks too)**: tap a class on 今天 or 課表 and 調課, or 工具's 新增調課, then pick the period to trade with on any date (the same day, another day, another week; a free period moves the class there, a Saturday make-up included). Only those two dates change: the swapped class shows in that period's time with an orange 調課 tag, keeps the odd/even half of the week it came from, and the card, the list and the notices all follow it (`classesOnDate` in `src/schedule.js`, the one rule every view reads). Its sheet says 與 … 對調 and undoes it; 工具 lists the swaps still to come (tap one to undo). Saved and synced with the timetable (`classSwaps`, appended to the transfer format), one swap per period, those over dropped at the next change; not on a device that only views. 課表 shows each weekday's coming date (today's, or the next), with its own odd/even week and swaps; 第 N 節 is the period's own number.
 - **Countdowns that clear themselves**: 倒數活動's 結束後自動刪除 (off by default) deletes a countdown the day after its last day; saved and synced like 單雙週對調 (`pruneCountdowns`, appended to the transfer format so an older copy ignores it), not on a device that only views, nor under an editor with unsaved changes.
 - **Fully automatic transitions**: period changes, day changes, and end-of-class all recompute automatically — no manual refresh or "next period" button needed.
 - **Made for phones**: on a computer the page shows a QR code and the link to open Orbit Class on a phone, with how to add it to the home screen (the kit's `phoneOnlyGate`; only in the built site, so `vite dev` and the tests still run on a computer).
@@ -251,6 +252,7 @@ Everything is stored under a single browser `localStorage` key, `classFocusData`
 | `breakTimes` | special periods, each `{name, start, end}` |
 | `countdownEvents` | countdown events, each `{name, startDate, endDate}` |
 | `reverseWeek` | odd/even-week swap toggle |
+| `classSwaps` | 調課, one-time swaps: `{ a: { date: 'YYYY-MM-DD', p }, b: { date, p } }`, `p` the period's place in `bellTimes` |
 | `proAccent` / `proSecondary` | appearance accent and secondary colors |
 | `styleSlots` | custom style save-slots |
 
@@ -283,6 +285,7 @@ src/editor-schedule.js   Weekly scheduling interface
 src/dashboard-render.js  Actual DOM rendering for the main screen
 src/gemini-ocr.js        File pre-processing (image/HEIC/PDF) and Gemini proxy calls
 src/editor-nl-edit.js    AI schedule editing: natural-language instruction parsing, validation, pre-apply preview
+src/swap.js              調課: the swap sheet, making and undoing a one-time swap, 工具's list
 src/sync.js              The schedule on the Quadra Pass (the kit's quadraSession('orbit')): read, write, never over a newer copy, share keys, old sync codes merged
 src/onboarding.js        First-time-use prompt flow
 src/bootstrap.js         Startup flow: load data, build schedule, start the per-second timer
@@ -383,6 +386,7 @@ Schedule display, scheduling, odd/even-week switching, bell times, special perio
 | If you change… | Also check |
 | --- | --- |
 | The saved schedule's shape (`src/data.js`) | `normalize*`/`validate*`, the v2 backup string (`editor-backup.js`: the pass's copy is the same string), older copies opening |
+| 調課 (`classSwaps`) | `classesOnDate` (今天, 課表, the card, `weekClasses`' notices), `normalizeClassSwaps`, the transfer format's 12th entry, AI import keeping them |
 | Class times or the notice rule | `classStartingSoon`, the Worker's list (`schedulePush`), holidays |
 | The prompts or schema of `/gemini`, `/nl-edit` | They live in Shared-Proxy's `worker.js`; `normalizeAIOutput` here reads both old and new shapes |
 | The look | The kit's glass tokens (`kit-glass.test.js`), dark mode, 375 px |

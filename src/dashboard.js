@@ -19,6 +19,10 @@ import {
 } from './editor-core.js';
 import { closeAssignSheet } from './editor-teachers.js';
 import {
+  classesOnDate,
+  dateFromKey,
+  dateKey,
+  dateOfDay,
   getNextSchoolDay,
   getWeekLabelHtml,
   getWeekType,
@@ -30,6 +34,7 @@ import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
 import { isSyncViewer, notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
+import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
 import { getLocale, t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
@@ -138,6 +143,7 @@ document.addEventListener(
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
   if (document.getElementById('assign-sheet')?.classList.contains('show')) closeAssignSheet();
+  else if (document.getElementById('swap-sheet')?.classList.contains('show')) window.closeSwapSheet?.();
   else if (document.getElementById('sheet')?.classList.contains('show')) closeModal();
   else if (document.getElementById('editor-confirm-sheet')?.classList.contains('show'))
     hideEditorDiscardConfirm();
@@ -461,14 +467,15 @@ function nextSchoolDay(now, curDay) {
   for (let ahead = 1; ahead <= 21; ahead++) {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ahead);
     const day = (curDay + ahead) % 7;
-    const first = (state.runtimeSchedule[day] || [])[0];
-    if (!first || holidayOn(date)) continue;
-    return { label: ahead === 1 ? t('dashboard.tomorrow') : ahead < 7 ? WEEKDAY_LABELS[day] : `${date.getMonth() + 1}/${date.getDate()}`, first, week: getWeekType(date) };
+    // (Test Mode's simulated weekday walks the timetable, not dates.)
+    const first = window.MANUALLY_TEST ? !holidayOn(date) && (state.runtimeSchedule[day] || [])[0] : classesOn(date)[0];
+    if (!first) continue;
+    return { label: ahead === 1 ? t('dashboard.tomorrow') : ahead < 7 ? WEEKDAY_LABELS[day] : `${date.getMonth() + 1}/${date.getDate()}`, first, week: getWeekType(date), day };
   }
   return null;
 }
-// Today's classes: none on a national holiday.
-const classesOn = (date, day) => (holidayOn(date) ? [] : state.runtimeSchedule[day] || []);
+// A date's classes (調課 applied): none on a national holiday.
+const classesOn = date => (holidayOn(date) ? [] : classesOnDate(date));
 
 // updateExamCountdown() computes a day-granularity D-day count (it can't
 // change more than once a day - it uses the real calendar date, not Test
@@ -530,13 +537,16 @@ function update() {
   // getNextSchoolDay()'s no-match fallback into a different empty day every
   // single tick.
   const hasAnyClasses = Object.values(state.runtimeSchedule).some(rows => (rows || []).length > 0);
-  if (hasAnyClasses && !(state.runtimeSchedule[state.viewDay] || []).length) {
+  // (A day the timetable leaves empty can hold a class moved there by 調課.)
+  const viewRows = window.MANUALLY_TEST ? state.runtimeSchedule[state.viewDay] : classesOnDate(dateOfDay(state.viewDay, now));
+  if (hasAnyClasses && !(viewRows || []).length) {
     state.viewDay = getNextSchoolDay(state.viewDay);
   }
 
   // A national holiday: no classes today, whatever the timetable says (Test Mode's simulated days as they are).
   const holiday = window.MANUALLY_TEST ? null : holidayOn(now);
-  const todaySchedule = window.MANUALLY_TEST ? state.runtimeSchedule[curDay] : classesOn(now, curDay);
+  const todaySchedule = window.MANUALLY_TEST ? state.runtimeSchedule[curDay] : classesOn(now);
+  const nextDay = nextSchoolDay(now, curDay);
   const viewModel = computeDashboardViewModel({
     now,
     curDay,
@@ -553,13 +563,13 @@ function update() {
     state.viewDay === curDay &&
     state.autoAdvancedAfterFinishedDay !== curDay
   ) {
-    state.viewDay = getNextSchoolDay(curDay);
+    state.viewDay = window.MANUALLY_TEST ? getNextSchoolDay(curDay) : (nextDay?.day ?? getNextSchoolDay(curDay));
     state.autoAdvancedAfterFinishedDay = curDay;
   }
 
   renderDashboard(
     week,
-    heroView(viewModel, { now, week, todaySchedule, nextDay: nextSchoolDay(now, curDay), holiday })
+    heroView(viewModel, { now, week, todaySchedule, nextDay, holiday })
   );
 
   // As the break before a class starts (five minutes before, after a long
@@ -590,7 +600,7 @@ function weekClasses(now) {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
     const week = getWeekType(date);
     const day = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-    const list = classesOn(date, date.getDay());
+    const list = classesOn(date);
     for (const [i, c] of list.entries()) {
       const [h, m] = String(c.s || '')
         .split(':')
@@ -685,9 +695,13 @@ function setSplitWeekClass(id, subject, teacher) {
   target.appendChild(teacherText);
 }
 // Opens the class detail modal and fills in occurrence/location details.
-function openModal(c) {
+// `date`: the day it was opened on (a day's list), for 調課. A swapped class
+// is shown as the timetable's class it came from, in that day's week.
+function openModal(shown, { date = null } = {}) {
   modalPreviousFocus = document.activeElement;
-  const week = getWeekType();
+  const c = shown.from || shown;
+  const week = getWeekType(shown.swap ? dateFromKey(shown.swap.date) : date || new Date());
+  drawModalSwap(shown, date);
   const terms = c.isSplit ? c.n.split('/').map(t => t.trim()) : [c.n];
   const teachers = c.isSplit ? c.t.split('/').map(t => t.trim()) : [c.t];
   let count = 0;
@@ -743,6 +757,31 @@ function openModal(c) {
     occHtml ||
     `<div class="occ-row"><span class="occ-row-day">×</span><div class="occ-row-meta"><div class="occ-row-period">${t('dashboard.noOccurrences')}</div></div></div>`;
   setOverlayVisible('overlay', 'sheet', true, 'modal-open');
+}
+
+// The sheet's 調課: a class on a day can be swapped once with another
+// period (any day); a swapped one says with which, and can be put back.
+function drawModalSwap(c, date) {
+  const box = document.getElementById('m-swap');
+  const note = document.getElementById('m-swap-note');
+  const btn = document.getElementById('m-swap-btn');
+  if (!box || !note || !btn) return;
+  const here = date && Number.isInteger(c.p) ? { date: dateKey(date), p: c.p } : null;
+  const swap = here && swapOf(here);
+  box.hidden = !here || isSyncViewer();
+  if (box.hidden) return;
+  note.hidden = !swap;
+  if (swap) note.textContent = t('swap.with', { slot: slotText(swap.a.date === here.date && swap.a.p === here.p ? swap.b : swap.a) });
+  btn.textContent = swap ? t('swap.undo') : t('swap.button');
+  btn.classList.toggle('is-danger', Boolean(swap));
+  btn.onclick = async () => {
+    if (swap) {
+      if (await undoSwap(swap)) closeModal();
+      return;
+    }
+    closeModal();
+    openSwapSheet(here);
+  };
 }
 
 // Exposed on window for inline HTML event handlers (onclick="..." in

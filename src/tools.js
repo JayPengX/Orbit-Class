@@ -4,12 +4,16 @@
 // three figures (subjects, classes a week, the school day's span), the
 // editor's button and a shortcut to each of its parts; then the two ways in
 // from elsewhere (a photo read by AI, a classmate's share key) as rows.
+// Between them 調課: the one-time swaps still to come, and 新增調課.
 // Drawn each time the tab opens, from the saved timetable.
 import { subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getWeekType, processSplitName } from './schedule.js';
 import { openModal } from './dashboard.js';
 import { isSyncViewer } from './sync.js';
+import { nameAt, openSwapSheet, slotText, undoSwap } from './swap.js';
+import { swapsNotOver } from './data.js';
+import { dateKey } from './schedule.js';
 import { t } from './strings.js';
 
 const DAYS = [1, 2, 3, 4, 5, 6];
@@ -159,6 +163,36 @@ function wayTile(kind, icon, title, sub) {
   return button(`cx-way is-${kind}`, () => openTransfer(kind), [iconBox, words, el('span', 'cx-way-go', '›')]);
 }
 
+// 調課: each swap still to come as a row (both sides, a tap to undo it),
+// then 新增調課.
+const SWAP_ICON = '<path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/>';
+function swapIcon() {
+  const box = el('span', 'cx-way-icon');
+  box.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SWAP_ICON}</svg>`;
+  return box;
+}
+function swapList() {
+  const viewer = isSyncViewer();
+  const box = el('div', 'cx-ways cx-swaps');
+  for (const swap of swapsNotOver(state.applicationData.classSwaps, dateKey(new Date()))) {
+    const words = el('span', 'cx-swap-sides');
+    for (const side of [swap.a, swap.b]) {
+      const line = el('span', 'cx-swap-side');
+      line.append(el('small', '', slotText(side)), el('strong', '', nameAt(side)));
+      words.append(line);
+    }
+    const row = button('cx-way cx-swap', () => undoSwap(swap), [swapIcon(), words]);
+    row.disabled = viewer;
+    box.append(row);
+  }
+  const words = el('span', 'cx-way-words');
+  words.append(el('strong', '', t('swap.add')), el('small', '', t('swap.addSub')));
+  const add = button('cx-way is-swap', () => openSwapSheet(), [swapIcon(), words, el('span', 'cx-way-go', '›')]);
+  add.disabled = viewer;
+  box.append(add);
+  return box;
+}
+
 let drawn = '';
 function renderTools() {
   const box = document.getElementById('cx-tools');
@@ -167,7 +201,7 @@ function renderTools() {
   // pass arriving after the tab opened), the week, the minute, or the language.
   const testing = window.MANUALLY_TEST;
   const minute = testing ? `${window.TEST_DAY}-${Math.floor((window.TEST_TIME_SEC || 0) / 60)}` : Math.floor(Date.now() / 60_000);
-  const key = `${JSON.stringify(state.runtimeSchedule)}|${getWeekType()}|${minute}|${t('tools.myTimetable')}|${isSyncViewer()}`;
+  const key = `${JSON.stringify(state.runtimeSchedule)}|${JSON.stringify(state.applicationData.classSwaps || [])}|${getWeekType()}|${minute}|${t('tools.myTimetable')}|${isSyncViewer()}`;
   if (key === drawn && box.childElementCount) return;
   drawn = key;
   const ways = el('div', 'cx-ways');
@@ -178,6 +212,8 @@ function renderTools() {
   box.replaceChildren(
     el('h2', 'cx-section', t('tools.myTimetable')),
     weekCard(),
+    el('h2', 'cx-section', t('swap.section')),
+    swapList(),
     el('h2', 'cx-section', t('tools.bringIn')),
     ways
   );

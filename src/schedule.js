@@ -29,6 +29,7 @@ function buildSchedule() {
           t: m[1],
           s: bt[0],
           e: bt[1],
+          p: i,
           isSplit: m[0].includes('/'),
           loc: state.applicationData.locationDB[key] || ''
         };
@@ -91,8 +92,63 @@ function getNextSchoolDay(day) {
   if (day >= 1 && day <= 4) return day + 1;
   return 1;
 }
+// A day's date as the swaps write it: YYYY-MM-DD, local.
+function dateKey(date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+function dateFromKey(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+// The timetable's class at a weekday's period, if any.
+function slotClass(day, p) {
+  return (state.runtimeSchedule[day] || []).find(c => c.p === p) || null;
+}
+// A date's classes, 調課 applied: a swapped period holds the other side's
+// class (its odd/even half that of the other side's week), in this period's
+// time; a period swapped with an empty one is empty. Each swapped class
+// carries `swap` (the other side: { date, p }) and `from` (the timetable's
+// class it came from, for its sheet).
+function classesOnDate(date) {
+  const day = date.getDay();
+  const base = state.runtimeSchedule[day] || [];
+  const key = dateKey(date);
+  const mine = (state.applicationData.classSwaps || []).flatMap(({ a, b }) =>
+    a.date === key ? [[a, b]] : b.date === key ? [[b, a]] : []
+  );
+  if (!mine.length) return base;
+  const byPeriod = new Map(base.map(c => [c.p, c]));
+  for (const [here, there] of mine) {
+    const thereDate = dateFromKey(there.date);
+    const from = slotClass(thereDate.getDay(), there.p);
+    const bt = state.applicationData.bellTimes[here.p];
+    if (!from || !bt) {
+      byPeriod.delete(here.p);
+      continue;
+    }
+    const info = processSplitName(from, getWeekType(thereDate));
+    byPeriod.set(here.p, {
+      ...from,
+      n: info.n,
+      t: info.t,
+      isSplit: false,
+      s: bt[0],
+      e: bt[1],
+      p: here.p,
+      swap: { date: there.date, p: there.p },
+      from
+    });
+  }
+  return [...byPeriod.values()].sort((x, y) => x.p - y.p);
+}
+// The date a weekday's list shows: today's, or the coming one.
+function dateOfDay(day, now = new Date()) {
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + ((day - now.getDay() + 7) % 7));
+}
 // Chooses the correct subject and teacher for split odd/even-week classes.
+// A swapped class is already one subject; it says so in the week label's place.
 function processSplitName(c, week) {
+  if (c.swap) return { n: c.n, t: c.t, label: `<span class="week-label label-swap">${t('swap.label')}</span>` };
   if (!c.isSplit)
     return {
       n: c.n,
@@ -122,6 +178,11 @@ function subjectHue(subject) {
 
 export {
   buildSchedule,
+  classesOnDate,
+  dateFromKey,
+  dateKey,
+  dateOfDay,
+  slotClass,
   getISOWeekNumber,
   getNextSchoolDay,
   getWeekLabelHtml,

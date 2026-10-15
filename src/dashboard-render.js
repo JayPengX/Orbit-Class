@@ -5,7 +5,7 @@ import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { keepActiveClassVisible, openModal } from './dashboard.js';
 import { openEditorFold } from './editor-core.js';
-import { getNextSchoolDay, parseTime, processSplitName } from './schedule.js';
+import { classesOnDate, dateOfDay, getNextSchoolDay, getWeekType, parseTime, processSplitName } from './schedule.js';
 import { t } from './strings.js';
 import { subjectIcon } from './subjects.js';
 
@@ -268,7 +268,11 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   });
 
   list.innerHTML = '';
-  const rows = state.runtimeSchedule[state.viewDay] || [];
+  // The day shown is a date (today's, or the coming one): its 調課 applied,
+  // its own odd/even week. (Test Mode simulates a weekday: the timetable's.)
+  const date = window.MANUALLY_TEST ? null : dateOfDay(state.viewDay, new Date());
+  const rows = date ? classesOnDate(date) : state.runtimeSchedule[state.viewDay] || [];
+  if (date) week = getWeekType(date);
   // 今天: the classes still to come first, what's over below them under its
   // own line (the rest of the day within reach without scrolling past it).
   const ahead = [];
@@ -287,17 +291,18 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     row.dataset.i = String(i * 2);
     row.tabIndex = 0;
     row.role = 'button';
-    row.addEventListener('click', () => openModal(c));
+    const open = () => openModal(c, { date });
+    row.addEventListener('click', open);
     row.addEventListener('keydown', event => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        openModal(c);
+        open();
       }
     });
 
     const badge = document.createElement('div');
     badge.className = 'period-badge';
-    badge.textContent = String(i + 1);
+    badge.textContent = String((c.p ?? i) + 1);
     const content = document.createElement('div');
     content.className = 'content';
     const name = document.createElement('div');
@@ -340,7 +345,7 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
       badge.classList.add('is-quiet');
     }
     // (The class on now and the next one: their pill says so, the line keeps its teacher and room whole.)
-    if (!isNow && !isNext) meta.prepend(createMetaChip(t('dashboard.periodNumber', { number: i + 1 }), 'meta-period'));
+    if (!isNow && !isNext) meta.prepend(createMetaChip(t('dashboard.periodNumber', { number: (c.p ?? i) + 1 }), 'meta-period'));
     row.append(time, icon, content, badge);
     (isPast ? done : ahead).push(row);
     // A named break between this class and the next (打掃時間, 午休): a quiet

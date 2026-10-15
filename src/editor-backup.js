@@ -23,6 +23,7 @@ import {
   isValidTimeRange,
   normalizeCountdownEvent,
   normalizeCountdownEvents,
+  normalizeClassSwaps,
   sanitizeBreakTimes,
   saveData,
   validateTimeIntervals
@@ -124,6 +125,8 @@ function collectEditorFormState({ includeDraft = false } = {}) {
     countdownEvents: normalizedCountdownEvents,
     reverseWeek,
     pruneCountdowns,
+    // (調課 isn't the editor's: kept as saved.)
+    classSwaps: normalizeClassSwaps(state.applicationData.classSwaps),
     proAccent,
     proSecondary,
     styleSlots: normalizeStyleSlots(state.applicationData.styleSlots),
@@ -333,8 +336,9 @@ function encodeTransferPayloadV2(data) {
     data.proAccent,
     data.proSecondary,
     styleSlotEntries,
-    // (Appended: an older copy of the app reads the ten before it and ignores this.)
-    data.pruneCountdowns ? 1 : 0
+    // (Appended: an older copy of the app reads the ten before it and ignores these.)
+    data.pruneCountdowns ? 1 : 0,
+    (data.classSwaps || []).map(({ a, b }) => [a.date, a.p, b.date, b.p])
   ];
 }
 function decodeTransferPayloadV2(array) {
@@ -349,7 +353,8 @@ function decodeTransferPayloadV2(array) {
     proAccent,
     proSecondary,
     styleSlotEntries,
-    pruneCountdownsFlag
+    pruneCountdownsFlag,
+    swapEntries
   ] = array;
   const teacherDB = {},
     locationDB = {};
@@ -382,6 +387,11 @@ function decodeTransferPayloadV2(array) {
     countdownEvents,
     reverseWeek: !!reverseWeekFlag,
     pruneCountdowns: pruneCountdownsFlag === 1,
+    classSwaps: normalizeClassSwaps(
+      (Array.isArray(swapEntries) ? swapEntries : []).map(e =>
+        Array.isArray(e) ? { a: { date: e[0], p: e[1] }, b: { date: e[2], p: e[3] } } : null
+      )
+    ),
     proAccent,
     proSecondary,
     styleSlots,
@@ -516,6 +526,7 @@ function normalizeSettingsData(raw, { requireMarker = false } = {}) {
     reverseWeek:
       typeof source.reverseWeek === 'boolean' ? source.reverseWeek : REVERSE_WEEK_LOGIC_DEFAULT,
     pruneCountdowns: source.pruneCountdowns === true,
+    classSwaps: normalizeClassSwaps(source.classSwaps),
     proAccent: normalizeProAccent(source.proAccent),
     proSecondary: normalizeProSecondary(source.proSecondary),
     styleSlots: normalizeStyleSlots(source.styleSlots)
@@ -781,6 +792,9 @@ function describeSettingsDiff(current, next, { isImport = false } = {}) {
         after: next.reverseWeek ? t('common.on') : t('common.off')
       })
     );
+  const swapCount = data => normalizeClassSwaps(data.classSwaps).length;
+  if (JSON.stringify(normalizeClassSwaps(current.classSwaps)) !== JSON.stringify(normalizeClassSwaps(next.classSwaps)))
+    lines.push(t('editorBackup.classSwapsChange', { before: swapCount(current), after: swapCount(next) }));
   const currentProAccent = normalizeProAccent(current.proAccent);
   const nextProAccent = normalizeProAccent(next.proAccent);
   const describeColorChange = (label, before, after) =>

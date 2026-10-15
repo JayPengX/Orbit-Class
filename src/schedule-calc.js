@@ -318,7 +318,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
     const c = today[vm.curIdx];
     return {
       mode: 'class',
-      kicker: t('dashboard.periodNow', { n: vm.curIdx + 1 }),
+      kicker: t('dashboard.periodNow', { n: (c.p ?? vm.curIdx) + 1 }),
       span: `${c.s}–${c.e}`,
       ...about(c, week),
       timer: { value: vm.timerValue, label: t('dashboard.untilEnd') },
@@ -333,7 +333,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
   const brk = vm.activeBreakName ? vm.activeBreak : null;
   const breakLeads = brk && (!next || startSec - parseTime(brk.end) * 60 > LONG_BREAK * 60 || parseTime(brk.end) < parseTime(brk.start));
   if (next && !breakLeads) {
-    const n = vm.nxtIdx + 1;
+    const n = (next.p ?? vm.nxtIdx) + 1;
     const prev = today[vm.nxtIdx - 1];
     const from = prev ? parseTime(prev.e) * 60 : brk ? parseTime(brk.start) * 60 : null;
     const waiting = brk || prev;

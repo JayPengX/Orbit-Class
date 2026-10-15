@@ -200,6 +200,26 @@
       <div id="m-occ-list" class="m-occ-list">
       </div>
     </div>
+    <div id="m-swap" class="m-swap" hidden>
+      <p id="m-swap-note" class="m-swap-note" hidden></p>
+      <button type="button" id="m-swap-btn" class="q-btn tinted m-swap-btn">調課</button>
+    </div>
+  </div>
+</div>
+<div id="swap-overlay" class="modal-overlay" onclick="closeSwapSheet()"></div>
+<div id="swap-sheet" class="modal-sheet swap-sheet" role="dialog" aria-modal="true" aria-labelledby="swap-title">
+  <div class="test-panel-handle" aria-hidden="true"></div>
+  <div class="sheet-head class-head">
+    <div class="class-head-words">
+      <h2 id="swap-title" class="modal-title-text" data-i18n="swap.title">調課</h2>
+      <div id="swap-sub" class="modal-teacher-text"></div>
+    </div>
+    <button type="button" class="editor-close sheet-close" onclick="closeSwapSheet()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
+  </div>
+  <div class="modal-sheet-body">
+    <button type="button" id="swap-first" class="swap-first" hidden></button>
+    <label class="swap-date"><span data-i18n="swap.dateLabel">日期</span><input type="date" id="swap-date"></label>
+    <div id="swap-periods" class="swap-periods"></div>
   </div>
 </div>
 <div id="editor-sheet-overlay" class="test-panel-overlay" onclick="closeEditor()" aria-hidden="true"></div>

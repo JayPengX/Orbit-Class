@@ -2866,3 +2866,39 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .toggle-switch.on:active::after {
   transform: translateX(16px);
 }
+
+/* ---- 調課 (src/swap.js): the class sheet's button, the swap sheet, 工具's list ---- */
+.m-swap{display:grid;gap:10px;margin:4px 0 8px}
+.m-swap[hidden],.m-swap-note[hidden]{display:none}
+.m-swap-note{margin:0 2px;color:var(--q-muted);font-size:14px;font-weight:600}
+.m-swap-btn{width:100%}
+.m-swap-btn.is-danger{background:var(--q-fill-2);color:var(--q-red)}
+.label-swap{background:color-mix(in srgb,var(--q-orange) 18%,transparent);color:var(--q-orange)}
+.swap-first{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border:0;border-radius:14px;background:var(--q-accent-wash);color:var(--q-text);font:inherit;text-align:left;cursor:pointer}
+.swap-first[hidden]{display:none}
+.swap-first-words{display:grid;gap:2px;min-width:0}
+.swap-first-words small{color:var(--q-muted);font-size:13px;font-weight:600}
+.swap-first-words strong{font-size:17px;font-weight:800;overflow-wrap:anywhere}
+.swap-first-change{flex:none;color:var(--q-accent);font-size:15px;font-weight:600}
+.swap-date{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin:0 0 12px;padding:0 14px;border-radius:14px;background:var(--q-sheet-cell,var(--q-surface));color:var(--q-text);font-size:16px;font-weight:600}
+.swap-date input{min-width:0;border:0;background:none;color:var(--q-accent);font:inherit;font-weight:600;text-align:right}
+.swap-periods{display:grid;border-radius:14px;background:var(--q-sheet-cell,var(--q-surface));overflow:hidden}
+.swap-slot{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:12px;min-height:52px;padding:10px 14px;border:0;border-bottom:1px solid var(--q-divider);background:none;color:var(--q-text);font:inherit;text-align:left;cursor:pointer}
+.swap-slot:last-child{border-bottom:0}
+.swap-slot:active:not(:disabled){background:var(--q-fill-2)}
+.swap-slot:disabled{opacity:.4;cursor:default}
+.swap-slot-when{display:grid;gap:1px;font-variant-numeric:tabular-nums}
+.swap-slot-when b{font-size:14px;font-weight:700}
+.swap-slot-when span{color:var(--q-muted);font-size:13px}
+.swap-slot-words{display:grid;gap:2px;min-width:0}
+.swap-slot-words strong{font-size:16px;font-weight:700;overflow-wrap:anywhere}
+.swap-slot.is-free .swap-slot-words strong{color:var(--q-muted);font-weight:600}
+.swap-slot-words small{color:var(--q-muted);font-size:13px;overflow-wrap:anywhere}
+.swap-note{margin:0;padding:16px 14px;color:var(--q-muted);font-size:15px}
+.cx-way.is-swap .cx-way-icon,.cx-swap .cx-way-icon{background:color-mix(in srgb,var(--q-orange) 16%,transparent);color:var(--q-orange)}
+.cx-way.cx-swap{grid-template-columns:40px minmax(0,1fr)}
+.cx-way:disabled{opacity:.45;cursor:default}
+.cx-swap-sides{display:grid;gap:6px;min-width:0}
+.cx-swap-side{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:10px}
+.cx-swap-side small{color:var(--q-muted);font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cx-swap-side strong{font-size:16px;font-weight:700;overflow-wrap:anywhere}

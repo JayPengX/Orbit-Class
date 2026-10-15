@@ -202,6 +202,38 @@ function normalizeCountdownEvents(value) {
 function countdownsNotOver(events, today) {
   return (events || []).filter(e => (e.endDate || e.startDate) >= today);
 }
+// 調課: one-time swaps of two periods on given dates, any two dates (across
+// weeks too): { a: { date: 'YYYY-MM-DD', p }, b: { date, p } }, `p` the
+// period's place in the bell times. A period is in one swap at most (the
+// first kept), and the two sides are never the same period.
+const MAX_CLASS_SWAPS = 60;
+function normalizeClassSwaps(value) {
+  const isDate = v => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+  const slot = v => {
+    const date = String(v?.date || '');
+    const p = Number(v?.p);
+    return isDate(date) && Number.isInteger(p) && p >= 0 && p < 30 ? { date, p } : null;
+  };
+  const used = new Set();
+  const out = [];
+  for (const item of Array.isArray(value) ? value : []) {
+    const a = slot(item?.a);
+    const b = slot(item?.b);
+    if (!a || !b) continue;
+    const ka = `${a.date}#${a.p}`;
+    const kb = `${b.date}#${b.p}`;
+    if (ka === kb || used.has(ka) || used.has(kb)) continue;
+    used.add(ka);
+    used.add(kb);
+    out.push({ a, b });
+    if (out.length >= MAX_CLASS_SWAPS) break;
+  }
+  return out;
+}
+// The swaps with a day still to come (today counts).
+function swapsNotOver(swaps, today) {
+  return (swaps || []).filter(s => s.a.date >= today || s.b.date >= today);
+}
 const ORBIT_APP_ID = 'Orbit_Color';
 const ORBIT_STORAGE_SCHEMA = 'r8N3wL0yS5qM9uV7';
 
@@ -216,6 +248,7 @@ function getDefaultData() {
     countdownEvents: DEFAULT_COUNTDOWN_EVENTS.map(event => ({ ...event })),
     reverseWeek: REVERSE_WEEK_LOGIC_DEFAULT,
     pruneCountdowns: false,
+    classSwaps: [],
     proAccent: DEFAULT_STYLE_PRIMARY,
     proSecondary: DEFAULT_STYLE_SECONDARY,
     styleSlots: normalizeStyleSlots([])
@@ -348,6 +381,7 @@ function loadData() {
       reverseWeek:
         typeof parsed.reverseWeek === 'boolean' ? parsed.reverseWeek : REVERSE_WEEK_LOGIC_DEFAULT,
       pruneCountdowns: parsed.pruneCountdowns === true,
+      classSwaps: normalizeClassSwaps(parsed.classSwaps),
       proAccent: normalizeProAccent(parsed.proAccent),
       proSecondary: normalizeProSecondary(parsed.proSecondary),
       styleSlots: normalizeStyleSlots(parsed.styleSlots)
@@ -383,7 +417,9 @@ export {
   loadData,
   normalizeCountdownEvent,
   normalizeCountdownEvents,
+  normalizeClassSwaps,
   sanitizeBreakTimes,
   saveData,
+  swapsNotOver,
   validateTimeIntervals
 };

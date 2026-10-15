@@ -1607,6 +1607,7 @@ function activateOCRImporter() {
             // marks which physical week it was taken in) - AI import never
             // touches this setting, recognized classes or not.
             reverseWeek: current.reverseWeek,
+            classSwaps: current.classSwaps,
             proAccent: current.proAccent,
             proSecondary: current.proSecondary,
             styleSlots: current.styleSlots
