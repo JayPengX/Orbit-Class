@@ -353,8 +353,11 @@ function syncTestingBody() {
   if (document.body)
     document.body.classList.toggle('testing', !!(window.MANUALLY_TEST || window.IS_SIMULATING));
 }
+// Only when it's there: classList.remove() writes the class attribute even when
+// nothing changes, and update() runs every second (a body change a second, which
+// every observer of the page then answered).
 function finishBoot() {
-  if (document.body) document.body.classList.remove('orbit-booting');
+  if (document.body?.classList.contains('orbit-booting')) document.body.classList.remove('orbit-booting');
 }
 function suppressListAnimationForThisFrame() {
   if (!document.body) return;
