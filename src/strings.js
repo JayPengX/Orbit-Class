@@ -59,7 +59,18 @@ function readStoredLocaleOverride() {
   }
 }
 
-let currentLocale = readStoredLocaleOverride() || detectLocale();
+// The family's own choice (quadra.lang, set in any Quadra or Orbit app's
+// settings and kept on the device) before the phone's language.
+function readFamilyLocale() {
+  try {
+    const value = localStorage.getItem('quadra.lang');
+    return value === 'en' ? 'en' : value === 'zh' ? 'zh-TW' : null;
+  } catch {
+    return null;
+  }
+}
+
+let currentLocale = readStoredLocaleOverride() || readFamilyLocale() || detectLocale();
 
 /**
  * Returns the active locale ('zh-TW' or 'en').
@@ -76,6 +87,7 @@ function setLocale(locale) {
   currentLocale = locale === 'en' ? 'en' : 'zh-TW';
   try {
     localStorage.setItem(LOCALE_OVERRIDE_KEY, currentLocale);
+    localStorage.setItem('quadra.lang', currentLocale === 'en' ? 'en' : 'zh');
   } catch {
     /* localStorage unavailable (private browsing, etc.) - the in-memory
        value above still takes effect for the rest of this session. */
