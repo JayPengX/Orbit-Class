@@ -1073,7 +1073,7 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
 @keyframes rowEnter{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .row-enter{animation:rowEnter .28s var(--ease-glass)}
 
-.editor-drill-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:9px}
+.editor-drill-actions{display:grid;grid-template-columns:repeat(4,minmax(max-content,1fr));gap:5px;margin-bottom:9px}
 /* Same backdrop-filter-plus-:active-transform combination as .nav-item's own
    compositing bug (see its comment for the full explanation): pressing
    promotes this button to its own GPU layer just for the scale, and real
@@ -1082,7 +1082,7 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
    Forcing a permanent layer with translateZ(0)/backface-visibility/
    will-change, exactly like .nav-item, keeps that layer alive across the
    whole press so there's nothing to promote/demote/mis-rasterize. */
-.editor-drill-btn{min-height:34px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
+.editor-drill-btn{padding:0 4px;white-space:nowrap;min-height:34px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .editor-drill-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,color-mix(in srgb,var(--q-text) 5%,transparent))}
 .editor-back-row{display:flex;justify-content:flex-start;margin-bottom:8px}
 .editor-back-btn{min-height:32px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;padding:7px 10px;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}

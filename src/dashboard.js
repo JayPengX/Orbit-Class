@@ -231,7 +231,7 @@ function renderCountdowns() {
   const add = make('button', 'cx-cd cx-cd-add');
   add.type = 'button';
   add.setAttribute('aria-label', t('dashboard.addCountdown'));
-  add.append(make('span', 'cx-cd-plus', '+'), make('span', 'cx-cd-addtext', t('dashboard.addCountdown')));
+  add.append(make('span', 'cx-cd-plus', '+'), make('span', 'cx-cd-addtext', t('dashboard.addCountdownShort')));
   add.addEventListener('click', edit);
   row.append(add);
   box.classList.toggle('is-many', events.length > 1);
