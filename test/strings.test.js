@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { detectLocale, getLocale, setLocale, t } from '../src/strings.js';
 
 describe('t()', () => {
@@ -23,7 +23,7 @@ describe('t()', () => {
   });
 });
 
-// setLocale persists an override (see readStoredLocaleOverride in
+// setLocale keeps the choice in quadra.lang (see readFamilyLocale in
 // strings.js), so every test that changes the active locale resets it back
 // to zh-TW afterward - both so later tests in this file see the same
 // default every other test in the suite assumes, and so nothing leaks a
@@ -33,6 +33,7 @@ afterEach(() => {
   setLocale('zh-TW');
   try {
     localStorage.removeItem('orbitLocaleOverride');
+    localStorage.removeItem('quadra.lang');
   } catch {
     /* localStorage unavailable - nothing to clean up. */
   }
@@ -89,13 +90,37 @@ describe('getLocale()/setLocale()', () => {
     expect(t('dashboard.notStarted')).toBe('Not started yet');
   });
 
-  it('persists the override so it survives being re-read from storage', () => {
+  it("keeps the choice as the family's quadra.lang, so it survives a reload and reaches the other apps", () => {
     setLocale('en');
-    expect(localStorage.getItem('orbitLocaleOverride')).toBe('en');
+    expect(localStorage.getItem('quadra.lang')).toBe('en');
+    expect(localStorage.getItem('orbitLocaleOverride')).toBeNull();
   });
 
   it('falls back to zh-TW for an invalid value rather than storing garbage', () => {
     setLocale('fr');
     expect(getLocale()).toBe('zh-TW');
+  });
+});
+
+describe('the old orbitLocaleOverride key', () => {
+  const fresh = async () => {
+    vi.resetModules();
+    return import('../src/strings.js');
+  };
+
+  it('moves into quadra.lang once when the family has no choice yet, then is dropped', async () => {
+    localStorage.setItem('orbitLocaleOverride', 'en');
+    const { getLocale: get } = await fresh();
+    expect(get()).toBe('en');
+    expect(localStorage.getItem('quadra.lang')).toBe('en');
+    expect(localStorage.getItem('orbitLocaleOverride')).toBeNull();
+  });
+
+  it("no longer outranks a language chosen later in another app", async () => {
+    localStorage.setItem('orbitLocaleOverride', 'en');
+    localStorage.setItem('quadra.lang', 'zh');
+    const { getLocale: get } = await fresh();
+    expect(get()).toBe('zh-TW');
+    expect(localStorage.getItem('orbitLocaleOverride')).toBeNull();
   });
 });

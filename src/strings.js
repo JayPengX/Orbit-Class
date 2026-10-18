@@ -41,28 +41,22 @@ function detectLocale() {
   return 'zh-TW';
 }
 
-// A manual override (from the appearance/language setting) is persisted
-// under its own localStorage key, the same direct-localStorage-plus-
-// try/catch pattern src/onboarding.js already uses for its own standalone
-// flag (ONBOARDING_SEEN_KEY) - there's no existing generic "app settings"
-// store this can hook into: data.js's saveData/loadData is specifically the
-// validated schedule-data schema (teacherDB/weeklySchedule/bellTimes/...),
-// and a UI locale preference doesn't belong inside that shape.
-const LOCALE_OVERRIDE_KEY = 'orbitLocaleOverride';
+// The family's choice (quadra.lang, set in any Quadra or Orbit app's
+// settings and kept on the device) before the phone's language. Class used
+// to keep its own choice under orbitLocaleOverride, which then outranked a
+// change made in another app: it is moved into quadra.lang once (when the
+// family has none yet) and dropped.
+const LEGACY_LOCALE_KEY = 'orbitLocaleOverride';
 
-function readStoredLocaleOverride() {
-  try {
-    const value = localStorage.getItem(LOCALE_OVERRIDE_KEY);
-    return value === 'zh-TW' || value === 'en' ? value : null;
-  } catch {
-    return null;
-  }
-}
-
-// The family's own choice (quadra.lang, set in any Quadra or Orbit app's
-// settings and kept on the device) before the phone's language.
 function readFamilyLocale() {
   try {
+    const legacy = localStorage.getItem(LEGACY_LOCALE_KEY);
+    if (legacy !== null) {
+      if (localStorage.getItem('quadra.lang') === null && (legacy === 'en' || legacy === 'zh-TW')) {
+        localStorage.setItem('quadra.lang', legacy === 'en' ? 'en' : 'zh');
+      }
+      localStorage.removeItem(LEGACY_LOCALE_KEY);
+    }
     const value = localStorage.getItem('quadra.lang');
     return value === 'en' ? 'en' : value === 'zh' ? 'zh-TW' : null;
   } catch {
@@ -70,7 +64,7 @@ function readFamilyLocale() {
   }
 }
 
-let currentLocale = readStoredLocaleOverride() || readFamilyLocale() || detectLocale();
+let currentLocale = readFamilyLocale() || detectLocale();
 
 /**
  * Returns the active locale ('zh-TW' or 'en').
@@ -80,13 +74,12 @@ function getLocale() {
 }
 
 /**
- * Sets the active locale and persists it as a manual override, so it
- * survives reloads instead of being re-detected from the browser every time.
+ * Sets the active locale and keeps it as the family's choice (quadra.lang),
+ * so it survives reloads and carries into the other apps.
  */
 function setLocale(locale) {
   currentLocale = locale === 'en' ? 'en' : 'zh-TW';
   try {
-    localStorage.setItem(LOCALE_OVERRIDE_KEY, currentLocale);
     localStorage.setItem('quadra.lang', currentLocale === 'en' ? 'en' : 'zh');
   } catch {
     /* localStorage unavailable (private browsing, etc.) - the in-memory
