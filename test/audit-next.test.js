@@ -16,7 +16,7 @@ let normalizeSettingsData;
 beforeAll(async () => {
   seedLocalStorage();
   await loadApp();
-  ({ applyNlEditResult, validateNlEditResult } = await import('../src/editor-nl-edit.js'));
+  ({ applyNlEditResult, extractJsonObject, validateNlEditResult } = await import('../src/editor-nl-edit.js'));
   ({ decodeTransferData, encodeTransferData, normalizeSettingsData } = await import('../src/editor-backup.js'));
   useHolidays(await import('../.kit/holidays.mjs'));
 });
