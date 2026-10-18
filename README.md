@@ -24,6 +24,7 @@ Live: https://jaypengx.github.io/Orbit-Class/
   (`WEEK_EPOCH`; the same as ISO through 2026, and still alternating over
   2026's 53rd week, where ISO's would repeat odd). A swap toggle if the
   school counts differently; `語文/公民` in a slot splits by week.
+- **明天要帶:** the night before, 今天 lists what tomorrow's classes need (PE clothes, swim gear, art supplies, instrument, materials).
 - **Countdowns** to exams and events; 結束後自動刪除 optional.
 - **Notices** five minutes before each class, handed to the Worker so they
   arrive with the app closed. No classes or notices on Taiwan's holidays.
@@ -49,6 +50,7 @@ Live: https://jaypengx.github.io/Orbit-Class/
 - One look: Class's own accent, light or dark with the device. The style
   panel was deleted (old saves' colours are read, never applied).
 - Phone only: a computer gets a QR code.
+- The language is the family's: one picked in any Quadra or Orbit app (`quadra.lang`) opens Class.
 - The AI prompts and schemas live in the Worker. The client sends only
   files or the instruction, so the endpoint can't be used as a general AI.
 - The odd/even toggle is never changed by AI import.
