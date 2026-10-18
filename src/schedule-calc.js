@@ -264,6 +264,11 @@ export function noticeLead(schedule, i) {
   const gap = prev ? parseTime(schedule[i].s) - parseTime(prev.e) : Infinity;
   return gap > 0 && gap <= LONG_BREAK ? gap : 5;
 }
+// How many of the day's classes are not over yet (the one on now counts).
+export function classesLeft(schedule, now) {
+  const mins = now.getHours() * 60 + now.getMinutes();
+  return (schedule || []).filter(c => parseTime(c.e) > mins).length;
+}
 export function classStartingSoon({ now, week, todaySchedule }) {
   const list = todaySchedule || [];
   const mins = now.getHours() * 60 + now.getMinutes();

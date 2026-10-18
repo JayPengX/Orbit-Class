@@ -8,6 +8,7 @@ import { openEditorFold } from './editor-core.js';
 import * as ui from '#kit/ui.mjs';
 import { parseTime } from './dates.js';
 import { classesOn, dateOfDayInWeek, getNextSchoolDay, getWeekType, processSplitName } from './schedule.js';
+import { classesLeft } from './schedule-calc.js';
 import { renderSwaps } from './swap.js';
 import { t } from './strings.js';
 import { subjectIcon } from './subjects.js';
@@ -415,7 +416,8 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   if (onToday && title) {
     const shown = state.viewDay === (window.MANUALLY_TEST ? window.TEST_DAY : curDay);
     const ahead1 = (state.viewDay - curDay + 7) % 7 === 1;
-    title.textContent = shown ? t('dashboard.todayClasses') : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
+    const left = shown && !window.MANUALLY_TEST ? classesLeft(rows, new Date()) : 0;
+    title.textContent = shown ? (left ? t('dashboard.todayClassesLeft', { n: left }) : t('dashboard.todayClasses')) : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
   }
   if (onToday && done.length && ahead.length) {
     const head = document.createElement('div');
