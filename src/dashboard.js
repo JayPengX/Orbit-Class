@@ -28,6 +28,7 @@ import {
   processSplitName
 } from './schedule.js';
 import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
+import { renderBring } from './bring.js';
 import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
 import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
@@ -377,6 +378,7 @@ function update() {
   if (!window.MANUALLY_TEST) prunePastCountdowns();
   updateExamCountdownIfDayChanged();
   renderCountdowns();
+  renderBring();
   const dom = getDashboardDom();
   const now = new Date();
   if (window.MANUALLY_TEST) {
