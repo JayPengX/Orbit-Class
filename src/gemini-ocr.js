@@ -9,9 +9,10 @@ import {
   normalizeSettingsData,
   settingsDataForExport
 } from './editor-backup.js';
-import { editorTimeToMinutes, formatClassLabel } from './editor-core.js';
+import { formatClassLabel } from './editor-core.js';
+import { dateKey, timeToMinutes } from './dates.js';
 import { updateTeacherCardAvatar } from './editor-teachers.js';
-import { isSyncViewer, sessionUrl } from './sync.js';
+import { sessionUrl } from './sync.js';
 import { proxyPath } from './proxy-config.js';
 import { applyStaticTranslations } from './i18n-dom.js';
 import { t } from './strings.js';
@@ -35,6 +36,10 @@ const PASSTHROUGH_TYPES = ['image/heic', 'image/heif', 'application/pdf'];
 // base64 is 4 bytes per 3, hence the ratio.
 const MAX_PASSTHROUGH_BYTES = Math.floor((10_000_000 * 3) / 4);
 const MAX_FILES = 6;
+// No school day has more periods than this (a 調課 side's limit too): a
+// course row naming period 1,000,000 made the merge fill a day with a
+// million empty cells.
+const MAX_PERIODS = 30;
 
 function fileKind(file) {
   const type = (file?.type || '').toLowerCase();
@@ -211,12 +216,9 @@ function warmUpGeminiProxy() {
 function shiftDateYears(dateStr, deltaYears) {
   const [year, month, day] = dateStr.split('-').map(Number);
   const shifted = new Date(year + deltaYears, month - 1, day);
-  return `${shifted.getFullYear()}-${String(shifted.getMonth() + 1).padStart(2, '0')}-${String(shifted.getDate()).padStart(2, '0')}`;
+  return dateKey(shifted);
 }
-function todayIsoLocal() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
+const todayIsoLocal = () => dateKey(new Date());
 // GEMINI_PROMPT (see the Worker) asks the model to infer a sensible year for
 // a date shown without one, using "today" as an anchor - but that's still a
 // model guess, not a guarantee, and a wrong guess reliably lands one or more
@@ -560,7 +562,7 @@ class AIVisionProcessor {
             const subject = String(entry.subject || '').trim();
             const day = Number(entry.day);
             const periods = Array.isArray(entry.periods)
-              ? [...new Set(entry.periods.map(Number).filter(p => Number.isInteger(p) && p > 0))]
+              ? [...new Set(entry.periods.map(Number).filter(p => Number.isInteger(p) && p > 0 && p <= MAX_PERIODS))]
               : [];
             if (!subject || !Number.isInteger(day) || day < 0 || day > 6 || !periods.length) {
               return null;
@@ -964,7 +966,7 @@ function detectScheduleAnomalies(candidate) {
   const bellRanges = bellTimes.map(time => {
     const start = Array.isArray(time) ? time[0] : time?.start;
     const end = Array.isArray(time) ? time[1] : time?.end;
-    return start && end ? [editorTimeToMinutes(start), editorTimeToMinutes(end)] : null;
+    return start && end ? [timeToMinutes(start), timeToMinutes(end)] : null;
   });
 
   // 1. Two bell periods whose own time ranges overlap - independent of
@@ -986,7 +988,7 @@ function detectScheduleAnomalies(candidate) {
   // wrong period index to a class.
   breakTimes.forEach(item => {
     if (!item?.start || !item?.end) return;
-    const breakRange = [editorTimeToMinutes(item.start), editorTimeToMinutes(item.end)];
+    const breakRange = [timeToMinutes(item.start), timeToMinutes(item.end)];
     bellRanges.forEach((range, period) => {
       if (!range || !timeRangesOverlap(range[0], range[1], breakRange[0], breakRange[1])) return;
       WEEKDAYS_INDEX_ORDER.forEach(day => {
@@ -1495,14 +1497,6 @@ function mountOCRImporter({
 
   runButton.addEventListener('click', async () => {
     if (!sources.length) return;
-    // Belt-and-suspenders, same as saveEditor()/requestTransferAction(): the
-    // editor UI already disables this button for a viewer device (see
-    // styles.css's .sync-viewer-locked), but that's a CSS/pointer-events
-    // lock, not real access control.
-    if (isSyncViewer()) {
-      status(t('geminiOcr.viewerLockedImport'), true);
-      return;
-    }
     if (!navigator.onLine) {
       status(t('geminiOcr.offline'), true);
       return;

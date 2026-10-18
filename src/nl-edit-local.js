@@ -17,7 +17,9 @@
 // result goes through the exact same applyNlEditResult/confirm path.
 
 const CHINESE_DIGITS = { 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
-const DAY_NUMBERS = { 日: 0, 天: 0, 7: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
+// (週1 … 週6 too: the pattern below takes them, and without their numbers
+// here the day was undefined and the edit fell through to the AI.)
+const DAY_NUMBERS = { 日: 0, 天: 0, 7: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
 const NUMERAL = '[一二兩三四五六七八九十0-9]';
 
 const DAY_PATTERN = /(?:星期|禮拜|礼拜|週|周)([日天一二三四五六1-7])/y;

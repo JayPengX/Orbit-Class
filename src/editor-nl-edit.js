@@ -31,7 +31,7 @@
 // never trusting a class key, day/period reference, or time blindly.
 import { state } from './state.js';
 import { t } from './strings.js';
-import { isSyncViewer, sessionUrl } from './sync.js';
+import { sessionUrl } from './sync.js';
 import {
   applyEditorSettingsData,
   cloneSettingsData,
@@ -362,10 +362,14 @@ function applyNlEditResult(current, result) {
   Object.entries(current.weeklySchedule || {}).forEach(([day, periods]) => {
     weeklySchedule[day] = [...(periods || [])];
   });
+  // A period past the last bell time (after the patch's own bell times) is
+  // nothing a day can hold: an answer naming period 1,000,000 filled a day
+  // with a million empty cells, a frozen page, before validation saw it.
+  const periods = (result.bellTimesChanged ? result.bellTimes : current.bellTimes || []).length;
   (result.scheduleEdits || []).forEach(edit => {
     const day = String(edit?.day);
     const period = Number(edit?.period);
-    if (!weeklySchedule[day] || !Number.isInteger(period) || period < 0) return;
+    if (!weeklySchedule[day] || !Number.isInteger(period) || period < 0 || period >= periods) return;
     while (weeklySchedule[day].length <= period) weeklySchedule[day].push('');
     weeklySchedule[day][period] = String(edit.key || '');
   });
@@ -433,10 +437,6 @@ function showNlEditConfirm(current, next, { local = false, onApplied } = {}) {
 async function submitNlEdit(rawText, { status, onDone, onApplied } = {}) {
   const text = normalizeNlEditText(rawText);
   try {
-    if (isSyncViewer()) {
-      status?.(t('nlEdit.viewerLocked'), true);
-      return;
-    }
     if (!text) {
       status?.(t('nlEdit.emptyInput'), true);
       return;

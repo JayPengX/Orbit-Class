@@ -9,7 +9,6 @@ import {
   normalizeSettingsData
 } from './editor-backup.js';
 import {
-  editorTimeToMinutes,
   esc,
   findScheduleImpacts,
   getEditorBellPeriodCount,
@@ -21,8 +20,7 @@ import {
   showEditorSaveConfirm,
   sortEditorPeriodsByTime
 } from './editor-core.js';
-import { pad2 } from './schedule.js';
-import { isSyncViewer, setSyncStatusUi } from './sync.js';
+import { pad2, timeToMinutes } from './dates.js';
 import { t } from './strings.js';
 
 // Renders the day-by-day period selectors from the saved or currently edited
@@ -193,8 +191,8 @@ function sortEditorBreaksByTime() {
   Array.from(list.querySelectorAll('.break-row'))
     .sort(
       (a, b) =>
-        editorTimeToMinutes(a.querySelector('.break-start')?.value) -
-        editorTimeToMinutes(b.querySelector('.break-start')?.value)
+        timeToMinutes(a.querySelector('.break-start')?.value) -
+        timeToMinutes(b.querySelector('.break-start')?.value)
     )
     .forEach(row => list.appendChild(row));
 }
@@ -206,15 +204,6 @@ function deleteBreakRow(btn) {
 
 // Saves editor changes, rebuilds the schedule, and closes the editor.
 function saveEditor() {
-  // Belt-and-suspenders: the editor UI already locks itself down for a
-  // viewer device (see src/sync.js's applyEditorRoleLock), but this is a
-  // plain CSS/pointer-events lock, not real access control (same as the
-  // rest of sync - see README). Refusing here too means a save can't slip
-  // through even if something bypasses the UI lock.
-  if (isSyncViewer()) {
-    setSyncStatusUi(t('sync.viewerLockedSave'), true);
-    return;
-  }
   sortEditorPeriodsByTime();
   sortEditorBreaksByTime();
   const draft = collectEditorFormState();

@@ -38,10 +38,6 @@ const q = quadraSession('orbit', { lang });
 function isSyncConfigured() {
   return Boolean(q.pass);
 }
-// Kept for the modules that ask: nobody views someone else's schedule now.
-function isSyncViewer() {
-  return false;
-}
 function setSyncStatusUi(message, isError) {
   setStatusText('sync-status', message, isError);
 }
@@ -101,7 +97,13 @@ let unreadable = false;
 let chain = Promise.resolve();
 const serial = fn => (chain = chain.then(fn, fn));
 const SET_ASIDE_KEY = 'orbitSetAside';
+// applyPayload's answer when the editor has changes not saved: the copy is
+// taken later, and isn't `base` meanwhile. (It was: the editor's save, made
+// on the older copy, then went up over the newer one as if made on it.)
+const DEFERRED = 'deferred';
 
+// The pass's copy shown here: true, false when it is what shows already, or
+// DEFERRED.
 async function applyPayload(payload, message) {
   if (!payload || payload === lastPayload) return false;
   let decoded;
@@ -117,9 +119,10 @@ async function applyPayload(payload, message) {
   if (JSON.stringify(decoded) === JSON.stringify(state.applicationData)) return false;
   if (isEditorDirty()) {
     lastPayload = null;
-    return false;
+    return DEFERRED;
   }
-  applyEditorSettingsData(decoded, { statusMessage: message, fromSync: true });
+  applyEditorSettingsData(decoded, { fromSync: true });
+  if (message) setSyncStatusUi(message);
   return true;
 }
 // The pass's copy, read now: applied, and remembered as `base`.
@@ -140,12 +143,13 @@ async function readPass() {
     return { applied: false };
   }
   const done = remote ? await applyPayload(remote, t('sync.syncedFromOtherDevice')) : false;
+  if (done === DEFERRED) return { applied: false };
   setBase(remote);
   return { applied: done };
 }
 // This device's change lost to a newer one on the pass: kept aside on the
 // device (the newest ten), and the pass's copy shown.
-async function setAside(remote) {
+async function keepAside() {
   try {
     const kept = JSON.parse(localStorage.getItem(SET_ASIDE_KEY) || '[]');
     kept.push({ t: Date.now(), payload: await encodeTransferData(state.applicationData) });
@@ -153,10 +157,14 @@ async function setAside(remote) {
   } catch {
     // Storage full: the pass's newer copy still wins.
   }
+}
+async function setAside(remote) {
+  await keepAside();
   setDirty(false);
   lastPayload = null;
-  setBase(remote);
-  await applyPayload(remote, t('sync.newerElsewhere'));
+  // (Under an editor with changes not saved the newer copy shows once it's
+  // saved or closed; `base` stays the older one till then.)
+  if ((await applyPayload(remote, t('sync.newerElsewhere'))) !== DEFERRED) setBase(remote);
   setSyncStatusUi(t('sync.newerElsewhere'), true);
 }
 
@@ -214,10 +222,13 @@ function pullSyncSnapshot() {
 }
 
 // A schedule merged into the pass waits in its inbox: the newest becomes
-// this pass's schedule.
+// this pass's schedule. It waits there while the editor has changes not
+// saved (it was dropped unapplied), and an edit here not yet on the pass is
+// set aside first, never lost under it.
 async function absorbInbox(inbox = []) {
-  if (!inbox?.length) return false;
+  if (!inbox?.length || isEditorDirty()) return false;
   const newest = inbox[inbox.length - 1];
+  if (localDirty) await keepAside();
   const applied = await applyPayload(newest.payload, t('quadra.merged'));
   for (const item of inbox) await q.dropInbox(item.id).catch(() => {});
   lastPayload = null;
@@ -263,8 +274,7 @@ async function startQuadraOnce() {
       }).then(() => localDirty && pushSyncSnapshot({ mine: false }));
     else if (first?.payload)
       await serial(async () => {
-        await applyPayload(first.payload, t('sync.syncedFromOtherDevice'));
-        setBase(first.payload);
+        if ((await applyPayload(first.payload, t('sync.syncedFromOtherDevice'))) !== DEFERRED) setBase(first.payload);
       });
     else if (!first?.offline && 'payload' in (first || {})) {
       setBase('');
@@ -340,7 +350,10 @@ async function redeemKey() {
     const next = normalizeSettingsData(await decodeTransferData(res.payload), {
       requireMarker: true
     });
-    applyEditorSettingsData(next, { statusMessage: t('quadra.copied') });
+    // The timetable it replaces is kept on the device (orbitSetAside), never gone.
+    if (JSON.stringify(next) !== JSON.stringify(state.applicationData)) await keepAside();
+    applyEditorSettingsData(next);
+    setSyncStatusUi(t('quadra.copied'));
     if (input) input.value = '';
   } catch (error) {
     setSyncStatusUi(
@@ -463,12 +476,6 @@ function renderSyncPanel() {
   restore();
 }
 
-// Nobody is locked out of editing their own schedule any more.
-function applyEditorRoleLock() {
-  document.getElementById('btn-edit')?.classList.remove('is-disabled');
-  document.getElementById('transfer-sheet')?.classList.remove('sync-viewer-locked');
-}
-
 function clearSyncInputFields() {
   const input = document.getElementById('quadra-key');
   if (input) input.value = '';
@@ -507,12 +514,10 @@ function scheduleClassNotices(classes) {
 
 export {
   q as orbitSession,
-  applyEditorRoleLock,
   notifyClassSoon,
   scheduleClassNotices,
   clearSyncInputFields,
   isSyncConfigured,
-  isSyncViewer,
   pullSyncSnapshot,
   pushSyncSnapshot,
   renderSyncPanel,

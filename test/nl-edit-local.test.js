@@ -23,6 +23,14 @@ describe('parseLocalNlEdit - swap', () => {
     ]);
   });
 
+  it('a day written as a digit (週1, 星期3)', () => {
+    expect(edits('週1第1節和星期3第1節對調')).toEqual([
+      { day: 1, period: 0, key: 'A' },
+      { day: 3, period: 0, key: 'A' }
+    ]);
+    expect(edits('週1第三節清空')).toEqual([{ day: 1, period: 2, key: '' }]);
+  });
+
   it('swaps across days', () => {
     expect(edits('週一第三節和週三第一節對調')).toEqual([
       { day: 1, period: 2, key: 'A' },

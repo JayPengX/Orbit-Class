@@ -76,7 +76,6 @@ describe('Orbit Class on the Quadra Pass', () => {
   it('uploads the schedule on this device when the pass has none', () => {
     expect(calls.some(c => c[0] === 'write' && typeof c[1].payload === 'string')).toBe(true);
     expect(sync.isSyncConfigured()).toBe(true);
-    expect(sync.isSyncViewer()).toBe(false);
   });
 
   it('makes a share key and shows it', async () => {
@@ -101,7 +100,8 @@ describe('Orbit Class on the Quadra Pass', () => {
     await vi.waitFor(() => expect(document.getElementById('quadra-key').value).toBe(''), {
       timeout: 5000
     });
-    expect(sync.isSyncViewer()).toBe(false);
+    // The timetable it replaced is kept on the device.
+    expect(JSON.parse(localStorage.getItem('orbitSetAside') || '[]').length).toBeGreaterThan(0);
     expect(document.getElementById('btn-edit').classList.contains('is-disabled')).toBe(false);
   });
 

@@ -6,10 +6,12 @@ import { state } from './state.js';
 import { keepActiveClassVisible, openModal } from './dashboard.js';
 import { openEditorFold } from './editor-core.js';
 import * as ui from '#kit/ui.mjs';
-import { classesOnDate, dateOfDayInWeek, getNextSchoolDay, getWeekType, parseTime, processSplitName } from './schedule.js';
+import { parseTime } from './dates.js';
+import { classesOn, dateOfDayInWeek, getNextSchoolDay, getWeekType, processSplitName } from './schedule.js';
 import { renderSwaps } from './swap.js';
 import { t } from './strings.js';
 import { subjectIcon } from './subjects.js';
+import { holidayOn } from './holidays.js';
 
 // Updates the simulation play/pause button and indicator. (Simulator controls
 // change the displayed clock only - never the saved schedule data.)
@@ -307,7 +309,9 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   // (Test Mode simulates a weekday: the timetable's.)
   const onWeek = document.body?.dataset.tab === 'week';
   const date = window.MANUALLY_TEST ? null : dateOfDayInWeek(state.viewDay, onWeek ? state.viewWeek : null, new Date());
-  const rows = date ? classesOnDate(date) : state.runtimeSchedule[state.viewDay] || [];
+  // (A national holiday has none: the day says which holiday.)
+  const holiday = date ? holidayOn(date) : null;
+  const rows = date ? classesOn(date) : state.runtimeSchedule[state.viewDay] || [];
   if (date) week = getWeekType(date);
   if (onWeek) {
     drawWeekSwitch(date);
@@ -428,7 +432,16 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     // No time and no period: the agenda's three columns would put the words
     // in the time's 50px column, so this row is one column of its own.
     empty.className = 'row is-empty';
-    empty.innerHTML = `<div class="content"><div class="row-name">${t('dashboard.noClassesToday')}</div><div class="row-meta"><span class="meta-chip">${t('dashboard.restOrStudy')}</span></div></div>`;
+    const content = document.createElement('div');
+    content.className = 'content';
+    const name = document.createElement('div');
+    name.className = 'row-name';
+    name.textContent = t('dashboard.noClassesToday');
+    const meta = document.createElement('div');
+    meta.className = 'row-meta';
+    meta.append(createMetaChip(holiday ? t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }) : t('dashboard.restOrStudy')));
+    content.append(name, meta);
+    empty.append(content);
     list.appendChild(empty);
   }
   keepActiveClassVisible(

@@ -7,6 +7,8 @@ import {
   WEEKDAYS_INDEX_ORDER,
   WEEKDAY_LABELS
 } from './constants.js';
+import { dateFromKey, dateKey } from './dates.js';
+import { holidayOn } from './holidays.js';
 import { state } from './state.js';
 import { t } from './strings.js';
 
@@ -55,27 +57,22 @@ function renderNavBar() {
     )
     .join('');
 }
-// Converts an HH:MM time string into minutes after midnight.
-function parseTime(t) {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-}
-// Pads a number to two digits for clock display.
-function pad2(n) {
-  return String(n).padStart(2, '0');
-}
-// Calculates the ISO week number used for odd/even week logic.
-function getISOWeekNumber(date) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const ys = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d - ys) / MS_PER_DAY + 1) / 7);
+// The week's number for odd/even weeks: weeks counted on from one Monday
+// (2025-12-29, 2026's ISO week 1), never starting over at a new year. ISO
+// week numbers did: a year with 53 weeks (2026, 2032…) ends on week 53 and
+// the next begins on week 1, two odd weeks in a row, and every week after
+// the new year read as the other half of the timetable until the setting
+// was flipped by hand. Through 2026 this is the ISO number, so no setting
+// made this year changes.
+const WEEK_EPOCH = Date.UTC(2025, 11, 29);
+function getWeekNumber(date) {
+  const day = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const monday = day - ((new Date(day).getUTCDay() + 6) % 7) * MS_PER_DAY;
+  return Math.round((monday - WEEK_EPOCH) / (7 * MS_PER_DAY)) + 1;
 }
 // Returns the current odd/even week label, respecting the reverse-week setting.
 function getWeekType(now = new Date()) {
-  const wn = getISOWeekNumber(now);
-  const even = wn % 2 === 0;
+  const even = Math.abs(getWeekNumber(now)) % 2 === 0;
   return state.applicationData.reverseWeek ? (even ? '單' : '雙') : even ? '雙' : '單';
 }
 // Creates the small odd/even week badge used in the schedule UI.
@@ -91,14 +88,6 @@ function getNextSchoolDay(day) {
   }
   if (day >= 1 && day <= 4) return day + 1;
   return 1;
-}
-// A day's date as the swaps write it: YYYY-MM-DD, local.
-function dateKey(date) {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-}
-function dateFromKey(key) {
-  const [y, m, d] = key.split('-').map(Number);
-  return new Date(y, m - 1, d);
 }
 // The timetable's class at a weekday's period, if any.
 function slotClass(day, p) {
@@ -140,6 +129,10 @@ function classesOnDate(date) {
     });
   }
   return [...byPeriod.values()].sort((x, y) => x.p - y.p);
+}
+// A date's classes as they are held: none on a national holiday, 調課 applied.
+function classesOn(date) {
+  return holidayOn(date) ? [] : classesOnDate(date);
 }
 // The date a weekday's list shows: today's, or the coming one.
 function dateOfDay(day, now = new Date()) {
@@ -186,17 +179,14 @@ function subjectHue(subject) {
 
 export {
   buildSchedule,
+  classesOn,
   classesOnDate,
-  dateFromKey,
-  dateKey,
   dateOfDay,
   dateOfDayInWeek,
-  getISOWeekNumber,
+  getWeekNumber,
   getNextSchoolDay,
   getWeekLabelHtml,
   getWeekType,
-  pad2,
-  parseTime,
   processSplitName,
   slotClass,
   subjectHue

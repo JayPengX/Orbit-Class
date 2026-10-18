@@ -17,8 +17,6 @@ export default {
   'nlEdit.notConfigured':
     'AI schedule editing has not been set up yet. Please contact your schedule administrator.',
   'nlEdit.offline': 'You are currently offline, so AI schedule editing is temporarily unavailable.',
-  'nlEdit.viewerLocked':
-    'This device is in receive-only mode, so AI schedule editing is unavailable. Unlink sync first if you want to edit.',
   'nlEdit.emptyInput': 'Please enter what you would like to change first.',
   'nlEdit.working': 'Asking AI to parse the instruction…',
   'nlEdit.ready': 'AI has proposed a change. Please review and apply it.',
@@ -38,20 +36,15 @@ export default {
   'nlEdit.confirmApply': 'Apply',
   'nlEdit.confirmCancel': 'Cancel',
   'nlEdit.dismiss': 'Got it',
-  'common.apply': 'Apply',
   'common.back': 'Back',
   'common.cancel': 'Cancel',
   'common.copy': 'Copy',
   'common.delete': 'Delete',
-  'common.export': 'Export',
-  'common.hide': 'Hide',
   'common.import': 'Import',
   'common.off': 'Off',
   'common.on': 'On',
-  'common.overwrite': 'Overwrite',
   'common.reset': 'Reset',
   'common.save': 'Save',
-  'common.show': 'Show',
   'common.unknown': 'Unknown',
   // Abbreviated (not "Sunday"/"Monday"/...) on purpose: every call site
   // (nav-bar day tabs, editor day labels/tabs, schedule-row day badges) is
@@ -83,11 +76,8 @@ export default {
   'dashboard.countdownDayUnit': 'days',
   'dashboard.countdownAriaDays': '{days} days left until {name}',
   'dashboard.countdownToday': 'Today',
-  'dashboard.countdownAriaStartsToday': '{name} starts today',
   'dashboard.countdownInProgress': 'In progress',
-  'dashboard.countdownAriaInProgress': '{name} is in progress',
   'dashboard.countdownEnded': 'Ended',
-  'dashboard.countdownAriaEnded': '{name} has ended',
   'tab.today': 'Today',
   'tab.week': 'Timetable',
   'tab.tools': 'Tools',
@@ -136,7 +126,6 @@ export default {
   'dashboard.periodNumber': 'Period {number}',
   'dashboard.typeSplit': 'Alternating weeks',
   'dashboard.typeFixed': 'Fixed',
-  'dashboard.teacherLabel': 'Teacher　',
   'dashboard.periodCount': '{count} periods',
   'dashboard.occPeriod': 'P{number}',
   'dashboard.occPeriods': 'P{list}',
@@ -177,16 +166,6 @@ export default {
   'onboarding.keyTitle': 'Use a classmate’s share key',
   'onboarding.keyHint': 'Enter a classmate’s key',
   'onboarding.later': 'Later',
-  'editorBackup.overwriteExportTitle': 'Overwrite the exported content?',
-  'editorBackup.overwriteExportMessage':
-    'Exporting will overwrite the content currently in the text field.',
-  'editorBackup.overwriteExportConfirm':
-    'Are you sure you want to replace it with the new content?',
-  'editorBackup.overwriteAndExport': 'Overwrite and export',
-  'editorBackup.saveFirstTitle': 'Save the current settings first?',
-  'editorBackup.saveFirstMessage': 'There are unsaved changes. Save them before you {action}?',
-  'editorBackup.saveThenAction': 'Save then {action}',
-  'editorBackup.actionWithoutSaving': '{action} without saving',
   'editorBackup.pasteBackup': 'Please paste an Orbit Color schedule settings backup.',
   'editorBackup.noCompressionExport': 'This device does not support compressed export.',
   'editorBackup.noCompressionImport': 'This device does not support compressed import.',
@@ -202,9 +181,6 @@ export default {
   'editorBackup.scheduleUnknownTeacher':
     'The schedule data references a teacher code that does not exist.',
   'editorBackup.invalidBellTimes': 'Period times must have a valid start and end time.',
-  'editorBackup.copyFailed': 'Could not automatically copy the exported content.',
-  'editorBackup.exportSuccess': 'Export content generated and copied.',
-  'editorBackup.exportFailed': 'Export failed: could not create a settings backup.',
   'editorBackup.blankValue': '(blank)',
   'editorBackup.emptyValue': '(empty)',
   'editorBackup.unnamedClass': '(unnamed class)',
@@ -247,9 +223,6 @@ export default {
     '{slot} "{before}" -> "{after}": primary {beforePrimary} -> {afterPrimary}, secondary {beforeSecondary} -> {afterSecondary}',
   'editorBackup.sectionPersonalStyles': 'Personal styles',
   'editorBackup.noChanges': 'No changes.',
-  'editorBackup.importFailedIdentical':
-    'Import failed: the content is identical to the current settings.',
-  'editorBackup.importFailedInvalid': 'Import failed: the content is invalid or corrupted.',
   'editorBackup.mergedClass': 'Merged class "{name}" (same name, using the imported class data)',
   'editorBackup.addedClass': 'Added class "{name}"',
   'editorBackup.replacedClassLocation': 'Replaced class "{name}" location: {before} -> {after}',
@@ -290,8 +263,6 @@ export default {
   'editorBackup.confirmImport': 'Confirm import',
   'editorBackup.updatedFromOtherDevice': 'Updated from another device',
   'editorBackup.saved': 'Saved',
-  'editorBackup.importedAndSaved':
-    'Imported and saved. The editor has been updated with the pasted settings.',
   'editorBackup.resetAllTitle': 'Reset all data?',
   'editorBackup.resetAllMessage':
     'This will clear all data and return to the initial screen. This cannot be undone.',
@@ -306,108 +277,12 @@ export default {
   'nlEdit.parseFailedNoModel': 'AI instruction parsing failed: no model is available.',
   'nlEdit.locationBlockedRetrying':
     'The AI service is temporarily unavailable due to a server-region restriction (node: {colo}). Automatically retrying (attempt {attempt})…',
-  'sync.rateLimited': 'Too many requests. Please try again later.',
-  'sync.createFailed': 'Failed to create sync: {message}',
-  'sync.notConfigured': 'Sync has not been set up yet.',
   'sync.uploadFailed': 'Sync upload failed: {message}',
   'sync.downloadFailed': 'Sync download failed: {message}',
   'sync.newerElsewhere':
     'This device was behind: the newer schedule from your other device was kept, and the change made here was set aside.',
   'sync.syncedFromOtherDevice': 'The schedule was synced from another device.',
-  'sync.remoteDeletedByManager':
-    'The sync was deleted entirely by the manager. This device has automatically unlinked from sync (the local schedule is unaffected).',
-  'sync.copied': 'Copied!',
-  'sync.copyFailed': 'Copy failed: {message}',
-  'sync.roleViewer':
-    'Role: receive-only (read-only) — the schedule updates automatically, but this device cannot edit it.',
-  'sync.roleManager':
-    'Role: manager — you can edit the schedule, and changes sync to other devices.',
-  'sync.stopSyncingStyleTitle': 'Stop syncing style colors?',
-  'sync.resumeSyncingStyleTitle': 'Resume syncing style colors?',
-  'sync.stopSyncingStyleMessage':
-    "This device's current colors will be kept, and other devices' styles will no longer be applied.",
-  'sync.resumeSyncingStyleMessage':
-    'The shared colors and style presets will be applied to this device immediately.',
-  'sync.stopSyncingStyleDetail': 'The schedule content will continue to sync as usual.',
-  'sync.resumeSyncingStyleDetail': 'The current colors and style presets will be backed up first.',
-  'sync.stopSyncingStyle': 'Stop syncing style',
-  'sync.resumeSyncing': 'Resume syncing',
-  'sync.styleBackupRestored': 'The kept style and style presets have been restored.',
-  'sync.recoverKeptColorsTitle': 'Recover the previously kept colors?',
-  'sync.recoverKeptColorsMessage':
-    'Switch back to the last kept colors and style presets, or keep using the current ones?',
-  'sync.switchToKeptColors': 'Switch to kept colors',
-  'sync.keepCurrentColors': 'Keep current colors',
-  'sync.scheduleBackupRestored': 'The local schedule from before joining sync has been restored.',
-  'sync.recoverPreJoinScheduleTitle': 'Recover the schedule from before joining sync?',
-  'sync.recoverPreJoinScheduleMessage':
-    'Switch back to the old schedule, or keep using the just-synced schedule?',
-  'sync.switchToPreJoinSchedule': 'Switch to pre-join schedule',
-  'sync.keepCurrentSchedule': 'Keep current schedule',
-  'sync.editLockedTitle':
-    'This device only receives sync and cannot edit the schedule. Enter the manager passcode to get edit access, or unlink sync first under "Sync / Import Export".',
   'sync.editTitle': 'Edit schedule',
-  'sync.styleLockedTitle':
-    'This device is syncing style and cannot be changed on its own. To customize the style, first check "Do not sync style colors" in the sync panel.',
-  'sync.syncNotConfiguredContactAdmin':
-    'Cross-device sync has not been set up. Please contact your schedule administrator.',
-  'sync.offlineCannotCreate': 'You are currently offline, so sync cannot be created.',
-  'sync.createNewSyncTitle': 'Create a new sync?',
-  'sync.createNewSyncMessage': 'This will generate a new sync code and manager passcode.',
-  'sync.createNewSyncDetail':
-    'If you already have a code, use "Join sync" instead — slots are limited.',
-  'sync.createNewSync': 'Create new sync',
-  'sync.creating': 'Creating sync…',
-  'sync.offlineCannotJoin': 'You are currently offline, so you cannot join sync.',
-  'sync.enterPairingCode': 'Please enter the pairing code.',
-  'sync.checkingCode': 'Checking pairing code…',
-  'sync.codeNotFound':
-    'This pairing code was not found. Please check the code, or ask the other party to press "Create new sync" first.',
-  'sync.wrongManagerPasscode': 'The manager passcode is incorrect. Please check it and try again.',
-  'sync.roleManagerLabel': 'manager',
-  'sync.roleViewerOnlyLabel': 'receive-only',
-  'sync.joinSyncTitle': 'Join sync?',
-  'sync.joinSyncMessage':
-    'Joining as "{role}" will replace this device\'s current schedule, and this cannot be undone.',
-  'sync.joinSyncDetail': "Other devices' schedules are not affected.",
-  'sync.joinAnyway': 'Join anyway',
-  'sync.joining': 'Joining sync…',
-  'sync.wrongManagerPasscodeNotJoined': 'The manager passcode is incorrect. Sync was not joined.',
-  'sync.joinedAsManager': 'Joined sync as manager.',
-  'sync.joinedAsViewer': 'Joined sync (receive-only).',
-  'sync.offlineCannotVerify':
-    'You are currently offline, so the manager passcode cannot be verified.',
-  'sync.enterManagerPasscode': 'Please enter the manager passcode.',
-  'sync.verifyingPasscode': 'Verifying manager passcode…',
-  'sync.codeNotFoundMaybeDeleted':
-    'This pairing code was not found. The sync may have been deleted entirely.',
-  'sync.wrongManagerPasscodePlain': 'The manager passcode is incorrect.',
-  'sync.gotManagerAccess': 'Manager access granted. You can now edit the schedule.',
-  'sync.unlinkCopyText': 'Sync code: {code}\nManager passcode: {passcode}',
-  'sync.unlinkTitle': 'Unlink sync?',
-  'sync.unlinkMessageManager':
-    'This will only revert this device to a local schedule; other devices will continue syncing. Copy this before you forget the code:',
-  'sync.unlinkMessageViewer':
-    'Unlinking will revert to a local schedule and forget this pairing code. It is recommended to copy it first:',
-  'sync.unlink': 'Unlink sync',
-  'sync.unlinked': 'Sync unlinked (the local schedule is unaffected).',
-  'sync.deleteForEveryone': 'Delete sync for everyone',
-  'sync.copyCode': 'Copy code',
-  'sync.offlineCannotDelete': 'You are currently offline, so sync cannot be deleted.',
-  'sync.deleteAllTitle': 'Delete this sync entirely?',
-  'sync.deleteAllMessage':
-    'This will delete the shared schedule on the server. This cannot be undone.',
-  'sync.deleteAllDetail':
-    'The code "{code}" and manager passcode become invalid immediately; every device will revert to its own local schedule the next time it syncs.',
-  'sync.deleteAll': 'Delete entirely',
-  'sync.deleting': 'Deleting sync…',
-  'sync.deleteFailed': 'Delete failed: {error}',
-  'sync.deletedForEveryone':
-    'Sync has been deleted entirely; all devices have been disconnected (local schedules are unaffected).',
-  'sync.viewerLockedImport':
-    'This device is in receive-only mode and cannot import. Unlink sync first if you want to edit.',
-  'sync.viewerLockedSave':
-    'This device is in receive-only mode and cannot save changes. Unlink sync first if you want to edit.',
   'testsim.start': 'Start',
   'testsim.pause': 'Pause',
   'testsim.resume': 'Resume',
@@ -440,9 +315,6 @@ export default {
   'editorCore.discardAndLeaveTransfer': 'Discard and leave',
   'editorCore.saveChangesTitle': 'Save changes?',
   'editorCore.saveChangesMessage': 'The following changes will be applied.',
-  'editorCore.unimportedPastedAndAiWarning':
-    'The unimported pasted content and AI recognition result will be cleared.',
-  'editorCore.unimportedPastedWarning': 'The unimported pasted content will be cleared.',
   'editorCore.unimportedAiWarning': 'The unimported AI recognition result will be cleared.',
   'editorCore.unimportedGenericWarning': 'The unimported content will be cleared.',
   'editorCore.clearedUnimportedContent': 'Unimported content cleared.',
@@ -511,8 +383,6 @@ export default {
     'Loaded {count} files. AI will automatically determine the content of each file (schedule or course selection data); the order does not affect the result.',
   'geminiOcr.loadedSingleFile':
     'File loaded. Click import to let AI automatically read the schedule.',
-  'geminiOcr.viewerLockedImport':
-    'This device is in receive-only mode and cannot use AI import. Unlink sync first if you want to edit.',
   'geminiOcr.preparingMultipleFiles': 'Preparing {count} files…',
   'geminiOcr.preparingFile': 'Preparing file…',
   'geminiOcr.validatingScheduleData': 'Validating schedule data…',
@@ -530,12 +400,10 @@ export default {
   'testsim.simulating': 'Simulating',
   'dashboard.toolsLabel': 'Tools',
   'sync.transferSheetTitle': 'Quadra Pass and import',
-  'dashboard.nextPeriodInfoAriaLabel': 'Next period info',
   'dashboard.periodsPerWeekLabel': 'Periods per week',
   'dashboard.typeLabel': 'Type',
   'dashboard.locationLabel': 'Room',
   'dashboard.occurrencesLabel': 'Occurrences',
-  'common.done': 'Done',
   'editorTeachers.assignSheetTitle': 'Assign',
   'editorTeachers.chooseWeekdayAriaLabel': 'Choose weekday',
   'editorTeachers.applyAndFinish': 'Apply and finish',
@@ -561,34 +429,12 @@ export default {
   'editorSchedule.addPeriodButton': 'Add period',
   'editorSchedule.specialTimeFoldLabel': 'Special time slots',
   'editorSchedule.addSpecialTimeButton': 'Add special time slot',
-  'sync.syncHeading': 'Sync',
-  'sync.syncHeadingTag': 'Ongoing, kept in sync across devices automatically',
-  'sync.setupHint':
-    'The schedule automatically syncs to every device, no account needed. The sync code can be shared freely; only the manager passcode can edit the schedule, so keep it safe.',
-  'sync.orJoinExisting': 'Or join an existing sync',
-  'sync.enterSyncCodePlaceholder': 'Enter sync code',
-  'sync.haveManagerPasscodeSummary': 'I have the manager passcode and want edit access too',
-  'sync.enterManagerPasscodePlaceholder': 'Enter manager passcode',
-  'sync.joinSyncButton': 'Join sync',
-  'sync.createdHint':
-    "Sync created! Please save the manager passcode now - it won't be shown directly again after you leave.",
-  'sync.codeLabelShareable': 'Sync code (free to share)',
-  'sync.managerPasscodeLabelKeepSafe': 'Manager passcode (keep it safe)',
-  'sync.savedCodeAndPasscode': "I've saved the code and passcode",
-  'sync.pairedShareHint': 'Paired with sync - share the code with other devices so they can join:',
-  'sync.enterPasscodeForEditAccess': 'Enter the manager passcode to get edit access',
-  'sync.getEditAccessButton': 'Get edit access',
-  'sync.dontSyncStyleCheckboxLabel': "Don't sync style colors (keep this device's current colors)",
   'geminiOcr.headingLabel': 'AI import',
   'geminiOcr.oneTimeImportTag': 'One-time import, not automatically synced',
   'geminiOcr.setupHint':
     'Choose a schedule photo, screenshot, or PDF, and AI will automatically read it and generate a schedule. You can select multiple files to read together (e.g. a schedule photo plus a course-selection screenshot).',
   'geminiOcr.selectFileLabel': 'Select file',
   'geminiOcr.filePreviewAlt': 'File preview',
-  'editorBackup.pasteBackupPlaceholder':
-    'Paste your Orbit Class schedule settings backup here, or press "Export" to create one.',
-  'editorBackup.copyFullBackupHint':
-    'Please copy the full backup text, including the BEGIN and END markers.',
   'testsim.advancedFoldSummary': 'Advanced: time simulation',
   'testsim.previewHint':
     'Preview how the schedule looks at a given time, without affecting the real data.',

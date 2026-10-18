@@ -6,7 +6,6 @@
 // Shown at most once per device (see markOnboardingSeen()), so a returning
 // user is never nagged.
 import { hasSavedSchedule } from './data.js';
-import { isSyncViewer } from './sync.js';
 import { t } from './strings.js';
 
 const ONBOARDING_SEEN_KEY = 'orbitOnboardingSeen';
@@ -52,7 +51,7 @@ function el(tag, props = {}, children = []) {
 }
 
 function showOnboardingPrompt() {
-  if (hasSavedSchedule() || isSyncViewer() || hasSeenOnboarding()) return;
+  if (hasSavedSchedule() || hasSeenOnboarding()) return;
   markOnboardingSeen();
   const dialog = el('dialog', {
     id: 'orbit-welcome',

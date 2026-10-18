@@ -5,7 +5,8 @@
 // and all the actual DOM writes) specifically so this part - the part with
 // real branching logic worth getting right - can be unit tested and
 // reasoned about without booting the whole app.
-import { pad2, parseTime, processSplitName } from './schedule.js';
+import { dateKey, pad2, parseTime } from './dates.js';
+import { processSplitName } from './schedule.js';
 import { t } from './strings.js';
 
 // Class/break countdowns used to always render as minutes:seconds, which
@@ -248,7 +249,6 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
   };
 }
 
-export { pad2 };
 
 /**
  * The next class today when it starts within `lead` minutes (for a notice):
@@ -273,7 +273,7 @@ export function classStartingSoon({ now, week, todaySchedule }) {
   const lead = noticeLead(list, i);
   if (parseTime(next.s) - mins > lead) return null;
   const info = processSplitName(next, week);
-  const day = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const day = dateKey(now);
   const secsLeft = parseTime(next.s) * 60 - (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds());
   return {
     tag: `class:${day}:${next.s}`,

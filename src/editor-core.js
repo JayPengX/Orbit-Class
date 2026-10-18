@@ -3,19 +3,19 @@
 // sheets (unsaved-changes, delete-row); the other editor-*.js modules own
 // one specific sub-form each and are driven from here.
 import { state } from './state.js';
-import { closeTestPanel, getCountdownEvents, setOverlayVisible } from './dashboard.js';
+import { closeTestPanel, setOverlayVisible } from './dashboard.js';
+import { getCountdownEvents } from './data.js';
+import { timeToMinutes } from './dates.js';
 import {
   applyPendingSaveEditor,
   collectEditorFormState,
   dayDiffLabel,
-  decodeTransferData,
   describeSettingsDiff,
   editorFormSnapshotString,
   formatClassRef,
   isEditorDirty,
   normalizeSettingsData,
   resetOCRImporterUI,
-  setTransferStatus,
   settingsDataForExport
 } from './editor-backup.js';
 import {
@@ -33,7 +33,7 @@ import {
 // elsewhere in this codebase - safe because every use here is inside a
 // function body (openEditor/toggleTestPanel-equivalent checks), never at
 // module-evaluation time.
-import { clearSyncInputFields, isSyncViewer } from './sync.js';
+import { clearSyncInputFields } from './sync.js';
 import { t } from './strings.js';
 
 // Builds a short display label for a class from its subject/teacher text.
@@ -83,12 +83,6 @@ function getEditorBellPeriodCount() {
   const n = document.querySelectorAll('#bell-list .bell-row').length;
   return n > 0 ? n : (state.applicationData.bellTimes || []).length;
 }
-// Converts an HH:MM value into minutes for editor sorting.
-function editorTimeToMinutes(value) {
-  if (!/^\d{2}:\d{2}$/.test(value || '')) return 9999;
-  const [hours, minutes] = value.split(':').map(Number);
-  return hours * 60 + minutes;
-}
 // Sorts bell rows by start time and moves the matching schedule dropdowns with them.
 function sortEditorPeriodsByTime() {
   const bellList = document.getElementById('bell-list');
@@ -99,8 +93,8 @@ function sortEditorPeriodsByTime() {
     .map((row, index) => ({
       row,
       index,
-      start: editorTimeToMinutes(row.querySelector('.bell-start')?.value),
-      end: editorTimeToMinutes(row.querySelector('.bell-end')?.value)
+      start: timeToMinutes(row.querySelector('.bell-start')?.value),
+      end: timeToMinutes(row.querySelector('.bell-end')?.value)
     }))
     .sort((a, b) => a.start - b.start || a.end - b.end || a.index - b.index);
 
@@ -184,15 +178,7 @@ function esc(s) {
 
 // Opens the schedule editor and prepares its editable fields.
 // Editor navigation and confirmation sheets manage unsaved changes safely.
-//
-// A viewer device is refused outright, full stop - unlike the style tool's
-// opt-out-dependent lock, there's no case where a viewer should ever get
-// into the schedule editor at all (see applyEditorRoleLock in sync.js,
-// which disables the triggering #btn-edit itself for exactly this reason -
-// this is the real access check behind that CSS/pointer-events lock, same
-// belt-and-suspenders reasoning as every other role guard in this app).
 function openEditor() {
-  if (isSyncViewer()) return;
   closeAssignSheet();
   hideEditorDiscardConfirm();
   closeTestPanel();
@@ -222,11 +208,8 @@ function openEditor() {
 
 // Opens the standalone "同步 / 匯入匯出" sheet - sync setup, manual
 // export/import, AI photo import, and (tucked away as an intentionally-
-// activated advanced disclosure) time simulation. Split out from the
-// schedule editor entirely so a sync viewer, who's never allowed into the
-// schedule editor at all (see openEditor above), can still reach this -
-// pairing status, unlink, and AI import/manual import each have their own
-// narrower guard instead (see applyEditorRoleLock).
+// activated advanced disclosure) time simulation, split out from the
+// schedule editor.
 // One sheet, opened for one thing: 'photo' (AI 匯入 alone) or 'key' (the
 // Quadra Pass and 分享金鑰 alone); its title says which.
 const TRANSFER_TITLES = { photo: 'tools.photoTitle', key: 'tools.keyTitle' };
@@ -250,7 +233,6 @@ function openTransferSheet(focus = 'key') {
   closeTestPanel();
   document.querySelector('.top-actions')?.classList.remove('open');
   setOverlayVisible('transfer-sheet-overlay', 'transfer-sheet', true, 'transfer-open');
-  setTransferStatus('');
   applyOfflineLock();
 }
 
@@ -599,14 +581,6 @@ function ensureEditorBackButtons() {
     body.prepend(row);
   });
 }
-function clearTransferField() {
-  const text = document.getElementById('settings-transfer-text');
-  if (text) {
-    text.value = '';
-    text.blur();
-  }
-  setTransferStatus('');
-}
 function openEditorFold(id) {
   document.querySelectorAll('#editor-sheet details.editor-fold').forEach(section => {
     const active = section.id === id;
@@ -789,41 +763,19 @@ function applyPendingSheetAfterDiscard(pending) {
   }
 }
 
+// An AI result not imported yet, or a recognized timetable waiting for its import choice.
+const hasAiPreview = () => {
+  const result = document.getElementById('ocr-import-result');
+  return !!(result && !result.hidden && result.childElementCount > 0);
+};
 function getUnconsumedImportWarningText() {
-  const text = document.getElementById('settings-transfer-text');
-  const hasPastedText = !!(text && text.value.trim());
-  const result = document.getElementById('ocr-import-result');
-  const hasAiPreview = !!(result && !result.hidden && result.childElementCount > 0);
-
-  if (hasPastedText && hasAiPreview) return t('editorCore.unimportedPastedAndAiWarning');
-  if (hasPastedText) return t('editorCore.unimportedPastedWarning');
-  if (hasAiPreview) return t('editorCore.unimportedAiWarning');
-  return t('editorCore.unimportedGenericWarning');
+  return hasAiPreview() ? t('editorCore.unimportedAiWarning') : t('editorCore.unimportedGenericWarning');
 }
 
-async function hasDuplicateTransferData() {
-  const text = document.getElementById('settings-transfer-text');
-  if (!text || !text.value.trim()) return false;
-  try {
-    const next = normalizeSettingsData(await decodeTransferData(text.value), {
-      requireMarker: true
-    });
-    const current = settingsDataForExport();
-    return describeSettingsDiff(current, next) === t('editorBackup.noChanges');
-  } catch {
-    return false;
-  }
-}
-
-// True when there is pasted-JSON or AI-photo-recognized import data sitting around that was
-// never actually applied — used so we can warn the user before it gets wiped on exit.
+// True when an AI-recognized timetable sits there never applied: the user is
+// warned before it's wiped on closing.
 async function hasUnconsumedImportData() {
-  const text = document.getElementById('settings-transfer-text');
-  const hasPastedText = !!(text && text.value.trim());
-  const result = document.getElementById('ocr-import-result');
-  const hasAiPreview = !!(result && !result.hidden && result.childElementCount > 0);
-  if (hasPastedText && (await hasDuplicateTransferData())) return false;
-  return hasPastedText || hasAiPreview || !!state.pendingEditorImportData;
+  return hasAiPreview() || !!state.pendingEditorImportData;
 }
 
 // Reminds the user that unapplied import data (pasted text or AI photo result) is being discarded.
@@ -899,9 +851,7 @@ async function closeTransferSheet(force) {
 
   hideEditorDiscardConfirm();
   setOverlayVisible('transfer-sheet-overlay', 'transfer-sheet', false, 'transfer-open');
-  // Wipe any AI import data (pasted JSON and AI-recognized photo result) so it never lingers
-  // into the next time the transfer sheet opens.
-  clearTransferField();
+  // Wipe the AI-recognized result so it never lingers into the next opening.
   resetOCRImporterUI();
   // Same reasoning, for the sync code/passcode fields instead of the
   // manual-backup text - see clearSyncInputFields's own comment.
@@ -950,7 +900,6 @@ export {
   closeTransferSheet,
   discardEditorChangesAndClose,
   discardTransferChangesAndClose,
-  editorTimeToMinutes,
   esc,
   findScheduleImpacts,
   formatClassLabel,

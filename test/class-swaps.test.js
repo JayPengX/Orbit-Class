@@ -1,14 +1,15 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { loadApp } from './helpers/loadApp.js';
 import { state } from '../src/state.js';
-import { buildSchedule, classesOnDate, dateFromKey, getWeekType } from '../src/schedule.js';
-import { normalizeClassSwaps, swapsNotOver } from '../src/data.js';
-import { decodeTransferData, encodeTransferData, normalizeSettingsData } from '../src/editor-backup.js';
+import { buildSchedule, classesOnDate, getWeekType } from '../src/schedule.js';
+import { dateFromKey } from '../src/dates.js';
+import { normalizeClassSwaps, remapClassSwaps, swapsNotOver } from '../src/data.js';
+import { applyEditorSettingsData, decodeTransferData, encodeTransferData, normalizeSettingsData } from '../src/editor-backup.js';
 import { computeDashboardViewModel, heroView } from '../src/schedule-calc.js';
-import { addSwap, openSwapSheet } from '../src/swap.js';
+import { addSwap, openSwapSheet, removeSwap, swapOf } from '../src/swap.js';
 
 // 調課: one-time swaps of two periods on given dates, across weeks too.
-// Mondays 2030-01-07 and 01-14 are in different ISO weeks (odd and even);
+// Mondays 2030-01-07 and 01-14 are in different weeks (odd and even);
 // Thursday 01-17 is in the second.
 const MON = '2030-01-07';
 const NEXT_MON = '2030-01-14';
@@ -122,6 +123,17 @@ describe('making a swap', () => {
     expect(state.applicationData.classSwaps).toHaveLength(1);
   });
 
+  it('undoes a swap after the timetable was replaced (the pass’s copy applied meanwhile)', () => {
+    expect(addSwap({ date: MON, p: 0 }, { date: NEXT_THU, p: 1 })).toBe(true);
+    const shown = swapOf({ date: MON, p: 0 });
+    // A sync applies the pass's copy: every object new, the same swaps.
+    state.applicationData = JSON.parse(JSON.stringify(state.applicationData));
+    expect(removeSwap(shown)).toBe(true);
+    expect(state.applicationData.classSwaps).toHaveLength(0);
+    // Nothing left to undo: says so, saves nothing.
+    expect(removeSwap(shown)).toBe(false);
+  });
+
   it('the sheet lists the day’s periods, then asks for the one to swap with', () => {
     openSwapSheet({ date: MON, p: 0 });
     const rows = [...document.querySelectorAll('#swap-periods .swap-slot')];
@@ -136,5 +148,37 @@ describe('making a swap', () => {
     expect(next.map(r => r.querySelector('strong').textContent)).toEqual(['空堂', '英文', '數學']);
     expect(next[0].disabled).toBe(false);
     window.closeSwapSheet();
+  });
+});
+
+describe('swaps when the bell times change', () => {
+  const bells = [['08:00', '08:50'], ['09:10', '10:00'], ['10:10', '11:00']];
+  it('follow their periods to their new places; a period gone takes its swap with it', () => {
+    const swaps = [
+      { a: { date: MON, p: 2 }, b: { date: THU, p: 1 } },
+      { a: { date: MON, p: 0 }, b: { date: NEXT_MON, p: 1 } }
+    ];
+    // The first period deleted: 09:10 is now place 0, 10:10 place 1.
+    expect(remapClassSwaps(swaps, bells, bells.slice(1))).toEqual([{ a: { date: MON, p: 1 }, b: { date: THU, p: 0 } }]);
+    // A period added before them.
+    expect(remapClassSwaps(swaps, bells, [['07:10', '08:00'], ...bells])[0]).toEqual({ a: { date: MON, p: 3 }, b: { date: THU, p: 2 } });
+    // A time edited in place: the same places.
+    const edited = [['08:05', '08:50'], ...bells.slice(1)];
+    expect(remapClassSwaps(swaps, bells, edited)).toEqual(swaps);
+    expect(remapClassSwaps(swaps, bells, bells)).toBe(swaps);
+  });
+
+  it('a save that deletes a period keeps each swap on its class', () => {
+    use([{ a: { date: MON, p: 2 }, b: { date: THU, p: 1 } }]);
+    expect(names(MON)[2]).toBe('2:英文@10:10');
+    const next = { ...fixture(), classSwaps: state.applicationData.classSwaps };
+    next.bellTimes = bells.slice(1);
+    next.weeklySchedule = { ...next.weeklySchedule, 1: ['B', 'C'], 4: ['C', 'A'] };
+    applyEditorSettingsData(next);
+    expect(state.applicationData.classSwaps).toEqual([{ a: { date: MON, p: 1 }, b: { date: THU, p: 0 } }]);
+    // Monday's 英文 (10:10) and Thursday's 英文 (09:10) still traded.
+    expect(names(MON)).toEqual(['0:國文/公民@09:10', '1:英文@10:10']);
+    // Thursday's side, 09:10, holds Monday's 英文.
+    expect(names(THU)).toEqual(['0:英文@09:10', '1:數學@10:10']);
   });
 });

@@ -4,8 +4,8 @@
 // the toolbar/modal/countdown-card UI around it.
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { fitNowTitleText, renderList, shrinkFontToFit } from './dashboard-render.js';
-import { countdownsNotOver, formatCountdownEventDate, normalizeCountdownEvents, saveData } from './data.js';
+import { fitNowTitleText, renderList } from './dashboard-render.js';
+import { countdownsNotOver, formatCountdownEventDate, getCountdownEvents, saveData } from './data.js';
 import { isEditorDirty } from './editor-backup.js';
 import {
   closeEditor,
@@ -17,20 +17,19 @@ import {
   showTransferDiscardConfirm
 } from './editor-core.js';
 import { closeAssignSheet } from './editor-teachers.js';
+import { dateFromKey, dateKey, pad2 } from './dates.js';
 import {
+  classesOn,
   classesOnDate,
-  dateFromKey,
-  dateKey,
   dateOfDay,
   getNextSchoolDay,
   getWeekLabelHtml,
   getWeekType,
-  pad2,
   processSplitName
 } from './schedule.js';
 import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
 import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
-import { isSyncViewer, notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
+import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
 import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
@@ -155,113 +154,10 @@ document.addEventListener('keydown', event => {
   if (btn) btn.addEventListener('click', () => setTimeout(() => setToolHubState(false), 80));
 });
 
-let activeCountdownIndex = 0;
-// Countdown cards can be switched with a horizontal swipe on touch devices.
-function getCountdownEvents(data = state.applicationData) {
-  return normalizeCountdownEvents(data?.countdownEvents ?? []);
-}
-function showCountdownEvent(index) {
-  const events = getCountdownEvents();
-  activeCountdownIndex = (index + events.length) % events.length;
-  updateExamCountdown();
-  const card = document.getElementById('exam-countdown');
-  if (card) {
-    card.classList.remove('is-swapping');
-    // Force reflow so re-adding the class restarts the animation even when
-    // swiping again before the previous swap animation finished.
-    void card.offsetWidth;
-    card.classList.add('is-swapping');
-  }
-}
-// Shrinks the countdown event name to fit its column instead of immediately
-// falling back to the CSS text-overflow:ellipsis truncation - the date next
-// to it doesn't need this (its longest realistic form, a cross-year range,
-// is short and predictable enough to just always fit at its own fixed size).
-function fitCountdownLabelText() {
-  const label = document.querySelector('.exam-countdown-label');
-  const copy = document.querySelector('.exam-countdown-copy');
-  if (!label || !copy) return;
-  label.style.fontSize = '';
-  const defaultSize = parseFloat(getComputedStyle(label).fontSize);
-  // Same shrink ratio fitNowTitleText uses for the "now playing" title
-  // (down to roughly half its default size) rather than the few px of
-  // headroom this had before - that shallow a range meant text-overflow:
-  // ellipsis was doing most of the work for any name longer than a few
-  // characters. text-overflow:ellipsis (in CSS) stays on as the backstop
-  // for names too long to fit even at minSize - this column is a fraction
-  // of the "now playing" title's width, so unlike that title, an 80-
-  // character name (the input's own max length) genuinely cannot always be
-  // shrunk down to a legible size and still fit.
-  const minSize = Math.max(9, Math.round(defaultSize * 0.6));
-  const available = copy.clientWidth;
-  if (!available) return;
-  shrinkFontToFit(label, available, defaultSize, minSize);
-}
+// The app bar's line: the date and the week (the day's countdowns are 今天's
+// cards, renderCountdowns).
 function updateExamCountdown() {
-  showCountdown();
   showStatus();
-}
-function showCountdown() {
-  const el = document.getElementById('exam-countdown-value');
-  const card = document.getElementById('exam-countdown');
-  if (!el || !card) return;
-
-  const events = getCountdownEvents();
-  if (!events.length) {
-    card.style.display = 'none';
-    return;
-  }
-  card.style.display = '';
-  activeCountdownIndex = Math.min(activeCountdownIndex, events.length - 1);
-  const event = events[activeCountdownIndex];
-  const label = document.querySelector('.exam-countdown-label');
-  const dateLabel = document.querySelector('.exam-countdown-date');
-  if (label) label.textContent = event.name;
-  if (dateLabel) dateLabel.textContent = formatCountdownEventDate(event);
-  fitCountdownLabelText();
-  const dots = document.getElementById('exam-countdown-dots');
-  if (dots) {
-    if (events.length < 2) {
-      dots.hidden = true;
-      dots.innerHTML = '';
-    } else {
-      dots.hidden = false;
-      dots.innerHTML = events
-        .map(
-          (_, index) =>
-            `<span class="exam-countdown-dot${index === activeCountdownIndex ? ' active' : ''}"></span>`
-        )
-        .join('');
-    }
-  }
-  const toDate = value => {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  };
-  const examStart = toDate(event.startDate);
-  const examEnd = toDate(event.endDate);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diffStart = Math.round((examStart - today) / MS_PER_DAY);
-  const diffEnd = Math.round((examEnd - today) / MS_PER_DAY);
-  const isSingleDay = event.startDate === event.endDate;
-
-  if (diffStart > 0) {
-    el.innerHTML = `${diffStart}<span class="exam-countdown-unit">${t('dashboard.countdownDayUnit')}</span>`;
-    card.setAttribute(
-      'aria-label',
-      t('dashboard.countdownAriaDays', { name: event.name, days: diffStart })
-    );
-  } else if (isSingleDay && diffStart === 0) {
-    el.textContent = t('dashboard.countdownToday');
-    card.setAttribute('aria-label', t('dashboard.countdownAriaStartsToday', { name: event.name }));
-  } else if (diffEnd >= 0) {
-    el.textContent = t('dashboard.countdownInProgress');
-    card.setAttribute('aria-label', t('dashboard.countdownAriaInProgress', { name: event.name }));
-  } else {
-    el.textContent = t('dashboard.countdownEnded');
-    card.setAttribute('aria-label', t('dashboard.countdownAriaEnded', { name: event.name }));
-  }
 }
 
 // The app bar's status: the date and the week (10月6日 週二 · 雙週).
@@ -281,14 +177,9 @@ function showStatus(week = statusWeek) {
 // (15 天), or that it starts today, is on, or is over; the last card adds one.
 // Tapping any opens the editor at 倒數. Redrawn only when the events or the
 // date change (update() asks every second).
-const DAY_MS = 86400000;
 function countdownState(event, today) {
-  const at = value => {
-    const [y, m, d] = value.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  };
-  const start = Math.round((at(event.startDate) - today) / DAY_MS);
-  const end = Math.round((at(event.endDate) - today) / DAY_MS);
+  const start = Math.round((dateFromKey(event.startDate) - today) / MS_PER_DAY);
+  const end = Math.round((dateFromKey(event.endDate) - today) / MS_PER_DAY);
   if (start > 0) return { kind: 'ahead', days: start };
   if (start === 0) return { kind: 'today' };
   if (end >= 0) return { kind: 'on' };
@@ -321,7 +212,7 @@ function renderCountdowns() {
     card.type = 'button';
     card.addEventListener('click', edit);
     const words = make('span', 'cx-cd-words');
-    words.append(make('span', 'cx-cd-name', event.name), make('span', 'cx-cd-date', formatCountdownEventDate(event, { withYear: Date.parse(event.startDate) - today.getTime() > 330 * 86_400_000 })));
+    words.append(make('span', 'cx-cd-name', event.name), make('span', 'cx-cd-date', formatCountdownEventDate(event, { withYear: dateFromKey(event.startDate) - today > 330 * MS_PER_DAY })));
     const big = make('span', 'cx-cd-big');
     if (st.kind === 'ahead') {
       big.append(make('b', '', String(st.days)), make('small', '', t('dashboard.countdownDayUnit')));
@@ -346,24 +237,6 @@ function renderCountdowns() {
   box.replaceChildren(make('h2', 'cx-section', t('dashboard.countdowns')), row);
 }
 
-const countdownCard = document.getElementById('exam-countdown');
-let countdownSwipeStartX = null;
-if (countdownCard) {
-  countdownCard.addEventListener('pointerdown', event => {
-    countdownSwipeStartX = event.clientX;
-    countdownCard.setPointerCapture(event.pointerId);
-  });
-  countdownCard.addEventListener('pointerup', event => {
-    if (countdownSwipeStartX === null) return;
-    const distance = event.clientX - countdownSwipeStartX;
-    countdownSwipeStartX = null;
-    if (Math.abs(distance) < 35 || getCountdownEvents().length < 2) return;
-    showCountdownEvent(activeCountdownIndex + (distance < 0 ? 1 : -1));
-  });
-  countdownCard.addEventListener('pointercancel', () => (countdownSwipeStartX = null));
-}
-window.addEventListener('resize', () => fitCountdownLabelText());
-window.addEventListener('orientationchange', () => setTimeout(() => fitCountdownLabelText(), 120));
 
 // Recomputes the current class, next class, timer, and visible schedule state.
 // DOM nodes update()/render() touch every tick, queried once instead of via
@@ -470,8 +343,6 @@ function nextSchoolDay(now, curDay) {
   }
   return null;
 }
-// A date's classes (調課 applied): none on a national holiday.
-const classesOn = date => (holidayOn(date) ? [] : classesOnDate(date));
 
 // updateExamCountdown() computes a day-granularity D-day count (it can't
 // change more than once a day - it uses the real calendar date, not Test
@@ -487,14 +358,12 @@ let lastCountdownDateKey = null;
 // under an editor with changes not saved).
 function prunePastCountdowns(now = new Date()) {
   const data = state.applicationData;
-  if (!data?.pruneCountdowns || isSyncViewer() || isEditorDirty()) return;
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const kept = countdownsNotOver(data.countdownEvents, today);
+  if (!data?.pruneCountdowns || isEditorDirty()) return;
+  const kept = countdownsNotOver(data.countdownEvents, dateKey(now));
   if (kept.length === (data.countdownEvents || []).length) return;
   data.countdownEvents = kept;
   saveData(data);
   pushSyncSnapshot();
-  activeCountdownIndex = 0;
   updateExamCountdown();
 }
 function updateExamCountdownIfDayChanged() {
@@ -516,9 +385,9 @@ function update() {
       s = (window.TEST_TIME_SEC || 0) % 60;
     now.setHours(h, m, s, 0);
     if (dom.simStatus)
-      dom.simStatus.innerText = window.IS_SIMULATING ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : '';
+      dom.simStatus.textContent = window.IS_SIMULATING ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : '';
   } else if (dom.simStatus) {
-    dom.simStatus.innerText = '';
+    dom.simStatus.textContent = '';
   }
   const curDay = window.MANUALLY_TEST ? window.TEST_DAY : now.getDay();
   const week = getWeekType();
@@ -551,11 +420,14 @@ function update() {
     breakTimes: state.applicationData.breakTimes
   });
 
-  if (!viewModel.isDayFinished && state.autoAdvancedAfterFinishedDay === curDay) {
+  // Today over, or a national holiday: 今天 shows the next school day's
+  // classes (once: a day tapped stays).
+  const dayDone = viewModel.isDayFinished || Boolean(holiday);
+  if (!dayDone && state.autoAdvancedAfterFinishedDay === curDay) {
     state.autoAdvancedAfterFinishedDay = null;
   }
   if (
-    viewModel.isDayFinished &&
+    dayDone &&
     state.viewDay === curDay &&
     state.autoAdvancedAfterFinishedDay !== curDay
   ) {
@@ -595,7 +467,7 @@ function weekClasses(now) {
   for (let d = 0; d < 7 && out.length < 60; d++) {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
     const week = getWeekType(date);
-    const day = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    const day = dateKey(date);
     const list = classesOn(date);
     for (const [i, c] of list.entries()) {
       const [h, m] = String(c.s || '')
@@ -708,18 +580,19 @@ function openModal(shown, { date = null } = {}) {
   const statGrid = locCard.closest('.stat-grid');
   if (c.loc) {
     locCard.style.display = 'block';
-    document.getElementById('m-location-val').innerText = c.loc;
+    document.getElementById('m-location-val').textContent = c.loc;
     statGrid.classList.add('has-location');
   } else {
     locCard.style.display = 'none';
     statGrid.classList.remove('has-location');
   }
   [1, 2, 3, 4, 5].forEach(d => {
-    state.runtimeSchedule[d].forEach((item, idx) => {
+    state.runtimeSchedule[d].forEach(item => {
       const match = c.isSplit ? terms.some(t => item.n.includes(t)) : item.n === c.n;
       if (match) {
         count++;
-        (days[d] ||= []).push({ n: idx + 1, s: item.s });
+        // The period's own number (a day's free periods aren't in its list).
+        (days[d] ||= []).push({ n: item.p + 1, s: item.s });
       }
     });
   });
@@ -745,16 +618,16 @@ function openModal(shown, { date = null } = {}) {
       labels[0].textContent = week === '單' ? t('week.odd') : t('week.even');
       labels[1].textContent = week === '單' ? t('week.even') : t('week.odd');
     }
-    document.getElementById('m-type-val').innerText = t('dashboard.typeSplit');
+    document.getElementById('m-type-val').textContent = t('dashboard.typeSplit');
   } else {
     sc.style.display = 'none';
-    document.getElementById('m-type-val').innerText = t('dashboard.typeFixed');
+    document.getElementById('m-type-val').textContent = t('dashboard.typeFixed');
   }
   const info = processSplitName(c, week);
-  document.getElementById('m-title').innerText = info.n;
+  document.getElementById('m-title').textContent = info.n;
   document.getElementById('m-icon')?.replaceChildren(subjectIcon(info.n, 'sheet-icon'));
-  document.getElementById('m-teacher').innerText = [info.t, c.loc].filter(Boolean).join(' · ');
-  document.getElementById('m-count').innerText = t('dashboard.periodCount', { count });
+  document.getElementById('m-teacher').textContent = [info.t, c.loc].filter(Boolean).join(' · ');
+  document.getElementById('m-count').textContent = t('dashboard.periodCount', { count });
   document.getElementById('m-occ-list').classList.toggle('is-week', Boolean(count));
   document.getElementById('m-occ-list').innerHTML =
     occHtml ||
@@ -771,7 +644,7 @@ function drawModalSwap(c, date) {
   if (!box || !note || !btn) return;
   const here = date && Number.isInteger(c.p) ? { date: dateKey(date), p: c.p } : null;
   const swap = here && swapOf(here);
-  box.hidden = !here || isSyncViewer();
+  box.hidden = !here;
   if (box.hidden) return;
   note.hidden = !swap;
   if (swap) note.textContent = t('swap.with', { slot: slotText(swap.a.date === here.date && swap.a.p === here.p ? swap.b : swap.a) });
@@ -803,7 +676,6 @@ window.update = update; // testsim-runtime.js monkey-patches this; every
 
 export {
   closeTestPanel,
-  getCountdownEvents,
   handleNav,
   keepActiveClassVisible,
   openModal,

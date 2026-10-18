@@ -18,9 +18,12 @@ Live: https://jaypengx.github.io/Orbit-Class/
   fields are written to the page.
 - **調課:** a one-time swap of two periods on any two dates, across weeks
   too. `classesOnDate` (`src/schedule.js`) is the one rule every view and
-  notice reads.
-- **Odd/even weeks** from the ISO week (a swap toggle if the school counts
-  differently); `語文/公民` in a slot splits by week.
+  notice reads (a holiday has no classes). A swap follows its periods by
+  their times when the bell times change, and undo matches it by both sides.
+- **Odd/even weeks** counted straight on from the week of 2025-12-29
+  (`WEEK_EPOCH`; the same as ISO through 2026, and still alternating over
+  2026's 53rd week, where ISO's would repeat odd). A swap toggle if the
+  school counts differently; `語文/公民` in a slot splits by week.
 - **Countdowns** to exams and events; 結束後自動刪除 optional.
 - **Notices** five minutes before each class, handed to the Worker so they
   arrive with the app closed. No classes or notices on Taiwan's holidays.
@@ -34,7 +37,9 @@ Live: https://jaypengx.github.io/Orbit-Class/
 - **The Pass:** the timetable is the pass's payload (app `orbit`), the same
   compressed v2 string as the transfer format. A device uploads only while
   the pass holds the copy it last saw; otherwise its edit is set aside
-  (`orbitSetAside`), never lost. 分享金鑰: an 8-character key (24 h) gives
+  (`orbitSetAside`), never lost. With the editor open and unsaved, a newer
+  copy (or the inbox) waits (`DEFERRED`) instead of being skipped;
+  redeeming a share key sets the local copy aside first. 分享金鑰: an 8-character key (24 h) gives
   another pass its own copy.
 - **Offline:** opens on the kept timetable; the AI features say they need
   the network.
@@ -59,6 +64,7 @@ Live: https://jaypengx.github.io/Orbit-Class/
 | `gemini-ocr.js` | Photo import |
 | `swap.js`, `tools.js`, `sync.js` | 調課; the 工具 tab; the Pass |
 | `state.js`, `constants.js`, `strings.js` | Shared state; shared constants; text |
+| `dates.js` | Date keys and times (`dateKey`, `parseTime`, `timeToMinutes`): the one copy |
 
 Gotchas:
 

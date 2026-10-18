@@ -51,4 +51,3 @@ if (has('topActions')) kit.topActions(orbitSession);
 const start = (location.hash || '').slice(1);
 show(TABS.some(x => x.id === start) ? start : 'today');
 
-export { show as showTab };

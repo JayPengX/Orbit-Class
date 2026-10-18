@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { loadApp } from './helpers/loadApp.js';
-import { getISOWeekNumber, parseTime, processSplitName } from '../src/schedule.js';
+import { getWeekNumber, processSplitName } from '../src/schedule.js';
+import { parseTime } from '../src/dates.js';
 import { state } from '../src/state.js';
 import {
   countdownsNotOver,
@@ -28,9 +29,25 @@ describe('time helpers', () => {
     expect(parseTime('13:05')).toBe(785);
   });
 
-  it('getISOWeekNumber matches known ISO week boundaries', () => {
-    expect(getISOWeekNumber(new Date('2024-01-01T12:00:00'))).toBe(1);
-    expect(getISOWeekNumber(new Date('2024-01-08T12:00:00'))).toBe(2);
+  it('getWeekNumber is the ISO week through 2026', () => {
+    expect(getWeekNumber(new Date('2026-01-01T12:00:00'))).toBe(1);
+    expect(getWeekNumber(new Date('2026-01-05T00:00:00'))).toBe(2);
+    expect(getWeekNumber(new Date('2026-10-18T23:59:00'))).toBe(42); // a Sunday: still week 42
+    expect(getWeekNumber(new Date('2026-10-19T00:00:00'))).toBe(43);
+    expect(getWeekNumber(new Date('2026-12-28T12:00:00'))).toBe(53);
+  });
+
+  it('getWeekNumber keeps counting across a new year (no two odd weeks in a row)', () => {
+    // 2026 has 53 ISO weeks: ISO numbering went 53 -> 1, both odd.
+    expect(getWeekNumber(new Date('2027-01-04T12:00:00'))).toBe(54);
+    expect(getWeekNumber(new Date('2025-12-22T12:00:00'))).toBe(0);
+    for (let d = new Date(2019, 0, 7); d < new Date(2034, 0, 1); d.setDate(d.getDate() + 7)) {
+      const next = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
+      expect(getWeekNumber(next) - getWeekNumber(d)).toBe(1);
+      // Every day of a week is the same week.
+      const sunday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 6);
+      expect(getWeekNumber(sunday)).toBe(getWeekNumber(d));
+    }
   });
 
   it('processSplitName resolves the correct half for a split subject by week parity', () => {
@@ -278,5 +295,57 @@ describe('結束後自動刪除 (pruneCountdowns)', () => {
     expect(on.pruneCountdowns).toBe(true);
     expect((await decodeTransferData(await encodeTransferData(on))).pruneCountdowns).toBe(true);
     expect((await decodeTransferData(await encodeTransferData(normalizeSettingsData(base)))).pruneCountdowns).toBe(false);
+  });
+});
+
+describe('periods kept in time order', () => {
+  it('normalizeSettingsData sorts the bell times, moving each day’s classes and the swaps with them', async () => {
+    const { normalizeSettingsData } = await import('../src/editor-backup.js');
+    const out = normalizeSettingsData({
+      teacherDB: { A: ['數學', '', ''], B: ['英文', '', ''], C: ['國文', '', ''] },
+      locationDB: {},
+      weeklySchedule: { 1: ['B', 'A', 'C'], 2: ['B'], 3: ['', '', 'C', 'A'] },
+      bellTimes: [['09:10', '10:00'], ['08:00', '08:50'], ['10:10', '11:00']],
+      classSwaps: [{ a: { date: '2030-01-07', p: 0 }, b: { date: '2030-01-08', p: 1 } }]
+    });
+    expect(out.bellTimes).toEqual([['08:00', '08:50'], ['09:10', '10:00'], ['10:10', '11:00']]);
+    expect(out.weeklySchedule[1]).toEqual(['A', 'B', 'C']);
+    // A day shorter than the bell times stays as long as it needs.
+    expect(out.weeklySchedule[2]).toEqual(['', 'B']);
+    // Cells past the last period stay where they are.
+    expect(out.weeklySchedule[3]).toEqual(['', '', 'C', 'A']);
+    expect(out.classSwaps).toEqual([{ a: { date: '2030-01-07', p: 1 }, b: { date: '2030-01-08', p: 0 } }]);
+  });
+
+  it('data already in order comes back as it was', async () => {
+    const { sortPeriodsByTime } = await import('../src/data.js');
+    const input = { bellTimes: [['08:00', '08:50'], ['09:10', '10:00']], weeklySchedule: { 1: ['A'] }, classSwaps: [] };
+    const out = sortPeriodsByTime(input);
+    expect(out.bellTimes).toBe(input.bellTimes);
+    expect(out.weeklySchedule).toBe(input.weeklySchedule);
+  });
+});
+
+describe('loadData', () => {
+  it('a saved copy with its periods out of order opens in time order', async () => {
+    const { loadData } = await import('../src/data.js');
+    const before = localStorage.getItem('classFocusData');
+    localStorage.setItem(
+      'classFocusData',
+      JSON.stringify({
+        teacherDB: { A: ['數學', '', ''], B: ['英文', '', ''] },
+        locationDB: {},
+        weeklySchedule: { 1: ['B', 'A'] },
+        bellTimes: [['09:10', '10:00'], ['08:00', '08:50']]
+      })
+    );
+    try {
+      const data = loadData();
+      expect(data.bellTimes[0]).toEqual(['08:00', '08:50']);
+      expect(data.weeklySchedule[1]).toEqual(['A', 'B']);
+    } finally {
+      if (before == null) localStorage.removeItem('classFocusData');
+      else localStorage.setItem('classFocusData', before);
+    }
   });
 });

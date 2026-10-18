@@ -422,3 +422,56 @@ describe('startEtaTimer runs a static estimate and a separate ticking elapsed cl
     expect(el.querySelector('#ocr-import-eta-elapsed').textContent).toBe('已等待 0 秒');
   });
 });
+
+describe('parseResponse: what the model sends, read defensively', () => {
+  const reply = obj => ({ candidates: [{ content: { parts: [{ text: typeof obj === 'string' ? obj : JSON.stringify(obj) }] } }] });
+  const parse = obj => new AIVisionProcessor().parseResponse(reply(obj));
+
+  it('a registration row past any real period is dropped, never a million empty cells', () => {
+    const candidate = parse({
+      documentKind: 'registration',
+      courses: [
+        { subject: '物理', teacher: '張老師', day: 2, periods: [3, 1_000_000, 0, -1, 2.5, 3] },
+        { subject: '', day: 1, periods: [1] },
+        { subject: '化學', day: 9, periods: [1] }
+      ]
+    });
+    expect(candidate.courses).toEqual([{ subject: '物理', teacher: '張老師', location: '', day: 2, periods: [3] }]);
+    const merged = new AIVisionProcessor().mergeRegistrationIntoCandidate(new AIVisionProcessor().normalizeAIOutput({}), candidate);
+    expect(merged.weeklySchedule[2]).toEqual(['', '', 'rc1']);
+  });
+
+  it('a timetable in a markdown fence, full-width colons and one-digit hours', () => {
+    const candidate = parse(
+      '```json\n' +
+        JSON.stringify({
+          documentKind: 'timetable',
+          bellTimes: [['8：10', '9:00'], { start: '9.10', end: '10：00' }, ['25:00', '26:00'], 'x'],
+          breakTimes: [{ name: '', start: '12:00', end: '13:00' }, null],
+          classes: [
+            { key: 'a', subject: '國文／公民', teacher: '李／陳', location: '' },
+            { key: 'b', subject: '國文／公民', teacher: '李／陳', location: '201' },
+            { key: 'c', subject: '', teacher: 'x' }
+          ],
+          weeklySchedule: { 1: ['a', 'b', 'c', null, { key: 'a' }], 9: ['a'] }
+        }) +
+        '\n```'
+    );
+    expect(candidate.documentKind).toBe('timetable');
+    expect(candidate.bellTimes).toEqual([['08:10', '09:00']]);
+    expect(candidate.breakTimes).toHaveLength(1);
+    // The same class twice under two keys is one class.
+    expect(Object.values(candidate.teacherDB)).toEqual([['國文/公民', '李/陳', '']]);
+    expect(candidate.locationDB.oc1).toBe('201');
+    expect(candidate.weeklySchedule[1]).toEqual(['oc1', 'oc1', '', '', 'oc1']);
+  });
+
+  it('not JSON at all: a clear error, not a crash', () => {
+    expect(() => parse('I could not read this photo.')).toThrow();
+    expect(() => new AIVisionProcessor().parseResponse({})).toThrow();
+  });
+
+  it('JSON that is not an object reads as nothing found', () => {
+    expect(parse('null')).toMatchObject({ courses: [], countdownEvents: [], documentKind: 'other' });
+  });
+});

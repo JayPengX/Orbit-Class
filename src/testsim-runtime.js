@@ -586,7 +586,7 @@ window.exitTestMode = function () {
     console.warn('Unable to clear test mode state.', error);
   }
   const status = el('sim-status');
-  if (status) status.innerText = '';
+  if (status) status.textContent = '';
   const indicator = el('sim-indicator');
   if (indicator) indicator.style.display = 'none';
   enableExitButton();

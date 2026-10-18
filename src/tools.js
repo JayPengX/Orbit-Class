@@ -5,11 +5,11 @@
 // editor's button; then AI (AI 改課表, a sentence; 拍照匯入, a photo) and
 // 分享 (a classmate's share key) as rows. 調課 is 課表's (src/swap.js).
 // Drawn each time the tab opens, from the saved timetable.
+import { pad2, parseTime } from './dates.js';
 import { subjectLook } from './subjects.js';
 import { state } from './state.js';
-import { getWeekType, processSplitName } from './schedule.js';
+import { getWeekType, processSplitName, slotClass } from './schedule.js';
 import { openModal } from './dashboard.js';
-import { isSyncViewer } from './sync.js';
 import { t } from './strings.js';
 
 const DAYS = [1, 2, 3, 4, 5, 6];
@@ -52,10 +52,7 @@ function button(cls, onClick, children = []) {
   node.append(...children);
   return node;
 }
-const minutes = value => {
-  const [h, m] = String(value || '').split(':').map(Number);
-  return h * 60 + m;
-};
+const minutes = parseTime;
 function openPart(id) {
   window.openEditor?.();
   if (id !== 'editor-fold-schedule') window.openEditorFold?.(id);
@@ -73,7 +70,9 @@ function weekCard() {
   const today = testing && Number.isFinite(window.TEST_DAY) ? window.TEST_DAY : now.getDay();
   const nowMin = testing ? Math.floor((window.TEST_TIME_SEC || 0) / 60) : now.getHours() * 60 + now.getMinutes();
   const days = DAYS.filter(d => d < 6 || (schedule[d] || []).length);
-  const rows = Math.max(0, ...days.map(d => (schedule[d] || []).length));
+  // A row per period (a day's list leaves its free periods out: its place in
+  // the list isn't its period).
+  const rows = Math.max(0, ...days.map(d => (schedule[d] || []).reduce((most, item) => Math.max(most, item.p + 1), 0)));
   const subjects = new Set();
   let total = 0;
   let first = Infinity;
@@ -85,7 +84,7 @@ function weekCard() {
       first = Math.min(first, minutes(item.s));
       last = Math.max(last, minutes(item.e));
     }
-  const clock = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  const clock = m => `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
 
   const card = el('section', 'cx-tl-card');
   const figures = el('div', 'cx-tl-figures');
@@ -108,7 +107,7 @@ function weekCard() {
   for (let r = 0; r < rows; r += 1) {
     grid.append(el('span', 'cx-tl-num', String(r + 1)));
     for (const d of days) {
-      const item = (schedule[d] || [])[r];
+      const item = slotClass(d, r);
       const on = item && d === today && nowMin >= minutes(item.s) && nowMin < minutes(item.e);
       const cell = el(item ? 'button' : 'span', `cx-tl-cell${item ? '' : ' is-empty'}${d === today ? ' is-today' : ''}${on ? ' is-now' : ''}`);
       if (item) {
@@ -129,9 +128,7 @@ function weekCard() {
   }
   if (!rows) grid.append(el('p', 'cx-tl-empty', t('tools.noClasses')));
 
-  const viewer = isSyncViewer();
   const edit = button('cx-tl-edit', () => openPart('editor-fold-schedule'), [el('span', '', t('sync.editTitle'))]);
-  edit.disabled = viewer;
   card.append(figures, grid, edit);
   return card;
 }
@@ -159,12 +156,10 @@ function renderTools() {
   // pass arriving after the tab opened), the week, the minute, or the language.
   const testing = window.MANUALLY_TEST;
   const minute = testing ? `${window.TEST_DAY}-${Math.floor((window.TEST_TIME_SEC || 0) / 60)}` : Math.floor(Date.now() / 60_000);
-  const key = `${JSON.stringify(state.runtimeSchedule)}|${getWeekType()}|${minute}|${t('tools.myTimetable')}|${isSyncViewer()}`;
+  const key = `${JSON.stringify(state.runtimeSchedule)}|${getWeekType()}|${minute}|${t('tools.myTimetable')}`;
   if (key === drawn && box.childElementCount) return;
   drawn = key;
-  const viewer = isSyncViewer();
   const aiEdit = wayTile('ai', ICONS.ai, t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-ai'));
-  aiEdit.disabled = viewer;
   const ai = el('div', 'cx-ways');
   ai.append(aiEdit, wayTile('photo', ICONS.photo, t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo')));
   const share = el('div', 'cx-ways');

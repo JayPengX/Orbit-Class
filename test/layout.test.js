@@ -1,7 +1,8 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadApp } from './helpers/loadApp.js';
 import { state } from '../src/state.js';
-import { buildSchedule, dateKey, dateOfDay, dateOfDayInWeek, getWeekType } from '../src/schedule.js';
+import { buildSchedule, dateOfDay, dateOfDayInWeek, getWeekType } from '../src/schedule.js';
+import { dateKey } from '../src/dates.js';
 import { normalizeSettingsData } from '../src/editor-backup.js';
 import { renderTools } from '../src/tools.js';
 
@@ -45,9 +46,27 @@ describe('dateOfDayInWeek', () => {
     expect(Math.round((later - coming) / 86400000)).toBe(7);
     expect(getWeekType(later)).toBe(other);
   });
+
+  it('the week after a 53-week year is the other half (2026-12-28 → 2027-01-04)', () => {
+    const last = new Date(2026, 11, 28);
+    const next = new Date(2027, 0, 4);
+    expect(getWeekType(next)).not.toBe(getWeekType(last));
+    // 課表's switch a week on from the year's last Monday lands on the other week.
+    const other = getWeekType(last) === '單' ? '雙' : '單';
+    expect(dateKey(dateOfDayInWeek(1, other, last))).toBe('2027-01-04');
+    // This year's weeks keep their halves: 2026-10-19 is ISO week 43, odd.
+    expect(getWeekType(new Date(2026, 9, 19))).toBe('單');
+  });
 });
 
 describe('課表', () => {
+  // Fixed dates with no holiday in either week (the real date's next weeks
+  // can hold one: 光復節's 補假 on 2026-10-26 showed no classes).
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2030, 0, 9, 12));
+  });
+  afterEach(() => vi.useRealTimers());
   it('shows the day in either of its weeks, its other half a tap away', () => {
     document.body.dataset.tab = 'week';
     state.viewDay = 1;

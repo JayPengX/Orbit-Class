@@ -14,18 +14,20 @@ import {
   normalizeProSecondary,
   normalizeStyleSlots
 } from './appearance.js';
-import { getCountdownEvents } from './dashboard.js';
 import {
   ORBIT_APP_ID,
   ORBIT_STORAGE_SCHEMA,
   REVERSE_WEEK_LOGIC_DEFAULT,
   formatCountdownEventDate,
+  getCountdownEvents,
   isValidTimeRange,
   normalizeCountdownEvent,
   normalizeCountdownEvents,
   normalizeClassSwaps,
+  remapClassSwaps,
   sanitizeBreakTimes,
   saveData,
+  sortPeriodsByTime,
   validateTimeIntervals
 } from './data.js';
 import {
@@ -41,12 +43,11 @@ import {
 import {
   renderEditorBells,
   renderEditorBreaks,
-  renderEditorSchedule,
-  saveEditor
+  renderEditorSchedule
 } from './editor-schedule.js';
 import { renderEditorTeachers } from './editor-teachers.js';
 import { buildSchedule } from './schedule.js';
-import { isSyncConfigured, isSyncViewer, pushSyncSnapshot, setSyncStatusUi } from './sync.js';
+import { isSyncConfigured, pushSyncSnapshot, setSyncStatusUi } from './sync.js';
 import { t } from './strings.js';
 
 // Reads the editor form and converts it into the app data shape. With
@@ -157,77 +158,6 @@ function editorFormSnapshotString() {
 function isEditorDirty() {
   if (!document.getElementById('editor-sheet').classList.contains('show')) return false;
   return editorFormSnapshotString() !== state.editorBaselineSnapshot;
-}
-let pendingTransferAction = null;
-function confirmExportOverwrite() {
-  hideEditorDiscardConfirm();
-  exportEditorSettings();
-}
-function runTransferAction(action) {
-  if (action === 'export') {
-    const text = document.getElementById('settings-transfer-text');
-    if (text?.value.trim()) {
-      setEditorConfirmContent(
-        t('editorBackup.overwriteExportTitle'),
-        t('editorBackup.overwriteExportMessage'),
-        t('editorBackup.overwriteExportConfirm'),
-        t('editorBackup.overwriteAndExport'),
-        confirmExportOverwrite,
-        t('common.cancel'),
-        { danger: true }
-      );
-      showEditorConfirmSheet();
-      return;
-    }
-    exportEditorSettings();
-  } else previewImportEditorSettings();
-}
-function requestTransferAction(action) {
-  // Belt-and-suspenders, same as saveEditor(): the editor UI already locks
-  // the manual-import button down for a viewer device (see styles.css's
-  // .sync-viewer-locked and src/sync.js's applyEditorRoleLock), but that's
-  // a CSS/pointer-events lock, not real access control. Export stays
-  // allowed - reading out the current (received) schedule isn't editing.
-  if (action === 'import' && isSyncViewer()) {
-    setSyncStatusUi(t('sync.viewerLockedImport'), true);
-    return;
-  }
-  if (!isEditorDirty()) {
-    runTransferAction(action);
-    return;
-  }
-  pendingTransferAction = action;
-  const label = action === 'export' ? t('common.export') : t('common.import');
-  setEditorConfirmContent(
-    t('editorBackup.saveFirstTitle'),
-    t('editorBackup.saveFirstMessage', { action: label }),
-    '',
-    t('editorBackup.saveThenAction', { action: label }),
-    () => {
-      saveEditor();
-    },
-    t('editorBackup.actionWithoutSaving', { action: label }),
-    {
-      cancelHandler: () => {
-        const nextAction = pendingTransferAction;
-        pendingTransferAction = null;
-        hideEditorDiscardConfirm();
-        if (nextAction === 'export') {
-          exportEditorSettings(
-            state.editorBaselineData || normalizeSettingsData(state.applicationData)
-          );
-        } else {
-          runTransferAction(nextAction);
-        }
-      },
-      extraLabel: t('common.cancel'),
-      extraHandler: () => {
-        pendingTransferAction = null;
-        hideEditorDiscardConfirm();
-      }
-    }
-  );
-  showEditorConfirmSheet();
 }
 function cloneSettingsData(data) {
   return JSON.parse(JSON.stringify(data));
@@ -500,7 +430,12 @@ function normalizeSettingsData(raw, { requireMarker = false } = {}) {
   )
     throw new Error(t('editorBackup.invalidBellTimes'));
 
-  const bellTimes = source.bellTimes.map(item => [String(item[0]), String(item[1])]);
+  const sorted = sortPeriodsByTime({
+    bellTimes: source.bellTimes.map(item => [String(item[0]), String(item[1])]),
+    weeklySchedule,
+    classSwaps: normalizeClassSwaps(source.classSwaps)
+  });
+  const { bellTimes } = sorted;
   const breakTimes = sanitizeBreakTimes(bellTimes, source.breakTimes);
   const countdownEvents = normalizeCountdownEvents(source.countdownEvents);
   const teacherOrder = Array.isArray(source.teacherOrder)
@@ -519,14 +454,14 @@ function normalizeSettingsData(raw, { requireMarker = false } = {}) {
     teacherDB,
     teacherOrder,
     locationDB,
-    weeklySchedule,
+    weeklySchedule: sorted.weeklySchedule,
     bellTimes,
     breakTimes,
     countdownEvents,
     reverseWeek:
       typeof source.reverseWeek === 'boolean' ? source.reverseWeek : REVERSE_WEEK_LOGIC_DEFAULT,
     pruneCountdowns: source.pruneCountdowns === true,
-    classSwaps: normalizeClassSwaps(source.classSwaps),
+    classSwaps: normalizeClassSwaps(sorted.classSwaps),
     proAccent: normalizeProAccent(source.proAccent),
     proSecondary: normalizeProSecondary(source.proSecondary),
     styleSlots: normalizeStyleSlots(source.styleSlots)
@@ -564,42 +499,6 @@ function settingsDataForExport() {
     }),
     __orbit: { app: ORBIT_APP_ID, schema: ORBIT_STORAGE_SCHEMA }
   };
-}
-function setTransferStatus(message, isError = false) {
-  setStatusText('settings-transfer-status', message, isError);
-}
-async function copyTransferText(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return;
-    } catch {
-      // Fall through to the execCommand('copy') fallback below.
-    }
-  }
-  const helper = document.createElement('textarea');
-  helper.value = text;
-  helper.style.position = 'fixed';
-  helper.style.opacity = '0';
-  document.body.appendChild(helper);
-  helper.select();
-  try {
-    if (!document.execCommand('copy')) throw new Error(t('editorBackup.copyFailed'));
-  } finally {
-    helper.remove();
-  }
-}
-async function exportEditorSettings(data = settingsDataForExport()) {
-  try {
-    const text = document.getElementById('settings-transfer-text');
-    text.value = await encodeTransferData(data);
-    await copyTransferText(text.value);
-    text.focus();
-    text.select();
-    setTransferStatus(t('editorBackup.exportSuccess'));
-  } catch {
-    setTransferStatus(t('editorBackup.exportFailed'), true);
-  }
 }
 function formatDiffValue(value) {
   return value ? String(value) : t('editorBackup.blankValue');
@@ -904,27 +803,6 @@ function describeSettingsDiff(current, next, { isImport = false } = {}) {
   // with no way to see what got hidden.
   return lines.length ? lines.join('\n') : t('editorBackup.noChanges');
 }
-// Import is decoded and previewed first; confirmation is required before saving.
-async function previewImportEditorSettings() {
-  const text = document.getElementById('settings-transfer-text');
-  try {
-    const next = normalizeSettingsData(await decodeTransferData(text.value), {
-      requireMarker: true
-    });
-    const current = settingsDataForExport();
-    if (describeSettingsDiff(current, next) === t('editorBackup.noChanges')) {
-      state.pendingEditorImportData = null;
-      setTransferStatus(t('editorBackup.importFailedIdentical'), true);
-      return;
-    }
-    state.pendingEditorImportData = next;
-    showEditorImportModeConfirm(current, next);
-  } catch {
-    state.pendingEditorImportData = null;
-    text.value = '';
-    setTransferStatus(t('editorBackup.importFailedInvalid'), true);
-  }
-}
 function mergeImportedSettings(current, imported, preserveStyle = false) {
   const merged = cloneSettingsData(current),
     addedActions = [],
@@ -933,16 +811,29 @@ function mergeImportedSettings(current, imported, preserveStyle = false) {
   merged.teacherDB = { ...(current.teacherDB || {}) };
   const teacherKeyMap = {},
     currentTeacherKeyMap = {};
-  Object.entries(imported.teacherDB || {}).forEach(([importedKey, importedInfo]) => {
-    const matchedKey = current.teacherDB?.[importedKey]
-      ? importedKey
-      : Object.keys(current.teacherDB || {}).find(currentKey => {
-          const currentInfo = current.teacherDB[currentKey] || [];
-          return (
-            (importedInfo[0] && currentInfo[0] === importedInfo[0]) ||
-            (importedInfo[1] && currentInfo[1] === importedInfo[1])
-          );
-        });
+  // Which of this device's classes an imported one is: the same key, else
+  // the same subject, else the same teacher, but only for a class whose
+  // subject the import doesn't have itself, and each class of this device
+  // matched once. (By teacher alone, 國文 and 國寫 of one teacher both
+  // matched this device's 國文: one replaced it and the other took its
+  // periods; and 數學 replaced 物理 of a teacher who teaches both.)
+  const importedEntries = Object.entries(imported.teacherDB || {});
+  const currentKeys = Object.keys(current.teacherDB || {});
+  const importedSubjects = new Set(importedEntries.map(([, info]) => info[0]).filter(Boolean));
+  const claimed = new Set(importedEntries.map(([key]) => key).filter(key => current.teacherDB?.[key]));
+  const claim = test => {
+    const key = currentKeys.find(k => !claimed.has(k) && test(current.teacherDB[k] || []));
+    if (key) claimed.add(key);
+    return key;
+  };
+  const matchOf = {};
+  for (const [key] of importedEntries) if (current.teacherDB?.[key]) matchOf[key] = key;
+  for (const [key, info] of importedEntries)
+    if (!matchOf[key] && info[0]) matchOf[key] = claim(c => c[0] === info[0]);
+  for (const [key, info] of importedEntries)
+    if (!matchOf[key] && info[1]) matchOf[key] = claim(c => c[1] === info[1] && !importedSubjects.has(c[0]));
+  importedEntries.forEach(([importedKey, importedInfo]) => {
+    const matchedKey = matchOf[importedKey];
     const targetKey = importedKey;
     teacherKeyMap[importedKey] = targetKey;
     if (matchedKey && matchedKey !== importedKey) {
@@ -1115,10 +1006,7 @@ function beginEditorImport(current, next, { preserveStyle = false } = {}) {
     showEditorImportModeConfirm(normalizedCurrent, normalizedNext, preserveStyle);
   } catch (error) {
     state.pendingEditorImportData = null;
-    setTransferStatus(
-      t('editorBackup.importFailedWithReason', { reason: error.message || error }),
-      true
-    );
+    setStatusText('ocr-import-status', t('editorBackup.importFailedWithReason', { reason: error.message || error }), true);
   }
 }
 function showEditorImportConfirm(current, next, isMerge, preserveStyle = false) {
@@ -1194,9 +1082,16 @@ function showEditorImportConfirm(current, next, isMerge, preserveStyle = false) 
 // bounce the same write straight back out).
 function applyEditorSettingsData(
   next,
-  { closeAfter = false, statusMessage = '', fromSync = false } = {}
+  { closeAfter = false, fromSync = false } = {}
 ) {
+  const before = state.applicationData;
   state.applicationData = cloneSettingsData(next);
+  // 調課 carried over from this device (the editor, AI) follow the periods
+  // to their new places when the bell times changed. (A backup or the pass
+  // brings its own, already right for its bell times.)
+  const carried = JSON.stringify(normalizeClassSwaps(before?.classSwaps)) === JSON.stringify(normalizeClassSwaps(next.classSwaps));
+  if (!fromSync && before && carried)
+    state.applicationData.classSwaps = normalizeClassSwaps(remapClassSwaps(state.applicationData.classSwaps, before.bellTimes, state.applicationData.bellTimes));
   state.applicationData.proAccent = normalizeProAccent(state.applicationData.proAccent);
   state.applicationData.proSecondary = normalizeProSecondary(state.applicationData.proSecondary);
   state.applicationData.styleSlots = normalizeStyleSlots(state.applicationData.styleSlots);
@@ -1214,7 +1109,6 @@ function applyEditorSettingsData(
   state.editorBaselineData = cloneSettingsData(state.applicationData);
   state.lastListKey = '';
   window.update();
-  if (statusMessage) setTransferStatus(statusMessage);
   const toast = document.getElementById('save-toast');
   toast.textContent = fromSync ? t('editorBackup.updatedFromOtherDevice') : t('editorBackup.saved');
   toast.classList.add('show');
@@ -1226,7 +1120,7 @@ function applyEditorSettingsData(
   // here still gets picked up by the next tick's own push-then-pull pass.
   // Fire-and-forget - a slow or failed push is surfaced via the status line
   // but must never block or fail the save that already happened locally.
-  if (!fromSync && isSyncConfigured() && !isSyncViewer()) {
+  if (!fromSync && isSyncConfigured()) {
     pushSyncSnapshot().then(result => {
       if (!result.ok) setSyncStatusUi(result.error, true);
     });
@@ -1237,12 +1131,7 @@ function applyPendingImportSettings() {
     hideEditorDiscardConfirm();
     return;
   }
-  applyEditorSettingsData(state.pendingEditorImportData, {
-    closeAfter: true,
-    statusMessage: t('editorBackup.importedAndSaved')
-  });
-  const pasted = document.getElementById('settings-transfer-text');
-  if (pasted) pasted.value = '';
+  applyEditorSettingsData(state.pendingEditorImportData, { closeAfter: true });
   state.pendingEditorImportData = null;
   resetOCRImporterUI();
   hideEditorDiscardConfirm();
@@ -1307,17 +1196,13 @@ function applyPendingSaveEditor() {
     hideEditorDiscardConfirm();
     return;
   }
-  const transferAction = pendingTransferAction;
-  pendingTransferAction = null;
-  applyEditorSettingsData(state.pendingEditorSaveData, { closeAfter: !transferAction });
+  applyEditorSettingsData(state.pendingEditorSaveData, { closeAfter: true });
   state.pendingEditorSaveData = null;
   hideEditorDiscardConfirm();
-  if (transferAction) runTransferAction(transferAction);
 }
 
 // Exposed on window for inline HTML event handlers (onclick="..." in
 // index.html and in generated template strings).
-window.requestTransferAction = requestTransferAction;
 window.resetAllAppData = resetAllAppData;
 
 export {
@@ -1326,7 +1211,6 @@ export {
   beginEditorImport,
   cloneSettingsData,
   collectEditorFormState,
-  copyTransferText,
   dayDiffLabel,
   decodeTransferData,
   describeSettingsDiff,
@@ -1334,9 +1218,9 @@ export {
   encodeTransferData,
   formatClassRef,
   isEditorDirty,
+  mergeImportedSettings,
   normalizeSettingsData,
   resetAllAppData,
   resetOCRImporterUI,
-  setTransferStatus,
   settingsDataForExport
 };

@@ -11,9 +11,10 @@ import * as kit from '#kit/quadra.mjs';
 import { WEEKDAY_LABELS } from './constants.js';
 import { normalizeClassSwaps, saveData, swapsNotOver } from './data.js';
 import { holidayOn } from './holidays.js';
-import { dateFromKey, dateKey, getWeekType, processSplitName, slotClass } from './schedule.js';
+import { dateFromKey, dateKey } from './dates.js';
+import { getWeekType, processSplitName, slotClass } from './schedule.js';
 import { state } from './state.js';
-import { isSyncViewer, pushSyncSnapshot } from './sync.js';
+import { pushSyncSnapshot } from './sync.js';
 import { setOverlayVisible } from './dashboard.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { t } from './strings.js';
@@ -61,6 +62,16 @@ const sides = (a, b) => [
 ];
 const confirm = opts => (typeof kit.ask === 'function' ? kit.ask(opts) : Promise.resolve(true));
 
+// A swap by its two sides, never by the object: the timetable from the pass
+// arriving while its dialog was open (a tap is a sync check) replaced every
+// swap object, and an undo by identity removed nothing, 已取消調課 said all the same.
+const sameSwap = (x, y) => slotKey(x.a) === slotKey(y.a) && slotKey(x.b) === slotKey(y.b);
+function removeSwap(swap) {
+  const next = swaps().filter(s => !sameSwap(s, swap));
+  if (next.length === swaps().length) return false;
+  store(next);
+  return true;
+}
 function addSwap(a, b) {
   if (swapOf(a) || swapOf(b) || slotKey(a) === slotKey(b)) return false;
   if (!classAt(a) && !classAt(b)) return false;
@@ -75,8 +86,7 @@ async function undoSwap(swap) {
     cancel: t('common.cancel'),
     danger: true
   });
-  if (!ok) return false;
-  store(swaps().filter(s => s !== swap));
+  if (!ok || !removeSwap(swap)) return false;
   toast(t('swap.undone'));
   return true;
 }
@@ -111,7 +121,6 @@ function wire() {
 }
 
 function openSwapSheet(from = null) {
-  if (isSyncViewer()) return;
   wire();
   first = from;
   shownDate = from?.date || todayKey();
@@ -194,7 +203,7 @@ async function pick(slot) {
 }
 
 // ---- 課表's 調課: each swap still to come (both sides, a tap to undo it),
-// then 新增調課. Drawn again only when the swaps or the viewer change.
+// then 新增調課. Drawn again only when the swaps change.
 const SWAP_ICON = '<path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/>';
 function swapIcon() {
   const box = el('span', 'cx-way-icon');
@@ -205,9 +214,8 @@ let swapsDrawn = '';
 function renderSwaps() {
   const page = document.getElementById('cx-swaps');
   if (!page) return;
-  const viewer = isSyncViewer();
   const coming = swapsNotOver(swaps(), todayKey());
-  const key = `${JSON.stringify(coming)}|${viewer}|${t('swap.section')}`;
+  const key = `${JSON.stringify(coming)}|${t('swap.section')}`;
   if (key === swapsDrawn && page.childElementCount) return;
   swapsDrawn = key;
   const box = el('div', 'cx-ways cx-swaps');
@@ -222,7 +230,6 @@ function renderSwaps() {
     row.type = 'button';
     row.append(swapIcon(), words);
     row.addEventListener('click', () => undoSwap(swap));
-    row.disabled = viewer;
     box.append(row);
   }
   const words = el('span', 'cx-way-words');
@@ -231,11 +238,10 @@ function renderSwaps() {
   add.type = 'button';
   add.append(swapIcon(), words, el('span', 'cx-way-go', '›'));
   add.addEventListener('click', () => openSwapSheet());
-  add.disabled = viewer;
   box.append(add);
   page.replaceChildren(el('h2', 'cx-section', t('swap.section')), box);
 }
 
 window.closeSwapSheet = closeSwapSheet;
 
-export { addSwap, closeSwapSheet, nameAt, openSwapSheet, renderSwaps, slotText, swapOf, undoSwap };
+export { addSwap, closeSwapSheet, removeSwap, nameAt, openSwapSheet, renderSwaps, slotText, swapOf, undoSwap };

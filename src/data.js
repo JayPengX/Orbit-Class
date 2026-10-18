@@ -3,13 +3,14 @@
 // src/ module may be assumed ready yet when this one's top-level code runs
 // (see state.js's comment on the circular-import TDZ this ran into).
 import { normalizeProAccent, normalizeProSecondary, normalizeStyleSlots } from './appearance.js';
-import { editorTimeToMinutes } from './editor-core.js';
+import { timeToMinutes } from './dates.js';
 import {
   DEFAULT_STYLE_PRIMARY,
   DEFAULT_STYLE_SECONDARY,
   WEEKDAYS_INDEX_ORDER,
   isPlainObject
 } from './constants.js';
+import { state } from './state.js';
 import { t } from './strings.js';
 
 // App defaults and live simulator state.
@@ -94,8 +95,8 @@ function isValidTime(value) {
 // may do this - bell periods (class time) always stay within one day.
 function isValidTimeRange(start, end, allowOvernight = false) {
   if (!isValidTime(start) || !isValidTime(end)) return false;
-  const startMin = editorTimeToMinutes(start);
-  const endMin = editorTimeToMinutes(end);
+  const startMin = timeToMinutes(start);
+  const endMin = timeToMinutes(end);
   return allowOvernight ? endMin !== startMin : endMin > startMin;
 }
 // Splits a start/end range into 1 or 2 same-day [start, end) pieces so an
@@ -123,7 +124,7 @@ function validateTimeIntervals(bellTimes, breakTimes) {
       error.conflictKind = kind;
       throw error;
     }
-    timeRangeToDayPieces(editorTimeToMinutes(start), editorTimeToMinutes(end)).forEach(
+    timeRangeToDayPieces(timeToMinutes(start), timeToMinutes(end)).forEach(
       ([pieceStart, pieceEnd]) => intervals.push({ start: pieceStart, end: pieceEnd, label, kind })
     );
   };
@@ -197,6 +198,10 @@ function normalizeCountdownEvents(value) {
       ? []
       : DEFAULT_COUNTDOWN_EVENTS.map(event => ({ ...event }));
 }
+// The saved countdowns, cleaned (the app's data by default).
+function getCountdownEvents(data = state.applicationData) {
+  return normalizeCountdownEvents(data?.countdownEvents ?? []);
+}
 // The countdowns still to come or on (its last day counts): with 結束後自動刪除
 // on, the others leave the list. `today` is the local day, YYYY-MM-DD.
 function countdownsNotOver(events, today) {
@@ -229,6 +234,55 @@ function normalizeClassSwaps(value) {
     if (out.length >= MAX_CLASS_SWAPS) break;
   }
   return out;
+}
+// The swaps after the bell times changed: each side's period found again by
+// its time (a period deleted, added or the list sorted moved every later
+// period's place, and a swap kept pointing at the place, so it moved to
+// another class); a period whose time was edited in place keeps its place
+// while the count is the same; a swap on a period gone is dropped.
+function remapClassSwaps(swaps, before, after) {
+  const list = swaps || [];
+  if (!list.length || JSON.stringify(before) === JSON.stringify(after)) return list;
+  const key = bt => `${bt[0]}-${bt[1]}`;
+  const place = new Map((after || []).map((bt, i) => [key(bt), i]));
+  const move = p => {
+    const bt = (before || [])[p];
+    if (!bt) return null;
+    if (place.has(key(bt))) return place.get(key(bt));
+    return (before || []).length === (after || []).length ? p : null;
+  };
+  return list.flatMap(({ a, b }) => {
+    const pa = move(a.p);
+    const pb = move(b.p);
+    return pa == null || pb == null ? [] : [{ a: { ...a, p: pa }, b: { ...b, p: pb } }];
+  });
+}
+// The periods in time order, each day's classes and the swaps moved with
+// them. Every view takes a day's list in period order as its time order
+// (the class on now, the next, the notices), and an AI answer or an older
+// save could list a period out of order: the next class shown was the
+// wrong one. The editor sorted its form, never the saved data.
+function sortPeriodsByTime({ bellTimes, weeklySchedule, classSwaps }) {
+  const minutes = value => timeToMinutes(value);
+  const order = bellTimes
+    .map((bt, index) => ({ index, start: minutes(bt[0]), end: minutes(bt[1]) }))
+    .sort((a, b) => a.start - b.start || a.end - b.end || a.index - b.index)
+    .map(item => item.index);
+  if (order.every((from, to) => from === to)) return { bellTimes, weeklySchedule, classSwaps };
+  const place = new Map(order.map((from, to) => [from, to]));
+  const rows = Object.fromEntries(
+    Object.entries(weeklySchedule).map(([day, row]) => {
+      const sorted = order.map(from => row[from] || '');
+      while (sorted.length > row.length && !sorted[sorted.length - 1]) sorted.pop();
+      return [day, [...sorted, ...row.slice(bellTimes.length)]];
+    })
+  );
+  const move = side => ({ ...side, p: place.has(side.p) ? place.get(side.p) : side.p });
+  return {
+    bellTimes: order.map(from => bellTimes[from]),
+    weeklySchedule: rows,
+    classSwaps: (classSwaps || []).map(({ a, b }) => ({ a: move(a), b: move(b) }))
+  };
 }
 // The swaps with a day still to come (today counts).
 function swapsNotOver(swaps, today) {
@@ -387,7 +441,7 @@ function loadData() {
       styleSlots: normalizeStyleSlots(parsed.styleSlots)
     };
 
-    return normalized;
+    return { ...normalized, ...sortPeriodsByTime(normalized) };
   } catch {
     clearStoredData();
     return getDefaultData();
@@ -407,6 +461,7 @@ function saveData(d) {
 }
 export {
   countdownsNotOver,
+  getCountdownEvents,
   ORBIT_APP_ID,
   ORBIT_STORAGE_SCHEMA,
   REVERSE_WEEK_LOGIC_DEFAULT,
@@ -418,8 +473,10 @@ export {
   normalizeCountdownEvent,
   normalizeCountdownEvents,
   normalizeClassSwaps,
+  remapClassSwaps,
   sanitizeBreakTimes,
   saveData,
+  sortPeriodsByTime,
   swapsNotOver,
   validateTimeIntervals
 };

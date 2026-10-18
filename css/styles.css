@@ -433,92 +433,6 @@ body.orbit-booting .dashboard{visibility:hidden}
 .status-active{background:var(--pro-secondary);box-shadow:0 0 0 5px color-mix(in srgb,var(--pro-secondary) 18%,transparent),0 0 20px color-mix(in srgb,var(--pro-secondary) 32%,transparent)}
 .status-wait{background:var(--pro-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--pro-accent) 16%,transparent),0 0 14px color-mix(in srgb,var(--pro-accent) 42%,transparent)}
 
-.exam-countdown{
-  touch-action:pan-y;cursor:grab;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
-  gap:10px;padding:8px 13px;min-height:60px;border-radius:16px;
-  /* Grows to fill whatever the row actually has next to the tool button
-     instead of targeting a fixed width - a fixed clamp() here left a large
-     empty gap before the button on wider phones (the row's real available
-     width outgrows what any single px/vw formula predicts across screen
-     sizes). The label/date column is minmax(0,1fr): it stays left-aligned
-     within its own track as that track grows, so the extra width becomes
-     graceful breathing room ahead of the value badge, not stretched text -
-     max-width keeps that breathing room from turning into a wide empty
-     gutter on the largest phones. */
-  width:auto;flex:1 1 auto;min-width:210px;max-width:340px;
-  /* Glass, on the app's own tokens rather than its former one-off blur
-     values - it floats over the dashboard's backdrop the same way every
-     other floating control does, and the secondary tint in the fill is what
-     ties it to the theme now that the flat panel color is gone. Secondary,
-     not accent: this card always counts down to a future event that hasn't
-     started yet, the same "not begun yet" moment the break timer marks in
-     --pro-secondary (counting down to 上課) - --pro-accent stays reserved
-     for "in progress right now, counting down to the end" (the class timer
-     counting down to 下課, .row.is-next's own next-up highlight). Also the
-     one persistent, always-on card in the whole dashboard that isn't itself
-     a class/break state, so it's the one place a second brand hue can live
-     full-time instead of waiting for a break to flash by.
-     A uniform tinted border instead of the flat left bar this used to carry
-     - the bar read as a notification-strip cut into the card's edge, the one
-     hard-edged shape in a screen otherwise built entirely from soft rounded
-     glass. A border all the way round is the same "this card is tinted
-     secondary" cue every other tinted glass surface in the app (the toolbar
-     hub, .assign-box.assigned, ...) uses. */
-  border:1px solid color-mix(in srgb,var(--pro-secondary) 30%,transparent);
-  background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 15%,transparent),var(--glass-fill-card) 70%);
-  backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  box-shadow:var(--glass-shadow-soft);
-  transition:box-shadow .15s,transform .12s var(--ease-glass);
-}
-@supports not (backdrop-filter:blur(1px)){.exam-countdown{background:color-mix(in srgb,var(--pro-secondary) 14%,var(--orbit-panel-strong))}}
-/* Grabbing cursor only - no press-scale here. A tap alone does nothing (only
-   an actual swipe changes the active event), so animating on every press
-   would be feedback for an action that didn't happen; .is-swapping below is
-   the only animation, and it's only ever added once a swipe crosses the
-   distance threshold in showCountdownEvent(). */
-.exam-countdown:active{cursor:grabbing}
-@keyframes countdownSwap{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.exam-countdown.is-swapping .exam-countdown-copy,.exam-countdown.is-swapping .exam-countdown-value{animation:countdownSwap .22s ease}
-.exam-countdown-copy{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
-/* font-size is the CSS ceiling fitCountdownLabelText() (src/dashboard.js)
-   shrinks down from for a long event name, before text-overflow:ellipsis
-   ever has to kick in as the last resort. .exam-countdown-date doesn't get
-   the same treatment - its longest realistic form (a cross-year range) is
-   short and predictable enough to just always fit at this fixed size. */
-.exam-countdown-label{letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;font-size:17px;font-weight:900;max-width:100%;line-height:1.25}
-.exam-countdown-date{opacity:.7;font-size:14px;font-weight:700;letter-spacing:.15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--orbit-muted);max-width:100%;line-height:1.25}
-/* A small glass badge instead of the plain right-hand column the number
-   used to sit in behind a divider line - the same circular-dial language
-   the class timer now uses (see .timer-badge), just at a scale that fits
-   this card's ~60px height. Both are "the number that matters, framed in
-   a ring" - a countdown is a countdown whether it's counting minutes or
-   days, and the two used to look like they belonged to different apps. */
-/* Sized (and its font kept conservative) for its worst case, not just the
-   common one: this shows a 1-3 digit day count most of the time, but also
-   4-character status words (進行中/已結束) with no separate unit line -
-   same badge, same font, has to hold both without the text poking past
-   the circle. */
-/* 38px, not the 50px this first shipped at: .exam-countdown lives inside
-   .label-row, which is a flex item of the fixed-height .dashboard - when
-   this badge was taller than the ~44px of vertical room the card's own
-   padding left for it, the card overflowed past .label-row's own box
-   (visible as the whole countdown card creeping above the dashboard's top
-   edge, worst on short viewports where .dashboard's own height shrinks
-   further - see the max-height:700px rule below). 38px is back inside
-   that budget with a couple px to spare. */
-/* Plain text again, not a circle/pill badge - same call as the class
-   timer: a shape sized to hold this legibly was always a fight against
-   its own curve, especially for the rarer 4-character status words
-   (進行中/已結束). Just text, sized to be read at a glance. */
-.exam-countdown-value{flex:0 0 auto;color:var(--pro-secondary-readable);font-family:ui-monospace,SFMono-Regular,monospace;font-size:clamp(26px,7vw,32px);line-height:1;font-weight:850;text-align:center;letter-spacing:-.02em;white-space:nowrap}
-.exam-countdown-unit{font-size:.42em;font-weight:800;letter-spacing:0;margin-left:3px;color:var(--orbit-muted);vertical-align:.2em}
-.exam-countdown-dots{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;pointer-events:none;z-index:1}
-.exam-countdown-dots[hidden]{display:none}
-.exam-countdown-dot{width:4px;height:4px;border-radius:50%;background:color-mix(in srgb,var(--q-text) 28%,transparent);transition:background .2s,width .2s}
-.exam-countdown-dot.active{width:10px;border-radius:3px;background:var(--pro-secondary)}
-@media (max-width:360px){.exam-countdown{min-height:54px;padding:7px 11px;min-width:190px}.exam-countdown-label{font-size:15px}.exam-countdown-date{font-size:12px}.exam-countdown-value{font-size:clamp(22px,7.6vw,26px)}}
-@media (max-height:700px){.exam-countdown{min-height:52px;padding:6px 10px}.exam-countdown-value{font-size:clamp(21px,7vw,25px)}}
 
 .top-actions{position:relative;margin-left:auto;flex:0 0 auto;align-self:center;display:flex;align-items:center;flex-direction:row;padding:0;z-index:20}
 .top-action-btn{
@@ -530,7 +444,7 @@ body.orbit-booting .dashboard{visibility:hidden}
   box-shadow:var(--glass-shadow-soft);
 }
 .top-action-btn:active{transform:scale(.9);box-shadow:0 2px 8px rgba(0,0,0,.3);transition-duration:.08s}
-.top-action-btn.is-disabled{opacity:.4;filter:grayscale(.5);pointer-events:none}
+
 /* The glow's blur/spread stay generous (it's the one control meant to read
    as "the primary action" at a glance) but the mix percentage backs off from
    its original 38-40% - that read as a neon sign next to the rest of the
@@ -1423,25 +1337,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .sync-upgrade-box[hidden]{display:none}
 .sync-upgrade-box .editor-hint-body{margin:0}
 
-/* A viewer device (see src/sync.js's isSyncViewer/applyEditorRoleLock) is
-   locked out of the schedule editor entirely now (#btn-edit itself is
-   disabled - see .top-action-btn.is-disabled) - #nl-edit-box lives there
-   now too (see index.html), so it's covered by that same whole-sheet block
-   and needs no lock rule of its own here any more. The transfer sheet stays
-   reachable either way - its own sync create/join/unlink controls must
-   always stay usable - but the AI photo-import box and the legacy
-   manual-backup fold's *import* button are still real ways to overwrite the
-   local schedule, so they get locked individually. Manual *export* stays
-   enabled: reading out the currently-synced schedule isn't editing it.
-   gemini-ocr.js's click handler and requestTransferAction()
-   (editor-backup.js) both also refuse the underlying action directly, same
-   belt-and-suspenders reasoning as saveEditor(). */
-.transfer-sheet.sync-viewer-locked #ocr-import-box,
-.transfer-sheet.sync-viewer-locked #settings-import-btn{
-  pointer-events:none;
-  opacity:.5;
-}
-
 /* No network at all (navigator.onLine, checked on opening the transfer
    sheet/schedule editor and kept live via the online/offline listeners -
    see editor-core.js's applyOfflineLock, which toggles .is-offline on both
@@ -1929,10 +1824,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
      away from a fixed target width, fixes that at the source - the smaller
      fonts below then just make sure that available width is enough to show
      the full date without wrapping. */
-  .exam-countdown{width:auto;max-width:none;flex:1 1 auto;min-width:0}
-  .exam-countdown-label{font-size:14px}
-  .exam-countdown-date{font-size:11.5px}
-  .exam-countdown-value{font-size:clamp(20px,5.5vw,24px)}
 }
 
 /* ============================================================================
@@ -1960,7 +1851,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
   .list-container{flex:1 1 auto;width:auto;min-height:0;margin:0;max-width:none}
   .title-now{font-size:58px}
   #schedule-list .row{height:96px}
-  .exam-countdown{width:auto;max-width:none;flex:1 1 auto;min-width:0}
 }
 /* A tall tablet held upright: the dashboard on top at its phone shape but
    wider, the schedule below it full width - two thin columns read worse
@@ -2063,7 +1953,7 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
       radial-gradient(100% 70% at 110% 0%,color-mix(in srgb,var(--pro-secondary) 8%,transparent),transparent 65%),
       color-mix(in srgb,#0d1620 76%,transparent);
   }
-  .dashboard, .nav-bar, .nav-item.active, .top-action-btn, #btn-menu.top-action-btn, .exam-countdown,
+  .dashboard, .nav-bar, .nav-item.active, .top-action-btn, #btn-menu.top-action-btn,
   .modal-sheet, .test-panel, .editor-confirm-sheet,
   .assign-sheet, .top-actions-menu, .row.is-now, .row.is-next,
   .close-btn, .save-btn, .editor-primary-btn, .settings-transfer-btn.primary,
@@ -2254,12 +2144,6 @@ body[data-tab="week"] .cx-section#cx-list-title,#panel-tools .cx-section{margin-
 /* ---- The top row: a status, round buttons ---- */
 .dashboard{display:block;background:transparent;border:0;box-shadow:none;border-radius:0;padding:6px 0 0;margin:0;width:100%;height:auto;min-height:0;flex:0 0 auto;color:var(--q-text)}
 .dashboard > .label-row{display:flex;align-items:center;gap:10px;min-height:0;margin:0 4px 10px}
-.exam-countdown{background:none;border:0;box-shadow:none;padding:0;gap:6px;min-height:0;width:auto;flex-direction:row;align-items:baseline}
-.exam-countdown-copy{flex-direction:row;align-items:baseline;gap:6px}
-.exam-countdown-label{color:var(--q-muted);font-size:14px;font-weight:600}
-.exam-countdown-date{display:none}
-.exam-countdown-value{color:var(--q-text-2);font-family:inherit;font-variant-numeric:tabular-nums;font-size:14px;font-weight:700}
-.exam-countdown-value::before{content:"·";margin-right:6px;color:var(--q-muted);font-weight:600}
 .top-actions{margin-left:auto}
 #btn-menu.top-action-btn{display:none}
 .top-actions-menu,.top-actions .top-actions-menu{position:static!important;display:flex!important;flex-direction:row;gap:10px;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;background:none;border:0;box-shadow:none;padding:0;width:auto;height:auto}
