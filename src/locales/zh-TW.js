@@ -61,6 +61,7 @@ export default {
   'tab.week': '課表',
   'tab.tools': '工具',
   'dashboard.todayClasses': '今天的課',
+  'dashboard.todayClassesLeft': '今天的課 · 還有 {n} 節',
   'dashboard.timetable': '課表',
   'dashboard.periodNow': '第 {n} 節 · 上課中',
   'dashboard.breakThen': '{name} · 接著第 {n} 節',

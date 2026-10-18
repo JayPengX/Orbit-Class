@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from '../src/schedule-calc.js';
+import { classesLeft, classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from '../src/schedule-calc.js';
 
 // A 3-period Monday with one split (單/雙 week) class in the middle, and the
 // default 打掃時間 break sitting exactly between periods 0 and 1 - same
@@ -305,5 +305,15 @@ describe('heroView: the card says one thing', () => {
     const h = hero(at(12, 0), { nextDay: { label: '明天', first: todaySchedule[1], week: '雙' } });
     expect(h).toMatchObject({ mode: 'off', title: '放學時間', timer: null, progress: null });
     expect(h.foot).toMatchObject({ label: '明天', name: '公民' });
+  });
+});
+
+describe('classesLeft', () => {
+  it('counts the classes not over yet, the one on now included', () => {
+    expect(classesLeft(todaySchedule, at(7, 0))).toBe(3);
+    expect(classesLeft(todaySchedule, at(9, 30))).toBe(2);
+    expect(classesLeft(todaySchedule, at(10, 0))).toBe(1);
+    expect(classesLeft(todaySchedule, at(11, 0))).toBe(0);
+    expect(classesLeft(null, at(9, 0))).toBe(0);
   });
 });

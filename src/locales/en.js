@@ -82,6 +82,7 @@ export default {
   'tab.week': 'Timetable',
   'tab.tools': 'Tools',
   'dashboard.todayClasses': "Today's classes",
+  'dashboard.todayClassesLeft': 'Today · {n} left',
   'dashboard.timetable': 'Timetable',
   'dashboard.periodNow': 'Period {n} · in class',
   'dashboard.breakThen': '{name} · period {n} next',
