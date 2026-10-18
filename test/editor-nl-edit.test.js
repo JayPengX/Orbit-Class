@@ -203,15 +203,15 @@ function patch(overrides) {
 }
 
 describe('applyNlEditResult', () => {
-  it('ignores a slot past the last period (never fills a day with empty cells)', () => {
+  it('refuses a slot past the last period (never fills a day with empty cells, never applies the rest)', () => {
     const started = Date.now();
-    const next = applyNlEditResult(
-      makeCurrentData(),
-      patch({ scheduleEdits: [{ day: 1, period: 5_000_000, key: 'A' }, { day: 2, period: 1, key: 'A' }, { day: 2, period: 0, key: 'A' }] })
-    );
+    expect(() =>
+      applyNlEditResult(
+        makeCurrentData(),
+        patch({ scheduleEdits: [{ day: 1, period: 5_000_000, key: 'A' }, { day: 2, period: 0, key: 'A' }] })
+      )
+    ).toThrow();
     expect(Date.now() - started).toBeLessThan(500);
-    expect(next.weeklySchedule[1]).toEqual(['A']);
-    expect(next.weeklySchedule[2]).toEqual(['A']);
   });
 
   it('a slot in a period the same patch adds is kept', () => {
@@ -257,7 +257,8 @@ describe('applyNlEditResult', () => {
       teacherDB: { A: ['數學', '王老師', '101'], B: ['英文', '林老師', '103'] },
       teacherOrder: ['A', 'B'],
       locationDB: { A: '101', B: '103' },
-      weeklySchedule: { 0: [], 1: ['A', 'B'], 2: [], 3: [], 4: [], 5: [], 6: [] }
+      weeklySchedule: { 0: [], 1: ['A', 'B'], 2: [], 3: [], 4: [], 5: [], 6: [] },
+      bellTimes: [['08:00', '08:50'], ['09:00', '09:50']]
     });
     const next = applyNlEditResult(
       currentData,

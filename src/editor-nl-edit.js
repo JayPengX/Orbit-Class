@@ -339,9 +339,14 @@ function applyNlEditResult(current, result) {
 
   const teacherDB = cloneSettingsData(current.teacherDB || {});
   const locationDB = cloneSettingsData(current.locationDB || {});
+  // An answer is applied whole or not at all: one entry that names nothing
+  // real (no key, an unknown class, a day or period that isn't there) means
+  // the answer is garbled, and the rest of it can't be trusted either. The
+  // quiet skipping that was here applied the half that made sense.
+  const garbled = () => new Error(t('nlEdit.badResponse'));
   (result.classUpserts || []).forEach(entry => {
     const key = String(entry?.key || '').trim();
-    if (!key) return;
+    if (!key) throw garbled();
     teacherDB[key] = [
       String(entry.subject || ''),
       String(entry.teacher || ''),
@@ -351,7 +356,7 @@ function applyNlEditResult(current, result) {
   });
   (result.deletedClassKeys || []).forEach(rawKey => {
     const key = String(rawKey || '').trim();
-    if (!key) return;
+    if (!key) throw garbled();
     delete teacherDB[key];
     delete locationDB[key];
   });
@@ -368,8 +373,10 @@ function applyNlEditResult(current, result) {
   const periods = (result.bellTimesChanged ? result.bellTimes : current.bellTimes || []).length;
   (result.scheduleEdits || []).forEach(edit => {
     const day = String(edit?.day);
-    const period = Number(edit?.period);
-    if (!weeklySchedule[day] || !Number.isInteger(period) || period < 0 || period >= periods) return;
+    const period = typeof edit?.period === 'number' ? edit.period : NaN;
+    const key = String(edit?.key ?? '');
+    if (!weeklySchedule[day] || !Number.isInteger(period) || period < 0 || period >= periods) throw garbled();
+    if (key && !teacherDB[key]) throw garbled();
     while (weeklySchedule[day].length <= period) weeklySchedule[day].push('');
     weeklySchedule[day][period] = String(edit.key || '');
   });
@@ -380,7 +387,16 @@ function applyNlEditResult(current, result) {
   if (result.countdownEventsChanged) next.countdownEvents = result.countdownEvents;
   if (result.reverseWeekChanged) next.reverseWeek = result.reverseWeek;
 
-  return normalizeSettingsData(next);
+  const done = normalizeSettingsData(next);
+  // The cleaning drops what it can't read; for a field the answer set,
+  // anything dropped is a garbled answer.
+  if (result.countdownEventsChanged && done.countdownEvents.length !== result.countdownEvents.length) throw garbled();
+  if (
+    result.breakTimesChanged &&
+    !result.breakTimes.every(b => done.breakTimes.some(d => d.name === b?.name && d.start === b.start && d.end === b.end))
+  )
+    throw garbled();
+  return done;
 }
 
 // A single-button info sheet - same shape as editor-core.js's own "AI 辨識
@@ -533,6 +549,7 @@ function mountNlEditor() {
 mountNlEditor();
 
 export {
+  extractJsonObject,
   applyNlEditResult,
   buildNlEditContext,
   isNlEditConfigured,
