@@ -2710,7 +2710,7 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .transfer-section-heading > span:first-child,.editor-sheet .transfer-section-heading > span:first-child{color:var(--q-text)}
 
 /* ---- iOS 26: the family's look on Class's own pieces (light: its glass stays) ----
-   Light at the rim, no outline rings (TRUTH §11): sheets and the welcome card
+   Light at the rim, no outline rings: sheets and the welcome card
    lose their 1px ring for the kit's rim; what sits in a sheet (rows, folds,
    the welcome card's choices, fields) is iOS's grey fill; text buttons are
    capsules, icon buttons circles. Borders go transparent, never 0, so a
