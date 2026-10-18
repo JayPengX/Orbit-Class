@@ -2356,6 +2356,15 @@ body[data-tab="week"] .cx-countdowns,.cx-countdowns:empty{display:none}
 .cx-cd-plus{font-size:26px;font-weight:500;line-height:1}
 .cx-cd-addtext{font-size:11px;font-weight:700;text-align:center;line-height:1.2}
 
+/* ---- 明天要帶 (今天, src/bring.js): the night before, one line per thing to bring ---- */
+.cx-bring{display:block}
+body[data-tab="week"] .cx-bring,.cx-bring:empty{display:none}
+.cx-bring-card{display:grid;gap:2px;padding:6px 16px;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm)}
+.cx-bring-row{display:flex;align-items:center;gap:12px;min-height:52px;min-width:0}
+.cx-bring-row + .cx-bring-row{border-top:1px solid var(--q-divider)}
+.cx-bring-item{flex:1 1 auto;min-width:0;font-size:16px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.cx-bring-for{flex:0 1 auto;min-width:0;color:var(--q-muted);font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+
 /* ---- 工具 (src/tools.js): the timetable at a glance, then the ways in ---- */
 #panel-tools > .cx-tools-page > .cx-section:first-child{margin-top:6px}
 .cx-tl-card{padding:18px;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm)}
