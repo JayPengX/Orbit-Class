@@ -19,13 +19,10 @@
    override this with a more specific rule (.row, #test-time-slider, etc.
    already do, for a ring shaped to their own geometry). */
 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
 @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes orbit-row-in{from{opacity:0;transform:translateY(16px) scale(.97);filter:blur(3px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 @keyframes orbit-card-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes orbit-nav-slide{from{opacity:0;transform:translateX(calc(var(--nav-dir,1) * 48px))}to{opacity:1;transform:translateX(0)}}
-#schedule-list.nav-slide{animation:orbit-nav-slide .6s var(--ease-glass)}
-
 /* ---- Design tokens ---- */
 :root{
   --orbit-panel:var(--q-surface-2);
@@ -170,7 +167,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
      to rest like a rigid box. */
   --ease-liquid:cubic-bezier(.34,1.42,.5,1);
 }
-
 /* ============================================================================
    Liquid Glass material — edge refraction
    The tokens above describe the glass as a flat translucent slab. This block
@@ -243,20 +239,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       linear-gradient(to top,#000,transparent var(--glass-rim));
   }
 }
-/* Small boxes need a proportionally narrower band — a 16px rim on a 40px
-   button is the whole button, which turns the lens into a flat wash. */
-.top-action-btn::after{--glass-rim:9px}
-.top-actions-menu::after{--glass-rim:11px}
-/* The hub used to be the one .top-action-btn that wasn't glass at all (a
-   flat opaque accent gradient) - the one solid shape in a screen built
-   entirely from translucent panels, so it read as pasted on top of the
-   material rather than part of it. It's tinted glass now, same family as
-   every other button here, and still keeps the rim disabled: the open
-   state rotates the button 45°, and the band's four bright edges would
-   land on the diagonals and turn a soft squircle into a hard-edged
-   diamond. Its own tinted border + glow already read as "the primary
-   action" without it. */
-#btn-menu.top-action-btn::after{display:none}
 /* The slow highlight drift across the dashboard: one soft, very dim hot spot
    wandering over the largest piece of glass in the app. This is the "liquid"
    half of Liquid Glass — without it the material is convincing but inert,
@@ -270,24 +252,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   from{transform:translate3d(-7%,-5%,0) scale(1)}
   to{transform:translate3d(11%,8%,0) scale(1.16)}
 }
-.dashboard::before{
-  content:"";position:absolute;inset:-30%;z-index:0;pointer-events:none;
-  background:radial-gradient(38% 46% at 30% 22%,color-mix(in srgb,var(--q-text) 8.5%,transparent),transparent 62%);
-  animation:glassDrift 26s var(--ease-glass) infinite alternate;
-}
-@media (prefers-reduced-motion:reduce){.dashboard::before{animation:none}}
-/* This, statusTagLivePulse and rowLiveGlow (further down) are the only
-   `infinite` animations in the app - each keeps running, and keeps the
-   compositor doing work every frame, for as long as its element is on
-   screen, with no natural stopping point of its own. Installed as a
-   home-screen PWA, that screen can realistically stay open for a whole
-   class period or longer, and standalone-mode WebKit has not reliably
-   throttled a still-animating page the way an ordinary backgrounded Safari
-   tab is - see bootstrap.js's visibilitychange listener that adds this
-   class, the actual fix for reports of the phone getting warm from just
-   leaving this open. Paused, not removed: the exact frame it was on when
-   paused is exactly where it resumes. */
-body.orbit-motion-paused .dashboard::before{animation-play-state:paused}
 /* Someone who has asked the OS for less transparency wants less of exactly
    this effect, so the rim drops its extra backdrop pass and keeps only the
    (opaque-safe) chromatic edge. */
@@ -297,7 +261,6 @@ body.orbit-motion-paused .dashboard::before{animation-play-state:paused}
     backdrop-filter:none;-webkit-backdrop-filter:none;
   }
 }
-
 /* ---- Base ---- */
 html{color-scheme:dark;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--q-page)}
 /* The kit's strip under the status bar (it keeps iOS's edge blur off the header), in Orbit's page colour. */
@@ -369,473 +332,14 @@ body::before{
     linear-gradient(90deg,color-mix(in srgb,var(--pro-accent) 3.5%,transparent) 1px,transparent 1px) 0 0/72px 72px,
     linear-gradient(color-mix(in srgb,var(--pro-accent) 2.5%,transparent) 1px,transparent 1px) 0 0/72px 72px;
 }
-@media (max-width:430px){body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}}
-
+@media (max-width:430px){
+body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+}
 .test-banner{position:fixed;top:0;left:0;width:100%;background:var(--warn);color:var(--pro-secondary-text);font-size:11px;font-weight:800;text-align:center;z-index:999;padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));padding-top:calc(6px + var(--q-top, env(safe-area-inset-top)));display:none}
-
-/* Exists purely as a CSS hook for the phone landscape layout far below,
-   which needs .dashboard+.nav-bar wrapped in one box to align a flex row
-   against (see that block's own comment for why). display:contents makes
-   this wrapper invisible to layout everywhere else - .dashboard/.nav-bar
-   lay out as if they were still direct children of body, unchanged from
-   before this wrapper existed. */
-.top-stack{display:contents}
-
-/* ============================================================================
-   Dashboard card
-   ========================================================================= */
-/* Body's three stacked sections (.dashboard, .nav-bar, #schedule-list) are
-   locked to a fixed 40/10/50 vertical split of the viewport now, not a
-   clamp() guessing at a reasonable px range - flex-basis in percent
-   resolves against body's own content-box height (100dvh minus its own
-   padding), so this is an exact proportion of whatever's actually
-   available on the device, not an approximation of one. flex:0 0 keeps
-   it locked - #schedule-list is the only one of the three allowed to
-   grow/shrink (see its own flex value), so any rounding from margins
-   below lands there instead of quietly eating into this 40%. The calc()
-   subtracts this element's own margin (6px top + 8px bottom) so the
-   MARGIN BOX - not just the content - ends up at 40%, matching what a
-   person actually sees as "the dashboard's share of the screen". */
-.dashboard{
-  isolation:isolate;contain:layout paint;overflow:hidden;position:relative;
-  width:min(420px,100%);flex:0 0 calc(40% - 14px);margin:6px auto 8px 2px;box-sizing:border-box;
-  min-height:0;height:auto;max-height:none;
-  padding:10px 10px 12px;gap:0;
-  display:flex;flex-direction:column;justify-content:center;
-  border-radius:var(--orbit-radius-lg);
-  background:var(--glass-fill);
-  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  box-shadow:var(--glass-shadow);
-  transition:filter .35s ease,opacity .35s ease,transform .35s ease;
-}
-.dashboard > *{position:relative;margin-top:0;flex:0 0 auto}
-.dashboard > .now-stack{flex:1 1 0}
-/* Only the label row keeps breathing room below it - the now-stack/time-card
-   pair below sit flush against each other (see their own border-radius
-   comment) so the space that used to go to a visible gap between those two
-   cards goes to now-stack's own height instead. */
-.dashboard > .label-row{margin-bottom:6px}
-@supports not (backdrop-filter:blur(1px)){.dashboard{background:var(--q-surface-2)}}
-@media (max-width:430px){.dashboard{margin-top:3px;padding:12px;flex-basis:calc(40% - 11px);border-radius:20px}.dashboard > .label-row{margin-bottom:9px}}
-@media (max-height:700px){.dashboard{padding:9px 10px 11px}.dashboard > .label-row{margin-bottom:5px}}
-
-body.orbit-booting .dashboard{visibility:hidden}
-
-/* Label row: exam countdown (leading, anchored left) + tool menu (trailing,
-   anchored right via .top-actions' own margin-left:auto). The week-parity
-   badge used to live here as a cramped top-left pill; it now sits in the
-   class editor's own header instead, next to "編輯課表", since that's where
-   the odd/even setting actually gets changed. */
-.dashboard > .label-row{position:relative;display:flex;align-items:center;gap:10px;min-height:40px;padding:0}
 .label{font-weight:700;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.45px}
-.status-dot{width:9px;height:9px;border-radius:50%;background:var(--sub);box-shadow:0 0 0 4px color-mix(in srgb,var(--pro-secondary) 16%,transparent),0 0 14px color-mix(in srgb,var(--pro-secondary) 48%,transparent)}
 .status-active{background:var(--pro-secondary);box-shadow:0 0 0 5px color-mix(in srgb,var(--pro-secondary) 18%,transparent),0 0 20px color-mix(in srgb,var(--pro-secondary) 32%,transparent)}
-.status-wait{background:var(--pro-accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--pro-accent) 16%,transparent),0 0 14px color-mix(in srgb,var(--pro-accent) 42%,transparent)}
-
-
-.top-actions{position:relative;margin-left:auto;flex:0 0 auto;align-self:center;display:flex;align-items:center;flex-direction:row;padding:0;z-index:20}
-.top-action-btn{
-  position:relative;isolation:isolate;
-  width:40px;height:40px;border-radius:13px;color:var(--txt);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:transform .3s var(--ease-liquid),opacity .15s,box-shadow .2s,background .2s,border-color .2s;
-  padding:0;border:none;background:var(--glass-fill-strong);
-  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-  box-shadow:var(--glass-shadow-soft);
-}
-.top-action-btn:active{transform:scale(.9);box-shadow:0 2px 8px rgba(0,0,0,.3);transition-duration:.08s}
-
-/* The glow's blur/spread stay generous (it's the one control meant to read
-   as "the primary action" at a glance) but the mix percentage backs off from
-   its original 38-40% - that read as a neon sign next to the rest of the
-   app's now much quieter chrome, once every other button stopped competing
-   with its own saturated glow. */
-#btn-menu.top-action-btn{width:var(--v31-hub-size);height:var(--v31-hub-size);border-radius:18px;border:1px solid color-mix(in srgb,var(--pro-accent) 48%,transparent);background:linear-gradient(145deg,color-mix(in srgb,var(--pro-accent) 46%,transparent),color-mix(in srgb,var(--pro-accent) 18%,transparent) 70%),var(--glass-fill-strong);color:var(--pro-accent-text);font-size:20px;box-shadow:var(--glass-shadow-soft),0 10px 24px color-mix(in srgb,var(--pro-accent) 26%,transparent);font-weight:900;line-height:1;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%)}
-.top-actions.open #btn-menu.top-action-btn{transform:rotate(45deg) scale(.96);color:var(--pro-secondary-text);border-color:color-mix(in srgb,var(--pro-secondary) 48%,transparent);background:linear-gradient(145deg,color-mix(in srgb,var(--pro-secondary) 50%,transparent),color-mix(in srgb,var(--pro-secondary) 20%,transparent) 70%),var(--glass-fill-strong);box-shadow:var(--glass-shadow-soft),0 10px 24px color-mix(in srgb,var(--pro-secondary) 24%,transparent)}
-.top-actions-menu{
-  position:absolute;top:calc(var(--v31-hub-size) + 8px);right:0;flex-direction:column;display:flex;gap:7px;padding:7px;
-  border-radius:20px;opacity:0;visibility:hidden;pointer-events:none;
-  transform:translateY(-8px) scale(.94);transform-origin:top right;
-  transition:opacity .18s ease,transform .22s var(--ease-glass),visibility .18s;
-  backdrop-filter:blur(22px) saturate(190%);-webkit-backdrop-filter:blur(22px) saturate(190%);
-  background:var(--glass-fill-strong);box-shadow:var(--glass-shadow-soft);
-}
-.top-actions.open .top-actions-menu{display:flex;opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1)}
-.top-actions-menu .top-action-btn{width:44px;height:44px;font-size:17px;border-radius:13px}
-/* One shared neutral chrome for all three menu icons - only the icon color
-   itself (via `color`, since each SVG uses stroke="currentColor") tells them
-   apart. Three separately tinted+bordered pills here (accent/secondary/a
-   third blended hue, stacked right next to each other in one small menu)
-   read as a cluster of mismatched colored badges rather than one coherent
-   tool menu; a single icon-only accent keeps them individually identifiable
-   without the menu itself looking like a confetti of brand colors. */
-.top-actions-menu .top-action-btn{border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);background:color-mix(in srgb,var(--q-text) 5.5%,transparent);box-shadow:0 6px 16px rgba(0,0,0,.22),inset 0 1px 0 color-mix(in srgb,var(--q-text) 6%,transparent)}
-.top-actions-menu #btn-edit.top-action-btn{color:var(--pro-accent-readable)}
-.top-actions-menu #btn-style.top-action-btn{color:var(--pro-secondary-readable)}
-.top-actions-menu #btn-transfer.top-action-btn{color:var(--pro-blend)}
-.top-actions-menu .top-action-btn:active{transform:scale(.9)}
-.top-actions-menu .top-action-btn.active{box-shadow:0 0 0 2px currentColor,0 6px 16px rgba(0,0,0,.22)}
-/* Used to fade out entirely while the editor/sync sheet was open - dropped
-   because that made it vanish outright instead of just dimming behind the
-   sheet's own overlay like the rest of the dashboard does (most visible in
-   phone landscape, where the sheet doesn't cover the dashboard column at
-   all and the button's slot just went blank). The overlay's own z-index
-   already sits above .top-actions (see .test-panel-overlay), so it still
-   isn't clickable through the sheet - this only stops it from disappearing. */
-
-/* Now-stack: current class title + meta chips */
-/* Redesigned around one centered axis instead of a left title / right tag-
-   stack split: the subject name is the hero, dead center, with its
-   teacher/room/week-label chips reflowed into a single horizontal row
-   directly under it (like a now-playing screen's title + artist line)
-   rather than stacked flush to the right edge on their own. Everything
-   below - progress bar, next-class module - was already centered/full-
-   width, so this is what actually makes the "now" card read as one
-   centered composition top to bottom instead of the title being the one
-   asymmetric piece. .is-status (今日無課/尚未開始 etc.) already centered
-   itself the same way, so it now only has to differ in font size and in
-   hiding the meta row - not in layout direction. */
-.now-stack{
-  flex:1 1 0;display:grid;align-content:center;justify-items:center;justify-content:center;min-height:0;padding:9px 10px;gap:6px;
-  grid-template-columns:minmax(0,1fr);
-  text-align:center;
-  /* Squared off on the bottom, not the same radius all around - this card
-     sits flush against .time-card below it (no gap between them, see
-     .dashboard's own comment), so rounding those two corners here would
-     just carve a pinched notch out of the seam instead of the two reading
-     as one continuous block. */
-  border-radius:calc(var(--orbit-radius-lg) - 10px) calc(var(--orbit-radius-lg) - 10px) 0 0;
-  background:var(--well-fill);
-  backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  box-shadow:var(--well-shadow);
-  overflow-x:hidden;
-}
-@supports not (backdrop-filter:blur(1px)){.now-stack{background:var(--q-surface-2)}}
-.now-stack.is-status .now-meta-row{width:100%;display:none}
-/* font-size here is a fallback only - dashboard-render.js's
-   fitNowTitleText() sets an inline font-size on every render (it has to,
-   to shrink long names to fit), which always wins over whatever this
-   says. See that function's own comment for the actual controlling
-   value and why it has to stay above .timer-badge/.title-next's
-   ceilings - kept in sync here only so the unstyled-flash size before
-   JS's first pass isn't wildly off from what JS then sets it to. */
-.title-now{font-weight:800;margin:0;word-break:keep-all;overflow-wrap:normal;min-width:0;width:100%;text-align:center;display:block;align-self:center;justify-self:center;white-space:nowrap;overflow:visible;text-overflow:clip;max-width:100%;line-height:1.02;letter-spacing:-.04em;font-size:46px;text-shadow:none;color:var(--current-class-color,var(--accent))}
-/* No font-size of its own (used to carry a separate clamp(...) !important
-   ceiling here) - a status message like 今日無課/放學時間/尚未開始 is
-   rendered through this same #now-name element as a real class name or a
-   break name (打掃時間 etc.) is, and fitNowTitleText() in
-   dashboard-render.js sizes all of them off the exact same box-height
-   calculation. Two separate size sources for what's visually the same
-   "one big line of text in this card" slot was why a status message and a
-   break/class name never quite matched each other; letting JS's inline
-   font-size win here too (same as the non-status case) is what makes them
-   actually resonate. */
-.now-stack.is-status .title-now{white-space:nowrap;overflow:visible;text-overflow:clip;word-break:keep-all;overflow-wrap:normal;align-self:center;justify-self:center;text-align:center;width:100%;max-width:100%}
-.now-meta-row{display:flex;flex-direction:row;flex-wrap:wrap;min-height:20px;justify-content:center;min-width:0;gap:5px 6px;align-items:center;max-width:100%;align-self:center}
-#now-teacher{display:none;width:max-content;background:color-mix(in srgb,var(--pro-secondary) 14%,transparent);backdrop-filter:blur(10px) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(10px) saturate(var(--glass-sat));color:var(--pro-secondary-readable);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;transition:opacity .2s;line-height:1.15;max-width:46vw;min-height:20px;padding:3px 8px;border-radius:10px;font-size:11.5px}
-#now-teacher.show{display:block}
-#now-place{display:none;width:max-content;background:color-mix(in srgb,var(--current-class-color,var(--accent)) 14%,transparent);backdrop-filter:blur(10px) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(10px) saturate(var(--glass-sat));color:var(--current-class-color,var(--accent));font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.15;max-width:46vw;min-height:20px;padding:3px 8px;border-radius:10px;font-size:11.5px}
-#now-place.show{display:block}
-.dashboard-class-label{min-height:20px;max-width:100%;padding:2px 7px;font-size:11px;text-align:center;line-height:1.2;display:none;width:max-content;border-radius:999px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--current-class-color,var(--accent));background:transparent;border:0}
-.dashboard-class-label.show{display:block}
-@media (max-width:360px){#now-teacher,#now-place,.dashboard-class-label{padding-inline:6px}}
-@media (max-width:430px){.now-meta-row,#now-teacher,#now-place,.dashboard-class-label{max-width:48vw}#now-teacher,#now-place,.dashboard-class-label{font-size:11.5px}}
-@media (max-height:700px){.title-now{font-size:37px}.now-stack{gap:4px}}
-@media (max-width:430px){.now-stack.is-status{gap:7px}.title-now{line-height:1.02}}
-
-/* Time card: progress bar + timer, merges the "next class" module in */
-.time-card{
-  flex:0 1 auto;display:flex;flex-direction:column;padding:7px 10px;gap:5px;
-  /* Squared off on top to sit flush against .now-stack above it - see that
-     rule's own comment. */
-  border-radius:0 0 calc(var(--orbit-radius-lg) - 10px) calc(var(--orbit-radius-lg) - 10px);
-  background:var(--well-fill);
-  backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  box-shadow:var(--well-shadow);
-}
-@supports not (backdrop-filter:blur(1px)){.time-card{background:var(--q-surface-2)}}
-.break-progress-wrap{margin:0;background:color-mix(in srgb,var(--q-text) 8%,transparent);backdrop-filter:blur(8px) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(8px) saturate(var(--glass-sat));border-radius:999px;overflow:hidden;display:none;height:9px;margin-bottom:1px;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
-/* One hue per state, not a two-hue accent/secondary blend that read as a
-   decorative rainbow strip regardless of what the bar was actually tracking
-   - break time tints toward --pro-secondary, class time toward --pro-accent,
-   so the color itself now carries "which state you're in" instead of
-   letting a mixed gradient dilute both. */
-.break-progress-bar{height:100%;border-radius:999px;transition:width 1s linear;background:linear-gradient(90deg,color-mix(in srgb,var(--pro-secondary) 55%,#fff 15%),var(--pro-secondary))}
-.break-progress-bar.is-class{background:linear-gradient(90deg,color-mix(in srgb,var(--pro-accent) 55%,#fff 15%),var(--pro-accent))}
-/* Plain text, not a ring or a badge - a circle sized to fit MM:SS legibly
-   was always fighting its own shape, and the fix for that was never going
-   to be as good as just not drawing a shape around the number at all.
-   Same accent/secondary split as before (counting down to 下課, still in
-   class, reads accent/purple; counting down to 上課, on a break, reads
-   secondary/pink), read straight off #progress-bar's own .is-class state. */
-.timer-container{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin-top:0}
-/* Capped well under .title-now's fixed 44px/37px (see its own comment) -
-   remaining time matters, but it's still describing the current class,
-   not competing with it for "the biggest thing on the card". */
-.timer-badge{font-weight:900;font-family:ui-monospace,SFMono-Regular,monospace;font-variant-numeric:tabular-nums;color:var(--pro-secondary-readable);font-size:clamp(26px,6.8vw,30px);letter-spacing:-.02em;line-height:1}
-.time-card:has(#progress-bar.is-class) .timer-badge{color:var(--pro-accent-readable)}
-.timer-label{font-size:12px;font-weight:800;letter-spacing:.2px;color:var(--pro-secondary)}
-.time-card:has(#progress-bar.is-class) .timer-label{color:var(--pro-accent)}
-
-/* Merged next-class module (JS moves .next-box inside .time-card at boot) */
-.time-card.v3-11-next-module{
-  display:grid;grid-template-areas:"progress progress" "next timer";
-  grid-template-columns:minmax(0,1fr) 132px;column-gap:12px;row-gap:8px;
-  align-self:stretch;align-items:stretch;margin-top:0;flex:0 0 auto;min-height:0;
-  padding:8px 10px 9px;border-radius:0 0 calc(var(--orbit-radius-lg) - 10px) calc(var(--orbit-radius-lg) - 10px);
-  background:var(--well-fill);box-shadow:var(--well-shadow);
-}
-.time-card.v3-11-next-module .break-progress-wrap{grid-area:progress;border-radius:999px;height:9px;margin-bottom:1px;border:1px solid color-mix(in srgb,var(--orbit-line) 80%,#fff 4%)}
-.time-card.v3-11-next-module .timer-container{grid-area:timer;align-self:stretch;justify-content:center}
-.time-card.v3-11-next-module .next-box{grid-area:next;overflow:hidden;align-self:stretch;flex-direction:column;width:auto;min-width:0;min-height:0;gap:8px;justify-content:center;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;margin:0;box-shadow:none;border-radius:0;background:transparent;padding:0;padding-right:10px;border:0;border-right:1px solid var(--orbit-line)}
-.time-card.v3-11-next-module .next-content{min-width:0;width:100%;text-align:center}
-.time-card.v3-11-next-module .next-content > .label{display:block;text-align:center;opacity:.78;margin-bottom:5px;letter-spacing:.35px;font-size:10.5px}
-/* height is fixed at exactly 2 lines (in em, so it tracks the clamp()/media
-   font-size overrides below automatically) and -webkit-box-pack centers a
-   short, single-line name inside that space - without this, a 1-line name
-   left .time-card shorter than a 2-line one, and since .time-card sits
-   flex:0 0 auto inside .dashboard's fixed-height column with .now-stack as
-   the only flexible sibling, that size difference shrank/grew .now-stack
-   (and everything above it, .label-row's toolbar button included) every
-   time the next class's name crossed the 1-line/2-line boundary. */
-.time-card.v3-11-next-module .title-next{font-weight:850;line-height:1.08;letter-spacing:0;text-overflow:clip;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;-webkit-box-pack:center;overflow:hidden;text-wrap:balance;overflow-wrap:normal;word-break:normal;font-size:clamp(18px,5vw,22px);height:calc(1.08em * 2);color:var(--pro-accent)}
-.time-card.v3-11-next-module .next-box .next-meta{width:100%;max-width:100%;flex:0 0 auto;display:flex;flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:2px 8px;overflow:visible}
-.time-card.v3-11-next-module .next-meta > div{max-width:100%;min-width:0;overflow:visible;text-overflow:clip;white-space:nowrap;overflow-wrap:normal;word-break:keep-all;text-align:center;line-height:1.2}
-.time-card.v3-11-next-module .next-box .next-meta #next-meta-text{font:500 clamp(14px,3.9vw,16px)/1.2 inherit;text-align:center;display:block;width:100%;color:var(--sub)}
-.time-card.v3-11-next-module .next-box .next-meta #next-meta-text.wrap-2l{white-space:normal;text-wrap:balance}
-@media (max-width:360px){.time-card.v3-11-next-module{grid-template-columns:minmax(0,1fr) 108px;column-gap:9px}.timer-badge{font-size:clamp(23px,7.2vw,26px)}.time-card.v3-11-next-module .title-next{font-size:clamp(17px,4.8vw,20px)}}
-@media (max-height:700px){.time-card{padding-block:7px}.time-card.v3-11-next-module .title-next{font-size:clamp(16px,4.6vw,19px)}.timer-badge{font-size:clamp(22px,6.6vw,25px)}}
-
-.next-box{margin-top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:49px;padding:8px 10px;border:1px solid var(--orbit-line);border-radius:var(--orbit-radius-md);background:color-mix(in srgb,var(--pro-accent) 8%,var(--orbit-panel));box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 5.5%,transparent)}
-.next-box>div:first-child{min-width:0;flex:1}
 .next-content{flex:1;min-width:0}
-.title-next{font-weight:700;line-height:1.15;font-size:clamp(15px,4.3vw,19px);color:var(--pro-accent-readable)}
 .next-meta{display:flex}
-
-/* Dashboard merge states: collapse to one centered panel once there's
-   nothing left to show for "next" today. */
-.dashboard.v3-15-day-finished > .next-box,
-.dashboard.v3-16-outside-class-range > .next-box,
-.dashboard.orbit-no-school-day > .next-box{display:none}
-.dashboard.v3-15-day-finished > .time-card,
-.dashboard.v3-16-outside-class-range > .time-card,
-.dashboard.orbit-no-school-day > .time-card{display:none}
-.dashboard.v3-15-day-finished,
-.dashboard.v3-16-outside-class-range,
-.dashboard.orbit-no-school-day{justify-content:center}
-.dashboard.v3-15-day-finished .now-stack,
-.dashboard.v3-16-outside-class-range .now-stack,
-.dashboard.orbit-no-school-day .now-stack{flex:1 1 auto;justify-content:center}
-.dashboard.orbit-no-school-day .now-meta-row,
-.dashboard.orbit-no-school-day .time-card.v3-11-next-module .timer-container{display:none !important}
-/* Still mid-class/break with nothing next: keep the timer module, just drop
-   its now-empty "next class" column (nested inside .time-card since JS moves
-   .next-box there at boot) so it doesn't sit there half blank. */
-.dashboard.orbit-no-upcoming-class .time-card.v3-11-next-module .next-box{display:none}
-.dashboard.orbit-no-upcoming-class .time-card.v3-11-next-module{grid-template-areas:"progress" "timer";grid-template-columns:minmax(0,1fr)}
-.dashboard.orbit-no-upcoming-class .time-card.v3-11-next-module .timer-container{width:100%;min-width:0;padding:4px 0}
-.dashboard.orbit-no-upcoming-class .timer-badge{font-size:clamp(30px,8vw,34px)}
-.dashboard.orbit-no-upcoming-class .timer-label{font-size:15px}
-
-/* ============================================================================
-   Day nav bar
-   ========================================================================= */
-/* No background/blur on the bar itself (previously a glass pill, matching
-   .dashboard's look): that box painted immediately from CSS while the bar
-   was still empty (it only gets its day buttons once schedule.js's deferred
-   module runs), so on a slow/cold standalone-PWA launch it could sit
-   visible on its own for a beat before the buttons appeared on top of it -
-   reported as a dark flash. Two earlier attempts at hiding/timing around
-   that (dropping the .is-today/.is-tomorrow ring, resetting native button
-   appearance) didn't fix it, so this removes the box outright instead of
-   trying to time it: with nothing painted here before the buttons exist,
-   there's nothing left to flash regardless of how slowly they load. */
-/* 10% of the viewport, same fixed-share model as .dashboard above (see
-   its own comment) - calc() subtracts this element's own margin-bottom
-   so its margin box, not just its content box, lands at 10%. */
-.nav-bar{
-  width:min(420px,100%);flex:0 0 calc(10% - 7px);display:flex;align-items:stretch;gap:2px;padding:3px;margin-bottom:7px;
-  transition:filter .35s ease,opacity .35s ease,transform .35s ease;
-  border-radius:var(--orbit-radius-md);
-}
-.nav-item{
-  /* Removing the background/color/border-color transition (see git history)
-     did not fix this on a real Safari device, which rules out "gradient
-     transition interpolation" as the actual cause. What's left, and what
-     real WebKit engines are specifically known to get wrong, is compositing:
-     :active applies `transform:scale()`, which promotes the button to its
-     own GPU layer only while pressed and drops it back afterward. Safari can
-     fail to rasterize this button's color-mix()-based gradient background
-     onto that layer in time, so the button paints blank for a frame - then
-     "reappears" once the transform transition ends and the layer is torn
-     down and repainted from scratch. Forcing the button onto a GPU layer
-     permanently (not just while :active) keeps that layer alive across the
-     whole press, so there's nothing to promote/demote and nothing to
-     mis-rasterize. Every earlier fix here (is-today/is-tomorrow ring,
-     -webkit-appearance:none, dropping .nav-bar's background, box-shadow/
-     tap-highlight resets, the background transition itself) targeted a
-     different layer of this than the actual compositing glitch. */
-  -webkit-appearance:none;appearance:none;
-  -webkit-tap-highlight-color:transparent;
-  -webkit-transform:translateZ(0);transform:translateZ(0);
-  -webkit-backface-visibility:hidden;backface-visibility:hidden;
-  will-change:transform;
-  flex:1;min-width:0;min-height:46px;background:transparent;
-  /* A real, always-visible border - without it an unselected day is just
-     text sitting on the bare background with nothing marking its tap
-     target, which read as broken rather than intentionally minimal. The
-     is-today/is-tomorrow/active states below all set their own bolder
-     border on top of this same property, so this is only ever what an
-     otherwise-plain day (not today, not tomorrow, not the active tab)
-     shows. */
-  border:1px solid var(--orbit-line);
-  /* Glass, like every other control floating directly on the page
-     backdrop. Only the inset rim from --glass-edge-shadow, never an outer
-     drop shadow: iOS Safari drew none here while desktop Chrome drew a soft
-     one, so the drop layer stays dropped everywhere (see the .active note
-     below) - the rim is what gives the pill its edge on both. The press
-     transition uses --ease-liquid (springy overshoot on release), same as
-     every other tappable glass surface, instead of the flatter --ease-glass
-     used for size/backdrop changes that aren't a press. */
-  background:var(--glass-fill-card);
-  backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  box-shadow:var(--glass-edge-shadow);outline:none;
-  font-size:clamp(16px,4.6vw,20px);cursor:pointer;transition:transform .3s var(--ease-liquid),background .2s,border-color .2s;
-  border-radius:13px;padding:8px 3px;font-weight:700;color:var(--orbit-muted);
-  /* This is one of 7 equal-width siblings (flex:1;min-width:0 above) with no
-     room to grow - a label wider than its slot used to visually bleed into
-     the next tab (a real bug fixed by shortening the English weekday labels,
-     see src/locales/en.js). white-space:nowrap plus this ellipsis clamp is a
-     structural safety net for that same failure mode in ANY future locale:
-     an over-long translation now degrades to a truncated-but-contained
-     "Wedn…" instead of visibly overlapping its neighbor. It doesn't replace
-     keeping translations short - just makes "too long" a minor cosmetic
-     issue instead of a rendering bug. */
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-@supports not (backdrop-filter:blur(1px)){.nav-item{background:var(--orbit-panel)}}
-.nav-item:active,.nav-item:focus{outline:none}
-/* Restores a real ring for keyboard/switch-control focus specifically - the
-   blanket outline:none above (and its own former :focus-visible in this
-   same rule) was written to kill the residual outline a plain mouse click
-   can leave in some browsers, but it also silently removed the one signal a
-   keyboard user tabbing across five identical day buttons had for which one
-   is focused. */
-.nav-item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.nav-item:active{transform:scale(.95);transition-duration:.08s}
-.nav-item.is-today{color:#fff;border:2px solid var(--day-today-border);background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 26%,transparent),var(--glass-fill-card) 78%)}
-.nav-item.is-tomorrow{color:#fff;border:2px solid var(--day-tomorrow-border);background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 28%,transparent),var(--glass-fill-card) 78%)}
-/* .active wins the fill when combined with is-today — the selected tab
-   reads as the solid pill; is-today only needs its 2px border while
-   browsing a different day, no additional shadow/ring on top of it.
-   is-tomorrow instead carries its own secondary-tinted fill through into
-   .active below: today defaults to the app's one accent color regardless,
-   but tomorrow is the one day tab that's already telling you apart from
-   today by hue (see is-tomorrow's own border above) - letting .active
-   silently paint over that with plain accent the moment you actually tap
-   into tomorrow's schedule would erase the one everyday moment this
-   secondary hue got to headline something. No drop shadow anywhere on
-   these buttons: iOS Safari was rendering this pill with no shadow at all
-   while desktop Chrome drew a soft one, so any shadow layer is dropped
-   everywhere to match the flatter look consistently across platforms. */
-/* Fixed dark text, not var(--pro-accent-text): that variable is picked
-   against the *raw* accent color, but this pill's own background is that
-   accent heavily bleached with white (58%/28% accent, the rest white) -
-   even the darkest possible accent color comes out light gray to near-
-   white once mixed that far toward #fff, so the raw color's own text pick
-   (which can and does land on white for a dark accent) was landing white
-   text on what's actually always a light pill, unreadable regardless of
-   theme. */
-.nav-item.active{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 58%,#ffffff),color-mix(in srgb,var(--pro-accent) 28%,#ffffff));color:#10171A}
-.nav-item.active.is-today{border-color:color-mix(in srgb,var(--pro-accent) 34%,transparent)}
-/* Same bleached-to-white formula as .active above, just on --pro-secondary
-   instead - keeps the fixed dark text (see that rule's own comment) correct
-   here too, since this is still always a light pill regardless of how dark
-   the user's own secondary color runs. */
-.nav-item.active.is-tomorrow{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 58%,#ffffff),color-mix(in srgb,var(--pro-secondary) 28%,#ffffff));border-color:color-mix(in srgb,var(--pro-secondary) 72%,#ffffff 28%)}
-@media (max-width:480px){.nav-bar{gap:6px;padding:4px}.nav-item{font-size:18px;padding:0 10px;min-height:44px}}
-@media (max-width:430px){.nav-bar{margin-bottom:10px;flex-basis:calc(10% - 10px)}}
-
-/* ============================================================================
-   Schedule list & rows
-   ========================================================================= */
-/* The remaining ~50%: unlike .dashboard/.nav-bar above, this one keeps
-   flex-grow/shrink (1 1, not 0 0) rather than a hard lock, so it's the
-   one that actually absorbs whatever the other two's own margins take
-   that their calc()s didn't - it reads as "the rest of the screen",
-   which is what 50% means once the other two are fixed shares. */
-.list-container{
-  width:min(420px,100%);flex:1 1 50%;min-height:0;position:relative;overflow-y:auto;overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;padding-top:3px;
-  padding-bottom:16px;
-  /* No left/right padding: .row now shrinks on press/tap instead of
-     growing (see .row.is-pressed below), so it never needs clearance from
-     this container's own overflow-x:hidden edge the way a scale-up did -
-     rows go back to spanning the container's full width edge to edge. */
-  scrollbar-color:color-mix(in srgb,var(--q-text) 30%,transparent) transparent;scrollbar-width:thin;
-  transition:filter .35s ease,opacity .35s ease,transform .35s ease;
-  overflow-x:hidden;
-}
-.list-container::-webkit-scrollbar{width:6px;background:transparent}
-.list-container::-webkit-scrollbar-track{background:transparent}
-.list-container::-webkit-scrollbar-thumb{border-radius:999px;background:color-mix(in srgb,var(--q-text) 30%,transparent)}
-
-/* fill-mode is `backwards`, not `both`: this only needs to hold the FROM
-   keyframe during animation-delay (so a later-staggered row doesn't flash
-   into place before its turn) - it must NOT keep holding the TO keyframe
-   once the animation finishes. `both`/`forwards` used to do exactly that,
-   and it is the actual reason the press-feedback transform below (.row:active,
-   .row.is-pressed, .row:hover) never visibly did anything: a fill-forwards
-   animation's output lives in the CSS Animations cascade origin, which
-   outranks every normal author rule regardless of specificity or source
-   order - so `transform` stayed pinned to this animation's own final value
-   (translateY(0) scale(1), i.e. identity) forever, silently overriding
-   every later transform declared for :hover/:active/.is-pressed no matter
-   what they said. `backwards` reaches the exact same resting value through
-   the ordinary cascade instead (the base .row rule sets no transform of its
-   own, so the default is already identity) - same look once settled, but
-   the animation actually lets go instead of holding the property hostage
-   forever. This is why .nav-item's own :active-driven scale always worked
-   and .row's never did: .nav-item has no entrance animation to fight. */
-.animate-list .row{animation:orbit-row-in .5s var(--ease-glass) backwards;animation-delay:calc(var(--row-i,0) * 45ms)}
-body.orbit-suppress-list-animation .animate-list .row{animation:none}
-@media (prefers-reduced-motion:reduce){.animate-list .row{animation:none}#schedule-list.nav-slide{animation:none}}
-
-/* --row-accent is the one variable every card-identity color below reads
-   from: the theme accent normally, overridden to the theme secondary for
-   the is-now card below (is-next stays on the accent) so "happening now"
-   and "up next" read as distinct at a glance. An earlier version of this
-   hashed a different hue per subject instead - closer to the teacher/
-   subject editor's per-avatar colors, but on a real day's worth of cards it
-   read as a chaotic rainbow rather than an organized list, so this went
-   back to one consistent accent tying every card to the app's actual theme
-   color. Kept as a variable (not just var(--pro-accent) inline everywhere)
-   purely so is-now can still override it in one place. This also fixes a
-   real bug from before either of those: .meta-location used to reference a
-   variable (--current-class-color) nothing on these rows ever set, so its
-   color silently fell back to plain --accent regardless of anything here. */
-.row{
-  --row-accent:var(--pro-accent);
-  transition:transform .3s var(--ease-liquid),border-color .2s,background .2s,box-shadow .2s;
-  cursor:pointer;height:76px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;overflow:hidden;
-  border-radius:var(--orbit-radius-md);border:1px solid color-mix(in srgb,var(--row-accent) 20%,transparent);
-  /* Glass, not the flat well it used to be. These cards float directly on
-     the page backdrop (the list sits outside .dashboard entirely), so by the
-     design system's own rule at the top of this file they're floating
-     controls, not content sitting inside a glass panel - the well material
-     was making them read as holes punched in a background that isn't there.
-     The accent tint stays in the fill so a card is still visibly the app's
-     theme color, just refracted rather than painted on. */
-  background:linear-gradient(135deg,color-mix(in srgb,var(--row-accent) 16%,transparent),var(--glass-fill-card) 68%);
-  backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  box-shadow:var(--glass-shadow-soft);
-}
-@supports not (backdrop-filter:blur(1px)){.row{background:var(--glass-well-fallback)}}
-.row:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Live, held-state size change - shrinks the instant the finger touches
    down, eases back the instant it lifts, same shape and same properties as
    the day-nav buttons' own :active (see .nav-item above) and now the same
@@ -858,86 +362,14 @@ body.orbit-suppress-list-animation .animate-list .row{animation:none}
    what should happen (a press is the more specific, more immediate thing
    the user is doing right now), so this has to come first. */
 @media (hover:hover){.row:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--row-accent) 34%,transparent)}}
-.row:active,.row.is-pressed{transform:scale(.97);transition-duration:.08s}
-@media (prefers-reduced-motion:reduce){.row:active,.row.is-pressed{transform:none}}
-/* The accent stripe lives on .content (spanning both the name and meta
-   lines) rather than just .row-name, so the meta line's left edge lines up
-   with the name's instead of sitting flush left of it. */
-.row .content{display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0;border-left:3px solid var(--row-accent);padding-left:9px}
-.row-name{font-weight:800;display:flex;align-items:center;flex-wrap:nowrap;gap:4px;letter-spacing:-.3px;font-size:16.5px;line-height:1.22;margin-bottom:3.5px;min-width:0}
-.row-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto}
-.row-name .status-tag,.row-name .row-name-week-label{flex:0 0 auto}
-.row-meta{color:var(--orbit-muted);display:flex;flex-wrap:nowrap;overflow:hidden;align-items:center;gap:2px 6px;font-size:11.5px;line-height:1.32;background:transparent}
-.row-meta .meta-chip{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:color-mix(in srgb,var(--q-text) 7.5%,transparent);border:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);color:color-mix(in srgb,var(--q-text) 72%,transparent);padding:1px 6px;border-radius:6px}
-.row-meta .meta-time{font-family:ui-monospace,SFMono-Regular,monospace;background:transparent;border:0;box-shadow:none;padding:0}
-.row-meta .meta-location{color:var(--row-accent);font-weight:700;border-color:color-mix(in srgb,var(--row-accent) 30%,transparent);background:color-mix(in srgb,var(--row-accent) 16%,var(--orbit-panel))}
-.period-badge{background:color-mix(in srgb,var(--row-accent) 22%,color-mix(in srgb,var(--q-text) 7%,transparent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--row-accent);flex-shrink:0;margin-top:1px;width:26px;height:26px;border-radius:9px;border:1px solid color-mix(in srgb,var(--row-accent) 34%,color-mix(in srgb,var(--q-text) 10%,transparent));box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 8%,transparent)}
-.status-tag{font-size:9px;font-weight:800;padding:1px 5px 1px 4px;border-radius:4px;white-space:nowrap;margin-left:2px;display:inline-flex;align-items:center;gap:3px}
-/* A dot (is-now) vs a chevron (is-next) so the two states read apart by
-   shape, not just by which accent color happens to be picked - a user free
-   to set proAccent/proSecondary to two close hues would otherwise lose the
-   only cue telling "happening now" apart from "coming up next". */
-.status-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex:0 0 auto}
-.is-now .status-tag{background:var(--status-tag-now-bg,var(--pro-secondary));color:var(--status-tag-now-fg,#fff);animation:statusTagLivePulse 1.8s ease-in-out infinite}
-.is-next .status-tag{background:var(--status-tag-next-bg,var(--pro-accent));color:var(--status-tag-next-fg,#fff)}
-.is-next .status-tag::before{border-radius:1px;width:5px;height:5px;clip-path:polygon(0 0,60% 50%,0 100%);background:currentColor}
 @keyframes statusTagLivePulse{0%,100%{opacity:1}50%{opacity:.55}}
-@media (prefers-reduced-motion:reduce){.is-now .status-tag{animation:none}}
-body.orbit-motion-paused .is-now .status-tag{animation-play-state:paused}
 .week-label{display:inline-flex;align-items:center;min-height:26px;padding:4px 8px;border-bottom:none;border-radius:9px;font-size:15px;line-height:1;font-weight:900;white-space:nowrap}
 .label-odd{background:var(--odd-bg);color:var(--odd-txt)}
 .label-even{background:var(--even-bg);color:var(--even-txt)}
-
-/* Current/next class highlight — the whole point of bug #4: keep these as
-   the last, most specific word on .row so nothing generic can stomp them.
-   is-next's own --row-accent is redundant with .row's own default (both
-   the theme accent) but kept explicit for symmetry with is-now, which does
-   need it to actually switch to the secondary. .content's own inline
-   stripe is hidden so it doesn't double up on the card's own left-edge
-   accent border right next to it. */
-/* is-next stays calm and outlined - low fill, thin border - so its weight
-   reads as "upcoming" at a glance, independent of which hue is-now happens
-   to use. is-now is the loud one: heavier fill, a solid glow ring around
-   the whole card (not just the soft ambient .glass-shadow-soft every card
-   already has), plus the pulsing status-tag above - a header would say
-   "purple = current, pink = next" but the shape/weight difference here
-   still reads correctly even for two similar accent colors. */
-.row.is-next{
-  --row-accent:var(--pro-accent);
-  border-radius:var(--orbit-radius-md);
-  background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 16%,transparent),color-mix(in srgb,var(--orbit-panel-strong) 40%,transparent) 74%);
-  border:1.5px solid color-mix(in srgb,var(--pro-accent) 48%,transparent);
-  box-shadow:var(--glass-shadow-soft);
-  border-left:4px solid var(--pro-accent);padding-left:10px;
-}
 @keyframes rowLiveGlow{
   0%,100%{box-shadow:var(--glass-shadow-soft),0 0 0 1px color-mix(in srgb,var(--pro-secondary) 45%,transparent),0 0 18px color-mix(in srgb,var(--pro-secondary) 28%,transparent)}
   50%{box-shadow:var(--glass-shadow-soft),0 0 0 1px color-mix(in srgb,var(--pro-secondary) 65%,transparent),0 0 26px color-mix(in srgb,var(--pro-secondary) 42%,transparent)}
 }
-.row.is-now{
-  --row-accent:var(--pro-secondary);
-  border-radius:var(--orbit-radius-md);
-  background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 46%,transparent),color-mix(in srgb,var(--orbit-panel-strong) 42%,transparent) 74%);
-  border:1.5px solid color-mix(in srgb,var(--pro-secondary) 70%,transparent);
-  animation:rowLiveGlow 2.2s ease-in-out infinite;
-  border-left:4px solid var(--pro-secondary);padding-left:10px;
-}
-@media (prefers-reduced-motion:reduce){.row.is-now{animation:none;box-shadow:var(--glass-shadow-soft),0 0 0 1px color-mix(in srgb,var(--pro-secondary) 55%,transparent),0 0 20px color-mix(in srgb,var(--pro-secondary) 34%,transparent)}}
-body.orbit-motion-paused .row.is-now{animation-play-state:paused}
-@supports not (backdrop-filter:blur(1px)){
-  .row.is-next{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 26%,var(--orbit-panel-strong)),color-mix(in srgb,var(--pro-accent) 8%,var(--orbit-panel-strong)))}
-  .row.is-now{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 28%,var(--orbit-panel-strong)),color-mix(in srgb,var(--pro-secondary) 9%,var(--orbit-panel-strong)))}
-}
-.row.is-next .content,.row.is-now .content{border-left-color:transparent}
-.row.is-next .period-badge{border-color:transparent;background:var(--pro-accent);color:var(--pro-accent-text)}
-.row.is-now .period-badge{border-color:transparent;background:var(--pro-secondary);color:var(--pro-secondary-text)}
-
-@media (max-height:700px){.row{padding:11px 13px;margin-bottom:8px}}
-@media (max-width:480px){#schedule-list .row{height:82px;margin-bottom:8px;border-radius:18px}#schedule-list .row-name{font-size:clamp(18px,5.2vw,23px);line-height:1.18}#schedule-list .row-meta{font-size:clamp(12px,3.2vw,14px)}#schedule-list .period-badge{width:28px;height:28px;font-size:13px;border-radius:9px}}
-@media (max-width:430px){.row{padding:12px 15px}#schedule-list .row{height:96px}}
-@media (max-width:480px){#schedule-list .row{padding:16px 17px}}
-@media (max-width:430px){#schedule-list .row{padding:15px 14px}}
-
 /* ============================================================================
    Detail modal (class info popup)
    The sheet itself (.modal-sheet below) already shares the same --glass-*
@@ -953,8 +385,6 @@ body.orbit-motion-paused .row.is-now{animation-play-state:paused}
    ========================================================================= */
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.58);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;z-index:100}
 .modal-overlay.show{opacity:1;visibility:visible}
-body.modal-open > .dashboard,body.modal-open > .nav-bar,body.modal-open > #schedule-list{pointer-events:none}
-
 .modal-sheet{
   position:fixed;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:12px;top:auto;
   width:auto;max-width:none;height:min(375px,calc(100dvh - 24px));max-height:min(375px,calc(100dvh - 24px));margin:0 auto;
@@ -973,7 +403,9 @@ body.modal-open > .dashboard,body.modal-open > .nav-bar,body.modal-open > #sched
   visibility:hidden;
 }
 .modal-sheet.show{transform:translateY(0);pointer-events:auto;visibility:visible;transition:transform .35s var(--ease-glass),visibility 0s linear 0s}
-@media (min-width:480px){.modal-sheet{max-width:420px}}
+@media (min-width:480px){
+.modal-sheet{max-width:420px}
+}
 .test-panel-handle{width:56px;height:18px;align-self:center;margin:-7px 0 -5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
 .test-panel-handle::after{content:"";display:block;width:36px;height:4px;border-radius:3px;background:var(--sub);opacity:.35;transition:opacity .15s,width .15s}
 .test-panel-handle:active::after,.test-panel-handle.is-dragging::after{opacity:.7;width:44px;background:var(--accent)}
@@ -1006,7 +438,6 @@ body.modal-open > .dashboard,body.modal-open > .nav-bar,body.modal-open > #sched
 #sheet .close-btn{flex-shrink:0;margin-top:0}
 .close-btn{width:100%;min-height:var(--action-btn-h);padding:14px;border-radius:var(--action-btn-radius);border:none;font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .2s;margin-top:4px;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
 .close-btn:active{transform:scale(.96);opacity:.85;box-shadow:0 3px 10px color-mix(in srgb,var(--pro-accent) 24%,transparent)}
-
 /* ============================================================================
    Editor sheet (schedule editor + all its sub-sections)
    Built directly on .test-panel - the same base the style/test-mode sheets
@@ -1042,7 +473,6 @@ body.modal-open > .dashboard,body.modal-open > .nav-bar,body.modal-open > #sched
    leaves the rest of the same-size sheet blank, the way a normal settings
    app's sub-pages do, rather than resizing the whole sheet around it. */
 .editor-sheet.is-layered{height:calc(100dvh - 20px - var(--q-top, env(safe-area-inset-top)))}
-body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
 .editor-sheet.is-layered .editor-fold{display:none}
 .editor-sheet.is-layered .editor-fold.active{display:block}
 .editor-inline-options{margin-bottom:9px}
@@ -1051,7 +481,6 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
 .editor-title{color:var(--pro-accent);font-weight:800;letter-spacing:-.04em}
 .editor-close{font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:color-mix(in srgb,var(--q-text) 10%,transparent);color:var(--orbit-white);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);border-radius:12px;transition:transform .15s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .editor-close:active{transform:scale(.9);background:color-mix(in srgb,var(--q-text) 16%,transparent)}
-
 /* Every section inside the schedule editor (選項/倒數活動/科目與教師/課表/節次時間/特殊時段
    etc.) is its own small glass card now, not a flat-color box sitting inside
    the sheet's own glass - each one gets its own blur/saturate/brightness
@@ -1071,8 +500,6 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
 @keyframes editorFoldReveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .editor-fold[open]>.editor-fold-body{animation:editorFoldReveal .22s ease}
 @keyframes rowEnter{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-.row-enter{animation:rowEnter .28s var(--ease-glass)}
-
 .editor-drill-actions{display:grid;grid-template-columns:repeat(4,minmax(max-content,1fr));gap:5px;margin-bottom:9px}
 /* Same backdrop-filter-plus-:active-transform combination as .nav-item's own
    compositing bug (see its comment for the full explanation): pressing
@@ -1088,7 +515,6 @@ body.editor-open .dashboard,body.transfer-open .dashboard{pointer-events:none}
 .editor-back-btn{min-height:32px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;padding:7px 10px;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .editor-back-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,color-mix(in srgb,var(--q-text) 5%,transparent))}
 .editor-import-diff{margin-top:10px;margin-bottom:18px;padding:10px 11px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);color:var(--sub);font-size:12px;line-height:1.45;text-align:left;max-height:220px;overflow:auto;white-space:pre-line}
-
 .editor-confirm-overlay{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity .28s,visibility .28s}
 .editor-confirm-overlay.show{opacity:1;visibility:visible}
 body.editor-open .editor-confirm-overlay{z-index:1000001}
@@ -1107,12 +533,14 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    inside a confirmation it IS the action, so it gets the same weight a primary action would. */
 .editor-confirm-btn.danger{border-color:transparent;background:#e5483d;color:#fff;box-shadow:0 8px 22px rgba(229,72,61,.28)}
 .editor-primary-btn{border-color:transparent;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
-@media (min-width:390px){.editor-confirm-actions{flex-direction:row}.editor-confirm-btn{flex:1 1 0}}
+@media (min-width:390px){
+.editor-confirm-actions{flex-direction:row}
+.editor-confirm-btn{flex:1 1 0}
+}
 /* A 3rd (extra) button - e.g. unlink's "複製代碼" - makes a side-by-side row too
    cramped on a real phone width (labels wrap into 2 lines and everything looks
    squished); stack those back into a full-width column regardless of viewport. */
 .editor-confirm-actions.has-extra{flex-direction:column}
-
 /* The odd/even-week toggle row and its switch (單雙週對調) are glass too now,
    same as every other control in this sheet - the track picks up
    --glass-blur-card so it reads as a small pane of the same material
@@ -1132,7 +560,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .toggle-switch::after{content:"";position:absolute;width:20px;height:20px;top:2px;left:2px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .toggle-switch.on{background:color-mix(in srgb,var(--accent) 78%,transparent);border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
 .toggle-switch.on::after{transform:translateX(18px)}
-
 /* Grouped list style (teacher/bell/break/countdown/schedule rows): one
    bordered container per list, flat rows inside separated by a hairline -
    the same "single box, divided rows" pattern the class-info popup's
@@ -1172,7 +599,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .teacher-order-actions{display:flex;gap:4px;flex:0 0 auto}
 .teacher-drag-handle{min-width:40px;border-radius:12px;line-height:1;background:color-mix(in srgb,var(--q-text) 6%,transparent);display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;color:var(--sub);font-size:18px;user-select:none;touch-action:none;cursor:grab;transition:background .15s}
 .teacher-drag-handle:active{cursor:grabbing;background:color-mix(in srgb,var(--accent) 18%,transparent)}
-
 .break-row{align-items:flex-start}
 .break-row .teacher-fields{flex:1;min-width:0;flex-wrap:wrap;gap:8px;display:flex}
 /* .break-name inherits .editor-input's flex:1;min-width:0, so on a narrow
@@ -1190,14 +616,12 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .editor-input::placeholder{opacity:.55;color:var(--sub);font-size:14px}
 .editor-sheet input,.editor-sheet select,.editor-sheet textarea{text-align:left;text-align-last:left}
 .editor-sheet .editor-input{padding:9px 11px;border-radius:11px;font-size:14.5px;min-height:44px}
-
 .add-btn{width:100%;padding:11px 12px;border-radius:13px;border:1px solid color-mix(in srgb,var(--accent) 24%,transparent);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;transition:transform .12s,opacity .15s,background .15s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .add-btn:active{transform:scale(.97);opacity:.85;background:color-mix(in srgb,var(--accent) 24%,transparent)}
 .editor-sheet .add-btn{min-height:48px;padding:11px 12px;margin-top:8px;font-size:14px;border-radius:14px}
 .delete-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,69,58,.42);background:rgba(255,69,58,.18);color:#ff6a5c;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .delete-btn:active{background:rgba(255,69,58,.36);transform:scale(.9)}
 .editor-sheet .delete-btn{width:26px;height:26px;font-size:13px;border-radius:7px;flex-shrink:0}
-
 /* A day row is a fixed-width label column beside the period grid, the same
    two-column shape .assign-day-row already uses for the assign sheet - one
    consistent "weekday + its slots" grammar across both editors instead of
@@ -1218,7 +642,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .period-select{width:100%;min-width:0;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid var(--bd);color:var(--txt);padding:8px 9px;border-radius:11px;font-size:13px;font-family:inherit;text-overflow:ellipsis;cursor:pointer;transition:border-color .2s;text-align:left;text-align-last:left}
 .period-select:focus{outline:none;border-color:var(--accent)}
 .editor-sheet .period-select{padding:8px 9px;font-size:13px;border-radius:11px;min-height:44px}
-
 .bell-row{background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);border-radius:0;padding:13px;display:flex;gap:9px;align-items:center}
 .bell-row:last-child{border-bottom:none}
 .editor-sheet .bell-row{gap:9px;padding:14px 14px 14px 12px}
@@ -1240,7 +663,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .time-input::-webkit-inner-spin-button,
 .time-input::-webkit-clear-button{display:none;-webkit-appearance:none;margin:0}
 .time-sep{color:var(--sub);font-weight:700;font-size:13px;flex-shrink:0}
-
 /* The countdown event row itself is just a .teacher-card (see
    addCountdownEventRow) - same collapsible summary/body shell as the class
    list, so it needs no styling of its own. Only its name/date fields below
@@ -1252,7 +674,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .countdown-date-range .time-sep{flex:0 0 auto;color:var(--sub);font-size:13px}
 .countdown-event-fields .countdown-event-start,.countdown-event-fields .countdown-event-end{display:block;-webkit-appearance:none;appearance:none;width:100%;max-width:100%;flex:1 1 0;min-height:38px;padding:7px 8px}
 .countdown-event-fields .countdown-event-name{height:38px;min-height:38px;padding:7px 8px}
-
 /* The sync sheet stacks a dozen of these boxes, rows, folds and status
    lines on top of each other, so every gap in here is paid for twelve times
    over - what read as breathing room in isolation added up to a panel you
@@ -1298,7 +719,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    lines are empty the overwhelming majority of the time. */
 .settings-transfer-status{font-size:11px;line-height:1.35;color:var(--sub);white-space:pre-line}
 .settings-transfer-status:empty{display:none}
-
 .sync-input{min-height:auto;height:42px;font-family:inherit;font-size:13px}
 .sync-divider{font-size:11px;color:var(--sub);text-align:center;margin:0}
 .sync-active-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:22px;font-weight:800;letter-spacing:.14em;text-align:center;padding:10px;border-radius:12px;background:rgba(0,0,0,.18);border:1px solid var(--bd);color:var(--accent);word-break:break-all}
@@ -1336,7 +756,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .sync-upgrade-box{display:flex;flex-direction:column;gap:7px;padding:9px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 6%,transparent);border:1px solid var(--bd)}
 .sync-upgrade-box[hidden]{display:none}
 .sync-upgrade-box .editor-hint-body{margin:0}
-
 /* No network at all (navigator.onLine, checked on opening the transfer
    sheet/schedule editor and kept live via the online/offline listeners -
    see editor-core.js's applyOfflineLock, which toggles .is-offline on both
@@ -1350,7 +769,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
   pointer-events:none;
   opacity:.5;
 }
-
 /* Manual export/import, demoted inside the transfer sheet now that sync is
    the default. A plain <details>, deliberately not .editor-fold — it must
    stay outside the paged-editor/accordion machinery that .editor-fold hooks
@@ -1360,7 +778,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .legacy-fold-summary{list-style:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--sub);padding:9px 12px;user-select:none;-webkit-tap-highlight-color:transparent}
 .legacy-fold-summary::-webkit-details-marker{display:none}
 .legacy-fold-body{padding:0 12px 10px;display:flex;flex-direction:column;gap:7px}
-
 .ocr-import-box{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:12px 10px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 5%,transparent);border:1px solid var(--bd)}
 .ocr-import-file-input{display:none}
 .ocr-import-file-row{display:flex;align-items:center;gap:10px}
@@ -1435,7 +852,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 #ocr-import-result .schedule-periods{overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}
 #ocr-import-result .period-select{flex:0 0 110px;width:110px;min-width:110px;min-height:40px}
 #ocr-import-result .settings-transfer-btn{min-height:var(--action-btn-h);border-radius:var(--action-btn-radius);font-family:inherit;font-weight:800}
-
 .save-btn{width:100%;padding:14px;font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;margin-top:10px;min-height:var(--action-btn-h);border:none;border-radius:var(--action-btn-radius);background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
 .save-btn:active{transform:scale(.97);opacity:.9;box-shadow:0 3px 10px color-mix(in srgb,var(--pro-accent) 22%,transparent)}
 /* A normal flow element at the end of the form, not pinned to the bottom of
@@ -1448,9 +864,10 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    material is for. The accent survives as a tint in the fill and as the
    text color, so it still reads as the app's "saved" confirmation. */
 .save-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 34%,transparent),var(--glass-fill-strong) 76%);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));box-shadow:var(--glass-shadow-soft);color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:700;opacity:0;z-index:300;transition:opacity .3s,transform .3s;pointer-events:none}
-@supports not (backdrop-filter:blur(1px)){.save-toast{background:var(--ok);color:var(--pro-secondary-text)}}
+@supports not (backdrop-filter:blur(1px)){
+.save-toast{background:var(--ok);color:var(--pro-secondary-text)}
+}
 .save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
 .assign-sheet{position:fixed;z-index:1000001;top:50%;left:50%;width:min(94vw,520px);max-height:88dvh;overflow:auto;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;pointer-events:none;background:var(--glass-fill-strong);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));border-radius:26px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.5);transition:opacity .2s,transform .2s,visibility .2s}
 .assign-sheet.show{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
 .assign-header{display:flex;align-items:center;justify-content:space-between}
@@ -1473,22 +890,47 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .teacher-assign{min-height:40px;padding:0 14px;border:0;border-radius:13px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 72%,#fff 18%),color-mix(in srgb,var(--accent) 48%,#fff 18%));color:var(--pro-accent-text);font-weight:850;letter-spacing:.04em;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 22%,transparent);touch-action: pan-x pan-y;transition:transform .12s;backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%)}
 .teacher-assign:active{transform:scale(.95)}
 .assign-sheet .editor-confirm-btn{margin-top:8px;min-height:var(--action-btn-h);width:100%}
-@media (max-width:480px){.assign-sheet{width:calc(100vw - 20px);max-height:calc(100dvh - 28px);padding:14px;border-radius:20px}.teacher-assign{min-height:44px;padding:0 13px}.assign-day-row{grid-template-columns:39px minmax(0,1fr);gap:6px}.assign-periods{grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:6px}.assign-box{min-height:48px;font-size:11px}}
-@media (max-width:430px){.assign-day-tabs{gap:4px}.assign-sheet{padding:15px;width:calc(100vw - 20px);border-radius:20px}}
-@media (max-width:390px){.editor-confirm-btn{flex:1 1 0}}
-
+@media (max-width:480px){
+.assign-sheet{width:calc(100vw - 20px);max-height:calc(100dvh - 28px);padding:14px;border-radius:20px}
+.teacher-assign{min-height:44px;padding:0 13px}
+.assign-day-row{grid-template-columns:39px minmax(0,1fr);gap:6px}
+.assign-periods{grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:6px}
+.assign-box{min-height:48px;font-size:11px}
+}
+@media (max-width:430px){
+.assign-day-tabs{gap:4px}
+.assign-sheet{padding:15px;width:calc(100vw - 20px);border-radius:20px}
+}
+@media (max-width:390px){
+.editor-confirm-btn{flex:1 1 0}
+}
 .order-position-label{display:inline-flex;align-items:center;gap:5px;padding:4px 6px 4px 8px;border:1px solid var(--bd);border-radius:11px;background:color-mix(in srgb,var(--q-text) 5.5%,transparent);color:var(--sub);font-size:10px;font-weight:750;line-height:1;white-space:nowrap;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 6%,transparent);transition:border-color .16s,background .16s,box-shadow .16s}
 .order-position-label:focus-within{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,color-mix(in srgb,var(--q-text) 5.5%,transparent));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 .order-position{width:32px;min-width:32px;height:28px;padding:2px 3px;border:0;border-radius:7px;background:color-mix(in srgb,var(--accent) 14%,var(--card));color:var(--txt);font:800 14px/1 inherit;text-align:center;text-align-last:center;box-shadow:none;outline:0}
 .order-position::-webkit-inner-spin-button,.order-position::-webkit-outer-spin-button{opacity:.7;margin:0}
-@media (max-width:480px){.order-position-label{padding:5px 7px 5px 9px}.order-position{width:36px;min-width:36px;height:30px}.order-position-label{min-height:40px}}
-
+@media (max-width:480px){
+.order-position-label{padding:5px 7px 5px 9px}
+.order-position{width:36px;min-width:36px;height:30px}
+.order-position-label{min-height:40px}
+}
 .editor-hint{margin-top:8px;padding:8px 11px;background:color-mix(in srgb,var(--pro-accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);color:var(--orbit-muted);border-radius:11px;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
 .editor-sheet .editor-hint{border-radius:11px;margin-top:8px;padding:8px 11px}
 .editor-hint-title{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:3px;letter-spacing:.35px}
 .editor-hint-body{font-size:11px;color:var(--sub);line-height:1.4}
-
-@media (max-width:480px){.editor-fold-summary{padding:11px 12px}.schedule-day-row{padding:13px 13px 13px 11px;border-radius:16px;display:block;overflow:hidden}.schedule-day-label{display:block}.schedule-periods{width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 2px 7px;scroll-snap-type:x proximity;display:flex;flex-wrap:nowrap}.schedule-periods .period-select{width:126px;flex:0 0 126px;min-height:46px;font-size:14px;box-sizing:border-box;scroll-snap-align:start}.teacher-card-summary{padding:12px 11px;gap:8px}.teacher-summary-text{font-size:13.5px}.teacher-card-body{padding:0 11px 13px;gap:9px}.teacher-card .teacher-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;width:100%}.teacher-card .tc-subject{grid-column:1 / -1}.teacher-card .teacher-fields .editor-input{display:block;width:100%;max-width:100%;box-sizing:border-box;min-height:44px}.countdown-event-fields{gap:9px}}
+@media (max-width:480px){
+.editor-fold-summary{padding:11px 12px}
+.schedule-day-row{padding:13px 13px 13px 11px;border-radius:16px;display:block;overflow:hidden}
+.schedule-day-label{display:block}
+.schedule-periods{width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 2px 7px;scroll-snap-type:x proximity;display:flex;flex-wrap:nowrap}
+.schedule-periods .period-select{width:126px;flex:0 0 126px;min-height:46px;font-size:14px;box-sizing:border-box;scroll-snap-align:start}
+.teacher-card-summary{padding:12px 11px;gap:8px}
+.teacher-summary-text{font-size:13.5px}
+.teacher-card-body{padding:0 11px 13px;gap:9px}
+.teacher-card .teacher-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;width:100%}
+.teacher-card .tc-subject{grid-column:1 / -1}
+.teacher-card .teacher-fields .editor-input{display:block;width:100%;max-width:100%;box-sizing:border-box;min-height:44px}
+.countdown-event-fields{gap:9px}
+}
 /* 節次時間/特殊時段 (.bell-row) at phone width: every other element sharing
    the row with the two time inputs (the period-number badge, the row's own
    side padding, the delete button) gets trimmed down here specifically to
@@ -1497,7 +939,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    "08:00" this was sized against, and was overflowing past the sheet's
    edge without this. */
 @media (max-width:480px){.editor-sheet .bell-row{gap:6px;padding:12px 10px 12px 9px}.editor-sheet .bell-num{width:24px;height:24px;font-size:12px}.bell-inputs{gap:4px}.editor-sheet .time-input{padding:9px 2px;font-size:13.5px}.editor-sheet .delete-btn{width:22px;height:22px;font-size:12px}}
-
 /* Countdown date range (.countdown-date-range) at phone width: same
    problem as .bell-row above, worse, and shrinking padding/font-size
    (a prior attempt at this rule) wasn't a real fix - a native
@@ -1515,7 +956,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    go back to the same comfortable sizing every other input on the sheet
    uses rather than being squeezed down to fit. */
 @media (max-width:480px){.countdown-date-range{flex-direction:column;align-items:stretch;gap:6px}.countdown-date-range .time-sep{align-self:center;display:inline-block;transform:rotate(90deg)}}
-
 /* ============================================================================
    Test panel (time simulation) and style panel
    ========================================================================= */
@@ -1541,7 +981,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .test-panel select,.test-panel input[type="number"]{background:var(--q-surface-2);color:#fff;border:1px solid var(--bd);padding:7px 10px;border-radius:9px;font-size:14px;width:100%;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}
 .test-panel select:focus,.test-panel input[type="number"]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
 .test-panel input[type="range"]{width:100%;cursor:pointer;margin:6px 0 2px;touch-action: pan-x pan-y}
-
 .test-status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:var(--warn);color:#000;font-size:10px;font-weight:800}
 .test-panel-meta-row{display:flex;align-items:center;gap:7px;margin:-6px 0 10px}
 .app-version{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--sub);opacity:.8;white-space:nowrap}
@@ -1560,14 +999,12 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .test-update-status:empty{display:none}
 .test-update-status.up-to-date{color:var(--ok)}
 .test-update-status.error{color:#ff453a}
-
 #test-time-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;background:var(--bd);margin:6px 0 2px;cursor:pointer}
 #test-time-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer;margin-top:0}
 #test-time-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer}
 #test-time-slider::-moz-range-track{height:6px;border-radius:999px;background:var(--bd)}
 #test-time-slider::-moz-range-progress{height:6px;border-radius:999px;background:var(--accent)}
 #test-time-slider:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
-
 /* Buttons that drive time simulation get clear, high-contrast press feedback —
    not just a transform, so a tap is unmistakable even mid-animation. */
 .sim-btn{
@@ -1580,16 +1017,18 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
 .sim-btn.active:active{transform:scale(.95);background:color-mix(in srgb,var(--pro-accent) 78%,#000 10%);box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
 #test-play-pause-btn:hover{background:color-mix(in srgb,var(--pro-accent) 10%,transparent)}
 #test-play-pause-btn.active:hover{background:color-mix(in srgb,var(--pro-accent) 88%,#fff)}
-
 .test-exit-btn{width:100%;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s,background .15s,color .15s;touch-action: pan-x pan-y;border:1px solid rgba(255,69,58,.48);opacity:1;min-height:42px;border-radius:12px;background:rgba(255,69,58,.12);color:#ff6a5c}
 .test-exit-btn:active:not(:disabled){transform:scale(.96);background:rgba(255,69,58,.26);color:#ff8a7a}
 .test-exit-btn:disabled{cursor:pointer;opacity:1}
-
-@media (max-width:480px){.test-panel{width:calc(100vw - 16px)}}
-@media (max-width:400px){.test-panel .editor-header{margin-bottom:12px}}
-@media (max-height:700px){.test-panel{bottom:8px;gap:5px;padding-top:8px;padding-bottom:10px}}
-
-
+@media (max-width:480px){
+.test-panel{width:calc(100vw - 16px)}
+}
+@media (max-width:400px){
+.test-panel .editor-header{margin-bottom:12px}
+}
+@media (max-height:700px){
+.test-panel{bottom:8px;gap:5px;padding-top:8px;padding-bottom:10px}
+}
 /* Transfer sheet ("同步 / 匯入匯出"): sync setup, manual export/import, AI
    photo import, and the tucked-away time-simulation disclosure. A flat
    .test-panel variant with no paged/layered accordion machinery, since
@@ -1628,7 +1067,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    natural height so there is real overflow for the body's own scrolling to
    use. */
 .transfer-sheet-body>*{flex-shrink:0}
-
 /* .editor-sheet's own padding/overflow, finished here (after .test-panel) so
    they actually win the cascade tie - see the comment on .editor-sheet's
    main rule above. overflow:hidden, not auto: the sheet itself no longer
@@ -1663,11 +1101,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    keep its natural height so there is real overflow for the body's own
    scrolling to work with. */
 .editor-sheet-body>*{flex-shrink:0}
-
-
-
-@media (max-width:480px){#schedule-list .row{padding:15px 16px}}
-
 /* ============================================================================
    Large screens (tablet / desktop)
    iPhone 15 Pro portrait (393×852) is the one true layout - every card's
@@ -1718,7 +1151,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
      as "this card is mostly empty today" rather than "this app doesn't
      fill its window", which is the more natural of the two. */
 }
-
 /* ============================================================================
    Short viewport fallback
    .dashboard/.nav-bar/.list-container's base flex-basis (40%/10%/50% of
@@ -1756,7 +1188,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
   .nav-bar{flex:0 0 auto}
   .list-container{flex:0 0 auto;min-height:160px;max-height:none}
 }
-
 /* ============================================================================
    Phone landscape layout
    The short viewport fallback right above this makes a sideways phone
@@ -1825,7 +1256,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
      fonts below then just make sure that available width is enough to show
      the full date without wrapping. */
 }
-
 /* ============================================================================
    Tablet and computer layout
    An iPad (or a computer's window) has the width for both columns AND the
@@ -1862,7 +1292,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
   .nav-bar{margin-bottom:12px}
   .list-container{flex:1 1 auto}
 }
-
 /* Sync / import-export sheet, phone landscape: the same fixed height every
    other viewport uses (see .transfer-sheet's own height comment) works out
    to only ~200px tall here, comfortably fitting nothing, so a viewer
@@ -1877,7 +1306,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
     max-height:calc(100dvh - 20px - var(--q-top, env(safe-area-inset-top)));
   }
 }
-
 /* ============================================================================
    Standalone (Home Screen) mode overrides
    Kept at the very end of the cascade on purpose: several rules above set
@@ -1984,7 +1412,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
      anyway, so this is a strictly safer floor, not a behavior change. */
   body{height:100lvh}
 }
-
 /* The Quadra Pass panel (src/sync.js): a status card, then sharing. */
 .qp-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--pro-accent) 9%,color-mix(in srgb,var(--q-text) 6%,transparent));border:1px solid color-mix(in srgb,var(--pro-accent) 20%,var(--bd))}
 .qp-icon{width:40px;height:40px;border-radius:11px;flex:0 0 auto}
@@ -2002,22 +1429,6 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
    through their text (where the backdrop blur isn't drawn, and in bright
    themes). */
 .editor-confirm-sheet{background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),var(--q-surface-2)}
-/* The welcome card (onboarding.js): a top-layer dialog, solid, three ways in. */
-.orbit-welcome{width:min(calc(100vw - 28px),400px);max-height:calc(100dvh - 40px);margin:auto;padding:0;border:1px solid var(--bd);border-radius:28px;background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),var(--q-surface-2);color:var(--txt);box-shadow:var(--glass-shadow);overflow:auto}
-.orbit-welcome::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.orbit-welcome-box{display:grid;gap:12px;padding:24px 20px 16px}
-.orbit-welcome-kicker{margin:0;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--pro-accent)}
-.orbit-welcome-title{margin:0;font-size:24px;font-weight:900;letter-spacing:-.02em;line-height:1.2}
-.orbit-welcome-lede{margin:0 0 4px;font-size:14px;line-height:1.55;color:var(--sub)}
-.orbit-welcome-choices{display:grid;gap:9px}
-.orbit-welcome-choice{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--pro-accent) 22%,var(--bd));background:color-mix(in srgb,var(--pro-accent) 9%,color-mix(in srgb,var(--q-text) 4%,transparent));color:var(--txt);font:inherit;text-align:left;cursor:pointer;transition:transform .12s}
-.orbit-welcome-choice:active{transform:scale(.98)}
-.orbit-welcome-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--pro-accent) 18%,transparent);font-size:20px}
-.orbit-welcome-text{display:grid;gap:2px;min-width:0}
-.orbit-welcome-text strong{font-size:15.5px;font-weight:800}
-.orbit-welcome-text small{font-size:12.5px;line-height:1.4;color:var(--sub)}
-.orbit-welcome-later{justify-self:center;margin-top:2px;padding:8px 14px;border:0;background:none;color:var(--sub);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
-
 /* ============================================================================
    Native pass (2026-10-05): closer to iOS 26's own Liquid Glass.
    What read as "web glass" rather than the system's: an outline ring round
@@ -2038,59 +1449,10 @@ body.editor-open .editor-confirm-sheet{z-index:1000002}
     inset 0 0 22px color-mix(in srgb,var(--q-text) 4.5%,transparent);
   --orbit-radius-md:22px;
 }
-/* The days: one glass capsule, the chosen day a brighter lens inside it. */
-.nav-bar{
-  gap:0;padding:4px;border-radius:999px;
-  background:var(--glass-fill);
-  backdrop-filter:blur(var(--glass-blur)) saturate(170%);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(170%);
-  box-shadow:var(--glass-shadow-soft);
-}
-.nav-item,
-.nav-item.is-today,
-.nav-item.is-tomorrow{
-  border:0;border-radius:999px;background:transparent;box-shadow:none;
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-  color:color-mix(in srgb,var(--q-text) 72%,transparent);font-weight:650;
-}
-/* Today and tomorrow: their colour as a dot under the name, not a frame. */
-.nav-item.is-today,.nav-item.is-tomorrow{position:relative;color:#fff}
-.nav-item.is-today::before,.nav-item.is-tomorrow::before{
-  content:"";position:absolute;left:50%;bottom:5px;width:4px;height:4px;margin-left:-2px;border-radius:50%;
-  background:var(--day-today-border);
-}
-.nav-item.is-tomorrow::before{background:var(--day-tomorrow-border)}
-.nav-item.active,
-.nav-item.active.is-today,
-.nav-item.active.is-tomorrow{
-  color:#fff;border:0;
-  background:
-    linear-gradient(180deg,color-mix(in srgb,var(--q-text) 26%,transparent),color-mix(in srgb,var(--q-text) 10%,transparent)),
-    color-mix(in srgb,var(--pro-accent) 30%,transparent);
-  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 55%,transparent),inset 0 -1px 0 color-mix(in srgb,var(--q-text) 12%,transparent),0 4px 14px rgba(0,0,0,.28);
-}
-@media (max-width:480px){.nav-bar{gap:0;padding:4px}.nav-item{min-height:42px}}
-
-/* The classes: plain glass rows, no outline, no stripe; the class on now
-   and the next one by their tint and the badge, as iOS's own lists do. */
-.row,
-.row.is-next,
-.row.is-now{
-  border:0;border-radius:var(--orbit-radius-md);
-  padding-left:13px;
-}
-.row .content,
-.row.is-next .content,
-.row.is-now .content{border-left:0;padding-left:2px}
-.row{background:var(--glass-fill-card)}
-.row.is-next{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 22%,transparent),var(--glass-fill-card) 72%)}
-.row.is-now{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 34%,transparent),var(--glass-fill-card) 72%)}
 @keyframes rowLiveGlow{
   0%,100%{box-shadow:var(--glass-shadow-soft),0 0 18px color-mix(in srgb,var(--pro-secondary) 18%,transparent)}
   50%{box-shadow:var(--glass-shadow-soft),0 0 26px color-mix(in srgb,var(--pro-secondary) 30%,transparent)}
 }
-/* The period number: a small glass disc, its colour from the row. */
-.row .period-badge{border:0;border-radius:50%;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 30%,transparent)}
-
 /* ============================================================================
    The family's layout (2026-10-05): Orbit Class as Words, Securities and
    Sports are built. A thin top row (a short status on the left, round icon
@@ -2121,436 +1483,30 @@ body::before,.dashboard::before{display:none}
 *:not(.q-tabbar):not(.q-moved),*::before,:root:not(.quadra-updating) *::after,:root.quadra-updating *:not(body)::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .dashboard::after,.top-action-btn::after,.top-actions-menu::after,.modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{display:none}
 .modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.42)}
-.top-stack{width:100%;margin:0;padding:0;position:static;flex:none}
 /* The page scrolls as every app's does (no fixed-height screen, no list scrolling inside it). */
 html,body{height:auto;min-height:100%;overflow:visible;overscroll-behavior:auto}
 body{display:block;padding:0}
-.cx-page{display:block;width:min(560px,100%);margin:0 auto;padding:12px 16px calc(120px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
-/* The old tool menu: its buttons live in 工具 now. */
-.label-row .top-actions{display:none!important}
-/* 今天: now and today's list; 課表: the day switcher and any day's list. */
-body[data-tab="today"] .nav-bar{display:none}
-body[data-tab="week"] .dashboard{display:none}
-body[data-tab="week"] .cx-section#cx-list-title,#panel-tools .cx-section{margin-top:6px}
-.cx-tools{display:grid;border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden}
-.cx-tool{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;padding:14px 18px;border:0;border-bottom:1px solid var(--q-divider);background:none;color:var(--q-text);font:inherit;text-align:left;cursor:pointer}
-.cx-tool:last-child{border-bottom:0}
-.cx-tool-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--q-accent-wash);color:var(--q-accent);font-size:19px;font-weight:700}
-.cx-tool-text{display:grid;gap:2px;min-width:0}
-.cx-tool-text strong{font-size:16px;font-weight:700}
-.cx-tool-text small{font-size:13px;color:var(--q-muted)}
-.cx-tool-go{color:var(--q-muted);font-size:22px}
-
-/* ---- The top row: a status, round buttons ---- */
-.dashboard{display:block;background:transparent;border:0;box-shadow:none;border-radius:0;padding:6px 0 0;margin:0;width:100%;height:auto;min-height:0;flex:0 0 auto;color:var(--q-text)}
-.dashboard > .label-row{display:flex;align-items:center;gap:10px;min-height:0;margin:0 4px 10px}
-.top-actions{margin-left:auto}
-#btn-menu.top-action-btn{display:none}
-.top-actions-menu,.top-actions .top-actions-menu{position:static!important;display:flex!important;flex-direction:row;gap:10px;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;background:none;border:0;box-shadow:none;padding:0;width:auto;height:auto}
-.top-action-btn,.top-actions-menu .top-action-btn{width:44px;height:44px;border-radius:50%;background:var(--q-surface);border:1px solid var(--q-border);box-shadow:var(--q-shadow-sm);color:var(--q-text);opacity:1!important;transform:none!important}
-
-/* ---- The summary card ---- */
-.cx-hero{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"kicker kicker" "now timer" "bar bar" "next next";
-  column-gap:16px;row-gap:6px;padding:18px 20px;
-  border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow)
-}
-.cx-kicker{grid-area:kicker;color:var(--q-muted);font-size:14px;font-weight:600}
-.cx-kicker:empty{display:none}
-.dashboard[data-mode="class"] .cx-kicker{color:var(--q-accent)}
-.now-stack{grid-area:now;background:transparent;border:0;box-shadow:none;border-radius:0;padding:0;margin:0;align-items:flex-start;justify-content:flex-start;gap:4px;min-width:0}
-.title-now,.now-stack.is-status .title-now{
-  color:var(--q-text);text-align:left;justify-self:start;align-self:flex-start;
-  font-size:30px!important;font-weight:800;letter-spacing:-.02em;line-height:1.15;
-  white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical
-}
-.now-meta-row{justify-content:flex-start;align-self:flex-start;gap:0}
-#now-teacher,#now-place,#now-class-label{background:none;padding:0;border:0;border-radius:0;color:var(--q-muted);font-size:15px;font-weight:500;max-width:none;min-height:0}
-#now-teacher.show + #now-place.show::before{content:"·";margin:0 6px}
-.time-card,.time-card.v3-11-next-module{display:contents}
-.break-progress-wrap,.time-card.v3-11-next-module .break-progress-wrap{grid-area:bar;height:8px;margin:12px 0 2px;border:0;border-radius:999px;background:var(--q-sunken);box-shadow:none}
-.break-progress-bar,.break-progress-bar.is-class{background:var(--pro-secondary);border-radius:999px}
-.break-progress-bar.is-class{background:var(--q-accent)}
-.timer-container,.time-card.v3-11-next-module .timer-container{grid-area:timer;align-self:start;align-items:flex-end;justify-content:flex-start;gap:3px;margin:0}
-.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{color:var(--q-text);font-family:inherit;font-variant-numeric:tabular-nums;font-weight:800;font-size:24px;letter-spacing:-.01em;line-height:1.1}
-.timer-label,.time-card:has(#progress-bar.is-class) .timer-label{color:var(--q-muted);font-weight:600;font-size:13px}
-.next-box,.time-card.v3-11-next-module .next-box{grid-area:next;display:block;background:transparent;border:0;border-top:1px solid var(--q-divider);border-radius:0;box-shadow:none;padding:12px 0 0;margin:8px 0 0;overflow:hidden;min-width:0}
 .next-content,.time-card.v3-11-next-module .next-content{display:flex;align-items:baseline;gap:10px;text-align:left;min-width:0}
 .time-card.v3-11-next-module .next-content > .label,.next-content > .label{flex:0 0 auto;margin:0;opacity:1;color:var(--q-muted);font-size:14px;font-weight:600;letter-spacing:0;text-align:left}
-.time-card.v3-11-next-module .title-next,.title-next{flex:0 1 auto;min-width:0;color:var(--q-text);font-size:16px!important;font-weight:700;height:auto;-webkit-line-clamp:1;line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block;overflow:hidden;text-align:left}
 .time-card.v3-11-next-module .next-box .next-meta,.next-meta{flex:1 1 auto;width:auto;min-width:0;justify-content:flex-end;display:flex}
 .time-card.v3-11-next-module .next-box .next-meta #next-meta-text,#next-meta-text{color:var(--q-muted);font-size:14px!important;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* ---- 課表: a section title, the kit's switcher, one card of rows ---- */
-.cx-section{text-align:left;align-self:stretch;width:auto;margin:26px 2px 12px;font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--q-text)}
-.nav-bar{display:flex;background:var(--q-sunken);border:0;border-radius:14px;box-shadow:none;padding:4px;gap:2px;margin:0 0 12px}
-.nav-item,.nav-item.is-today,.nav-item.is-tomorrow,.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{
-  flex:1 1 0;background:transparent;border:1px solid transparent;border-radius:10px;box-shadow:none;color:var(--q-text-2);font-size:15px;font-weight:700;min-height:40px;position:relative;
-  /* Only the press animates. A border that came from nothing (border:0's
-     colour is the text's, a light grey) eased into the chosen day's for
-     .2s: a white ring flashing on the tapped day. */
-  transition:transform .3s var(--ease-liquid)
-}
-.nav-item.active,.nav-item.active.is-today,.nav-item.active.is-tomorrow{background:var(--q-surface);border:1px solid var(--q-border);color:var(--q-accent);box-shadow:var(--q-shadow-sm)}
-.nav-item.is-today::before,.nav-item.is-tomorrow::before{top:auto;bottom:3px;left:50%;right:auto;margin-left:-2px;width:4px;height:4px;background:var(--q-accent)}
-.nav-item.is-tomorrow::before{background:var(--pro-secondary)}
-#schedule-list{width:100%;margin:0 0 16px;gap:0;flex:none;min-height:0;max-height:none;height:auto;border:1px solid var(--q-border);border-radius:var(--q-radius);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden}
-#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{
-  position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;column-gap:14px;
-  background:transparent;border:0;border-bottom:1px solid var(--q-divider);border-radius:0;box-shadow:none;animation:none;
-  padding:14px 18px;margin:0;height:auto;min-height:66px
-}
-#schedule-list .row:last-child{border-bottom:0}
-#schedule-list .row.is-now{background:var(--q-accent-wash)}
-#schedule-list .row.is-past .content,#schedule-list .row.is-past .row-time,#schedule-list .row.is-past .period-badge{opacity:.45}
-/* The time on the right, as the family's lists put their figure. */
-.row-time{order:3;display:grid;justify-items:end;gap:1px;font-variant-numeric:tabular-nums;line-height:1.15}
-.row-time b{color:var(--q-text);font-size:15px;font-weight:700}
-.row-time span{color:var(--q-muted);font-size:12.5px;font-weight:600}
-#schedule-list .period-badge,#schedule-list .row.is-next .period-badge,#schedule-list .row.is-now .period-badge{
-  order:1;width:28px;height:28px;min-width:28px;margin:0;border-radius:50%;border:0;box-shadow:none;
-  background:var(--q-sunken);color:var(--q-text-2);font-weight:700;font-size:13px
-}
-#schedule-list .row.is-now .period-badge{background:var(--q-accent);color:var(--q-accent-ink)}
-#schedule-list .row.is-next .period-badge{background:var(--q-accent-wash);color:var(--q-accent)}
-#schedule-list .row .content{order:2;border:0;padding:0;gap:3px;min-width:0}
-#schedule-list .row-name{color:var(--q-text);font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
-.status-tag{background:var(--q-accent-wash)!important;color:var(--q-accent)!important;padding:2px 8px;border:0;border-radius:999px;box-shadow:none;font-size:11.5px;font-weight:700;margin-left:8px;animation:none!important}
-#schedule-list .row-meta{gap:0;color:var(--q-muted);min-height:0}
-#schedule-list .row-meta .meta-time{display:none}
-#schedule-list .row-meta .meta-chip{background:none;border:0;box-shadow:none;padding:0;border-radius:0;color:var(--q-muted);font-family:inherit;font-size:13.5px;font-weight:500}
-#schedule-list .row-meta .meta-chip:not(.meta-time) ~ .meta-chip::before{content:"·";margin:0 6px}
-#schedule-list .row-meta:not(:has(.meta-chip:not(.meta-time))){display:none}
-
 /* ---- Sheets, dialogs, controls: the kit's ---- */
 .modal-sheet,.editor-confirm-sheet,.orbit-welcome,.test-panel,.editor-sheet,.assign-sheet{background:var(--q-sheet,var(--q-surface));color:var(--q-text);border:1px solid var(--q-border);box-shadow:var(--q-shadow)}
 .editor-fold,.toggle-row,.orbit-welcome-choice,.qp-card{background:var(--q-surface-2);border:1px solid var(--q-border);color:var(--q-text)}
 .editor-fold-summary{color:var(--q-text)}
 .editor-close,.editor-drill-btn,.editor-back-btn{background:var(--q-surface-2);border:1px solid var(--q-border);color:var(--q-text)}
 .editor-input,.time-input,.sync-input,.settings-transfer-text,.period-select,.test-panel select,.test-panel input[type="number"]{background:var(--q-surface);border:1px solid var(--q-border);color:var(--q-text)}
-.orbit-welcome-icon{background:var(--q-sunken)}
-.orbit-welcome-kicker{color:var(--q-accent)}
 .close-btn,.editor-confirm-btn.primary,.editor-primary-btn,.settings-transfer-btn.primary,.save-btn{background:var(--q-accent);color:var(--q-accent-ink);border:0;box-shadow:none}
 .occ-row-period,.time-input{font-family:inherit;font-variant-numeric:tabular-nums}
-
-/* ---- Polish: the summary card as the family's best cards (Words' level card) ---- */
-.cx-hero{
-  grid-template-columns:auto minmax(0,1fr) auto;
-  grid-template-areas:"tile kicker timer" "tile now timer" "bar bar bar" "next next next";
-  column-gap:14px;row-gap:2px;padding:18px;align-items:center
-}
-.cx-tile{grid-area:tile;align-self:start;display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:var(--q-accent-wash);color:var(--q-accent);font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
-.cx-tile:empty{display:none}
-.dashboard[data-mode="break"] .cx-tile{background:color-mix(in srgb,var(--pro-secondary) 14%,transparent);color:var(--pro-secondary)}
-.cx-kicker{align-self:end;font-size:13px;font-weight:700}
-.dashboard[data-mode="break"] .cx-kicker{color:var(--pro-secondary)}
-.title-now,.now-stack.is-status .title-now{font-size:26px!important;line-height:1.2}
-.now-stack{align-self:start}
-#now-teacher,#now-place,#now-class-label{font-size:14px}
-.timer-container,.time-card.v3-11-next-module .timer-container{align-self:center}
-.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{font-size:28px}
-.break-progress-wrap,.time-card.v3-11-next-module .break-progress-wrap{height:10px;margin:16px 0 4px}
-.next-box,.time-card.v3-11-next-module .next-box{border-top:0;margin:10px 0 0;padding:12px 14px;border-radius:14px;background:var(--q-surface-2)}
 .next-content > .label,.time-card.v3-11-next-module .next-content > .label{color:var(--q-accent);font-weight:700;font-size:13px}
-.dashboard[data-mode="off"] .next-box,.dashboard:not([data-mode]) .next-box{margin-top:14px}
-/* The list: lighter, tighter; what's over a little quieter, not washed out. */
-#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{padding:12px 18px;min-height:60px}
-#schedule-list .row.is-past .content,#schedule-list .row.is-past .row-time{opacity:.55}
-#schedule-list .row.is-past .period-badge{opacity:.7}
-#schedule-list .row.is-now{background:var(--q-accent-wash);box-shadow:inset 3px 0 0 var(--q-accent)}
-#schedule-list .row-name{font-size:16.5px}
-.cx-section{font-size:21px;margin-top:24px}
-.dashboard{overflow:visible;contain:none;isolation:auto}
 /* Every tab at least the screen tall (工具 is short): a page shorter than the screen let iOS lift the fixed tab bar. */
 html{min-height:100%}
 body{min-height:100vh;min-height:100lvh}
-.cx-page{min-height:calc(100vh - 60px);min-height:calc(100lvh - 60px)}
-
-/* ============================================================================
-   Redesign (2026-10-05, second pass): a calmer, typographic card and an
-   agenda list. The card: one top line (第 3 節 · 上課中, the clock range on
-   its right), the class in large type, teacher and room under it, then the
-   time left as a sentence (30:00 後下課) over a slim bar, and the next class
-   along the foot behind a hairline. No tile (the top line says the period).
-   The list: the times down the left like a calendar's agenda, the class and
-   its teacher and room beside them, the period's number quiet on the right;
-   the class on now on a soft wash with an accent edge, what's over quieter.
-   The countdown lives in the app bar's status (單週 · 第一次段考 15 天).
-   ========================================================================= */
-.dashboard > .label-row{display:none}
-.cx-tile,.cx-tile:not(:empty){display:none}
-.cx-hero{
-  grid-template-columns:minmax(0,1fr) auto;
-  grid-template-areas:"kicker span" "now now" "timer timer" "bar bar" "next next";
-  column-gap:12px;row-gap:0;padding:20px 20px 16px;align-items:baseline;
-  border-radius:calc(var(--q-radius) + 4px)
-}
-.cx-kicker{grid-area:kicker;align-self:baseline;color:var(--q-muted);font-size:13.5px;font-weight:700;letter-spacing:.01em}
-.dashboard[data-mode="class"] .cx-kicker{color:var(--q-accent)}
-.dashboard[data-mode="break"] .cx-kicker{color:var(--pro-secondary)}
-.cx-span{grid-area:span;justify-self:end;color:var(--q-muted);font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums}
-.cx-span:empty{display:none}
-.now-stack{grid-area:now;margin-top:6px;gap:6px}
-.title-now,.now-stack.is-status .title-now{font-size:36px!important;font-weight:800;letter-spacing:-.025em;line-height:1.1}
-#now-teacher,#now-place,#now-class-label{font-size:15px;color:var(--q-text-2)}
-.timer-container,.time-card.v3-11-next-module .timer-container{grid-area:timer;flex-direction:row;align-items:baseline;justify-content:flex-start;gap:8px;margin:18px 0 0;align-self:end}
-.timer-badge,.time-card:has(#progress-bar.is-class) .timer-badge{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1}
-.timer-label,.time-card:has(#progress-bar.is-class) .timer-label{font-size:15px;font-weight:600;color:var(--q-muted)}
-.break-progress-wrap,.time-card.v3-11-next-module .break-progress-wrap{height:6px;margin:12px 0 0}
-.next-box,.time-card.v3-11-next-module .next-box{margin:18px -20px 0;padding:14px 20px 0;border-radius:0;background:none;border-top:1px solid var(--q-divider)}
-.dashboard[data-mode="off"] .next-box,.dashboard:not([data-mode]) .next-box{margin-top:16px}
 .next-content > .label,.time-card.v3-11-next-module .next-content > .label{color:var(--q-muted);font-weight:600;font-size:14px}
-.title-next,.time-card.v3-11-next-module .title-next{font-size:16px!important}
-
-/* The list: an agenda. */
-#schedule-list{border-radius:calc(var(--q-radius) + 4px)}
-#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{grid-template-columns:50px minmax(0,1fr) auto;column-gap:14px;padding:13px 18px 13px 16px;min-height:0}
-#schedule-list .row-time{order:1;justify-items:start;align-self:start;padding-top:2px}
-#schedule-list .row-time b{font-size:15px}
-#schedule-list .row .content{order:2;padding-left:14px;border-left:2px solid var(--q-divider)}
-#schedule-list .row.is-empty{grid-template-columns:minmax(0,1fr)}
-#schedule-list .row.is-empty .content{padding-left:0;border-left:0}
-#schedule-list .row.is-now .content{border-left-color:var(--q-accent)}
-#schedule-list .row.is-next .content{border-left-color:color-mix(in srgb,var(--q-accent) 45%,transparent)}
-#schedule-list .period-badge,#schedule-list .row.is-next .period-badge,#schedule-list .row.is-now .period-badge{order:3;width:auto;height:auto;min-width:0;background:none;color:var(--q-muted);font-size:13px;font-weight:700}
-#schedule-list .row.is-now .period-badge{background:none;color:var(--q-accent)}
-#schedule-list .row.is-next .period-badge{background:none}
-#schedule-list .row.is-now{box-shadow:none}
-#schedule-list .row-name{font-size:17px}
-.now-meta-row,.now-stack .now-meta-row{max-width:none;width:auto;align-self:flex-start;justify-content:flex-start;min-height:0}
-#now-teacher,#now-place,#now-class-label{max-width:none;width:auto;text-align:left;flex:0 1 auto}
-.cx-hero{padding-bottom:14px}
-.next-box,.time-card.v3-11-next-module .next-box{padding-bottom:0}
 .next-content{align-items:center}
-.now-stack,.now-stack.is-status{display:flex;flex-direction:column;align-items:flex-start;justify-items:start}
-.now-stack > *{justify-self:start;margin-left:0}
-.cx-hero{padding-bottom:16px}
-.dashboard,.top-stack .dashboard{padding-bottom:0;min-height:0}
 .next-box,.time-card.v3-11-next-module .next-box,.next-content{min-height:0;height:auto}
-
-/* ---- 倒數 (今天): one card per event in a row that swipes when there are
-   several; the days in large type, the name and dates beside them; the
-   card with today's or an ongoing event in the accent, one that's over
-   quiet; a dashed card at the end adds one. ---- */
-.cx-countdowns{display:block}
-body[data-tab="week"] .cx-countdowns,.cx-countdowns:empty{display:none}
-.cx-cd-row{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:2px 16px 8px;scroll-padding:0 16px}
-.cx-cd-row::-webkit-scrollbar{display:none}
-.cx-cd{flex:0 0 calc(100% - 76px);scroll-snap-align:start;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:92px;padding:16px 20px;
-  border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm);
-  color:var(--q-text);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s ease}
-.cx-cd:active{transform:scale(.98)}
-.cx-countdowns.is-many .cx-cd:not(.cx-cd-add){flex-basis:calc(100% - 64px)}
-.cx-cd-words{display:grid;gap:4px;min-width:0}
-.cx-cd-name{font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.cx-cd-date{color:var(--q-muted);font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums}
-.cx-cd-big{display:flex;align-items:baseline;gap:3px;flex:0 0 auto;font-variant-numeric:tabular-nums}
-.cx-cd-big b{color:var(--q-accent);font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1}
-.cx-cd-big small{color:var(--q-muted);font-size:15px;font-weight:700}
-.cx-cd-big em{font-style:normal;font-size:15px;font-weight:800;padding:6px 12px;border-radius:999px;background:var(--q-accent-wash);color:var(--q-accent)}
-.cx-cd.is-today,.cx-cd.is-on{background:color-mix(in srgb,var(--q-accent) 7%,var(--q-surface));border-color:color-mix(in srgb,var(--q-accent) 30%,var(--q-border))}
-.cx-cd.is-over{box-shadow:none;background:var(--q-surface-2)}
-.cx-cd.is-over .cx-cd-name{color:var(--q-muted)}
-.cx-cd.is-over .cx-cd-big em{background:var(--q-sunken);color:var(--q-muted)}
-.cx-cd-add{flex:0 0 64px;flex-direction:column;justify-content:center;gap:4px;padding:10px 6px;background:transparent;box-shadow:none;border:1.5px dashed var(--q-border);color:var(--q-muted)}
-.cx-cd-plus{font-size:26px;font-weight:500;line-height:1}
-.cx-cd-addtext{font-size:11px;font-weight:700;text-align:center;line-height:1.2}
-
-/* ---- 明天要帶 (今天, src/bring.js): the night before, one line per thing to bring ---- */
-.cx-bring{display:block}
-body[data-tab="week"] .cx-bring,.cx-bring:empty{display:none}
-.cx-bring-card{display:grid;gap:2px;padding:6px 16px;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm)}
-.cx-bring-row{display:flex;align-items:center;gap:12px;min-height:52px;min-width:0}
-.cx-bring-row + .cx-bring-row{border-top:1px solid var(--q-divider)}
-.cx-bring-item{flex:1 1 auto;min-width:0;font-size:16px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
-.cx-bring-for{flex:0 1 auto;min-width:0;color:var(--q-muted);font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
-
-/* ---- 工具 (src/tools.js): the timetable at a glance, then the ways in ---- */
-#panel-tools > .cx-tools-page > .cx-section:first-child{margin-top:6px}
-.cx-tl-card{padding:18px;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm)}
-.cx-tl-figures{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:22px;margin:0 2px 16px}
-.cx-tl-figure{display:grid;gap:2px;min-width:0}
-.cx-tl-figure b{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cx-tl-figure span{color:var(--q-muted);font-size:12.5px;font-weight:600}
-.cx-tl-grid{display:grid;grid-template-columns:18px repeat(var(--days),minmax(0,1fr));gap:4px;align-items:center}
-.cx-tl-corner{display:block}
-.cx-tl-day{text-align:center;color:var(--q-muted);font-size:12.5px;font-weight:700;padding:0 0 4px}
-.cx-tl-day.is-today{color:var(--q-accent)}
-.cx-tl-num{color:var(--q-muted);font-size:11px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
-.cx-tl-cell{display:grid;place-items:center;height:30px;border-radius:8px;background:var(--q-surface-2);color:var(--q-text-2);font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden}
-.cx-tl-cell.is-empty{background:transparent;border:1px dashed var(--q-divider)}
-.cx-tl-cell.is-today{background:var(--q-accent-wash);color:var(--q-accent)}
-.cx-tl-cell.is-now{background:var(--q-accent);color:var(--q-accent-ink)}
-/* An empty period stays empty in today's column too (is-today's wash, a later rule, filled it). */
-.cx-tl-cell.is-empty.is-today{background:transparent;border-color:color-mix(in srgb,var(--q-accent) 40%,var(--q-divider))}
-.cx-tl-empty{grid-column:1 / -1;margin:10px 0 4px;color:var(--q-muted);font-size:14px;text-align:center}
-.cx-tl-edit{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:16px 0 0;border:0;border-radius:14px;background:var(--q-accent);color:var(--q-accent-ink);font:inherit;font-size:16px;font-weight:800;cursor:pointer}
-.cx-tl-parts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-/* English words are longer: four chips two by two, never three and one */
-html[lang^="en"] .cx-tl-parts{display:grid;grid-template-columns:1fr 1fr}
-.cx-tl-part{min-height:34px;padding:0 14px;border:1px solid var(--q-border);border-radius:999px;background:var(--q-surface-2);color:var(--q-text);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
-.cx-tl-edit:disabled,.cx-tl-part:disabled{opacity:.45;cursor:default}
-.cx-tl-edit:active,.cx-tl-part:active,.cx-way:active{transform:scale(.98)}
-.cx-ways{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.cx-way{display:grid;align-content:start;gap:14px;min-height:132px;padding:16px;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm);color:var(--q-text);font:inherit;text-align:left;cursor:pointer;transition:transform .15s ease}
-.cx-way-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--q-accent-wash);color:var(--q-accent)}
-.cx-way.is-key .cx-way-icon{background:color-mix(in srgb,var(--pro-secondary) 16%,transparent);color:var(--pro-secondary)}
-.cx-way-words{display:grid;gap:3px}
-.cx-way-words strong{font-size:16px;font-weight:800}
-.cx-way-words small{color:var(--q-muted);font-size:13px;font-weight:500;line-height:1.35}
-
-/* ============================================================================
-   Third pass (2026-10-06): the card says one thing, and nothing wraps.
-   The card (src/schedule-calc.js heroView): in class, the class and the time
-   left; on a break or in the morning, the class coming is the card (its name
-   large, teacher and room under it, "4:53 後上課"), the break named on the top
-   line; the foot is what comes after, on two designed lines (the label over
-   the name on the left, the time over the teacher and room on the right), so
-   neither is cut short. Every line is one line: long names shrink, then end
-   in an ellipsis. The list: the class on now and the next one say so where
-   the period number goes, a named break is a quiet line between two classes.
-   ========================================================================= */
-.cx-hero{
-  display:block;position:relative;padding:18px 20px 16px;
-  border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow)
-}
-.cx-hero [hidden]{display:none!important}
-.cx-h-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-height:18px}
-.cx-h-kicker{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--q-muted);font-size:13.5px;font-weight:700;letter-spacing:.01em}
-.cx-hero[data-mode="class"] .cx-h-kicker{color:var(--q-accent)}
-.cx-hero[data-mode="break"] .cx-h-kicker,.cx-hero[data-mode="before"] .cx-h-kicker{color:var(--pro-secondary)}
-.cx-h-span{flex:none;color:var(--q-muted);font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
-.cx-h-top:has(.cx-h-kicker:empty):has(.cx-h-span:empty){display:none}
-.cx-h-title{
-  margin-top:6px;color:var(--q-text);font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.2;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
-}
-.cx-h-meta{display:flex;align-items:center;gap:0;min-width:0;margin-top:4px;color:var(--q-text-2);font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden}
-.cx-h-meta > :is(#now-teacher,#now-place,#now-class-label){display:block;width:auto;max-width:none;min-height:0;padding:0;border:0;border-radius:0;background:none;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:0 1 auto;color:var(--q-text-2);font-size:15px;font-weight:500;line-height:1.3;text-align:left}
-.cx-h-meta > :is(#now-teacher,#now-place,#now-class-label):empty{display:none}
-.cx-h-meta > #now-place:not(:empty)::before{content:"·";margin:0 6px;color:var(--q-muted)}
-.cx-h-meta > #now-teacher:empty + #now-place::before{content:none}
-.cx-h-meta > #now-class-label:not(:empty){flex:none;margin-left:8px;overflow:visible}
-.cx-h-meta .week-label{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--q-accent-wash);color:var(--q-accent);font-size:12px;font-weight:700}
-.cx-h-time{display:flex;align-items:baseline;gap:8px;margin-top:16px;white-space:nowrap}
-.cx-h-time b{color:var(--q-text);font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
-.cx-h-time span{color:var(--q-muted);font-size:15px;font-weight:600}
-.cx-h-bar{height:6px;margin-top:12px;border-radius:999px;background:var(--q-sunken);overflow:hidden}
-.cx-h-bar i{display:block;height:100%;width:0;border-radius:inherit;background:var(--pro-secondary);transition:width 1s linear}
-.cx-hero[data-mode="class"] .cx-h-bar i{background:var(--q-accent)}
-.cx-h-foot{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;column-gap:16px;
-  margin:16px -20px 0;padding:13px 20px 0;border-top:1px solid var(--q-divider)
-}
-.cx-hero[data-mode="off"] .cx-h-foot{margin-top:14px}
-.cx-h-foot-l,.cx-h-foot-r{display:grid;gap:2px;min-width:0}
-.cx-h-foot-r{justify-items:end;max-width:46vw;text-align:right}
-.cx-h-foot-l > span{color:var(--q-muted);font-size:12.5px;font-weight:700}
-.cx-h-foot-l > b{color:var(--q-text);font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cx-h-foot-r > b{color:var(--q-text);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
-.cx-h-foot-r > span{max-width:100%;color:var(--q-muted);font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cx-h-note{grid-column:1 / -1;margin:0;color:var(--q-muted);font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cx-h-foot[data-kind="note"] .cx-h-foot-l,.cx-h-foot[data-kind="note"] .cx-h-foot-r,.cx-h-foot:not([data-kind="note"]) .cx-h-note{display:none}
-
-/* The list: every line one line; the state where the period number was. */
-#schedule-list .row-name{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap}
-#schedule-list .row-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis}
-#schedule-list .row-name-week-label{flex:none}
-#schedule-list .row-meta{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#schedule-list .row-meta .meta-chip:not(.meta-time){display:inline}
-#schedule-list .row .period-badge.row-state{padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;background:var(--q-accent-wash);color:var(--q-accent)}
-#schedule-list .row.is-now .period-badge.row-state{background:var(--q-accent);color:var(--q-accent-ink)}
-#schedule-list .row.is-now .row-time b{color:var(--q-accent)}
-#schedule-list .row-gap{display:flex;align-items:baseline;gap:8px;padding:7px 18px 7px 80px;border-bottom:1px solid var(--q-divider);background:var(--q-surface-2);color:var(--q-muted);font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden}
-#schedule-list .row-gap span:first-child{overflow:hidden;text-overflow:ellipsis}
-#schedule-list .row-gap span:last-child{flex:none;font-variant-numeric:tabular-nums}
-
-/* 倒數: one line each, the days a step under the card's own time. */
-.cx-cd{min-height:78px;padding:14px 18px}
-.cx-cd-words{flex:1 1 auto}
-.cx-cd-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16.5px}
-.cx-cd-date{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cx-cd-big b{font-size:34px}
-.cx-cd-big small{font-size:14px}
-
-/* 工具's ways in: one grouped list, as the family's settings rows. */
-.cx-ways{grid-template-columns:minmax(0,1fr);gap:0;border:1px solid var(--q-border);border-radius:calc(var(--q-radius) + 4px);background:var(--q-surface);box-shadow:var(--q-shadow-sm);overflow:hidden}
-.cx-way{grid-template-columns:40px minmax(0,1fr) auto;align-items:center;align-content:center;gap:14px;min-height:0;padding:14px 18px;border:0;border-bottom:1px solid var(--q-divider);border-radius:0;box-shadow:none;background:none}
-.cx-way:last-child{border-bottom:0}
-.cx-way-icon{width:40px;height:40px;border-radius:12px}
-.cx-way-words{min-width:0}
-.cx-way-words strong,.cx-way-words small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cx-way-go{color:var(--q-muted);font-size:22px;line-height:1}
-.cx-way:active{transform:none;background:var(--q-surface-2)}
-/* 今天: what's over below the classes still to come, under its own line. */
-#schedule-list .row-done-head{padding:10px 18px 8px 16px;border-bottom:1px solid var(--q-divider);background:var(--q-surface-2);color:var(--q-muted);font-size:12.5px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
-.cx-cd-addtext{white-space:nowrap;font-size:10.5px;letter-spacing:-.01em}
-.cx-tl-figures{gap:clamp(14px,5vw,22px)}
-.cx-tl-figure b{font-size:min(24px,6.2vw);text-overflow:clip}
-/* 工具's grid: every subject's own short name (src/tools.js shortNames), a tap opens the class. */
-.cx-tl-cell{padding:0 2px;border:0;font:inherit;font-size:12.5px;font-weight:700;text-overflow:clip;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cx-tl-cell.is-long{font-size:min(11px,2.9vw);letter-spacing:-.04em}
-button.cx-tl-cell:active{transform:scale(.94)}
-
-/* ============================================================================
-   Fourth pass (2026-10-06): pictures, and the family's sheets.
-   Every subject has its picture (src/subjects.js: an icon on a tile of the
-   subject's colour), as Sports gives every team its logo: on the card, every
-   row of the list, the 工具 grid (each cell in its subject's colour) and the
-   class's sheet. 倒數's events have theirs (段考 a pen, 運動會 a trophy).
-   The sheets are the kit's (quadra.css .q-sheet): the screen's full width,
-   attached to the bottom, the grabber, the title on the left in the text's
-   colour and a round × on the right; no full-width 完成 bar.
-   ========================================================================= */
-.subject-icon{--s:38px;display:inline-grid;place-items:center;flex:none;width:var(--s);height:var(--s);border-radius:calc(var(--s) * .3);
-  background:color-mix(in srgb,var(--subject,var(--q-accent)) 15%,transparent);color:var(--subject,var(--q-accent))}
-.subject-icon svg{width:56%;height:56%}
-.subject-icon.is-state{background:var(--q-accent-wash);color:var(--q-accent)}
-.cx-hero[data-mode="break"] .subject-icon.is-state{background:color-mix(in srgb,var(--pro-secondary) 15%,transparent);color:var(--pro-secondary)}
-
-/* The card: the class's picture beside its name. */
-.cx-h-main{display:flex;align-items:center;gap:14px;margin-top:10px;min-width:0}
-.cx-h-icon{display:contents}
-.cx-h-icon .hero-icon{--s:58px;border-radius:18px}
-.cx-h-words{flex:1 1 auto;min-width:0}
-.cx-h-main .cx-h-title{margin-top:0}
-/* A name too long for one line at 24px: the two lines drawn for it. */
-.cx-h-title.is-two{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance}
-.cx-h-main .cx-h-meta{margin-top:2px}
-.cx-hero[data-mode="class"] .cx-h-bar i{background:var(--subject,var(--q-accent))}
-.cx-hero[data-mode="class"] .cx-h-kicker{color:var(--subject,var(--q-accent))}
 #next-name-row{display:flex;align-items:center;gap:8px;min-width:0}
 #next-name-row #next-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.cx-h-foot-icon{display:contents}
-.cx-h-foot-icon .foot-icon{--s:24px;border-radius:7px}
-.cx-h-foot-icon:empty{display:none}
-
-/* The list: time, the subject's picture, the class; the state on the right. */
-#schedule-list .row,#schedule-list .row.is-next,#schedule-list .row.is-now{grid-template-columns:46px 38px minmax(0,1fr) auto;column-gap:12px;padding:12px 16px;align-items:center}
-#schedule-list .row-time{order:1;align-self:center;padding-top:0}
-#schedule-list .row .row-icon{order:2}
-#schedule-list .row .content{order:3;padding-left:0;border-left:0}
-#schedule-list .period-badge,#schedule-list .row .period-badge{order:4}
-#schedule-list .period-badge.is-quiet{display:none}
-#schedule-list .row.is-past .row-icon{opacity:.5;filter:saturate(.6)}
-#schedule-list .row.is-now{background:color-mix(in srgb,var(--q-accent) 8%,var(--q-surface))}
-#schedule-list .row-meta .meta-period{font-variant-numeric:tabular-nums}
-#schedule-list .row-meta .meta-chip.meta-period ~ .meta-chip:not(.meta-time)::before{content:"·";margin:0 6px}
-#schedule-list .row-gap{padding-left:124px}
-#schedule-list .row.is-empty .content{padding-left:0}
-
-/* 工具's grid: each class in its subject's colour; today's column outlined,
-   the class on now filled. */
-.cx-tl-cell[style*="--subject"]{background:color-mix(in srgb,var(--subject) 15%,var(--q-surface));color:color-mix(in srgb,var(--subject) 82%,var(--q-text))}
-.cx-tl-cell.is-today[style*="--subject"]{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--subject) 45%,transparent)}
-.cx-tl-cell.is-now[style*="--subject"]{background:var(--subject);color:#fff;box-shadow:none}
-
-/* 倒數: the event's picture. */
-.cx-cd-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:var(--q-accent-wash);color:var(--q-accent)}
-.cx-cd-icon svg{width:22px;height:22px}
-.cx-cd.is-over .cx-cd-icon{background:var(--q-sunken);color:var(--q-muted)}
-.cx-cd{gap:12px}
-
 /* The sheets: the kit's. */
 .modal-sheet,.test-panel,.editor-sheet,.transfer-sheet{
   left:50%!important;right:auto!important;bottom:0!important;width:min(100vw,460px)!important;max-width:none!important;
@@ -2568,7 +1524,6 @@ button.cx-tl-cell:active{transform:scale(.94)}
 /* The class's sheet: its picture, name and teacher · room, then its figures and its periods. */
 .class-head{display:flex;align-items:center;gap:14px;padding:6px 0 14px}
 .class-head-icon{display:contents}
-.class-head .sheet-icon{--s:52px;border-radius:16px}
 .class-head-words{flex:1 1 auto;min-width:0}
 .class-head .modal-title-text{margin:0;color:var(--q-text);font-size:22px;font-weight:800;letter-spacing:-.01em;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .class-head .modal-teacher-text{margin:2px 0 0;color:var(--q-muted);font-size:14px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2601,7 +1556,6 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .editor-sheet .editor-fold .ocr-import-box,.editor-sheet .editor-fold .toggle-row,.editor-sheet .editor-fold .schedule-grid > *{background:var(--q-surface)!important;border:0!important;box-shadow:none!important}
 .editor-drill-btn{background:var(--q-surface)!important;border:0!important;border-radius:999px!important;font-weight:700}
 .transfer-section-heading > span:first-child,.editor-sheet .transfer-section-heading > span:first-child{color:var(--q-text)}
-
 /* ---- iOS 26: the family's look on Class's own pieces (light: its glass stays) ----
    Light at the rim, no outline rings: sheets and the welcome card
    lose their 1px ring for the kit's rim; what sits in a sheet (rows, folds,
@@ -2614,9 +1568,7 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .editor-input,.time-input,.sync-input,.settings-transfer-text,.period-select,.test-panel select,.test-panel input[type="number"]{border-color:transparent;background-color:var(--q-fill,var(--q-surface))}
 .editor-close{border-radius:50%}
 .editor-back-btn{border-radius:999px}
-.orbit-welcome-later{border-radius:999px}
 .orbit-welcome-choice:active,.editor-close:active,.editor-back-btn:active{transform:scale(.97);transition:transform .3s var(--q-spring,ease)}
-
 /* ==== On the kit's iOS 27 design (Shared-Proxy kit/quadra.css) ====
    Class's own pieces drawn as the kit's: capsule buttons at iOS's large
    size, the sheets' deep corners, the kit's springs for every movement, and
@@ -2664,7 +1616,6 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .toggle-switch.on:active::after {
   transform: translateX(16px);
 }
-
 /* ---- 調課 (src/swap.js): the class sheet's button, the swap sheet, 工具's list ---- */
 .m-swap{display:grid;gap:10px;margin:4px 0 8px}
 .m-swap[hidden],.m-swap-note[hidden]{display:none}
@@ -2693,13 +1644,6 @@ button.cx-tl-cell:active{transform:scale(.94)}
 .swap-slot.is-free .swap-slot-words strong{color:var(--q-muted);font-weight:600}
 .swap-slot-words small{color:var(--q-muted);font-size:13px;overflow-wrap:anywhere}
 .swap-note{margin:0;padding:16px 14px;color:var(--q-muted);font-size:15px}
-.cx-way.is-swap .cx-way-icon,.cx-swap .cx-way-icon{background:color-mix(in srgb,var(--q-orange) 16%,transparent);color:var(--q-orange)}
-.cx-way.cx-swap{grid-template-columns:40px minmax(0,1fr)}
-.cx-way:disabled{opacity:.45;cursor:default}
-.cx-swap-sides{display:grid;gap:6px;min-width:0}
-.cx-swap-side{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:10px}
-.cx-swap-side small{color:var(--q-muted);font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
-.cx-swap-side strong{font-size:16px;font-weight:700;overflow-wrap:anywhere}
 /* The transfer sheet opened for one thing: 拍照匯入 shows AI 匯入 alone,
    分享金鑰 the Quadra Pass and the key alone. */
 #transfer-sheet[data-focus="photo"] #quadra-box,#transfer-sheet[data-focus="photo"] #sync-status,#transfer-sheet[data-focus="photo"] #test-mode-fold{display:none}
@@ -2708,5 +1652,4 @@ button.cx-tl-cell:active{transform:scale(.94)}
    調課 still to come under the day; neither on 今天. */
 .cx-week-switch{margin:0 0 12px}
 .cx-week-switch:empty,body:not([data-tab="week"]) .cx-week-switch,body:not([data-tab="week"]) .cx-swaps-page{display:none}
-.cx-swaps-page{margin-top:24px}
 #editor-fold-ai #nl-edit-box{margin-top:0}

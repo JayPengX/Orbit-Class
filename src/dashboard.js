@@ -27,9 +27,10 @@ import {
   getWeekType,
   processSplitName
 } from './schedule.js';
-import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
-import { renderBring } from './bring.js';
-import { eventLook, stateIcon, subjectIcon, subjectLook } from './subjects.js';
+import { classesLeft, classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
+import { bringList, renderBring } from './bring.js';
+import * as kitUI from '#kit/ui.mjs';
+import { eventLook, stateTile, subjectTile } from './subjects.js';
 import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
@@ -165,12 +166,15 @@ function updateExamCountdown() {
 let statusWeek = null;
 function showStatus(week = statusWeek) {
   statusWeek = week;
-  const status = document.getElementById('status');
-  if (!status) return;
+  const over = document.getElementById('cx-over');
+  if (over) over.textContent = statusLine(week);
+}
+// The small line over every page's title: the date and the week (10月6日 週二 · 雙週).
+function statusLine(week = statusWeek) {
   const en = getLocale() === 'en';
   const date = new Date().toLocaleDateString(en ? 'en-US' : 'zh-TW', { month: en ? 'short' : 'long', day: 'numeric', weekday: 'short' });
   const parts = [date, week == null ? '' : getWeekLabelHtml(week).replace(/<[^>]+>/g, '')];
-  status.textContent = parts.filter(Boolean).join(' · ');
+  return parts.filter(Boolean).join(' · ');
 }
 
 // 今天's countdowns: one card per event, side by side (swipe when there are
@@ -206,7 +210,7 @@ function renderCountdowns() {
     window.openEditor?.();
     window.openEditorFold?.('editor-fold-countdown');
   };
-  const row = make('div', 'cx-cd-row');
+  const row = make('div', 'cx-cd-row q-rail');
   for (const event of events) {
     const st = countdownState(event, today);
     const card = make('button', `cx-cd is-${st.kind}`);
@@ -223,7 +227,7 @@ function renderCountdowns() {
       big.append(make('em', '', t(`dashboard.${word}`)));
     }
     // The event's picture (段考 a pen, 運動會 a trophy) beside its name.
-    const pic = make('span', 'cx-cd-icon');
+    const pic = make('span', `q-tile cx-cd-icon${st.kind === 'over' ? ' soft' : ''}`);
     pic.innerHTML = eventLook(event.name);
     card.append(pic, words, big);
     row.append(card);
@@ -235,7 +239,10 @@ function renderCountdowns() {
   add.addEventListener('click', edit);
   row.append(add);
   box.classList.toggle('is-many', events.length > 1);
-  box.replaceChildren(make('h2', 'cx-section', t('dashboard.countdowns')), row);
+  const head = make('div', 'q-section-head');
+  head.append(make('h2', 'cx-section', t('dashboard.countdowns')));
+  box.classList.add('q-section');
+  box.replaceChildren(head, row);
 }
 
 
@@ -270,6 +277,9 @@ function getDashboardDom() {
     nextSub: $('next-sub'),
     nextNote: $('next-note'),
     icon: $('cx-icon'),
+    glyph: $('cx-glyph'),
+    left: $('cx-left'),
+    bring: $('cx-h-bring'),
     nextIcon: $('next-icon')
   };
   return dashboardDom;
@@ -294,13 +304,27 @@ function renderDashboard(week, hero) {
   put('kicker', hero.kicker, v => (dom.kicker.textContent = v));
   put('span', hero.span, v => (dom.span.textContent = v));
   if (put('title', hero.title, v => (dom.title.textContent = v))) fitNowTitleText();
-  // The class's picture (src/subjects.js); a break's cup, a day over the moon.
-  put('icon', hero.subject ? `s:${hero.subject}` : `m:${hero.mode}`, () => {
-    dom.icon?.replaceChildren(hero.subject ? subjectIcon(hero.subject, 'hero-icon') : stateIcon(hero.mode, 'hero-icon'));
-    // The bar and the top line in the class's colour.
-    if (hero.subject) dom.hero.style.setProperty('--subject', subjectLook(hero.subject).color);
-    else dom.hero.style.removeProperty('--subject');
+  // The class's picture (src/subjects.js) as a glass tile; a break's cup, a day over the moon.
+  put('icon', hero.subject ? `s:${hero.subject}` : `m:${hero.mode}`, () => dom.icon?.replaceChildren(hero.subject ? subjectTile(hero.subject, 'lg', true) : stateTile(hero.mode, 'lg', true)));
+  // The eyebrow's own glyph, by what the card is about.
+  put('glyph', hero.mode, v => (dom.glyph.innerHTML = (kitUI.icons ?? {})[{ class: 'clock', break: 'bell', before: 'clock', off: 'moon' }[v] || 'clock'] ?? ''));
+  put('left', hero.left ? t('dashboard.leftTag', { n: hero.left }) : '', v => {
+    dom.left.textContent = v;
+    dom.left.hidden = !v;
   });
+  // A day without classes: what tomorrow's classes need, as chips.
+  put('bring', JSON.stringify(hero.bring || []), () => {
+    dom.bring.replaceChildren();
+    if (hero.bring?.length) {
+      const label = document.createElement('span');
+      label.className = 'cx-h-bring-label';
+      label.textContent = t('bring.title', { day: hero.bringDay || t('dashboard.tomorrow') });
+      dom.bring.append(label, ...hero.bring.map(item => Object.assign(document.createElement('span'), { className: 'cx-h-chip', textContent: t(`bring.${item}`) })));
+    }
+    dom.bring.hidden = !hero.bring?.length;
+  });
+  document.body.dataset.hero = hero.mode;
+  document.body.dataset.heroClass = hero.subject ? '1' : '';
   put('teacher', hero.teacher, v => (dom.teacher.textContent = v));
   put('place', hero.place, v => (dom.place.textContent = v));
   put('classLabel', hero.label, v => (dom.classLabel.innerHTML = v));
@@ -321,7 +345,7 @@ function renderDashboard(week, hero) {
   else if (foot) {
     put('nextLabel', foot.label, v => (dom.nextLabel.textContent = v));
     put('nextName', foot.name, v => (dom.nextName.textContent = v));
-    put('nextIcon', foot.subject || '', v => dom.nextIcon?.replaceChildren(...(v ? [subjectIcon(v, 'foot-icon')] : [])));
+    put('nextIcon', foot.subject || '', v => dom.nextIcon?.replaceChildren(...(v ? [subjectTile(v, 'sm', true)] : [])));
     put('nextTime', foot.time, v => (dom.nextTime.textContent = v));
     put('nextSub', foot.sub, v => {
       dom.nextSub.textContent = v;
@@ -340,7 +364,7 @@ function nextSchoolDay(now, curDay) {
     // (Test Mode's simulated weekday walks the timetable, not dates.)
     const first = window.MANUALLY_TEST ? !holidayOn(date) && (state.runtimeSchedule[day] || [])[0] : classesOn(date)[0];
     if (!first) continue;
-    return { label: ahead === 1 ? t('dashboard.tomorrow') : ahead < 7 ? WEEKDAY_LABELS[day] : `${date.getMonth() + 1}/${date.getDate()}`, first, week: getWeekType(date), day };
+    return { label: ahead === 1 ? t('dashboard.tomorrow') : ahead < 7 ? WEEKDAY_LABELS[day] : `${date.getMonth() + 1}/${date.getDate()}`, first, week: getWeekType(date), day, date };
   }
   return null;
 }
@@ -374,6 +398,7 @@ function updateExamCountdownIfDayChanged() {
   updateExamCountdown();
 }
 
+let heroTarget = null;
 function update() {
   if (!window.MANUALLY_TEST) prunePastCountdowns();
   updateExamCountdownIfDayChanged();
@@ -437,10 +462,18 @@ function update() {
     state.autoAdvancedAfterFinishedDay = curDay;
   }
 
-  renderDashboard(
-    week,
-    heroView(viewModel, { now, week, todaySchedule, nextDay, holiday })
-  );
+  const hero = heroView(viewModel, { now, week, todaySchedule, nextDay, holiday });
+  // Classes still to come ride on the card as a tag; a day without any shows
+  // what the next school day needs brought.
+  if (hero.mode !== 'off') hero.left = classesLeft(todaySchedule, now);
+  else if (nextDay) {
+    const rows = window.MANUALLY_TEST ? state.runtimeSchedule[nextDay.day] || [] : classesOn(nextDay.date);
+    hero.bring = bringList(rows, nextDay.week).map(x => x.item);
+    hero.bringDay = nextDay.label;
+  }
+  // What a tap on the card opens: the class it shows.
+  heroTarget = viewModel.curIdx >= 0 ? todaySchedule[viewModel.curIdx] : hero.subject && viewModel.nxtIdx >= 0 ? todaySchedule[viewModel.nxtIdx] : null;
+  renderDashboard(week, hero);
 
   // As the break before a class starts (five minutes before, after a long
   // one): a notice (once per class; not in test mode), only in its own
@@ -456,7 +489,7 @@ function update() {
     }
   }
 
-  const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${document.body.dataset.tab}`;
+  const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${document.body.dataset.tab}-${document.body.dataset.heroClass}`;
   if (state.lastListKey !== liveStateKey) {
     renderList(week, viewModel.curIdx, viewModel.nxtIdx, curDay, viewModel.isDayFinished);
     state.lastListKey = liveStateKey;
@@ -627,7 +660,7 @@ function openModal(shown, { date = null } = {}) {
   }
   const info = processSplitName(c, week);
   document.getElementById('m-title').textContent = info.n;
-  document.getElementById('m-icon')?.replaceChildren(subjectIcon(info.n, 'sheet-icon'));
+  document.getElementById('m-icon')?.replaceChildren(subjectTile(info.n, 'lg'));
   document.getElementById('m-teacher').textContent = [info.t, c.loc].filter(Boolean).join(' · ');
   document.getElementById('m-count').textContent = t('dashboard.periodCount', { count });
   document.getElementById('m-occ-list').classList.toggle('is-week', Boolean(count));
@@ -673,6 +706,10 @@ window.openTestPanel = openTestPanel; // testsim-runtime.js's patchPanelOpeners(
 // needs the real function bound here first, or it wraps undefined.
 window.toggleActionMenu = toggleActionMenu;
 window.toggleTestPanel = toggleTestPanel;
+// The hero card opens the class it shows (as a row does).
+document.getElementById('cx-hero')?.addEventListener('click', () => {
+  if (heroTarget) openModal(heroTarget, { date: window.MANUALLY_TEST ? null : new Date() });
+});
 window.update = update; // testsim-runtime.js monkey-patches this; every
 // cross-module caller goes through window.update() to see that patch.
 
@@ -683,6 +720,7 @@ export {
   openModal,
   openTestPanel,
   setOverlayVisible,
+  statusLine,
   syncTestToolbar,
   toggleTestPanel
 };

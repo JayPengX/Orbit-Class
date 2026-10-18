@@ -206,8 +206,9 @@ async function pick(slot) {
 // then 新增調課. Drawn again only when the swaps change.
 const SWAP_ICON = '<path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/>';
 function swapIcon() {
-  const box = el('span', 'cx-way-icon');
-  box.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SWAP_ICON}</svg>`;
+  const box = el('span', 'q-tile cx-way-icon');
+  box.style.setProperty('--t', 'var(--q-orange)');
+  box.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SWAP_ICON}</svg>`;
   return box;
 }
 let swapsDrawn = '';
@@ -218,28 +219,30 @@ function renderSwaps() {
   const key = `${JSON.stringify(coming)}|${t('swap.section')}`;
   if (key === swapsDrawn && page.childElementCount) return;
   swapsDrawn = key;
-  const box = el('div', 'cx-ways cx-swaps');
+  const box = el('div', 'cx-ways cx-swaps q-rowcard');
   for (const swap of coming) {
-    const words = el('span', 'cx-swap-sides');
+    const words = el('span', 'cx-swap-sides q-ritem-text');
     for (const side of [swap.a, swap.b]) {
       const line = el('span', 'cx-swap-side');
       line.append(el('small', '', slotText(side)), el('strong', '', nameAt(side)));
       words.append(line);
     }
-    const row = el('button', 'cx-way cx-swap');
+    const row = el('button', 'cx-way cx-swap q-ritem q-press');
     row.type = 'button';
     row.append(swapIcon(), words);
     row.addEventListener('click', () => undoSwap(swap));
     box.append(row);
   }
-  const words = el('span', 'cx-way-words');
-  words.append(el('strong', '', t('swap.add')), el('small', '', t('swap.addSub')));
-  const add = el('button', 'cx-way is-swap');
+  const words = el('span', 'cx-way-words q-ritem-text');
+  words.append(el('strong', 'q-ritem-title', t('swap.add')), el('small', '', t('swap.addSub')));
+  const add = el('button', 'cx-way is-swap q-ritem chevron q-press');
   add.type = 'button';
-  add.append(swapIcon(), words, el('span', 'cx-way-go', '›'));
+  add.append(swapIcon(), words);
   add.addEventListener('click', () => openSwapSheet());
   box.append(add);
-  page.replaceChildren(el('h2', 'cx-section', t('swap.section')), box);
+  const head = el('div', 'q-section-head');
+  head.append(el('h2', 'cx-section', t('swap.section')));
+  page.replaceChildren(head, box);
 }
 
 window.closeSwapSheet = closeSwapSheet;

@@ -91,7 +91,7 @@ describe('工具', () => {
     document.body.dataset.tab = 'tools';
     renderTools();
     const heads = [...document.querySelectorAll('#cx-tools .cx-section')].map(h => h.textContent);
-    expect(heads).toEqual(['我的課表', 'AI', '分享']);
+    expect(heads).toEqual(['本週課表', 'AI', '分享']);
     expect(document.querySelector('#cx-tools .cx-tl-part')).toBeNull();
     expect(document.querySelector('#cx-tools .cx-way.is-swap')).toBeNull();
   });

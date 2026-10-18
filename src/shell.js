@@ -25,6 +25,8 @@ function show(id) {
   // 課表 shares 今天's panel.
   if (id === 'week') document.getElementById('panel-today').hidden = false;
   const title = document.getElementById('cx-list-title');
+  const pageTitle = document.getElementById('cx-title');
+  if (pageTitle && id !== 'tools') pageTitle.textContent = t(`tab.${id}`);
   if (id === 'today') {
     state.viewDay = today();
     // Today over: 今天 goes on to the next school day's every time it's shown

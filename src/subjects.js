@@ -111,3 +111,23 @@ export function subjectIcon(name, cls = '') {
   tile.innerHTML = look.icon;
   return tile;
 }
+
+// The same picture as a kit tile (.q-tile): its subject's colour, the glyph in
+// white; `size` '' | 'sm' | 'lg'. `glass` sits it on a hero card (white on white wash).
+export function subjectTile(name, size = '', glass = false) {
+  const look = subjectLook(name);
+  const tile = document.createElement('span');
+  tile.className = `q-tile${size ? ` ${size}` : ''}${glass ? ' cx-glass' : ''}`;
+  tile.style.setProperty('--t', look.color);
+  tile.setAttribute('aria-hidden', 'true');
+  tile.innerHTML = look.icon;
+  return tile;
+}
+// A class-less picture as a kit tile: a break's cup, a day over the moon.
+export function stateTile(mode, size = '', glass = false) {
+  const tile = document.createElement('span');
+  tile.className = `q-tile${size ? ` ${size}` : ''}${glass ? ' cx-glass' : ''}`;
+  tile.setAttribute('aria-hidden', 'true');
+  tile.innerHTML = svg(P[mode === 'break' ? 'cup' : 'moon']);
+  return tile;
+}

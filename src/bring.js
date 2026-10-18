@@ -6,7 +6,7 @@
 // Sunday night before Monday counts), 調課 and holidays applied.
 import { WEEKDAY_LABELS } from './constants.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
-import { subjectIcon, subjectLook } from './subjects.js';
+import { subjectLook, subjectTile } from './subjects.js';
 import { t } from './strings.js';
 
 export const BRING_FROM_HOUR = 17;
@@ -57,12 +57,16 @@ export function renderBring(now = new Date()) {
     if (text != null) node.textContent = text;
     return node;
   };
-  const title = make('h2', 'cx-section', t('bring.title', { day: plan.day }));
-  const card = make('div', 'cx-bring-card');
+  const head = make('div', 'q-section-head');
+  head.append(make('h2', 'cx-section', t('bring.title', { day: plan.day })));
+  const card = make('div', 'cx-bring-card q-rowcard');
   for (const { item, subject } of plan.items) {
-    const row = make('div', 'cx-bring-row');
-    row.append(subjectIcon(subject, 'cx-bring-icon'), make('b', 'cx-bring-item', t(`bring.${item}`)), make('span', 'cx-bring-for', subject));
+    const row = make('div', 'cx-bring-row q-ritem');
+    const text = make('span', 'q-ritem-text');
+    text.append(make('b', 'cx-bring-item q-ritem-title', t(`bring.${item}`)), make('small', 'cx-bring-for', subject));
+    row.append(subjectTile(subject), text);
     card.append(row);
   }
-  box.append(title, card);
+  box.classList.add('q-section');
+  box.append(head, card);
 }

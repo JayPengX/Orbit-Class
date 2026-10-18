@@ -6,6 +6,7 @@
 // Shown at most once per device (see markOnboardingSeen()), so a returning
 // user is never nagged.
 import { hasSavedSchedule } from './data.js';
+import * as kitUI from '#kit/ui.mjs';
 import { t } from './strings.js';
 
 const ONBOARDING_SEEN_KEY = 'orbitOnboardingSeen';
@@ -33,10 +34,17 @@ function focusAIImportSection() {
   window.openTransferSheet('photo');
 }
 
+// Each way in has a kit glyph on a colour tile (drawn here when an old kit has none).
+const GLYPHS = {
+  camera: '<path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3L9.5 4.5h5L16.2 7h2.3A1.5 1.5 0 0 1 20 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"/><circle cx="12" cy="13" r="3.5"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 7l2.5 2.5M14 9l2 2"/>'
+};
+const glyph = name => (kitUI.icons ?? {})[name] ?? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GLYPHS[name]}</svg>`;
 const CHOICES = [
-  ['photo', '📷', focusAIImportSection],
-  ['manual', '✍️', () => window.openEditor()],
-  ['key', '🔑', focusShareKeyField]
+  ['photo', 'camera', 'var(--q-orange)', focusAIImportSection],
+  ['manual', 'pencil', 'var(--q-accent)', () => window.openEditor()],
+  ['key', 'key', 'var(--q-green)', focusShareKeyField]
 ];
 
 function el(tag, props = {}, children = []) {
@@ -47,6 +55,13 @@ function el(tag, props = {}, children = []) {
     else node.setAttribute(k, v);
   }
   node.append(...children);
+  return node;
+}
+
+function tileNode(icon, color) {
+  const node = el('span', { class: 'q-tile orbit-welcome-icon', 'aria-hidden': 'true' });
+  node.innerHTML = glyph(icon);
+  node.style.setProperty('--t', color);
   return node;
 }
 
@@ -73,20 +88,20 @@ function showOnboardingPrompt() {
       el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') }),
       el(
         'div',
-        { class: 'orbit-welcome-choices' },
-        CHOICES.map(([id, icon, go]) =>
+        { class: 'orbit-welcome-choices q-rowcard' },
+        CHOICES.map(([id, icon, color, go]) =>
           el(
             'button',
             {
-              class: 'orbit-welcome-choice',
+              class: 'orbit-welcome-choice q-ritem chevron',
               type: 'button',
               'data-choice': id,
               onclick: () => (close(), go())
             },
             [
-              el('span', { class: 'orbit-welcome-icon', 'aria-hidden': 'true', text: icon }),
-              el('span', { class: 'orbit-welcome-text' }, [
-                el('strong', { text: t(`onboarding.${id}Title`) }),
+              tileNode(icon, color),
+              el('span', { class: 'orbit-welcome-text q-ritem-text' }, [
+                el('strong', { class: 'q-ritem-title', text: t(`onboarding.${id}Title`) }),
                 el('small', { text: t(`onboarding.${id}Hint`) })
               ])
             ]

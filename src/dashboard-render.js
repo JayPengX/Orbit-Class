@@ -6,12 +6,13 @@ import { state } from './state.js';
 import { keepActiveClassVisible, openModal } from './dashboard.js';
 import { openEditorFold } from './editor-core.js';
 import * as ui from '#kit/ui.mjs';
+const kitUI = ui;
 import { parseTime } from './dates.js';
 import { classesOn, dateOfDayInWeek, getNextSchoolDay, getWeekType, processSplitName } from './schedule.js';
 import { classesLeft } from './schedule-calc.js';
 import { renderSwaps } from './swap.js';
 import { t } from './strings.js';
-import { subjectIcon } from './subjects.js';
+import { subjectTile } from './subjects.js';
 import { holidayOn } from './holidays.js';
 
 // Updates the simulation play/pause button and indicator. (Simulator controls
@@ -246,12 +247,6 @@ function fitNowTitleText() {
     el.classList.add('is-two');
   }
 }
-function createMetaChip(text, cls = '') {
-  const span = document.createElement('span');
-  span.className = 'meta-chip ' + cls;
-  span.textContent = text;
-  return span;
-}
 // The day's named break that sits wholly between two classes, if any.
 function breakBetween(end, start) {
   const from = parseTime(end);
@@ -320,19 +315,24 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
   }
   // 今天: the classes still to come first, what's over below them under its
   // own line (the rest of the day within reach without scrolling past it).
+  // The class the hero card shows (on now, or the next one up) isn't listed
+  // twice there.
   const ahead = [];
   const done = [];
+  const onToday = document.body?.dataset.tab === 'today';
+  const heroHas = document.body?.dataset.heroClass === '1';
   rows.forEach((c, i) => {
     // (On 課表 the day can be a week on: not today then.)
     const isToday = state.viewDay === (window.MANUALLY_TEST ? window.TEST_DAY : curDay) && (!date || date.toDateString() === new Date().toDateString());
     const info = processSplitName(c, week);
     const isNow = isToday && i === curIdx;
     const isNext = isToday && i === nxtIdx;
-    const row = document.createElement('div');
     // Today's classes already over, faded.
     const upTo = curIdx >= 0 ? curIdx : nxtIdx >= 0 ? nxtIdx : isDayFinished ? rows.length : 0;
     const isPast = isToday && i < upTo;
-    row.className = `row ${isNow ? 'is-now' : ''} ${isNext ? 'is-next' : ''} ${isPast ? 'is-past' : ''}`.replace(/\s+/g, ' ').trim();
+    const inHero = onToday && isToday && heroHas && (isNow || (isNext && curIdx < 0));
+    const row = document.createElement('div');
+    row.className = `row q-ritem ${isNow ? 'is-now' : ''} ${isNext ? 'is-next' : ''} ${isPast ? 'is-past' : ''}`.replace(/\s+/g, ' ').trim();
     row.style.setProperty('--row-i', String(i));
     row.dataset.i = String(i * 2);
     row.tabIndex = 0;
@@ -346,13 +346,12 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
       }
     });
 
-    const badge = document.createElement('div');
-    badge.className = 'period-badge';
-    badge.textContent = String((c.p ?? i) + 1);
+    // The subject's colour tile, then its name (a split week's label beside
+    // it) over one quiet line: the state or period, teacher and room.
     const content = document.createElement('div');
-    content.className = 'content';
+    content.className = 'content q-ritem-text';
     const name = document.createElement('div');
-    name.className = 'row-name';
+    name.className = 'row-name q-ritem-title';
     const nameText = document.createElement('span');
     nameText.className = 'row-name-text';
     nameText.textContent = info.n;
@@ -363,15 +362,18 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
       labelWrap.innerHTML = info.label;
       name.append(labelWrap);
     }
-    // The class on now and the next one say so where the period's number
-    // goes, so the name keeps its whole line.
-    if (isNow || isNext) {
-      badge.classList.add('row-state');
-      badge.textContent = isNow ? t('dashboard.inProgress') : t('dashboard.nextPeriod');
-    }
-    const meta = document.createElement('div');
+    const meta = document.createElement('small');
     meta.className = 'row-meta';
-    // The times in a column of their own (the timeline's), the chip kept for small screens' old layout.
+    if (isNow || isNext) {
+      const state_ = document.createElement('span');
+      state_.className = `q-tag row-state ${isNow ? 'green' : 'indigo'}`;
+      state_.textContent = isNow ? t('dashboard.inProgress') : t('dashboard.nextPeriod');
+      meta.append(state_);
+    }
+    const bits = [isNow || isNext ? '' : t('dashboard.periodNumber', { number: (c.p ?? i) + 1 }), info.t, c.loc].filter(Boolean);
+    if (bits.length) meta.append(document.createTextNode(bits.join(' · ')));
+    content.append(name, meta);
+    // The times in a column of their own, right-aligned.
     const time = document.createElement('div');
     time.className = 'row-time';
     const start = document.createElement('b');
@@ -379,20 +381,8 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     const end = document.createElement('span');
     end.textContent = c.e;
     time.append(start, end);
-    meta.append(createMetaChip(`${c.s} – ${c.e}`, 'meta-time'));
-    if (info.t) meta.append(createMetaChip(info.t, 'meta-teacher'));
-    if (c.loc) meta.append(createMetaChip(c.loc, 'meta-location'));
-    content.append(name, meta);
-    // The subject's picture beside its name (src/subjects.js); the period's
-    // number moves to the meta line, the state pill keeps the right.
-    const icon = subjectIcon(info.n, 'row-icon');
-    if (!isNow && !isNext) {
-      badge.textContent = '';
-      badge.classList.add('is-quiet');
-    }
-    // (The class on now and the next one: their pill says so, the line keeps its teacher and room whole.)
-    if (!isNow && !isNext) meta.prepend(createMetaChip(t('dashboard.periodNumber', { number: (c.p ?? i) + 1 }), 'meta-period'));
-    row.append(time, icon, content, badge);
+    row.append(subjectTile(info.n), content, time);
+    if (inHero) return;
     (isPast ? done : ahead).push(row);
     // A named break between this class and the next (打掃時間, 午休): a quiet
     // line between them, as a calendar's agenda shows a gap.
@@ -400,7 +390,7 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
     const gap = after && !isPast && breakBetween(c.e, after.s);
     if (gap) {
       const line = document.createElement('div');
-      line.className = 'row-gap';
+      line.className = 'row-gap q-ritem';
       line.dataset.i = String(i * 2 + 1);
       const label = document.createElement('span');
       label.textContent = gap.name;
@@ -410,41 +400,50 @@ function renderList(week, curIdx, nxtIdx, curDay, isDayFinished) {
       ahead.push(line);
     }
   });
-  const onToday = document.body?.dataset.tab === 'today';
+  // A break before the first listed row hangs off a class the hero shows: dropped.
+  while (ahead.length && ahead[0].classList.contains('row-gap')) ahead.shift();
   // 今天 shows the next school day's once today is over: its title says so.
   const title = document.getElementById('cx-list-title');
   if (onToday && title) {
     const shown = state.viewDay === (window.MANUALLY_TEST ? window.TEST_DAY : curDay);
     const ahead1 = (state.viewDay - curDay + 7) % 7 === 1;
     const left = shown && !window.MANUALLY_TEST ? classesLeft(rows, new Date()) : 0;
-    title.textContent = shown ? (left ? t('dashboard.todayClassesLeft', { n: left }) : t('dashboard.todayClasses')) : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
+    title.textContent = shown ? (heroHas && ahead.length ? t('dashboard.upNext') : left ? t('dashboard.todayClassesLeft', { n: left }) : t('dashboard.todayClasses')) : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
   }
+  const card = items => {
+    const box = document.createElement('div');
+    box.className = 'q-rowcard';
+    box.append(...items);
+    return box;
+  };
   if (onToday && done.length && ahead.length) {
     const head = document.createElement('div');
     head.className = 'row-done-head';
     head.textContent = t('dashboard.doneHeader', { count: done.length });
-    list.append(...ahead, head, ...done);
-  } else {
+    list.append(card(ahead), head, card(done));
+  } else if (ahead.length || done.length) {
     // Any other day, or 課表: the day in order (what's over stays where it was).
     const order = [...done, ...ahead].sort((a, b) => (a.dataset.i ?? 0) - (b.dataset.i ?? 0));
-    list.append(...order);
+    list.append(card(order));
   }
   if (!rows.length) {
     const empty = document.createElement('div');
-    // No time and no period: the agenda's three columns would put the words
-    // in the time's 50px column, so this row is one column of its own.
-    empty.className = 'row is-empty';
+    // One column of its own: the words, with the day's reason beneath.
+    empty.className = 'row is-empty q-ritem';
+    const tileBox = document.createElement('span');
+    tileBox.className = 'q-tile';
+    tileBox.innerHTML = (kitUI.icons ?? {}).moon ?? '';
     const content = document.createElement('div');
-    content.className = 'content';
+    content.className = 'content q-ritem-text';
     const name = document.createElement('div');
-    name.className = 'row-name';
+    name.className = 'row-name q-ritem-title';
     name.textContent = t('dashboard.noClassesToday');
-    const meta = document.createElement('div');
+    const meta = document.createElement('small');
     meta.className = 'row-meta';
-    meta.append(createMetaChip(holiday ? t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }) : t('dashboard.restOrStudy')));
+    meta.textContent = holiday ? t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }) : t('dashboard.restOrStudy');
     content.append(name, meta);
-    empty.append(content);
-    list.appendChild(empty);
+    empty.append(tileBox, content);
+    list.append(card([empty]));
   }
   keepActiveClassVisible(
     list,
