@@ -28,3 +28,10 @@ export function timeToMinutes(value) {
   if (!/^\d{2}:\d{2}$/.test(value || '')) return 9999;
   return parseTime(value);
 }
+// Whether text is a real calendar day (YYYY-MM-DD): 2026-02-30 and 2026-13-01
+// are not (Date.parse rolls the first over to March, so it can't tell).
+export function isRealDate(value) {
+  const text = String(value || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  return dateKey(dateFromKey(text)) === text;
+}

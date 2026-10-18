@@ -3,7 +3,7 @@
 // src/ module may be assumed ready yet when this one's top-level code runs
 // (see state.js's comment on the circular-import TDZ this ran into).
 import { normalizeProAccent, normalizeProSecondary, normalizeStyleSlots } from './appearance.js';
-import { timeToMinutes } from './dates.js';
+import { isRealDate, timeToMinutes } from './dates.js';
 import {
   DEFAULT_STYLE_PRIMARY,
   DEFAULT_STYLE_SECONDARY,
@@ -163,7 +163,7 @@ function normalizeCountdownEvent(value) {
   const name = String(source.name || '')
     .trim()
     .slice(0, 80);
-  const isDate = v => /^\d{4}-\d{2}-\d{2}$/.test(String(v || '').trim());
+  const isDate = isRealDate;
   const legacyDate = String(source.date || '').trim();
   let startDate = String(source.startDate || legacyDate || '').trim();
   let endDate = String(source.endDate || legacyDate || startDate || '').trim();
@@ -213,7 +213,7 @@ function countdownsNotOver(events, today) {
 // first kept), and the two sides are never the same period.
 const MAX_CLASS_SWAPS = 60;
 function normalizeClassSwaps(value) {
-  const isDate = v => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+  const isDate = isRealDate;
   const slot = v => {
     const date = String(v?.date || '');
     const p = Number(v?.p);
