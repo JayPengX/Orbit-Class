@@ -116,32 +116,6 @@
   </section>
 </main>
 
-<!-- A class, or a day: filled by src/view-sheet.js. -->
-<div id="overlay" class="cx-dim" onclick="closeModal()"></div>
-<div id="sheet" class="cx-sheet" role="dialog" aria-modal="true" aria-labelledby="m-title">
-  <div class="test-panel-handle" aria-hidden="true"></div>
-  <div class="cx-sheet-head cx-sheet-head-lead">
-    <span id="m-icon" class="cx-sheet-lead"></span>
-    <div class="cx-sheet-words"><h2 id="m-title"></h2><p id="m-teacher"></p></div>
-    <button type="button" class="q-close" onclick="closeModal()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
-  </div>
-  <div class="cx-sheet-body" id="m-body"></div>
-</div>
-
-<div id="swap-overlay" class="cx-dim" onclick="closeSwapSheet()"></div>
-<div id="swap-sheet" class="cx-sheet" role="dialog" aria-modal="true" aria-labelledby="swap-title">
-  <div class="test-panel-handle" aria-hidden="true"></div>
-  <div class="cx-sheet-head">
-    <span></span>
-    <div class="cx-sheet-words is-center"><h2 id="swap-title" data-i18n="swap.title">調課</h2><p id="swap-sub"></p></div>
-    <button type="button" class="q-close" onclick="closeSwapSheet()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
-  </div>
-  <div class="cx-sheet-body">
-    <button type="button" id="swap-first" class="swap-first" hidden></button>
-    <label class="cx-field-row swap-date"><span data-i18n="swap.dateLabel">日期</span><input type="date" id="swap-date"></label>
-    <div id="swap-periods" class="q-rowcard swap-periods"></div>
-  </div>
-</div>
 
 <!-- The editor (src/editor-*.js): one page per part, the timetable first. -->
 <div id="editor-sheet-overlay" class="cx-dim" onclick="closeEditor()" aria-hidden="true"></div>
@@ -308,7 +282,6 @@
     <button type="button" class="editor-confirm-btn danger" onclick="discardEditorChangesAndClose()" data-i18n="editorCore.discard">捨棄</button>
   </div>
 </div>
-<div class="save-toast" id="save-toast" role="status" data-i18n="editorBackup.saved">已儲存</div>
 
 <!-- Time simulation (src/testsim-runtime.js): any day and time, by hand. -->
 <div id="test-panel-overlay" class="cx-dim" onclick="closeTestPanel()" aria-hidden="true"></div>

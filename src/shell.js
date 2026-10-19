@@ -5,6 +5,7 @@
 // this one or the next, and 調課, src/view-week.js) and 工具 (the timetable's
 // parts, AI, sharing, src/tools.js).
 import * as kit from '#kit/quadra.mjs';
+import * as kitUI from '#kit/ui.mjs';
 import { state } from './state.js';
 import { orbitSession } from './sync.js';
 import { t } from './strings.js';
@@ -43,6 +44,12 @@ const has = name => {
 };
 const nav = has('tabBar') ? kit.tabBar({ tabs: TABS.map(x => ({ ...x, label: t(`tab.${x.id}`) })), onSelect: (id, { again }) => !again && show(id), hash: id => `#${id}` }) : { select() {} };
 if (has('topActions')) kit.topActions(orbitSession);
+// Every tab but the first opens on the kit's large title (今天 has none).
+for (const x of TABS.slice(1)) {
+  const panel = document.getElementById(`panel-${x.id}`);
+  const title = kitUI.navTitle?.(t(`tab.${x.id}`));
+  if (panel && title) panel.prepend(title);
+}
 // A link to another tab (今天's 全部 → 課表).
 document.addEventListener('click', event => {
   const go = event.target instanceof Element && event.target.closest('[data-go]');

@@ -1829,28 +1829,6 @@ img.q-tile.tr-app {
 #editor-confirm-extra-btn:empty {
   display: none;
 }
-.save-toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(var(--q-nav, 0px) + 24px + env(safe-area-inset-bottom, 0px));
-  z-index: 1040;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: var(--q-glass-strong);
-  -webkit-backdrop-filter: var(--q-glass-blur);
-  backdrop-filter: var(--q-glass-blur);
-  box-shadow: var(--q-glass-rim), var(--q-glass-drop);
-  color: var(--q-label);
-  font: 600 15px/20px var(--q-font);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 12px);
-  transition: opacity 0.25s, transform 0.3s var(--q-ease);
-}
-.save-toast.show {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
 
 /* ---- 6. The welcome on a first open: three ways to get a timetable ---- */
 .orbit-welcome {
@@ -1944,8 +1922,7 @@ img.q-tile.tr-app {
 @media (prefers-reduced-motion: reduce) {
   .cx-sheet,
   .assign-sheet,
-  .cx-alert,
-  .save-toast {
+  .cx-alert {
     transition: none;
   }
 }
@@ -2164,3 +2141,8 @@ body[data-timeline='1'] #cx-list-sec {
 .cx-wm-day .cx-wm-n {
   font-weight: 500;
 }
+
+/* The time simulation's label wraps beside its fields instead of being cut at 320. */
+#debug-panel .q-ritem-text { min-width: 0; }
+#debug-panel .q-ritem-title { white-space: normal; overflow-wrap: anywhere; }
+#debug-panel .sim-time { flex: none; }

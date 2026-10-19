@@ -15,8 +15,8 @@ import { dateFromKey, dateKey } from './dates.js';
 import { getWeekType, processSplitName, slotClass } from './schedule.js';
 import { state } from './state.js';
 import { pushSyncSnapshot } from './sync.js';
-import { setOverlayVisible } from './dashboard.js';
-import { bindSheetDragToDismiss } from './sheet-drag.js';
+import * as kitUI from '#kit/ui.mjs';
+import { el as box } from './ui.js';
 import { t } from './strings.js';
 import { toast } from './toast.js';
 
@@ -96,33 +96,39 @@ function el(tag, cls, text) {
   return node;
 }
 
-// The sheet's own controls, wired the first time it opens.
-let wired = false;
-function wire() {
-  if (wired) return;
-  wired = true;
-  document.getElementById('swap-date')?.addEventListener('change', event => {
+// 調課 is the kit's sheet: the pick-first line, the date, the day's periods.
+let panel = null;
+function openSwapSheet(from = null) {
+  first = from;
+  shownDate = from?.date || todayKey();
+  if (panel?.el.isConnected) panel.el.remove();
+  const sub = box('p', 'cx-sheet-sub');
+  sub.id = 'swap-sub';
+  const chosen = box('button', 'swap-first');
+  chosen.type = 'button';
+  chosen.id = 'swap-first';
+  chosen.hidden = true;
+  chosen.addEventListener('click', () => {
+    first = null;
+    drawSheet();
+  });
+  const input = box('input');
+  input.type = 'date';
+  input.id = 'swap-date';
+  input.addEventListener('change', event => {
     const value = event.target.value;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return;
     shownDate = value < todayKey() ? todayKey() : value;
     drawSheet();
   });
-  document.getElementById('swap-first')?.addEventListener('click', () => {
-    first = null;
-    drawSheet();
-  });
-  bindSheetDragToDismiss('swap-sheet', closeSwapSheet);
-}
-
-function openSwapSheet(from = null) {
-  wire();
-  first = from;
-  shownDate = from?.date || todayKey();
+  const row = box('label', 'cx-field-row swap-date', [box('span', '', t('swap.dateLabel')), input]);
+  const list = box('div', 'q-rowcard swap-periods');
+  list.id = 'swap-periods';
+  panel = kitUI.sheet({ title: t('swap.title'), body: [sub, box('div', 'cx-sheet-body', [chosen, row, list])], cls: 'cx-kit-sheet', closeLabel: t('common.close'), onClose: () => (first = null) });
   drawSheet();
-  setOverlayVisible('swap-overlay', 'swap-sheet', true, 'modal-open');
 }
 function closeSwapSheet() {
-  setOverlayVisible('swap-overlay', 'swap-sheet', false, 'modal-open');
+  panel?.close();
   first = null;
 }
 

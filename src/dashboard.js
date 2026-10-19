@@ -22,7 +22,7 @@ import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } fr
 import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
-import { closeModal, openModal } from './view-sheet.js';
+import { openModal } from './view-sheet.js';
 import { renderBring, renderCountdowns, renderHero, renderNextEvent, renderTimeline, renderTodayList, renderWeekMini } from './view-today.js';
 import { renderWeek } from './view-week.js';
 import { t } from './strings.js';
@@ -77,8 +77,6 @@ bindSheetDragToDismiss('transfer-sheet', () => closeTransferSheet());
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
   if (document.getElementById('assign-sheet')?.classList.contains('show')) closeAssignSheet();
-  else if (document.getElementById('swap-sheet')?.classList.contains('show')) window.closeSwapSheet?.();
-  else if (document.getElementById('sheet')?.classList.contains('show')) closeModal();
   else if (document.getElementById('editor-confirm-sheet')?.classList.contains('show'))
     hideEditorDiscardConfirm();
   else if (document.getElementById('debug-panel')?.classList.contains('show')) closeTestPanel();

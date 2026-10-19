@@ -9,8 +9,7 @@ import { state } from './state.js';
 import { dateFromKey, dateKey } from './dates.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { holidayOn } from './holidays.js';
-import { setOverlayVisible } from './dashboard.js';
-import { bindSheetDragToDismiss } from './sheet-drag.js';
+import * as kitUI from '#kit/ui.mjs';
 import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
 import { subjectTile } from './subjects.js';
 import { dayRows, emptyDay } from './view-today.js';
@@ -18,21 +17,29 @@ import { el, button, tile } from './ui.js';
 import { t } from './strings.js';
 
 let previousFocus = null;
-const $ = id => document.getElementById(id);
 
+// The class's or the day's sheet is the kit's: its tile before the title, the teacher and room under it.
+let shown = null;
 function show(lead, title, sub, body) {
-  if (!document.getElementById('sheet')?.classList.contains('show')) previousFocus = document.activeElement;
-  $('m-icon')?.replaceChildren(lead);
-  $('m-title').textContent = title;
-  $('m-teacher').textContent = sub;
-  $('m-body').replaceChildren(...body);
-  $('m-body').scrollTop = 0;
-  setOverlayVisible('overlay', 'sheet', true, 'modal-open');
+  if (shown?.el.isConnected) shown.el.remove();
+  else previousFocus = document.activeElement;
+  const box = el('div', 'cx-sheet-body', body);
+  box.id = 'm-body';
+  shown = kitUI.sheet({
+    title,
+    lead,
+    body: [sub ? el('p', 'cx-sheet-sub', sub) : null, box],
+    cls: 'cx-kit-sheet',
+    closeLabel: t('common.close'),
+    onClose: () => {
+      previousFocus?.focus?.();
+      previousFocus = null;
+      shown = null;
+    }
+  });
 }
 export function closeModal() {
-  setOverlayVisible('overlay', 'sheet', false, 'modal-open');
-  previousFocus?.focus?.();
-  previousFocus = null;
+  shown?.close();
 }
 
 const fig = (label, value, id = '') => {
@@ -114,5 +121,4 @@ export function openDaySheet(date) {
   show(tile('calendar', 'var(--q-accent)', 'lg'), title, sub, [el('div', 'q-rowcard cx-day', items)]);
 }
 
-bindSheetDragToDismiss('sheet', closeModal);
 window.closeModal = closeModal;

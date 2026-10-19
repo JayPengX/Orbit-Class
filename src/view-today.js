@@ -114,7 +114,7 @@ export function dayRows(rows, week, { date = null, from = 0, skip = () => false 
 export function emptyDay(holiday) {
   const pic = el('span', 'q-tile soft cx-gray');
   pic.innerHTML = glyph('moon');
-  const words = el('span', 'q-ritem-text', [el('span', 'q-ritem-title row-name', t('dashboard.noClassesToday')), el('small', '', holiday ? t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }) : t('dashboard.restOrStudy'))]);
+  const words = el('span', 'q-ritem-text', [el('span', 'q-ritem-title row-name', holiday ? t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }) : t('dashboard.restOrStudy'))]);
   return el('div', 'q-ritem row is-empty', [pic, words]);
 }
 

@@ -70,11 +70,11 @@ function tileNode(icon, color) {
 function showKitWelcome() {
   if (typeof kitUI.sheet !== 'function') return false;
   const lead = el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') });
-  const rows = CHOICES.map(([id, icon, color, go], i) =>
+  const rows = CHOICES.map(([id, icon, color, go]) =>
     el('button', { class: 'orbit-welcome-choice q-ritem chevron', type: 'button', 'data-choice': id, onclick: () => (done(), go()) }, [
       tileNode(icon, color),
       el('span', { class: 'orbit-welcome-text q-ritem-text' }, [
-        el('strong', { class: 'q-ritem-title', text: `${i + 1}. ${t(`onboarding.${id}Title`)}` }),
+        el('strong', { class: 'q-ritem-title', text: t(`onboarding.${id}Title`) }),
         el('small', { text: t(`onboarding.${id}Hint`) })
       ])
     ])
