@@ -23,7 +23,7 @@ import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
 import { closeModal, openModal } from './view-sheet.js';
-import { renderBring, renderCountdowns, renderHero, renderTodayList } from './view-today.js';
+import { renderBring, renderCountdowns, renderHero, renderNextEvent, renderTimeline, renderTodayList, renderWeekMini } from './view-today.js';
 import { renderWeek } from './view-week.js';
 import { t } from './strings.js';
 
@@ -129,7 +129,10 @@ function update() {
   const curDay = window.MANUALLY_TEST ? window.TEST_DAY : now.getDay();
   const week = getWeekType();
   renderCountdowns();
+  renderNextEvent();
   renderBring();
+  renderTimeline(now, curDay);
+  renderWeekMini(now, curDay);
 
   // A day with no classes is never the one 今天 lists: the next day that has
   // some instead (only when any day has classes at all; a day the timetable

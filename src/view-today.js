@@ -11,7 +11,7 @@ import { classesLeft } from './schedule-calc.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { bringTomorrow } from './bring.js';
 import { holidayOn } from './holidays.js';
-import { eventLook, stateTile, subjectTile } from './subjects.js';
+import { eventLook, stateTile, subjectLook, subjectTile } from './subjects.js';
 import { openModal } from './view-sheet.js';
 import { el, button, glyph, section } from './ui.js';
 import { t } from './strings.js';
@@ -173,6 +173,8 @@ const editCountdowns = () => {
   window.openEditor?.();
   window.openEditorFold?.('editor-fold-countdown');
 };
+// The event 下一個行程 leads with (the soonest still ahead or on); with only one, the rail below has it alone.
+const featuredEvent = (events, today) => (events.length > 1 ? events.filter(e => countdownState(e, today).kind !== 'over').sort((a, b) => a.startDate.localeCompare(b.startDate))[0] : null);
 let countdownsDrawn = '';
 export function renderCountdowns(now = new Date()) {
   const box = $('cx-countdowns');
@@ -182,7 +184,8 @@ export function renderCountdowns(now = new Date()) {
   const key = `${today.getTime()}|${t('dashboard.countdowns')}|${JSON.stringify(events)}`;
   if (key === countdownsDrawn) return;
   countdownsDrawn = key;
-  const cards = events.map(event => {
+  const lead = featuredEvent(events, today);
+  const cards = events.filter(e => e !== lead).map(event => {
     const st = countdownState(event, today);
     const pic = el('span', `q-tile sm${st.kind === 'over' ? ' soft cx-gray' : ''}`);
     pic.innerHTML = eventLook(event.name);
@@ -195,4 +198,103 @@ export function renderCountdowns(now = new Date()) {
   const body = cards.length ? el('div', 'q-rail cx-cds', cards) : el('div', 'q-rowcard', [button('q-ritem chevron', editCountdowns, [el('span', 'q-tile', null), el('span', 'q-ritem-text', [el('span', 'q-ritem-title', t('dashboard.addCountdown'))])])]);
   if (!cards.length) body.querySelector('.q-tile').innerHTML = glyph('plus');
   box.replaceChildren(...section(t('dashboard.countdowns'), body, { more: cards.length ? t('common.edit') : '', onMore: editCountdowns }).childNodes);
+}
+
+// ---- 今天課表: the day as Calendar draws it, a coloured block per class, a line for now ----
+const PX = 1; // pixels per minute
+let timelineKey = '';
+export function renderTimeline(now = new Date(), curDay = now.getDay()) {
+  const box = $('cx-timeline');
+  if (!box) return;
+  const testing = window.MANUALLY_TEST;
+  const date = testing ? null : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const rows = (date ? classesOn(date) : state.runtimeSchedule[curDay] || []).filter(c => c.s && c.e);
+  const show = rows.length > 0 && state.viewDay === curDay && document.body.dataset.tab !== 'week' && document.body.dataset.tab !== 'tools';
+  document.body.dataset.timeline = show ? '1' : '';
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const key = show ? `${now.toDateString()}|${nowMin}|${JSON.stringify(rows.map(c => [c.s, c.e, c.n, c.loc]))}|${t('dashboard.timeline')}` : '';
+  if (key === timelineKey) return;
+  timelineKey = key;
+  box.hidden = !show;
+  if (!show) return box.replaceChildren();
+  const week = getWeekType(date || now);
+  const first = Math.floor(parseTime(rows[0].s) / 60) * 60;
+  const last = Math.ceil(parseTime(rows.at(-1).e) / 60) * 60;
+  const lane = el('div', 'cx-tl2');
+  lane.style.height = `${(last - first) * PX}px`;
+  for (let m = first; m <= last; m += 60) {
+    const line = el('span', 'cx-tl2-hour', [el('small', '', `${String(m / 60).padStart(2, '0')}:00`)]);
+    line.style.top = `${(m - first) * PX}px`;
+    lane.append(line);
+  }
+  for (const c of rows) {
+    const info = processSplitName(c, week);
+    const s = parseTime(c.s);
+    const e = parseTime(c.e);
+    const block = button(`cx-tl2-block${nowMin >= e ? ' is-past' : ''}${nowMin >= s && nowMin < e ? ' is-now' : ''}`, () => openModal(c, { date }), [el('b', '', info.n), el('small', '', [c.s, [info.t, c.loc].filter(Boolean).join(' · ')].filter(Boolean).join(' · '))]);
+    block.style.setProperty('--subject', subjectLook(info.n).color);
+    block.style.top = `${(s - first) * PX}px`;
+    block.style.height = `${Math.max(34, (e - s) * PX - 3)}px`;
+    lane.append(block);
+  }
+  if (nowMin >= first && nowMin <= last) {
+    const line = el('span', 'cx-tl2-now');
+    line.style.top = `${(nowMin - first) * PX}px`;
+    lane.append(line);
+  }
+  box.replaceChildren(...section(t('dashboard.timeline'), lane).childNodes);
+}
+
+// ---- 下一個行程: the next countdown event, large ----
+let nextKey = '';
+export function renderNextEvent(now = new Date()) {
+  const box = $('cx-next');
+  if (!box) return;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const events = getCountdownEvents();
+  const lead = featuredEvent(events, today);
+  const ahead = lead ? { event: lead, st: countdownState(lead, today) } : null;
+  const key = ahead ? `${today.getTime()}|${JSON.stringify(ahead)}|${t('dashboard.nextEvent')}` : '';
+  if (key === nextKey) return;
+  nextKey = key;
+  box.hidden = !ahead;
+  if (!ahead) return box.replaceChildren();
+  const { event, st } = ahead;
+  const pic = el('span', 'q-tile');
+  pic.innerHTML = eventLook(event.name);
+  const words = st.kind === 'ahead' ? [el('b', '', String(st.days)), el('small', '', t('dashboard.countdownDayUnit'))] : [el('em', '', t(`dashboard.${st.kind === 'today' ? 'countdownToday' : 'countdownInProgress'}`))];
+  const card = button('cx-next-card q-press', editCountdowns, [pic, el('span', 'cx-next-text', [el('strong', '', event.name), el('small', '', formatCountdownEventDate(event, { withYear: dateFromKey(event.startDate) - today > 330 * MS_PER_DAY }))]), el('span', 'cx-next-days', words)]);
+  box.replaceChildren(...section(t('dashboard.nextEvent'), card).childNodes);
+}
+
+// ---- 本週一覽: Monday to Friday, a column each, a coloured dot for every class ----
+let weekMiniKey = '';
+export function renderWeekMini(now = new Date(), curDay = now.getDay()) {
+  const box = $('cx-weekmini');
+  if (!box) return;
+  const testing = window.MANUALLY_TEST;
+  const day = now.getDay();
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1 - (day || 7) + (day === 0 || (day === 6 && !(state.runtimeSchedule?.[6] || []).length) ? 7 : 0));
+  const days = [1, 2, 3, 4, 5, ...((state.runtimeSchedule?.[6] || []).length ? [6] : [])];
+  const cols = days.map(d => {
+    const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + d - 1);
+    const rows = testing ? state.runtimeSchedule[d] || [] : classesOn(date);
+    return { d, date, rows, week: getWeekType(date), holiday: testing ? null : holidayOn(date) };
+  });
+  const key = `${monday.getTime()}|${curDay}|${JSON.stringify(cols.map(c => [c.rows.map(r => r.n), c.holiday?.zh]))}|${t('dashboard.weekGlance')}`;
+  if (key === weekMiniKey) return;
+  weekMiniKey = key;
+  const cells = cols.map(c => {
+    const names = c.rows.map(r => processSplitName(r, c.week).n);
+    const cell = button(`cx-wm-day${c.d === curDay ? ' is-today' : ''}${c.holiday || !names.length ? ' is-off' : ''}`, () => {}, [
+      el('small', '', t(`tools.day${c.d}`)),
+      el('b', '', String(c.date.getDate())),
+      el('span', 'cx-wm-dots', names.map(n => { const dot = el('i'); dot.style.setProperty('--subject', subjectLook(n).color); return dot; })),
+      el('small', 'cx-wm-n', c.holiday ? c.holiday.zh : names.length ? String(names.length) : '–')
+    ]);
+    cell.dataset.go = 'week';
+    return cell;
+  });
+  box.replaceChildren(...section(t('dashboard.weekGlance'), el('div', 'q-card cx-wm', cells), { more: t('common.all'), onMore: () => {} }).childNodes);
+  box.querySelector('.cx-more')?.setAttribute('data-go', 'week');
 }

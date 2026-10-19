@@ -57,7 +57,8 @@ export function row({ cls = '', icon = null, title = '', sub = '', end = null, o
 }
 // A page section: a 20px head (and a link on its right), then its body.
 export function section(title, body, { more = '', onMore = null, cls = '' } = {}) {
-  const head = el('div', 'q-section-head', [el('h2', '', title), more ? button('cx-more', onMore, more) : null]);
+  const head = kitUI.sectionHead?.(title) ?? el('div', 'q-section-head', [el('h2', '', title)]);
+  if (more) head.append(button('cx-more', onMore, more));
   return el('section', `q-section cx-sec${cls ? ` ${cls}` : ''}`, [head, ...[].concat(body)]);
 }
 // Every [data-glyph] in the page's markup filled once.
