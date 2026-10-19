@@ -5,7 +5,7 @@
 // applied by schedule.js classesOnDate wherever a date's classes are read
 // (今天, 課表, the card, the notices). Made from a class's sheet (調課) or
 // 課表's 新增調課, in one sheet: the period, then the one it swaps with;
-// undone from the class's sheet or 課表's list (renderSwaps). Swaps whose days are over
+// undone from the class's sheet or 課表's list (src/view-week.js). Swaps whose days are over
 // leave the list at the next change.
 import * as kit from '#kit/quadra.mjs';
 import { WEEKDAY_LABELS } from './constants.js';
@@ -167,7 +167,7 @@ function drawSheet() {
     const taken = swapOf(slot);
     // Two free periods swapped is nothing.
     const pointless = first && !info && !classAt(first);
-    const row = el('button', `swap-slot${info ? '' : ' is-free'}`);
+    const row = el('button', `q-ritem swap-slot${info ? '' : ' is-free'}`);
     row.type = 'button';
     row.disabled = Boolean(isFirst || taken || pointless);
     const when = el('span', 'swap-slot-when');
@@ -202,49 +202,6 @@ async function pick(slot) {
   }
 }
 
-// ---- 課表's 調課: each swap still to come (both sides, a tap to undo it),
-// then 新增調課. Drawn again only when the swaps change.
-const SWAP_ICON = '<path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/>';
-function swapIcon() {
-  const box = el('span', 'q-tile cx-way-icon');
-  box.style.setProperty('--t', 'var(--q-orange)');
-  box.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SWAP_ICON}</svg>`;
-  return box;
-}
-let swapsDrawn = '';
-function renderSwaps() {
-  const page = document.getElementById('cx-swaps');
-  if (!page) return;
-  const coming = swapsNotOver(swaps(), todayKey());
-  const key = `${JSON.stringify(coming)}|${t('swap.section')}`;
-  if (key === swapsDrawn && page.childElementCount) return;
-  swapsDrawn = key;
-  const box = el('div', 'cx-ways cx-swaps q-rowcard');
-  for (const swap of coming) {
-    const words = el('span', 'cx-swap-sides q-ritem-text');
-    for (const side of [swap.a, swap.b]) {
-      const line = el('span', 'cx-swap-side');
-      line.append(el('small', '', slotText(side)), el('strong', '', nameAt(side)));
-      words.append(line);
-    }
-    const row = el('button', 'cx-way cx-swap q-ritem q-press');
-    row.type = 'button';
-    row.append(swapIcon(), words);
-    row.addEventListener('click', () => undoSwap(swap));
-    box.append(row);
-  }
-  const words = el('span', 'cx-way-words q-ritem-text');
-  words.append(el('strong', 'q-ritem-title', t('swap.add')), el('small', '', t('swap.addSub')));
-  const add = el('button', 'cx-way is-swap q-ritem chevron q-press');
-  add.type = 'button';
-  add.append(swapIcon(), words);
-  add.addEventListener('click', () => openSwapSheet());
-  box.append(add);
-  const head = el('div', 'q-section-head');
-  head.append(el('h2', 'cx-section', t('swap.section')));
-  page.replaceChildren(head, box);
-}
-
 window.closeSwapSheet = closeSwapSheet;
 
-export { addSwap, closeSwapSheet, removeSwap, nameAt, openSwapSheet, renderSwaps, slotText, swapOf, undoSwap };
+export { addSwap, closeSwapSheet, removeSwap, nameAt, openSwapSheet, slotText, swapOf, undoSwap };

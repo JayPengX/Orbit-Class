@@ -16,11 +16,10 @@
 export const state = {
   runtimeSchedule: {},
   viewDay: new Date().getDay() === 0 || new Date().getDay() === 6 ? 1 : new Date().getDay(),
-  // 課表's 單週 / 雙週 switch: '單' or '雙', or null for each day's coming date.
+  // 課表's 單週 / 雙週 switch: '單' or '雙', or null for the coming school week.
   viewWeek: null,
   lastListKey: '',
   autoAdvancedAfterFinishedDay: null,
-  lastAutoScrollKey: '',
   testPanelOpen: false,
   pendingAfterEditorDiscard: null,
   pendingEditorImportData: null,
@@ -31,6 +30,5 @@ export const state = {
   editorBaselineSnapshot: '',
   assignmentDay: 1,
   isOcrProcessing: false,
-  userScrolledDuringAlign: false,
   applicationData: null
 };

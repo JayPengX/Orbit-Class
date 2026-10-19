@@ -5,7 +5,7 @@
 // colour of its own (the same every time for the same name).
 //
 //   subjectLook('物理')        → { key: 'physics', color: '#8b5cf6', icon: '<svg…>' }
-//   subjectIcon('物理', 'cls') → a <span class="subject-icon cls"> with the svg, tinted
+//   subjectTile('物理', 'sm') → a kit .q-tile in its colour
 
 // The icons: 24×24, drawn with a 2px stroke in currentColor (Lucide's way).
 const P = {
@@ -91,29 +91,13 @@ export function eventLook(name) {
   return svg(P[hit ? hit[0] : 'calendar']);
 }
 
-// The card's picture when it isn't a class: a break a cup, a day without
-// classes (or one that's over) the moon, in the app's own colours.
-export function stateIcon(mode, cls = '') {
-  const tile = document.createElement('span');
-  tile.className = `subject-icon is-state ${cls}`.trim();
-  tile.setAttribute('aria-hidden', 'true');
-  tile.innerHTML = svg(P[mode === 'break' ? 'cup' : 'moon']);
-  return tile;
+// One of the pictures above by name (src/ui.js's glyph() falls back to these).
+export function picture(name) {
+  return P[name] ? svg(P[name]) : '';
 }
 
-// The picture on the page: the icon on a soft tile of the subject's colour.
-export function subjectIcon(name, cls = '') {
-  const look = subjectLook(name);
-  const tile = document.createElement('span');
-  tile.className = `subject-icon ${cls}`.trim();
-  tile.style.setProperty('--subject', look.color);
-  tile.setAttribute('aria-hidden', 'true');
-  tile.innerHTML = look.icon;
-  return tile;
-}
-
-// The same picture as a kit tile (.q-tile): its subject's colour, the glyph in
-// white; `size` '' | 'sm' | 'lg'. `glass` sits it on a hero card (white on white wash).
+// The subject's picture as a kit tile (.q-tile): its colour, the glyph in
+// white; `size` '' | 'sm' | 'lg'. `glass` sits it on the hero card (white on a wash).
 export function subjectTile(name, size = '', glass = false) {
   const look = subjectLook(name);
   const tile = document.createElement('span');

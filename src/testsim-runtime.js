@@ -5,8 +5,7 @@
 // window.update() comment in the README for why those are patched rather
 // than replaced.
 import { state } from './state.js';
-import { closeTestPanel, syncTestToolbar } from './dashboard.js';
-import { syncTestPlayPauseUi } from './dashboard-render.js';
+import { closeTestPanel, syncTestPlayPauseUi } from './dashboard.js';
 import { getWeekType } from './schedule.js';
 import { computeDashboardViewModel } from './schedule-calc.js';
 import { t } from './strings.js';
@@ -90,7 +89,6 @@ function resetRenderState() {
   if (typeof state.autoAdvancedAfterFinishedDay !== 'undefined')
     state.autoAdvancedAfterFinishedDay = null;
   if (typeof state.lastListKey !== 'undefined') state.lastListKey = '';
-  if (typeof state.lastAutoScrollKey !== 'undefined') state.lastAutoScrollKey = '';
 }
 function writeDay(day) {
   window.TEST_DAY = normalizeDay(day);
@@ -238,7 +236,6 @@ function setSimSeconds(seconds, opts) {
 function syncTestChrome() {
   syncTestPlayPauseUi();
   enableExitButton();
-  syncTestToolbar();
   syncTestingBody();
 }
 function refreshTestUi() {
@@ -592,7 +589,6 @@ window.exitTestMode = function () {
   enableExitButton();
   syncTestPlayPauseUi();
   syncTestingBody();
-  syncTestToolbar();
   if (typeof closeTestPanel === 'function') closeTestPanel();
   window.update();
 };

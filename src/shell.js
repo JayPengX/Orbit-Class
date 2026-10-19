@@ -1,9 +1,9 @@
 // ---- src/shell.js ----
-// The family's frame, as every Quadra app has it: the kit's app bar (the
-// status on the left; 說明 and the Quadra Pass circle on the right) and its
-// tab bar: 今天 (now, and today's classes), 課表 (any day's, in its 單週 or
-// 雙週, and 調課) and 工具 (editing, AI, sharing; src/tools.js). 今天 and 課表 are one panel: the
-// list and the day switcher stay put, 今天 only pins the list to today.
+// The family's frame, as every Quadra app has it: the kit's glass buttons
+// top-right (說明 and the Quadra Pass circle) and its tab bar, one question
+// each: 今天 (the class now and next, src/view-today.js), 課表 (the week,
+// this one or the next, and 調課, src/view-week.js) and 工具 (the timetable's
+// parts, AI, sharing, src/tools.js).
 import * as kit from '#kit/quadra.mjs';
 import { state } from './state.js';
 import { orbitSession } from './sync.js';
@@ -20,21 +20,14 @@ const today = () => (window.MANUALLY_TEST && Number.isFinite(window.TEST_DAY) ? 
 function show(id) {
   document.body.dataset.tab = id;
   nav.select(id);
-  // 課表 opens on each day's coming date (its 單週 / 雙週 switch unset).
-  state.viewWeek = null;
-  // 課表 shares 今天's panel.
-  if (id === 'week') document.getElementById('panel-today').hidden = false;
-  const title = document.getElementById('cx-list-title');
-  const pageTitle = document.getElementById('cx-title');
-  if (pageTitle && id !== 'tools') pageTitle.textContent = t(`tab.${id}`);
   if (id === 'today') {
     state.viewDay = today();
-    // Today over: 今天 goes on to the next school day's every time it's shown
-    // (update's once-a-day move had already been spent, so coming back to the
-    // tab left the finished day's list up).
+    // Today over: 今天 goes on to the next school day's every time it's shown.
     state.autoAdvancedAfterFinishedDay = null;
-    if (title) title.textContent = t('dashboard.todayClasses');
-  } else if (title) title.textContent = t('dashboard.timetable');
+  }
+  // 課表 opens on the coming school week.
+  if (id === 'week') state.viewWeek = null;
+  state.lastListKey = '';
   if (id === 'tools') renderTools();
   else window.update?.();
 }
@@ -50,6 +43,10 @@ const has = name => {
 };
 const nav = has('tabBar') ? kit.tabBar({ tabs: TABS.map(x => ({ ...x, label: t(`tab.${x.id}`) })), onSelect: (id, { again }) => !again && show(id), hash: id => `#${id}` }) : { select() {} };
 if (has('topActions')) kit.topActions(orbitSession);
+// A link to another tab (今天's 全部 → 課表).
+document.addEventListener('click', event => {
+  const go = event.target instanceof Element && event.target.closest('[data-go]');
+  if (go && TABS.some(x => x.id === go.dataset.go)) show(go.dataset.go);
+});
 const start = (location.hash || '').slice(1);
 show(TABS.some(x => x.id === start) ? start : 'today');
-

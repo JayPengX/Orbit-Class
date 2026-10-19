@@ -32,7 +32,8 @@ beforeEach(() => {
   buildSchedule();
 });
 
-const names = () => [...document.querySelectorAll('#schedule-list .row .row-name')].map(n => n.textContent);
+// 課表's grid, its cells in order (a row per period).
+const names = () => [...document.querySelectorAll('#cx-grid .cx-tl-cell:not(.is-empty)')].map(n => n.textContent);
 
 describe('dateOfDayInWeek', () => {
   it('is the coming date, or a week on when that is the other week', () => {
@@ -67,7 +68,7 @@ describe('課表', () => {
     vi.setSystemTime(new Date(2030, 0, 9, 12));
   });
   afterEach(() => vi.useRealTimers());
-  it('shows the day in either of its weeks, its other half a tap away', () => {
+  it('shows the week in either of its halves, the other a tap away', () => {
     document.body.dataset.tab = 'week';
     state.viewDay = 1;
     state.viewWeek = null;
@@ -90,8 +91,8 @@ describe('工具', () => {
   it('is the timetable, then AI and 分享', () => {
     document.body.dataset.tab = 'tools';
     renderTools();
-    const heads = [...document.querySelectorAll('#cx-tools .cx-section')].map(h => h.textContent);
-    expect(heads).toEqual(['本週課表', 'AI', '分享']);
+    const heads = [...document.querySelectorAll('#cx-tools .q-section-head h2')].map(h => h.textContent);
+    expect(heads).toEqual(['課表', 'AI', '分享']);
     expect(document.querySelector('#cx-tools .cx-tl-part')).toBeNull();
     expect(document.querySelector('#cx-tools .cx-way.is-swap')).toBeNull();
   });

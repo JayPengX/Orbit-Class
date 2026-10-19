@@ -9,7 +9,6 @@ import {
 } from './constants.js';
 import { state } from './state.js';
 import {
-  applyProAccent,
   normalizeProAccent,
   normalizeProSecondary,
   normalizeStyleSlots
@@ -1096,7 +1095,6 @@ function applyEditorSettingsData(
   state.applicationData.proSecondary = normalizeProSecondary(state.applicationData.proSecondary);
   state.applicationData.styleSlots = normalizeStyleSlots(state.applicationData.styleSlots);
   saveData(state.applicationData);
-  applyProAccent();
   buildSchedule();
   renderEditorTeachers();
   renderEditorBells();

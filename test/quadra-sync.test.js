@@ -102,7 +102,6 @@ describe('Orbit Class on the Quadra Pass', () => {
     });
     // The timetable it replaced is kept on the device.
     expect(JSON.parse(localStorage.getItem('orbitSetAside') || '[]').length).toBeGreaterThan(0);
-    expect(document.getElementById('btn-edit').classList.contains('is-disabled')).toBe(false);
   });
 
   it('AI requests carry the session token', async () => {

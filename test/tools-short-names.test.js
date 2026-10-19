@@ -4,10 +4,10 @@ import { loadApp } from './helpers/loadApp.js';
 let shortNames;
 beforeAll(async () => {
   await loadApp();
-  ({ shortNames } = await import('../src/tools.js'));
+  ({ shortNames } = await import('../src/view-week.js'));
 });
 
-describe('工具 grid: every subject its own short name', () => {
+describe('課表 grid: every subject its own short name', () => {
   it('keeps names of up to four characters whole', () => {
     const out = shortNames(['國文', '自主學習', '體育']);
     expect([...out.values()]).toEqual(['國文', '自主學習', '體育']);

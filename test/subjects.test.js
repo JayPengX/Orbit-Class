@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { eventLook, subjectIcon, subjectLook } from '../src/subjects.js';
+import { eventLook, subjectLook, subjectTile } from '../src/subjects.js';
 
 describe('every subject has its picture (an icon in its own colour)', () => {
   it('knows the subjects of a Taiwanese timetable, the narrower names first', () => {
@@ -18,9 +18,9 @@ describe('every subject has its picture (an icon in its own colour)', () => {
     expect(a.icon).toMatch(/^<svg/);
   });
   it('drawn as a tile in the subject colour', () => {
-    const tile = subjectIcon('物理', 'row-icon');
-    expect(tile.className).toBe('subject-icon row-icon');
-    expect(tile.style.getPropertyValue('--subject')).toBe('#8b5cf6');
+    const tile = subjectTile('物理', 'sm');
+    expect(tile.className).toBe('q-tile sm');
+    expect(tile.style.getPropertyValue('--t')).toBe('#8b5cf6');
     expect(tile.querySelector('svg')).not.toBeNull();
   });
   it("倒數's events: an exam a pen, sports day a trophy, anything else a calendar", () => {

@@ -43,7 +43,6 @@
 <!-- /brand -->
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/styles.css?v=__APP_VERSION__">
-    <link rel="stylesheet" href="css/premium.css?v=__APP_VERSION__">
     <!-- kit:head: where the app's stylesheets end, before any module. The kit
      comes from one place for every app (Shared-Proxy's GitHub Pages, same
      site as the apps), at the version this device last saw (quadra.kit, noted
@@ -57,480 +56,292 @@
 <!-- kit:boot: right after <div id="loading">. -->
 <script>document.write('<script src="'+QUADRA_KIT.url('boot.js')+'"><\/script>')</script>
 <!-- /kit:boot -->
-<div id="test-banner" class="test-banner" data-i18n="testsim.simulating">
-  模擬中
-</div>
+<div id="test-banner" class="test-banner" data-i18n="testsim.simulating">模擬中</div>
 <header class="q-appbar">
   <div class="q-appbar-inner">
     <div class="q-brand">
       <img class="q-brand-logo" src="./favicon.svg" alt="" width="34" height="34" />
-      <div class="q-brand-text">
-        <h1 id="title">Orbit Class</h1>
-        <p id="status" class="q-status" aria-live="polite"></p>
-      </div>
+      <div class="q-brand-text"><h1 id="title">Orbit Class</h1></div>
     </div>
     <nav id="tabs" class="q-tabbar" role="tablist"></nav>
     <div id="top-actions" class="q-actions"></div>
   </div>
 </header>
-<main class="page cx-page">
-  <div id="panel-today" class="tab-panel" role="tabpanel">
-    <header class="q-page-head cx-head">
-      <p class="q-over" id="cx-over"></p>
-      <h1 id="cx-title">今天</h1>
-    </header>
-    <div class="top-stack">
-      <div class="dashboard">
-        <div class="label-row">
-          <div id="dot" class="status-dot" aria-hidden="true" style="display:none"></div>
-    <div class="top-actions" role="toolbar" aria-label="工具" data-i18n-aria-label="dashboard.toolsLabel">
-      <button type="button" id="btn-menu" class="top-action-btn" onclick="toggleActionMenu()" title="工具" aria-label="開啟工具" aria-expanded="false" data-i18n-title="dashboard.toolsLabel" data-i18n-aria-label="dashboard.openTools">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-      </button>
-      <div class="top-actions-menu" id="top-actions-menu">
-        <button type="button" id="btn-edit" class="top-action-btn" onclick="openEditor()" title="編輯課表" aria-label="編輯課表" data-i18n-title="sync.editTitle" data-i18n-aria-label="sync.editTitle">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-        </button>
-        <button type="button" id="btn-transfer" class="top-action-btn" onclick="openTransferSheet()" title="Quadra Pass 與匯入" aria-label="Quadra Pass 與匯入" data-i18n-title="sync.transferSheetTitle" data-i18n-aria-label="sync.transferSheetTitle">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2 21 6 17 10"></path><path d="M3 12v-2a4 4 0 0 1 4-4h14"></path><path d="M7 22 3 18 7 14"></path><path d="M21 12v2a4 4 0 0 1-4 4H3"></path></svg>
-        </button>
+<main class="cx-page">
+  <!-- 今天: the class now and next, then what's ahead today, what to bring, the countdowns (src/view-today.js). -->
+  <section id="panel-today" class="cx-panel" role="tabpanel">
+    <header class="q-page-head"><p class="q-over" id="cx-over"></p><h1>Orbit Class</h1></header>
+    <section class="q-hero-card cx-hero dashboard" id="cx-hero" data-mode="off" role="button" tabindex="0">
+      <div class="cx-hero-top">
+        <span class="q-hc-eyebrow"><span class="cx-glyph" id="cx-glyph"></span><span id="cx-kicker"></span></span>
+        <span class="cx-span" id="cx-span"></span>
       </div>
-    </div>
-  </div>
-        <section class="q-hero-card cx-hero" id="cx-hero" data-mode="off">
-          <div class="cx-h-top">
-            <span class="q-hc-eyebrow"><span class="cx-h-glyph" id="cx-glyph"></span><span class="cx-h-kicker" id="cx-kicker"></span></span>
-            <span class="cx-h-tags"><span class="cx-h-pill" id="cx-left" hidden></span><span class="cx-h-span" id="cx-span"></span></span>
-          </div>
-          <div class="cx-h-main">
-            <span class="cx-h-icon" id="cx-icon"></span>
-            <div class="cx-h-words">
-              <div class="q-hc-title cx-h-title" id="now-name" data-i18n="dashboard.loading">載入中…</div>
-              <div class="cx-h-meta" id="cx-meta"><span id="now-teacher"></span><span id="now-place"></span><span id="now-class-label"></span></div>
-            </div>
-          </div>
-          <div class="cx-h-time" id="timer-group"><b class="q-hc-big" id="timer-val"></b><span id="timer-label"></span></div>
-          <div class="cx-h-bar" id="cx-bar"><i id="cx-fill"></i></div>
-          <div class="cx-h-bring" id="cx-h-bring" hidden></div>
-          <div class="cx-h-foot" id="cx-foot">
-            <div class="cx-h-foot-l"><span id="next-label"></span><b id="next-name-row"><span class="cx-h-foot-icon" id="next-icon"></span><span id="next-name"></span></b></div>
-            <div class="cx-h-foot-r"><b id="next-time"></b><span id="next-sub"></span></div>
-            <p class="cx-h-note" id="next-note"></p>
-          </div>
-        </section>
+      <div class="cx-hero-main">
+        <span class="cx-hero-icon" id="cx-icon"></span>
+        <div class="cx-hero-words">
+          <strong class="cx-title" id="now-name" data-i18n="dashboard.loading">載入中…</strong>
+          <span class="cx-meta" id="cx-meta"><span id="now-teacher"></span><span id="now-place"></span><span id="now-class-label"></span></span>
+        </div>
       </div>
-    </div>
-    <div id="cx-week-switch" class="cx-week-switch"></div>
-    <div class="nav-bar"></div>
-    <section class="q-section cx-list-sec" id="cx-list-sec">
-      <div class="q-section-head"><h2 class="cx-section" id="cx-list-title" data-i18n="dashboard.timetable">課表</h2></div>
-      <div id="schedule-list" class="list-container"></div>
+      <div class="cx-timer" id="timer-group"><b class="q-hc-big" id="timer-val"></b><span id="timer-label"></span></div>
+      <div class="cx-bar" id="cx-bar"><i id="cx-fill"></i></div>
+      <div class="cx-foot" id="cx-foot">
+        <span class="cx-foot-icon" id="next-icon"></span>
+        <span class="cx-foot-words"><small id="next-label"></small><b id="next-name"></b></span>
+        <span class="cx-foot-end"><b id="next-time"></b><small id="next-sub"></small></span>
+        <p class="cx-foot-note" id="next-note"></p>
+      </div>
     </section>
-    <div id="cx-swaps" class="cx-swaps-page"></div>
-    <section class="cx-bring" id="cx-bring"></section>
-    <section class="cx-countdowns" id="cx-countdowns"></section>
-  </div>
-  <div id="panel-tools" class="tab-panel" role="tabpanel" hidden>
-    <div id="cx-tools" class="cx-tools-page"></div>
-  </div>
+    <section class="q-section cx-sec" id="cx-list-sec">
+      <div class="q-section-head"><h2 id="cx-list-title" data-i18n="dashboard.todayClasses">今天的課</h2><button type="button" class="cx-more" data-go="week" data-i18n="common.all">全部</button></div>
+      <div id="schedule-list"></div>
+    </section>
+    <section class="q-section cx-sec" id="cx-bring" hidden></section>
+    <section class="q-section cx-sec" id="cx-countdowns"></section>
+  </section>
+  <!-- 課表: the week as a grid, this week or next; then 調課 (src/view-week.js). -->
+  <section id="panel-week" class="cx-panel" role="tabpanel" hidden>
+    <header class="q-page-head"><h1 data-i18n="tab.week">課表</h1></header>
+    <div id="cx-week-switch" class="cx-week-switch"></div>
+    <div id="cx-grid" class="cx-grid-card"></div>
+    <section class="q-section cx-sec" id="cx-swaps"></section>
+  </section>
+  <!-- 工具: the timetable's parts, AI and sharing (src/tools.js). -->
+  <section id="panel-tools" class="cx-panel" role="tabpanel" hidden>
+    <div id="cx-tools"></div>
+  </section>
 </main>
-<div id="overlay" class="modal-overlay" onclick="closeModal()">
-</div>
-<div id="sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="m-title">
+
+<!-- A class, or a day: filled by src/view-sheet.js. -->
+<div id="overlay" class="cx-dim" onclick="closeModal()"></div>
+<div id="sheet" class="cx-sheet" role="dialog" aria-modal="true" aria-labelledby="m-title">
   <div class="test-panel-handle" aria-hidden="true"></div>
-  <div class="sheet-head class-head">
-    <span id="m-icon" class="class-head-icon"></span>
-    <div class="class-head-words">
-      <h2 id="m-title" class="modal-title-text">---</h2>
-      <div id="m-teacher" class="modal-teacher-text">---</div>
-    </div>
-    <button type="button" class="editor-close sheet-close" onclick="closeModal()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
+  <div class="cx-sheet-head cx-sheet-head-lead">
+    <span id="m-icon" class="cx-sheet-lead"></span>
+    <div class="cx-sheet-words"><h2 id="m-title"></h2><p id="m-teacher"></p></div>
+    <button type="button" class="q-close" onclick="closeModal()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
   </div>
-  <div class="modal-sheet-body">
-    <div id="split-info-card" class="split-info-card" style="display:none">
-      <div class="split-grid">
-        <div class="split-col">
-          <div class="split-col-label accent">
-          </div>
-          <div id="this-week-class" class="split-col-value">
-            ---
-          </div>
-        </div>
-        <div class="split-col split-col-right">
-          <div class="split-col-label">
-          </div>
-          <div id="next-week-class" class="split-col-value" style="opacity:.6">
-            ---
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="stat-grid">
-      <div class="stat-card">
-        <span class="stat-label" data-i18n="dashboard.periodsPerWeekLabel">
-          每週節數
-        </span>
-        <span id="m-count" class="stat-value" style="color:var(--accent)">
-          0
-        </span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label" data-i18n="dashboard.typeLabel">
-          類型
-        </span>
-        <span id="m-type-val" class="stat-value">
-          ---
-        </span>
-      </div>
-      <div id="m-location-card" class="stat-card" style="display:none">
-        <span class="stat-label" data-i18n="dashboard.locationLabel">
-          教室
-        </span>
-        <span id="m-location-val" class="stat-value" style="color:var(--accent)">
-          ---
-        </span>
-      </div>
-    </div>
-    <div class="m-occ-section">
-      <div class="m-occ-label" data-i18n="dashboard.occurrencesLabel">
-        排課
-      </div>
-      <div id="m-occ-list" class="m-occ-list">
-      </div>
-    </div>
-    <div id="m-swap" class="m-swap" hidden>
-      <p id="m-swap-note" class="m-swap-note" hidden></p>
-      <button type="button" id="m-swap-btn" class="q-btn tinted m-swap-btn">調課</button>
-    </div>
-  </div>
+  <div class="cx-sheet-body" id="m-body"></div>
 </div>
-<div id="swap-overlay" class="modal-overlay" onclick="closeSwapSheet()"></div>
-<div id="swap-sheet" class="modal-sheet swap-sheet" role="dialog" aria-modal="true" aria-labelledby="swap-title">
+
+<div id="swap-overlay" class="cx-dim" onclick="closeSwapSheet()"></div>
+<div id="swap-sheet" class="cx-sheet" role="dialog" aria-modal="true" aria-labelledby="swap-title">
   <div class="test-panel-handle" aria-hidden="true"></div>
-  <div class="sheet-head class-head">
-    <div class="class-head-words">
-      <h2 id="swap-title" class="modal-title-text" data-i18n="swap.title">調課</h2>
-      <div id="swap-sub" class="modal-teacher-text"></div>
-    </div>
-    <button type="button" class="editor-close sheet-close" onclick="closeSwapSheet()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
+  <div class="cx-sheet-head">
+    <span></span>
+    <div class="cx-sheet-words is-center"><h2 id="swap-title" data-i18n="swap.title">調課</h2><p id="swap-sub"></p></div>
+    <button type="button" class="q-close" onclick="closeSwapSheet()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
   </div>
-  <div class="modal-sheet-body">
+  <div class="cx-sheet-body">
     <button type="button" id="swap-first" class="swap-first" hidden></button>
-    <label class="swap-date"><span data-i18n="swap.dateLabel">日期</span><input type="date" id="swap-date"></label>
-    <div id="swap-periods" class="swap-periods"></div>
+    <label class="cx-field-row swap-date"><span data-i18n="swap.dateLabel">日期</span><input type="date" id="swap-date"></label>
+    <div id="swap-periods" class="q-rowcard swap-periods"></div>
   </div>
 </div>
-<div id="editor-sheet-overlay" class="test-panel-overlay" onclick="closeEditor()" aria-hidden="true"></div>
-<div id="editor-sheet" class="test-panel editor-sheet" role="dialog" aria-modal="true" aria-label="編輯課表" data-i18n-aria-label="sync.editTitle">
+
+<!-- The editor (src/editor-*.js): one page per part, the timetable first. -->
+<div id="editor-sheet-overlay" class="cx-dim" onclick="closeEditor()" aria-hidden="true"></div>
+<div id="editor-sheet" class="cx-sheet is-tall editor-sheet" role="dialog" aria-modal="true" aria-label="編輯課表" data-i18n-aria-label="sync.editTitle">
   <div class="test-panel-handle" aria-hidden="true"></div>
-  <div class="editor-header">
-      <div class="editor-title">
-        <span data-i18n="sync.editTitle">編輯課表</span>
-        <span id="week-display-main"></span>
-      </div>
-      <div id="assign-overlay" class="editor-confirm-overlay" onclick="closeAssignSheet()" aria-hidden="true"></div>
-      <div id="assign-sheet" class="assign-sheet" role="dialog" aria-modal="true" aria-labelledby="assign-title">
-        <div class="assign-header"><h2 id="assign-title" class="editor-confirm-title" data-i18n="editorTeachers.assignSheetTitle">排課</h2><button type="button" class="editor-close" onclick="closeAssignSheet()" aria-label="關閉" data-i18n-aria-label="common.close">×</button></div>
-        <p id="assign-subtitle" class="editor-confirm-msg"></p>
-        <div id="assign-day-tabs" class="assign-day-tabs" role="tablist" aria-label="選擇星期" data-i18n-aria-label="editorTeachers.chooseWeekdayAriaLabel"></div>
-        <div id="assign-grid" class="assign-grid"></div>
-        <button type="button" class="editor-confirm-btn editor-primary-btn" onclick="applyAssignments()" data-i18n="editorTeachers.applyAndFinish">套用並完成</button>
-      </div>
-      <button type="button" class="editor-close" onclick="closeEditor()" aria-label="關閉" data-i18n-aria-label="common.close">
-        ×
-      </button>
+  <div class="cx-sheet-head editor-header">
+    <button type="button" class="q-close editor-close" onclick="closeEditor()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
+    <h2 class="editor-title" data-i18n="sync.editTitle">編輯課表</h2>
+    <button type="button" class="q-btn small primary cx-save" onclick="saveEditor()" data-i18n="common.save">儲存</button>
+  </div>
+  <div id="assign-overlay" class="editor-confirm-overlay" onclick="closeAssignSheet()" aria-hidden="true"></div>
+  <div id="assign-sheet" class="assign-sheet" role="dialog" aria-modal="true" aria-labelledby="assign-title">
+    <div class="cx-sheet-head">
+      <span></span>
+      <h2 id="assign-title" data-i18n="editorTeachers.assignSheetTitle">排課</h2>
+      <button type="button" class="q-close" onclick="closeAssignSheet()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
     </div>
-    <div id="editor-sheet-body" class="editor-sheet-body">
-    <details class="editor-fold" id="editor-fold-options" data-no-back-button>
-      <summary class="editor-fold-summary" data-i18n="editorCore.optionsFoldLabel">
-        選項
-      </summary>
+    <p id="assign-subtitle" class="cx-foot-line"></p>
+    <div id="assign-day-tabs" class="q-seg assign-day-tabs" role="tablist" aria-label="選擇星期" data-i18n-aria-label="editorTeachers.chooseWeekdayAriaLabel"></div>
+    <div id="assign-grid" class="assign-grid"></div>
+    <button type="button" class="q-btn primary large block" onclick="applyAssignments()" data-i18n="editorTeachers.applyAndFinish">套用並完成</button>
+  </div>
+  <div id="editor-sheet-body" class="cx-sheet-body editor-sheet-body">
+    <details class="editor-fold" id="editor-fold-schedule" data-no-back-button>
+      <summary class="editor-fold-summary" data-i18n="editorCore.scheduleFoldLabel">課表</summary>
       <div class="editor-fold-body">
-        <div class="toggle-row">
-          <div class="toggle-label" data-i18n="editorSchedule.reverseWeekToggleLabel">
-            單雙週對調
+        <div id="ed-days" class="ed-days"></div>
+        <div class="schedule-grid" id="schedule-grid"></div>
+        <div id="ed-parts" class="q-rowcard ed-parts"></div>
+        <div class="q-rowcard">
+          <div class="q-ritem toggle-row">
+            <span class="q-ritem-text"><span class="q-ritem-title" data-i18n="editorSchedule.reverseWeekToggleLabel">單雙週對調</span></span>
+            <button type="button" class="q-switch toggle-switch" id="toggle-reverse" onclick="toggleReverse()" aria-label="單雙週對調" data-i18n-aria-label="editorSchedule.reverseWeekToggleLabel"></button>
           </div>
-          <button type="button" class="toggle-switch" id="toggle-reverse" onclick="toggleReverse()" aria-label="單雙週對調" data-i18n-aria-label="editorSchedule.reverseWeekToggleLabel">
-          </button>
         </div>
-      </div>
-    </details>
-    <details class="editor-fold" id="editor-fold-countdown">
-      <summary class="editor-fold-summary" data-i18n="editorBackup.sectionCountdownEvents">
-        倒數活動
-      </summary>
-      <div class="editor-fold-body">
-        <div class="countdown-editor-list" id="countdown-event-list"></div>
-        <button type="button" class="add-btn" onclick="addCountdownEventRow()" data-i18n="editorCore.addCountdownButton">新增倒數</button>
-        <div class="toggle-row">
-          <div class="toggle-label" data-i18n="editorCore.pruneCountdownsLabel">結束後自動刪除</div>
-          <button type="button" class="toggle-switch" id="toggle-prune-countdowns" onclick="togglePruneCountdowns()" aria-label="結束後自動刪除" data-i18n-aria-label="editorCore.pruneCountdownsLabel"></button>
-        </div>
-        <div class="editor-hint"><div class="editor-hint-body" data-i18n="editorCore.countdownHint">首頁顯示第一個倒數活動，可在首頁左右滑動切換。日期可設定一段範圍（例如考試週），單日活動請將開始與結束日期設為同一天。</div></div>
       </div>
     </details>
     <details class="editor-fold" id="editor-fold-teachers">
-      <summary class="editor-fold-summary" data-i18n="editorTeachers.subjectsAndTeachersFoldLabel">
-        科目與教師
-      </summary>
+      <summary class="editor-fold-summary" data-i18n="editorTeachers.subjectsAndTeachersFoldLabel">科目與教師</summary>
       <div class="editor-fold-body">
-        <div class="teacher-list" id="teacher-list">
-        </div>
-        <button type="button" class="add-btn" onclick="addTeacherRow()" data-i18n="common.add">
-          新增
-        </button>
-        <div class="editor-hint">
-          <div class="editor-hint-title" data-i18n="editorTeachers.splitWeekHintTitle">
-            雙週科目／教師
-          </div>
-          <div class="editor-hint-body" data-i18n="editorTeachers.splitWeekHintBody">
-            兩週不同時以「／」分隔（例：國文／公民）
-          </div>
-        </div>
+        <div class="teacher-list q-rowcard" id="teacher-list"></div>
+        <button type="button" class="q-btn tinted block ed-add" onclick="addTeacherRow()" data-i18n="common.add">新增</button>
+        <p class="cx-foot-line" data-i18n="editorTeachers.splitWeekHintBody">兩週不同時以「／」分隔（例：國文／公民）</p>
       </div>
     </details>
-    <details class="editor-fold" id="editor-fold-schedule" data-no-back-button>
-      <summary class="editor-fold-summary" data-i18n="editorCore.scheduleFoldLabel">
-        課表
-      </summary>
+    <details class="editor-fold" id="editor-fold-bells">
+      <summary class="editor-fold-summary" data-i18n="editorBackup.sectionBellTimes">節次時間</summary>
       <div class="editor-fold-body">
-        <div class="editor-drill-actions">
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-teachers')" data-i18n="editorTeachers.subjectPlaceholder">科目</button>
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-bells')" data-i18n="editorCore.drillPeriods">節次</button>
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-breaks')" data-i18n="editorCore.drillBreaks">時段</button>
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-countdown')" data-i18n="editorCore.drillCountdown">倒數</button>
-          <button type="button" class="editor-drill-btn" onclick="openEditorFold('editor-fold-ai')" data-i18n="editorCore.drillAi">AI</button>
-        </div>
-        <div class="schedule-grid" id="schedule-grid">
+        <div class="bell-list q-rowcard" id="bell-list"></div>
+        <button type="button" class="q-btn tinted block ed-add" onclick="addBellRow()" data-i18n="editorSchedule.addPeriodButton">新增節次</button>
+      </div>
+    </details>
+    <details class="editor-fold" id="editor-fold-breaks">
+      <summary class="editor-fold-summary" data-i18n="editorSchedule.specialTimeFoldLabel">特殊時段</summary>
+      <div class="editor-fold-body">
+        <div class="bell-list q-rowcard" id="break-list"></div>
+        <button type="button" class="q-btn tinted block ed-add" onclick="addBreakRow()" data-i18n="editorSchedule.addSpecialTimeButton">新增特殊時段</button>
+      </div>
+    </details>
+    <details class="editor-fold" id="editor-fold-countdown">
+      <summary class="editor-fold-summary" data-i18n="editorBackup.sectionCountdownEvents">倒數活動</summary>
+      <div class="editor-fold-body">
+        <div class="countdown-editor-list q-rowcard" id="countdown-event-list"></div>
+        <button type="button" class="q-btn tinted block ed-add" onclick="addCountdownEventRow()" data-i18n="editorCore.addCountdownButton">新增倒數</button>
+        <div class="q-rowcard">
+          <div class="q-ritem toggle-row">
+            <span class="q-ritem-text"><span class="q-ritem-title" data-i18n="editorCore.pruneCountdownsLabel">結束後自動刪除</span></span>
+            <button type="button" class="q-switch toggle-switch" id="toggle-prune-countdowns" onclick="togglePruneCountdowns()" aria-label="結束後自動刪除" data-i18n-aria-label="editorCore.pruneCountdownsLabel"></button>
+          </div>
         </div>
       </div>
     </details>
     <details class="editor-fold" id="editor-fold-ai">
-      <summary class="editor-fold-summary" data-i18n="nlEdit.headingLabel">
-        AI 課表編輯
-      </summary>
+      <summary class="editor-fold-summary" data-i18n="nlEdit.headingLabel">AI 課表編輯</summary>
       <div class="editor-fold-body">
-        <div class="ocr-import-box" id="nl-edit-box">
-          <div class="editor-hint-body" data-i18n="nlEdit.hintBody">用一句話描述想改的內容，可一次講多件事，AI 會先提出建議，確認後才套用。</div>
-          <input id="nl-edit-input" class="settings-transfer-text sync-input" type="text" maxlength="200" placeholder="例如：把我週二第三節改成物理" data-i18n-placeholder="nlEdit.inputPlaceholder" autocomplete="off">
-          <div class="settings-transfer-actions">
-            <button type="button" id="nl-edit-submit" class="settings-transfer-btn primary" data-i18n="common.submit">送出</button>
+        <div class="q-hero-card ed-ask" id="nl-edit-box">
+          <span class="q-hc-eyebrow"><span class="cx-glyph" data-glyph="spark"></span><span data-i18n="tools.aiEditSub">用一句話說要改什麼</span></span>
+          <div class="q-hc-pill ed-ask-pill">
+            <input id="nl-edit-input" type="text" maxlength="200" placeholder="例如：把我週二第三節改成物理" data-i18n-placeholder="nlEdit.inputPlaceholder" autocomplete="off" enterkeyhint="send">
+            <button type="button" id="nl-edit-submit" class="ed-ask-send" aria-label="送出" data-i18n-aria-label="common.submit"><span class="cx-glyph" data-glyph="send"></span></button>
           </div>
-          <div id="nl-edit-status" class="settings-transfer-status" role="status"></div>
         </div>
+        <div id="nl-edit-status" class="cx-status" role="status"></div>
       </div>
     </details>
-    <details class="editor-fold" id="editor-fold-bells">
-      <summary class="editor-fold-summary" data-i18n="editorBackup.sectionBellTimes">
-        節次時間
-      </summary>
-      <div class="editor-fold-body">
-        <div class="bell-list" id="bell-list">
-        </div>
-        <button type="button" class="add-btn" onclick="addBellRow()" data-i18n="editorSchedule.addPeriodButton">
-          新增節次
-        </button>
-      </div>
-    </details>
-    <details class="editor-fold" id="editor-fold-breaks">
-      <summary class="editor-fold-summary" data-i18n="editorSchedule.specialTimeFoldLabel">
-        特殊時段
-      </summary>
-      <div class="editor-fold-body">
-        <div class="bell-list" id="break-list">
-        </div>
-        <button type="button" class="add-btn" onclick="addBreakRow()" data-i18n="editorSchedule.addSpecialTimeButton">
-          新增特殊時段
-        </button>
-      </div>
-    </details>
-    <button type="button" class="save-btn" onclick="saveEditor()" data-i18n="common.save">
-      儲存
-    </button>
-    </div>
+  </div>
 </div>
-<div id="transfer-sheet-overlay" class="test-panel-overlay" onclick="closeTransferSheet()" aria-hidden="true"></div>
-<div id="transfer-sheet" class="test-panel transfer-sheet" role="dialog" aria-modal="true" aria-label="Quadra Pass 與匯入" data-i18n-aria-label="sync.transferSheetTitle">
+
+<!-- One sheet opened for one thing: 分享金鑰 (the Pass and the key, src/sync.js) or 拍照匯入 (src/gemini-ocr.js). -->
+<div id="transfer-sheet-overlay" class="cx-dim" onclick="closeTransferSheet()" aria-hidden="true"></div>
+<div id="transfer-sheet" class="cx-sheet transfer-sheet" role="dialog" aria-modal="true" aria-label="Quadra Pass 與匯入" data-i18n-aria-label="sync.transferSheetTitle">
   <div class="test-panel-handle" aria-hidden="true"></div>
-  <div class="editor-header">
-    <div class="editor-title" data-i18n="sync.transferSheetTitle">Quadra Pass 與匯入</div>
-    <button type="button" class="editor-close" onclick="closeTransferSheet()" aria-label="關閉" data-i18n-aria-label="common.close">×</button>
+  <div class="cx-sheet-head">
+    <span></span>
+    <h2 class="editor-title" data-i18n="sync.transferSheetTitle">Quadra Pass 與匯入</h2>
+    <button type="button" class="q-close" onclick="closeTransferSheet()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
   </div>
-  <div class="transfer-sheet-body" id="transfer-sheet-body">
-  <div class="settings-transfer-box transfer-sync-box" id="quadra-box"></div>
-  <div id="sync-status" class="settings-transfer-status"></div>
-  <div class="ocr-import-box" id="ocr-import-box">
-    <div class="transfer-section-heading"><span data-i18n="geminiOcr.headingLabel">AI 匯入</span><span class="transfer-section-tag" data-i18n="geminiOcr.oneTimeImportTag">單次匯入，不會自動同步</span></div>
-    <div class="editor-hint-body" data-i18n="geminiOcr.setupHint">選擇課表照片、截圖或 PDF，AI 自動判讀並產出課表。可選多個檔案一起讀取（例如課表照片＋選課截圖）。</div>
-    <div class="ocr-import-file-row">
-      <label id="ocr-import-image-label" class="settings-transfer-btn" for="ocr-import-image" data-i18n="geminiOcr.selectFileLabel">
-        選擇檔案
+  <div class="cx-sheet-body" id="transfer-sheet-body">
+    <div id="quadra-box" class="tr-key"></div>
+    <div id="sync-status" class="cx-status"></div>
+    <div class="q-rowcard tr-more" id="test-mode-fold">
+      <button type="button" class="q-ritem chevron" onclick="toggleTestPanel()"><span class="q-tile sm cx-gray"><span class="cx-glyph" data-glyph="clock"></span></span><span class="q-ritem-text"><span class="q-ritem-title" data-i18n="testsim.timeSimAriaLabel">時間模擬</span></span></button>
+    </div>
+    <div class="tr-photo" id="ocr-import-box">
+      <label id="ocr-import-image-label" class="tr-pick" for="ocr-import-image">
+        <span class="q-tile lg tr-pick-tile"><span class="cx-glyph" data-glyph="camera"></span></span>
+        <strong data-i18n="geminiOcr.selectFileLabel">選擇檔案</strong>
+        <small id="ocr-import-filename" data-i18n="editorBackup.noFileSelected">尚未選擇檔案</small>
+        <span class="tr-thumbs" id="ocr-import-image-wrap"><img id="ocr-import-image-preview" class="ocr-import-image-preview" alt="檔案預覽" hidden data-i18n-alt="geminiOcr.filePreviewAlt"></span>
       </label>
-      <div class="ocr-import-image-wrap" id="ocr-import-image-wrap">
-        <img id="ocr-import-image-preview" class="ocr-import-image-preview" alt="檔案預覽" hidden data-i18n-alt="geminiOcr.filePreviewAlt">
+      <input id="ocr-import-image" class="tr-file" type="file" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,.heic,.heif,.pdf">
+      <button type="button" id="ocr-import-detect" class="q-btn primary large block" disabled data-i18n="common.import">匯入</button>
+      <p class="cx-foot-line" data-i18n="geminiOcr.setupHint">選擇課表照片、截圖或 PDF，AI 自動判讀並產出課表。</p>
+      <div class="tr-status">
+        <div id="ocr-import-status" class="cx-status" role="status"></div>
+        <div id="ocr-import-eta" class="tr-eta" role="status" hidden><span id="ocr-import-eta-estimate"></span><span id="ocr-import-eta-elapsed" class="tr-eta-elapsed" aria-hidden="true"></span></div>
       </div>
-      <div id="ocr-import-filename" class="ocr-import-filename" data-i18n="editorBackup.noFileSelected">尚未選擇檔案</div>
+      <div id="ocr-import-result" class="tr-result" hidden></div>
     </div>
-    <input id="ocr-import-image" class="ocr-import-file-input" type="file" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,.heic,.heif,.pdf">
-    <button type="button" id="ocr-import-detect" class="settings-transfer-btn primary" disabled data-i18n="common.import">匯入</button>
-    <div class="ocr-import-status-row">
-      <div id="ocr-import-status" class="settings-transfer-status" role="status"></div>
-      <div id="ocr-import-eta" class="ocr-import-eta" role="status" hidden>
-        <span id="ocr-import-eta-estimate"></span>
-        <span id="ocr-import-eta-elapsed" class="ocr-import-eta-elapsed" aria-hidden="true"></span>
-      </div>
-    </div>
-    <div id="ocr-import-result" class="ocr-import-result" hidden></div>
-  </div>
-  <details class="legacy-fold" id="test-mode-fold">
-    <summary class="legacy-fold-summary" data-i18n="testsim.advancedFoldSummary">進階：時間模擬</summary>
-    <div class="legacy-fold-body">
-      <div class="editor-hint-body" data-i18n="testsim.previewHint">預覽指定時間的課表效果，不影響實際資料。</div>
-      <div class="settings-transfer-actions">
-        <button type="button" class="settings-transfer-btn" onclick="toggleTestPanel()" data-i18n="testsim.openTimeSimButton">
-          開啟時間模擬
-        </button>
-      </div>
-    </div>
-  </details>
   </div>
 </div>
 <template id="ocr-preview-template">
-  <div class="ocr-import-preview-title" data-i18n="geminiOcr.previewTitle">辨識結果與匯入預覽</div>
-  <div class="ocr-import-preview-meta" data-ocr-preview-meta></div>
-  <div class="ocr-import-warnings" data-ocr-warnings hidden>
-    <div class="ocr-import-warnings-title" data-i18n="geminiOcr.warningsTitle">可能需要注意</div>
+  <div class="tr-result-head"><strong data-i18n="geminiOcr.previewTitle">辨識結果與匯入預覽</strong><small data-ocr-preview-meta></small></div>
+  <div class="tr-warn" data-ocr-warnings hidden>
+    <strong data-i18n="geminiOcr.warningsTitle">可能需要注意</strong>
     <ul data-ocr-warnings-list></ul>
   </div>
   <details class="editor-fold" data-ocr-bell-fold open>
     <summary class="editor-fold-summary" data-i18n="editorBackup.sectionBellTimes">節次時間</summary>
-    <div class="editor-fold-body"><div class="bell-list" data-ocr-bell-list></div></div>
+    <div class="editor-fold-body"><div class="bell-list q-rowcard" data-ocr-bell-list></div></div>
   </details>
   <details class="editor-fold" data-ocr-break-fold open>
     <summary class="editor-fold-summary" data-i18n="editorSchedule.specialTimeFoldLabel">特殊時段</summary>
-    <div class="editor-fold-body"><div class="bell-list" data-ocr-break-list></div></div>
+    <div class="editor-fold-body"><div class="bell-list q-rowcard" data-ocr-break-list></div></div>
   </details>
   <details class="editor-fold" data-ocr-class-fold open>
     <summary class="editor-fold-summary" data-i18n="geminiOcr.classesFoldLabel">課程</summary>
-    <div class="editor-fold-body"><div class="teacher-list" data-ocr-class-list></div></div>
+    <div class="editor-fold-body"><div class="teacher-list q-rowcard" data-ocr-class-list></div></div>
   </details>
   <details class="editor-fold" data-ocr-assignment-fold open>
     <summary class="editor-fold-summary" data-i18n="geminiOcr.assignmentFoldLabel">課表指派</summary>
-    <div class="editor-fold-body"><div class="schedule-grid" data-ocr-assignment-grid></div></div>
+    <div class="editor-fold-body"><div class="schedule-grid is-all" data-ocr-assignment-grid></div></div>
   </details>
   <details class="editor-fold" data-ocr-countdown-fold hidden>
     <summary class="editor-fold-summary" data-i18n="geminiOcr.countdownDatesFoldLabel">倒數日期</summary>
-    <div class="editor-fold-body"><div class="bell-list" data-ocr-countdown-list></div></div>
+    <div class="editor-fold-body"><div class="bell-list q-rowcard" data-ocr-countdown-list></div></div>
   </details>
-  <div class="ocr-import-preview-note" data-ocr-preview-note></div>
-  <button type="button" class="settings-transfer-btn primary" data-ocr-submit data-i18n="geminiOcr.confirmAndImportButton">確認並匯入</button>
+  <p class="cx-foot-line" data-ocr-preview-note></p>
+  <button type="button" class="q-btn primary large block" data-ocr-submit data-i18n="geminiOcr.confirmAndImportButton">確認並匯入</button>
 </template>
 <template id="ocr-bell-row-template"><div class="bell-row"><div class="bell-num"></div><div class="bell-inputs"><input class="time-input bell-start" type="time" data-field="bell-start"><span class="time-sep">→</span><input class="time-input bell-end" type="time" data-field="bell-end"></div></div></template>
 <template id="ocr-break-row-template"><div class="bell-row break-row"><div class="teacher-fields"><input class="editor-input break-name" placeholder="名稱" data-i18n-placeholder="editorSchedule.namePlaceholder"><div class="bell-inputs"><input class="time-input break-start" type="time"><span class="time-sep">→</span><input class="time-input break-end" type="time"></div></div></div></template>
 <template id="ocr-class-row-template"><div class="teacher-card ocr-import-class-card"><div class="teacher-avatar"></div><div class="teacher-fields"><input class="editor-input tc-subject" data-field="class-subject" placeholder="科目" data-i18n-placeholder="editorTeachers.subjectPlaceholder"><input class="editor-input tc-teacher" placeholder="教師" data-i18n-placeholder="editorTeachers.teacherPlaceholder"><input class="editor-input tc-location" placeholder="教室(選填)" data-i18n-placeholder="editorTeachers.locationPlaceholderOptional"></div></div></template>
 <template id="ocr-day-row-template"><div class="schedule-day-row"><div class="schedule-day-label"></div><div class="schedule-periods"></div></div></template>
 <template id="ocr-countdown-row-template"><div class="bell-row break-row"><div class="countdown-event-fields"><label><span data-i18n="editorCore.eventNameLabel">活動名稱</span><input class="editor-input countdown-event-name" maxlength="80" placeholder="活動名稱" data-i18n-placeholder="editorCore.eventNameLabel"></label><label class="countdown-event-daterange-label"><span data-i18n="editorCore.dateLabel">日期</span><div class="countdown-date-range"><input class="editor-input countdown-event-start" type="date" aria-label="開始日期" data-i18n-aria-label="editorCore.startDateLabel"><span class="time-sep">→</span><input class="editor-input countdown-event-end" type="date" aria-label="結束日期" data-i18n-aria-label="editorCore.endDateLabel"></div></label></div></div></template>
-<div id="editor-confirm-overlay" class="editor-confirm-overlay" onclick="hideEditorDiscardConfirm()" aria-hidden="true">
-</div>
-<div id="editor-confirm-sheet" class="editor-confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="editor-confirm-title" aria-describedby="editor-confirm-msg">
-  <h2 id="editor-confirm-title" class="editor-confirm-title" data-i18n="editorCore.unsavedTitle">
-    尚未儲存
-  </h2>
-  <p id="editor-confirm-msg" class="editor-confirm-msg" data-i18n="editorCore.leaveWillDiscardChanges">
-    離開將捨棄本次變更。
-  </p>
+
+<!-- Confirmations over the sheets (src/editor-core.js setEditorConfirmContent): the kit's centred alert. -->
+<div id="editor-confirm-overlay" class="cx-dim editor-confirm-overlay" onclick="hideEditorDiscardConfirm()" aria-hidden="true"></div>
+<div id="editor-confirm-sheet" class="cx-alert editor-confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="editor-confirm-title" aria-describedby="editor-confirm-msg">
+  <h2 id="editor-confirm-title" data-i18n="editorCore.unsavedTitle">尚未儲存</h2>
+  <p id="editor-confirm-msg" data-i18n="editorCore.leaveWillDiscardChanges">離開將捨棄本次變更。</p>
   <div class="editor-confirm-actions">
-    <button type="button" class="editor-confirm-btn" onclick="hideEditorDiscardConfirm()" data-i18n="common.back">
-      返回
-    </button>
-    <button type="button" class="editor-confirm-btn danger" onclick="discardEditorChangesAndClose()" data-i18n="editorCore.discard">
-      捨棄
-    </button>
+    <button type="button" class="editor-confirm-btn" onclick="hideEditorDiscardConfirm()" data-i18n="common.back">返回</button>
+    <button type="button" class="editor-confirm-btn danger" onclick="discardEditorChangesAndClose()" data-i18n="editorCore.discard">捨棄</button>
   </div>
 </div>
-<div class="save-toast" id="save-toast" data-i18n="editorBackup.saved">
-  已儲存
-</div>
-<div id="test-panel-overlay" class="test-panel-overlay" onclick="closeTestPanel()" aria-hidden="true">
-</div>
-<div class="test-panel" id="debug-panel" role="dialog" aria-modal="true" aria-label="時間模擬" data-i18n-aria-label="testsim.timeSimAriaLabel">
-  <div class="test-panel-handle" aria-hidden="true">
+<div class="save-toast" id="save-toast" role="status" data-i18n="editorBackup.saved">已儲存</div>
+
+<!-- Time simulation (src/testsim-runtime.js): any day and time, by hand. -->
+<div id="test-panel-overlay" class="cx-dim" onclick="closeTestPanel()" aria-hidden="true"></div>
+<div class="cx-sheet test-panel" id="debug-panel" role="dialog" aria-modal="true" aria-label="時間模擬" data-i18n-aria-label="testsim.timeSimAriaLabel">
+  <div class="test-panel-handle" aria-hidden="true"></div>
+  <div class="cx-sheet-head">
+    <span></span>
+    <div class="cx-sheet-words is-center"><h2 data-i18n="testsim.timeSimAriaLabel">時間模擬</h2><p class="sim-indicator" id="sim-indicator" style="display:none"><span data-i18n="testsim.simulating">模擬中</span> <span id="sim-status"></span></p></div>
+    <button type="button" class="q-close" onclick="closeTestPanel()" aria-label="關閉" data-i18n-aria-label="common.close">✕</button>
   </div>
-  <div class="editor-header">
-    <div class="editor-title">
-      <span data-i18n="testsim.timeSimAriaLabel">時間模擬</span>
-      <span class="test-status-pill" id="sim-indicator" style="display:none">
-        <span data-i18n="testsim.simulating">模擬中</span>
-        <span id="sim-status">
-        </span>
-      </span>
-    </div>
-    <button type="button" class="editor-close" onclick="closeTestPanel()" aria-label="關閉" data-i18n-aria-label="common.close">
-      ×
-    </button>
-  </div>
-  <div class="test-panel-meta-row">
-    <span class="app-version" id="app-version" data-i18n="testsim.versionLoading">版本載入中…</span>
-    <button type="button" id="test-refresh-btn" onclick="checkForAppUpdate()" aria-label="檢查更新" data-i18n="testsim.checkForUpdate" data-i18n-aria-label="testsim.checkForUpdate">
-      檢查更新
-    </button>
-    <button type="button" id="test-reset-btn" onclick="resetAllAppData()" aria-label="重設所有資料" data-i18n="common.reset" data-i18n-aria-label="editorBackup.resetAllDataAriaLabel">
-      重設
-    </button>
-  </div>
-  <p class="test-update-status" id="test-update-status"></p>
-  <div class="editor-fold">
-    <div class="editor-fold-body">
-      <label for="test-day-input" data-i18n="editorCore.weekdayFieldLabel">
-        星期
+  <div class="cx-sheet-body">
+    <div class="q-rowcard sim-fields">
+      <label class="q-ritem" for="test-day-input"><span class="q-ritem-text"><span class="q-ritem-title" data-i18n="editorCore.weekdayFieldLabel">星期</span></span>
+        <select id="test-day-input" onchange="syncTestDayChange()">
+          <option value="1" data-i18n="weekday.monday">週一</option>
+          <option value="2" data-i18n="weekday.tuesday">週二</option>
+          <option value="3" data-i18n="weekday.wednesday">週三</option>
+          <option value="4" data-i18n="weekday.thursday">週四</option>
+          <option value="5" data-i18n="weekday.friday">週五</option>
+          <option value="6" data-i18n="weekday.saturday">週六</option>
+          <option value="0" data-i18n="weekday.sunday">週日</option>
+        </select>
       </label>
-      <select id="test-day-input" onchange="syncTestDayChange()">
-        <option value="1" data-i18n="weekday.monday">
-          週一
-        </option>
-        <option value="2" data-i18n="weekday.tuesday">
-          週二
-        </option>
-        <option value="3" data-i18n="weekday.wednesday">
-          週三
-        </option>
-        <option value="4" data-i18n="weekday.thursday">
-          週四
-        </option>
-        <option value="5" data-i18n="weekday.friday">
-          週五
-        </option>
-        <option value="6" data-i18n="weekday.saturday">
-          週六
-        </option>
-        <option value="0" data-i18n="weekday.sunday">
-          週日
-        </option>
-      </select>
-      <label for="in-h" data-i18n="editorCore.timeHourMinuteLabel">
-        時間（時／分）
-      </label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="number" id="in-h" min="0" max="24" value="8" onchange="syncTestFromInputs()" style="width:60px;text-align:center">
-        <span style="color:var(--sub)">
-          :
-        </span>
-        <input type="number" id="in-m" min="0" max="59" value="0" onchange="syncTestFromInputs()" style="width:60px;text-align:center" aria-label="分" data-i18n-aria-label="editorCore.minutesAriaLabel">
+      <div class="q-ritem"><span class="q-ritem-text"><label class="q-ritem-title" for="in-h" data-i18n="editorCore.timeHourMinuteLabel">時間（時／分）</label></span>
+        <span class="sim-time"><input type="number" id="in-h" min="0" max="24" value="8" onchange="syncTestFromInputs()"><b>:</b><input type="number" id="in-m" min="0" max="59" value="0" onchange="syncTestFromInputs()" aria-label="分" data-i18n-aria-label="editorCore.minutesAriaLabel"></span>
       </div>
-      <input type="range" id="test-time-slider" min="480" max="1440" value="480" oninput="syncTestFromSlider()">
+      <div class="q-ritem"><input type="range" id="test-time-slider" min="480" max="1440" value="480" oninput="syncTestFromSlider()"></div>
     </div>
-  </div>
-  <div class="editor-hint">
-    <div class="editor-hint-body" data-i18n="testsim.startPauseHint">
-      「開始」後會自動走時；「暫停」後可改時間。
+    <button type="button" id="test-play-pause-btn" onclick="toggleTestPlayPause()" class="q-btn primary large block" data-i18n="testsim.start">開始</button>
+    <button type="button" id="test-exit-btn" onclick="exitTestMode()" class="q-btn large block" data-i18n="testsim.exitSimButton">結束模擬</button>
+    <div class="sim-meta">
+      <span class="app-version" id="app-version" data-i18n="testsim.versionLoading">版本載入中…</span>
+      <button type="button" id="test-refresh-btn" class="q-btn small" onclick="checkForAppUpdate()" aria-label="檢查更新" data-i18n="testsim.checkForUpdate" data-i18n-aria-label="testsim.checkForUpdate">檢查更新</button>
+      <button type="button" id="test-reset-btn" class="q-btn small danger tinted" onclick="resetAllAppData()" aria-label="重設所有資料" data-i18n="common.reset" data-i18n-aria-label="editorBackup.resetAllDataAriaLabel">重設</button>
     </div>
+    <p class="test-update-status" id="test-update-status"></p>
   </div>
-  <button type="button" id="test-play-pause-btn" onclick="toggleTestPlayPause()" class="sim-btn" data-i18n="testsim.start">
-    開始
-  </button>
-  <button type="button" id="test-exit-btn" onclick="exitTestMode()" class="test-exit-btn" data-i18n="testsim.exitSimButton">
-    結束模擬
-  </button>
 </div>
   <script type="module" src="src/main.js?v=__APP_VERSION__"></script>
 </body>

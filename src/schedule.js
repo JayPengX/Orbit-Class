@@ -1,12 +1,7 @@
 // ---- src/schedule.js ----
 // Turns settings data (from data.js) into the day-by-day runtime schedule,
 // plus the pure day/week-parity time helpers most other modules rely on.
-import {
-  MS_PER_DAY,
-  WEEKDAYS_DISPLAY_ORDER,
-  WEEKDAYS_INDEX_ORDER,
-  WEEKDAY_LABELS
-} from './constants.js';
+import { MS_PER_DAY, WEEKDAYS_INDEX_ORDER } from './constants.js';
 import { dateFromKey, dateKey } from './dates.js';
 import { holidayOn } from './holidays.js';
 import { state } from './state.js';
@@ -38,24 +33,6 @@ function buildSchedule() {
       })
       .filter(Boolean);
   });
-  renderNavBar();
-}
-// Renders weekday navigation buttons for whichever days actually have
-// classes (Mon-Fri included - an empty weekday is just as pointless to show
-// a tab for as an empty Saturday/Sunday). Falls back to the plain Mon-Fri
-// set when nothing has been scheduled at all yet, so a first-time user still
-// has something to tap instead of a blank nav bar.
-function renderNavBar() {
-  const navBar = document.querySelector('.nav-bar');
-  if (!navBar) return;
-  let days = WEEKDAYS_DISPLAY_ORDER.filter(d => (state.runtimeSchedule[d] || []).length > 0);
-  if (!days.length) days = [1, 2, 3, 4, 5];
-  navBar.innerHTML = days
-    .map(
-      d =>
-        `<button class="nav-item" data-day="${d}" onclick="handleNav(${d})" tabindex="0">${WEEKDAY_LABELS[d]}</button>`
-    )
-    .join('');
 }
 // The week's number for odd/even weeks: weeks counted on from one Monday
 // (2025-12-29, 2026's ISO week 1), never starting over at a new year. ISO

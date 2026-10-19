@@ -3,8 +3,8 @@ import { loadApp } from './helpers/loadApp.js';
 import { state } from '../src/state.js';
 import { buildSchedule } from '../src/schedule.js';
 import { normalizeSettingsData } from '../src/editor-backup.js';
-import { openModal } from '../src/dashboard.js';
-import { renderTools } from '../src/tools.js';
+import { openModal } from '../src/view-sheet.js';
+import { renderWeek } from '../src/view-week.js';
 
 // A day's list (runtimeSchedule) leaves its free periods out, so a class's
 // place in it isn't its period: Monday's 1st period free, 數學 is 第 2 節.
@@ -52,10 +52,10 @@ describe('a class’s card names each day’s periods by their own number', () =
   });
 });
 
-describe('工具’s week grid puts each class in its own period’s row', () => {
+describe('課表’s week grid puts each class in its own period’s row', () => {
   it('a free period is an empty cell, never the next class moved up', () => {
-    document.body.dataset.tab = 'tools';
-    renderTools();
+    // The week of Tuesday 2026-10-20 (no holiday in it).
+    renderWeek(new Date(2026, 9, 20, 9));
     const grid = document.querySelector('.cx-tl-grid');
     const days = [...grid.querySelectorAll('.cx-tl-day')].length;
     const cells = [...grid.querySelectorAll('.cx-tl-cell')];

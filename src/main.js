@@ -5,13 +5,12 @@
 // it. Nothing else imports either of those two, so this ordering holds.
 import './data.js';
 import './schedule.js';
-import './appearance.js';
 import './dashboard.js';
 import './editor-backup.js';
 import './editor-core.js';
 import './editor-teachers.js';
 import './editor-schedule.js';
-import './dashboard-render.js';
+import './view-editor.js';
 import './gemini-ocr.js';
 import './editor-nl-edit.js';
 import './bootstrap.js';

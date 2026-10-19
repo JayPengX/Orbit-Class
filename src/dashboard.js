@@ -1,40 +1,30 @@
 // ---- src/dashboard.js ----
-// The live "what's happening right now" dashboard: update()'s per-second
-// orchestration (calls schedule-calc.js for the math, then renders), plus
-// the toolbar/modal/countdown-card UI around it.
-import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
+// The per-second loop: update() works out the hour from the clock (the
+// math is schedule-calc.js's), hands it to the views (src/view-today.js,
+// src/view-week.js), keeps the notices booked and prunes countdowns that
+// are over; plus the time simulation panel and the sheets' shared show/hide.
+import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { fitNowTitleText, renderList } from './dashboard-render.js';
-import { countdownsNotOver, formatCountdownEventDate, getCountdownEvents, saveData } from './data.js';
+import { countdownsNotOver, saveData } from './data.js';
 import { isEditorDirty } from './editor-backup.js';
 import {
   closeEditor,
   closeTransferSheet,
-  esc,
   hasUnconsumedImportData,
   hideEditorDiscardConfirm,
   showEditorDiscardConfirm,
   showTransferDiscardConfirm
 } from './editor-core.js';
 import { closeAssignSheet } from './editor-teachers.js';
-import { dateFromKey, dateKey, pad2 } from './dates.js';
-import {
-  classesOn,
-  classesOnDate,
-  dateOfDay,
-  getNextSchoolDay,
-  getWeekLabelHtml,
-  getWeekType,
-  processSplitName
-} from './schedule.js';
-import { classesLeft, classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
-import { bringList, renderBring } from './bring.js';
-import * as kitUI from '#kit/ui.mjs';
-import { eventLook, stateTile, subjectTile } from './subjects.js';
+import { dateKey, pad2 } from './dates.js';
+import { classesOn, classesOnDate, dateOfDay, getNextSchoolDay, getWeekLabelHtml, getWeekType, processSplitName } from './schedule.js';
+import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
 import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn, holidaysReady } from './holidays.js';
-import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
+import { closeModal, openModal } from './view-sheet.js';
+import { renderBring, renderCountdowns, renderHero, renderTodayList } from './view-today.js';
+import { renderWeek } from './view-week.js';
 import { getLocale, t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
@@ -64,80 +54,26 @@ async function toggleTestPanel() {
   }
   state.testPanelOpen = !state.testPanelOpen;
   setOverlayVisible('test-panel-overlay', 'debug-panel', state.testPanelOpen);
-  syncTestToolbar();
 }
 // Closes the manual time simulation panel.
 function closeTestPanel() {
   state.testPanelOpen = false;
   setOverlayVisible('test-panel-overlay', 'debug-panel', false);
-  syncTestToolbar();
 }
 // Opens Test Mode directly after another UI has been safely closed.
 function openTestPanel() {
   state.testPanelOpen = true;
   setOverlayVisible('test-panel-overlay', 'debug-panel', true);
-  syncTestToolbar();
-}
-// Keeps the toolbar test button state in sync with simulation mode.
-function syncTestToolbar() {
-  const btn = document.getElementById('btn-test');
-  if (!btn) return;
-  btn.classList.toggle('active', state.testPanelOpen);
-  btn.classList.toggle('manual-test-on', !!window.MANUALLY_TEST);
-  btn.classList.toggle('sim-running', !!window.IS_SIMULATING);
 }
 bindSheetDragToDismiss('debug-panel', closeTestPanel);
 // The holidays arrive after the first draw (the card redraws every second):
 // the week's notices worked out again without a holiday's classes.
 holidaysReady.then(() => {
   state.classPushSlot = null;
+  state.lastListKey = '';
 });
-bindSheetDragToDismiss('sheet', closeModal);
 bindSheetDragToDismiss('editor-sheet', () => closeEditor());
 bindSheetDragToDismiss('transfer-sheet', () => closeTransferSheet());
-// Changes the visible day when a navigation tab is pressed, sliding the
-// schedule list in from the side the newly picked tab sits on relative to
-// the one that was active (so hopping right along the week bar reads as
-// "forward" and vice versa).
-function handleNav(d) {
-  const list = document.getElementById('schedule-list');
-  if (list && d !== state.viewDay) {
-    const buttons = [...document.querySelectorAll('.nav-item')];
-    const oldIndex = buttons.findIndex(btn => parseInt(btn.dataset.day, 10) === state.viewDay);
-    const newIndex = buttons.findIndex(btn => parseInt(btn.dataset.day, 10) === d);
-    list.style.setProperty('--nav-dir', newIndex > oldIndex ? '1' : '-1');
-    list.classList.remove('nav-slide');
-    void list.offsetWidth;
-    list.classList.add('nav-slide');
-  }
-  state.viewDay = d;
-  window.update();
-}
-/* Tool menu and viewport fitting. */
-function setToolHubState(open) {
-  const actions = document.querySelector('.top-actions');
-  const btn = document.getElementById('btn-menu');
-  if (!actions || !btn) return;
-  actions.classList.toggle('open', !!open);
-  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  const label = open ? t('dashboard.closeTools') : t('dashboard.openTools');
-  btn.setAttribute('aria-label', label);
-  btn.setAttribute('title', label);
-}
-function toggleActionMenu() {
-  const actions = document.querySelector('.top-actions');
-  setToolHubState(!(actions && actions.classList.contains('open')));
-}
-let modalPreviousFocus = null;
-document.addEventListener(
-  'click',
-  event => {
-    const actions = document.querySelector('.top-actions');
-    if (!actions || !actions.classList.contains('open')) return;
-    if (!actions.contains(event.target)) setToolHubState(false);
-  },
-  { capture: true }
-);
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
   if (document.getElementById('assign-sheet')?.classList.contains('show')) closeAssignSheet();
@@ -149,209 +85,21 @@ document.addEventListener('keydown', event => {
   else if (document.getElementById('editor-sheet')?.classList.contains('show')) closeEditor();
   else if (document.getElementById('transfer-sheet')?.classList.contains('show'))
     closeTransferSheet();
-  else setToolHubState(false);
-});
-['btn-edit', 'btn-transfer', 'btn-style'].forEach(id => {
-  const btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', () => setTimeout(() => setToolHubState(false), 80));
 });
 
-// The app bar's line: the date and the week (the day's countdowns are 今天's
-// cards, renderCountdowns).
-function updateExamCountdown() {
-  showStatus();
-}
-
-// The app bar's status: the date and the week (10月6日 週二 · 雙週).
-let statusWeek = null;
-function showStatus(week = statusWeek) {
-  statusWeek = week;
-  const over = document.getElementById('cx-over');
-  if (over) over.textContent = statusLine(week);
-}
-// The small line over every page's title: the date and the week (10月6日 週二 · 雙週).
-function statusLine(week = statusWeek) {
+// 今天's line over its title: the date and the week (10月6日 週二 · 雙週).
+function statusLine(week) {
   const en = getLocale() === 'en';
   const date = new Date().toLocaleDateString(en ? 'en-US' : 'zh-TW', { month: en ? 'short' : 'long', day: 'numeric', weekday: 'short' });
-  const parts = [date, week == null ? '' : getWeekLabelHtml(week).replace(/<[^>]+>/g, '')];
-  return parts.filter(Boolean).join(' · ');
+  return [date, getWeekLabelHtml(week).replace(/<[^>]+>/g, '')].join(' · ');
 }
-
-// 今天's countdowns: one card per event, side by side (swipe when there are
-// several), in the editor's order. Each says how far off it is in large type
-// (15 天), or that it starts today, is on, or is over; the last card adds one.
-// Tapping any opens the editor at 倒數. Redrawn only when the events or the
-// date change (update() asks every second).
-function countdownState(event, today) {
-  const start = Math.round((dateFromKey(event.startDate) - today) / MS_PER_DAY);
-  const end = Math.round((dateFromKey(event.endDate) - today) / MS_PER_DAY);
-  if (start > 0) return { kind: 'ahead', days: start };
-  if (start === 0) return { kind: 'today' };
-  if (end >= 0) return { kind: 'on' };
-  return { kind: 'over' };
-}
-let countdownsKey = '';
-function renderCountdowns() {
-  const box = document.getElementById('cx-countdowns');
-  if (!box) return;
-  const events = getCountdownEvents();
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const key = `${today.getTime()}|${t('dashboard.countdowns')}|${JSON.stringify(events)}`;
-  if (key === countdownsKey) return;
-  countdownsKey = key;
-  const make = (tag, cls, text) => {
-    const el = document.createElement(tag);
-    if (cls) el.className = cls;
-    if (text != null) el.textContent = text;
-    return el;
-  };
-  const edit = () => {
-    window.openEditor?.();
-    window.openEditorFold?.('editor-fold-countdown');
-  };
-  const row = make('div', 'cx-cd-row q-rail');
-  for (const event of events) {
-    const st = countdownState(event, today);
-    const card = make('button', `cx-cd is-${st.kind}`);
-    card.type = 'button';
-    card.addEventListener('click', edit);
-    const words = make('span', 'cx-cd-words');
-    words.append(make('span', 'cx-cd-name', event.name), make('span', 'cx-cd-date', formatCountdownEventDate(event, { withYear: dateFromKey(event.startDate) - today > 330 * MS_PER_DAY })));
-    const big = make('span', 'cx-cd-big');
-    if (st.kind === 'ahead') {
-      big.append(make('b', '', String(st.days)), make('small', '', t('dashboard.countdownDayUnit')));
-      card.setAttribute('aria-label', t('dashboard.countdownAriaDays', { name: event.name, days: st.days }));
-    } else {
-      const word = { today: 'countdownToday', on: 'countdownInProgress', over: 'countdownEnded' }[st.kind];
-      big.append(make('em', '', t(`dashboard.${word}`)));
-    }
-    // The event's picture (段考 a pen, 運動會 a trophy) beside its name.
-    const pic = make('span', `q-tile cx-cd-icon${st.kind === 'over' ? ' soft' : ''}`);
-    pic.innerHTML = eventLook(event.name);
-    card.append(pic, words, big);
-    row.append(card);
-  }
-  const add = make('button', 'cx-cd cx-cd-add');
-  add.type = 'button';
-  add.setAttribute('aria-label', t('dashboard.addCountdown'));
-  add.append(make('span', 'cx-cd-plus', '+'), make('span', 'cx-cd-addtext', t('dashboard.addCountdownShort')));
-  add.addEventListener('click', edit);
-  row.append(add);
-  box.classList.toggle('is-many', events.length > 1);
-  const head = make('div', 'q-section-head');
-  head.append(make('h2', 'cx-section', t('dashboard.countdowns')));
-  box.classList.add('q-section');
-  box.replaceChildren(head, row);
-}
-
-
-// Recomputes the current class, next class, timer, and visible schedule state.
-// DOM nodes update()/render() touch every tick, queried once instead of via
-// getElementById/querySelector on every single call (previously ~20 lookups
-// a second even while nothing on screen was changing).
-let dashboardDom = null;
-function getDashboardDom() {
-  if (dashboardDom) return dashboardDom;
-  const $ = id => document.getElementById(id);
-  dashboardDom = {
-    simStatus: $('sim-status'),
-    weekDisplay: $('week-display-main'),
-    hero: $('cx-hero'),
-    kicker: $('cx-kicker'),
-    span: $('cx-span'),
-    title: $('now-name'),
-    meta: $('cx-meta'),
-    teacher: $('now-teacher'),
-    place: $('now-place'),
-    classLabel: $('now-class-label'),
-    timer: $('timer-group'),
-    timerVal: $('timer-val'),
-    timerLabel: $('timer-label'),
-    bar: $('cx-bar'),
-    fill: $('cx-fill'),
-    foot: $('cx-foot'),
-    nextLabel: $('next-label'),
-    nextName: $('next-name'),
-    nextTime: $('next-time'),
-    nextSub: $('next-sub'),
-    nextNote: $('next-note'),
-    icon: $('cx-icon'),
-    glyph: $('cx-glyph'),
-    left: $('cx-left'),
-    bring: $('cx-h-bring'),
-    nextIcon: $('next-icon')
-  };
-  return dashboardDom;
-}
-
-// Last-drawn values: the card is asked every second, but only the time left
-// and the bar change that often; everything else is written when it changes.
-const lastRendered = {};
-function put(key, value, write) {
-  if (lastRendered[key] === value) return false;
-  lastRendered[key] = value;
-  write(value);
-  return true;
-}
-
-// Draws heroView()'s card (src/schedule-calc.js). Pure data in, DOM writes out.
-function renderDashboard(week, hero) {
-  const dom = getDashboardDom();
-  if (put('week', week, w => dom.weekDisplay && (dom.weekDisplay.innerHTML = getWeekLabelHtml(w)))) showStatus(week);
-  if (!dom.hero) return;
-  put('mode', hero.mode, v => (dom.hero.dataset.mode = v));
-  put('kicker', hero.kicker, v => (dom.kicker.textContent = v));
-  put('span', hero.span, v => (dom.span.textContent = v));
-  if (put('title', hero.title, v => (dom.title.textContent = v))) fitNowTitleText();
-  // The class's picture (src/subjects.js) as a glass tile; a break's cup, a day over the moon.
-  put('icon', hero.subject ? `s:${hero.subject}` : `m:${hero.mode}`, () => dom.icon?.replaceChildren(hero.subject ? subjectTile(hero.subject, 'lg', true) : stateTile(hero.mode, 'lg', true)));
-  // The eyebrow's own glyph, by what the card is about.
-  put('glyph', hero.mode, v => (dom.glyph.innerHTML = (kitUI.icons ?? {})[{ class: 'clock', break: 'bell', before: 'clock', off: 'moon' }[v] || 'clock'] ?? ''));
-  put('left', hero.left ? t('dashboard.leftTag', { n: hero.left }) : '', v => {
-    dom.left.textContent = v;
-    dom.left.hidden = !v;
-  });
-  // A day without classes: what tomorrow's classes need, as chips.
-  put('bring', JSON.stringify(hero.bring || []), () => {
-    dom.bring.replaceChildren();
-    if (hero.bring?.length) {
-      const label = document.createElement('span');
-      label.className = 'cx-h-bring-label';
-      label.textContent = t('bring.title', { day: hero.bringDay || t('dashboard.tomorrow') });
-      dom.bring.append(label, ...hero.bring.map(item => Object.assign(document.createElement('span'), { className: 'cx-h-chip', textContent: t(`bring.${item}`) })));
-    }
-    dom.bring.hidden = !hero.bring?.length;
-  });
-  document.body.dataset.hero = hero.mode;
-  document.body.dataset.heroClass = hero.subject ? '1' : '';
-  put('teacher', hero.teacher, v => (dom.teacher.textContent = v));
-  put('place', hero.place, v => (dom.place.textContent = v));
-  put('classLabel', hero.label, v => (dom.classLabel.innerHTML = v));
-  put('hasMeta', Boolean(hero.teacher || hero.place || hero.label), v => (dom.meta.hidden = !v));
-  put('hasTimer', Boolean(hero.timer), v => (dom.timer.style.display = v ? 'flex' : 'none'));
-  if (hero.timer) {
-    put('timerLabel', hero.timer.label, v => (dom.timerLabel.textContent = v));
-    put('timerVal', hero.timer.value, v => (dom.timerVal.textContent = v));
-  }
-  put('hasBar', hero.progress != null, v => (dom.bar.hidden = !v));
-  if (hero.progress != null) put('progress', hero.progress.toFixed(2), v => (dom.fill.style.width = v + '%'));
-  const foot = hero.foot;
-  put('foot', foot ? (foot.note ? 'note' : 'class') : 'none', v => {
-    dom.foot.hidden = v === 'none';
-    dom.foot.dataset.kind = v;
-  });
-  if (foot?.note) put('note', foot.note, v => (dom.nextNote.textContent = v));
-  else if (foot) {
-    put('nextLabel', foot.label, v => (dom.nextLabel.textContent = v));
-    put('nextName', foot.name, v => (dom.nextName.textContent = v));
-    put('nextIcon', foot.subject || '', v => dom.nextIcon?.replaceChildren(...(v ? [subjectTile(v, 'sm', true)] : [])));
-    put('nextTime', foot.time, v => (dom.nextTime.textContent = v));
-    put('nextSub', foot.sub, v => {
-      dom.nextSub.textContent = v;
-      dom.nextSub.hidden = !v;
-    });
-  }
+let overDrawn = '';
+function showStatus(week, now) {
+  const key = `${now.toDateString()}|${week}|${getLocale()}`;
+  if (key === overDrawn) return;
+  overDrawn = key;
+  const over = document.getElementById('cx-over');
+  if (over) over.textContent = statusLine(week);
 }
 
 // The next school day after `day`, for the card's foot once today is over.
@@ -369,18 +117,8 @@ function nextSchoolDay(now, curDay) {
   return null;
 }
 
-// updateExamCountdown() computes a day-granularity D-day count (it can't
-// change more than once a day - it uses the real calendar date, not Test
-// Mode's simulated time), but was being called on every one-second tick.
-// Re-running it only when the real date has actually rolled over avoids a
-// DOM rebuild (including the countdown-dots innerHTML) 86399 times a day
-// for nothing. showCountdownEvent() (swiping between countdown events)
-// still calls updateExamCountdown() directly, bypassing this guard, since
-// that's a real, immediate change the user just made.
-let lastCountdownDateKey = null;
 // 結束後自動刪除 on: a countdown whose last day is over leaves the list,
-// saved and synced (not on a device that only views the timetable, nor
-// under an editor with changes not saved).
+// saved and synced (not under an editor with changes not saved).
 function prunePastCountdowns(now = new Date()) {
   const data = state.applicationData;
   if (!data?.pruneCountdowns || isEditorDirty()) return;
@@ -389,91 +127,52 @@ function prunePastCountdowns(now = new Date()) {
   data.countdownEvents = kept;
   saveData(data);
   pushSyncSnapshot();
-  updateExamCountdown();
-}
-function updateExamCountdownIfDayChanged() {
-  const dateKey = new Date().toDateString();
-  if (dateKey === lastCountdownDateKey) return;
-  lastCountdownDateKey = dateKey;
-  updateExamCountdown();
 }
 
 let heroTarget = null;
 function update() {
   if (!window.MANUALLY_TEST) prunePastCountdowns();
-  updateExamCountdownIfDayChanged();
-  renderCountdowns();
-  renderBring();
-  const dom = getDashboardDom();
   const now = new Date();
+  const simStatus = document.getElementById('sim-status');
   if (window.MANUALLY_TEST) {
     const h = Math.floor((window.TEST_TIME_SEC || 0) / 3600),
       m = Math.floor(((window.TEST_TIME_SEC || 0) % 3600) / 60),
       s = (window.TEST_TIME_SEC || 0) % 60;
     now.setHours(h, m, s, 0);
-    if (dom.simStatus)
-      dom.simStatus.textContent = window.IS_SIMULATING ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : '';
-  } else if (dom.simStatus) {
-    dom.simStatus.textContent = '';
-  }
+    if (simStatus) simStatus.textContent = window.IS_SIMULATING ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : '';
+  } else if (simStatus) simStatus.textContent = '';
   const curDay = window.MANUALLY_TEST ? window.TEST_DAY : now.getDay();
   const week = getWeekType();
+  showStatus(week, new Date());
+  renderCountdowns();
+  renderBring();
 
-  // A day with no classes (weekend or otherwise - the nav bar itself no
-  // longer shows a tab for one) should never be the day we land on by
-  // default: point at whichever day actually has classes instead. This
-  // covers both the very first render and Test Mode restoring a simulated
-  // empty day straight into state.viewDay, bypassing state.js's own initial
-  // Sat/Sun -> Monday fallback. Guarded on at least one day having classes
-  // at all, so a totally empty schedule (nothing scheduled yet) doesn't spin
-  // getNextSchoolDay()'s no-match fallback into a different empty day every
-  // single tick.
+  // A day with no classes is never the one 今天 lists: the next day that has
+  // some instead (only when any day has classes at all; a day the timetable
+  // leaves empty can hold a class moved there by 調課).
   const hasAnyClasses = Object.values(state.runtimeSchedule).some(rows => (rows || []).length > 0);
-  // (A day the timetable leaves empty can hold a class moved there by 調課.)
   const viewRows = window.MANUALLY_TEST ? state.runtimeSchedule[state.viewDay] : classesOnDate(dateOfDay(state.viewDay, now));
-  if (hasAnyClasses && !(viewRows || []).length) {
-    state.viewDay = getNextSchoolDay(state.viewDay);
-  }
+  if (hasAnyClasses && !(viewRows || []).length) state.viewDay = getNextSchoolDay(state.viewDay);
 
   // A national holiday: no classes today, whatever the timetable says (Test Mode's simulated days as they are).
   const holiday = window.MANUALLY_TEST ? null : holidayOn(now);
   const todaySchedule = window.MANUALLY_TEST ? state.runtimeSchedule[curDay] : classesOn(now);
   const nextDay = nextSchoolDay(now, curDay);
-  const viewModel = computeDashboardViewModel({
-    now,
-    curDay,
-    week,
-    todaySchedule,
-    breakTimes: state.applicationData.breakTimes
-  });
+  const viewModel = computeDashboardViewModel({ now, curDay, week, todaySchedule, breakTimes: state.applicationData.breakTimes });
 
-  // Today over, or a national holiday: 今天 shows the next school day's
+  // Today over, or a national holiday: 今天 lists the next school day's
   // classes (once: a day tapped stays).
   const dayDone = viewModel.isDayFinished || Boolean(holiday);
-  if (!dayDone && state.autoAdvancedAfterFinishedDay === curDay) {
-    state.autoAdvancedAfterFinishedDay = null;
-  }
-  if (
-    dayDone &&
-    state.viewDay === curDay &&
-    state.autoAdvancedAfterFinishedDay !== curDay
-  ) {
+  if (!dayDone && state.autoAdvancedAfterFinishedDay === curDay) state.autoAdvancedAfterFinishedDay = null;
+  if (dayDone && state.viewDay === curDay && state.autoAdvancedAfterFinishedDay !== curDay) {
     state.viewDay = window.MANUALLY_TEST ? getNextSchoolDay(curDay) : (nextDay?.day ?? getNextSchoolDay(curDay));
     state.autoAdvancedAfterFinishedDay = curDay;
   }
 
   const hero = heroView(viewModel, { now, week, todaySchedule, nextDay, holiday });
-  // Classes still to come ride on the card as a tag; a day without any shows
-  // what the next school day needs brought.
-  if (hero.mode !== 'off') hero.left = classesLeft(todaySchedule, now);
-  else if (nextDay) {
-    const rows = window.MANUALLY_TEST ? state.runtimeSchedule[nextDay.day] || [] : classesOn(nextDay.date);
-    hero.bring = bringList(rows, nextDay.week).map(x => x.item);
-    hero.bringDay = nextDay.label;
-  }
   // What a tap on the card opens: the class it shows.
   heroTarget = viewModel.curIdx >= 0 ? todaySchedule[viewModel.curIdx] : hero.subject && viewModel.nxtIdx >= 0 ? todaySchedule[viewModel.nxtIdx] : null;
-  renderDashboard(week, hero);
+  renderHero(hero);
 
   // As the break before a class starts (five minutes before, after a long
   // one): a notice (once per class; not in test mode), only in its own
@@ -489,10 +188,15 @@ function update() {
     }
   }
 
-  const liveStateKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${document.body.dataset.tab}-${document.body.dataset.heroClass}`;
-  if (state.lastListKey !== liveStateKey) {
-    renderList(week, viewModel.curIdx, viewModel.nxtIdx, curDay, viewModel.isDayFinished);
-    state.lastListKey = liveStateKey;
+  // The lists are drawn again only when what they show moved on (the period,
+  // the day, the week chosen, the tab, the minute on 課表's grid).
+  const tab = document.body.dataset.tab;
+  const minute = tab === 'week' ? Math.floor(now.getTime() / 60_000) : '';
+  const listKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${now.toDateString()}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${tab}-${document.body.dataset.heroClass}-${minute}`;
+  if (state.lastListKey !== listKey) {
+    state.lastListKey = listKey;
+    if (tab === 'week') renderWeek(now);
+    else renderTodayList({ week, curIdx: viewModel.curIdx, nxtIdx: viewModel.nxtIdx, curDay, isDayFinished: viewModel.isDayFinished, now });
   }
 }
 
@@ -526,51 +230,7 @@ function weekClasses(now) {
   return out;
 }
 
-// Set the instant the user touches or scrolls the list (see initScheduleScrollInputTracking),
-// not only once a 'scroll' event actually lands. A pending one-time alignment (below) checks
-// this and backs off instead of yanking the list out from under an in-progress gesture.
-
-function keepActiveClassVisible(list, isDayFinished, scrollKey) {
-  if (scrollKey === state.lastAutoScrollKey) return;
-  state.lastAutoScrollKey = scrollKey;
-  state.userScrolledDuringAlign = false;
-
-  const activeRow = list.querySelector('.is-now') || list.querySelector('.is-next');
-
-  if (isDayFinished || !activeRow) {
-    requestAnimationFrame(() =>
-      list.scrollTo({
-        top: 0,
-        behavior: 'auto'
-      })
-    );
-    return;
-  }
-
-  // One pass, one frame after layout: the row entrance animation only transforms
-  // opacity/transform/filter (never layout-affecting properties), so activeRow.offsetTop
-  // is already correct here and doesn't need to be re-polled on a timer afterwards.
-  requestAnimationFrame(() => {
-    if (state.userScrolledDuringAlign) return;
-    // Clamped to the list's own natural scroll bound — this never manufactures extra
-    // scrollable room to force exact top-alignment for a class near the end of a long
-    // day. That used to need a second system to stop manual scrolling drifting into the
-    // manufactured room, which meant fighting iOS Safari's native rubber-band bounce at
-    // the bottom edge and reading as flicker. A class within the last screenful now
-    // settles as high as native scrolling allows instead of exactly at the top; nothing
-    // here ever imposes a ceiling tighter than the browser's own, so there is nothing
-    // left to contest during a touch gesture.
-    const targetTop = Math.min(Math.max(0, activeRow.offsetTop), getNaturalListMaxScroll(list));
-    list.scrollTo({ top: targetTop, behavior: 'auto' });
-  });
-}
-
-// Real content boundary for scrolling.
-function getNaturalListMaxScroll(list) {
-  return Math.max(0, list.scrollHeight - list.clientHeight);
-}
-
-// Closes the class detail modal.
+// The sheets' shared show / hide: .show on the sheet and its dimming, a class on the page while open.
 function setElementVisible(id, visible) {
   const element = document.getElementById(id);
   if (element) element.classList.toggle('show', visible);
@@ -582,145 +242,41 @@ function setOverlayVisible(overlayId, panelId, visible, bodyClass) {
   if (overlay) overlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
   if (bodyClass) document.body.classList.toggle(bodyClass, visible);
 }
-function closeModal() {
-  setOverlayVisible('overlay', 'sheet', false, 'modal-open');
-  if (modalPreviousFocus && typeof modalPreviousFocus.focus === 'function')
-    modalPreviousFocus.focus();
-  modalPreviousFocus = null;
+// The time simulation's start / pause button and its line (the clock it
+// shows only; never the saved timetable).
+function syncTestPlayPauseUi() {
+  const btn = document.getElementById('test-play-pause-btn');
+  const indicator = document.getElementById('sim-indicator');
+  if (!btn || !indicator) return;
+  const { text, active } = !window.MANUALLY_TEST ? { text: t('testsim.start'), active: false } : window.IS_SIMULATING ? { text: t('testsim.pause'), active: true } : { text: t('testsim.resume'), active: false };
+  btn.textContent = text;
+  btn.classList.toggle('active', active);
+  indicator.style.display = active ? '' : 'none';
 }
-function setSplitWeekClass(id, subject, teacher) {
-  const target = document.getElementById(id);
-  if (!target) return;
-  target.replaceChildren(document.createTextNode(subject || ''));
-  const teacherText = document.createElement('div');
-  teacherText.style.cssText = 'font-size:11px;font-weight:400;color:var(--sub)';
-  teacherText.textContent = teacher || '';
-  target.appendChild(teacherText);
-}
-// Opens the class detail modal and fills in occurrence/location details.
-// `date`: the day it was opened on (a day's list), for 調課. A swapped class
-// is shown as the timetable's class it came from, in that day's week.
-function openModal(shown, { date = null } = {}) {
-  modalPreviousFocus = document.activeElement;
-  const c = shown.from || shown;
-  const week = getWeekType(shown.swap ? dateFromKey(shown.swap.date) : date || new Date());
-  drawModalSwap(shown, date);
-  const terms = c.isSplit ? c.n.split('/').map(t => t.trim()) : [c.n];
-  const teachers = c.isSplit ? c.t.split('/').map(t => t.trim()) : [c.t];
-  let count = 0;
-  // Its week as five days side by side (the sheet one height for a class met
-  // twice a week or four times): each day the periods it meets and when.
-  const days = {};
-  const locCard = document.getElementById('m-location-card');
-  const statGrid = locCard.closest('.stat-grid');
-  if (c.loc) {
-    locCard.style.display = 'block';
-    document.getElementById('m-location-val').textContent = c.loc;
-    statGrid.classList.add('has-location');
-  } else {
-    locCard.style.display = 'none';
-    statGrid.classList.remove('has-location');
+// Every second: the simulated clock moves on while it runs, then update().
+function mainClockTick() {
+  if (window.MANUALLY_TEST && window.IS_SIMULATING) {
+    window.TEST_TIME_SEC = ((window.TEST_TIME_SEC || 0) + 1) % 86400;
+    const slider = document.getElementById('test-time-slider');
+    if (slider) slider.value = Math.floor(window.TEST_TIME_SEC / 60);
   }
-  [1, 2, 3, 4, 5].forEach(d => {
-    state.runtimeSchedule[d].forEach(item => {
-      const match = c.isSplit ? terms.some(t => item.n.includes(t)) : item.n === c.n;
-      if (match) {
-        count++;
-        // The period's own number (a day's free periods aren't in its list).
-        (days[d] ||= []).push({ n: item.p + 1, s: item.s });
-      }
-    });
-  });
-  const occHtml = count
-    ? [1, 2, 3, 4, 5]
-        .map(d => {
-          const on = days[d];
-          const periods = on ? (on.length === 1 ? t('dashboard.occPeriod', { number: on[0].n }) : t('dashboard.occPeriods', { list: on.map(x => x.n).join(t('dashboard.occJoin')) })) : '—';
-          return `<div class="occ-day${on ? '' : ' is-off'}"><span class="occ-day-name">${WEEKDAY_LABELS[d]}</span><span class="occ-day-period">${esc(periods)}</span><span class="occ-day-time">${on ? esc(on[0].s) : ''}</span></div>`;
-        })
-        .join('')
-    : '';
-  const sc = document.getElementById('split-info-card');
-  if (c.isSplit) {
-    sc.style.display = 'block';
-    const idx = week === '單' ? 0 : 1;
-    setSplitWeekClass('this-week-class', terms[idx], teachers[idx] || teachers[0]);
-    setSplitWeekClass('next-week-class', terms[1 - idx], teachers[1 - idx] || teachers[0]);
-    // The day's own week first, the other beside it (a day a week on is
-    // not 本週): 單週 / 雙週 by name.
-    const labels = document.querySelectorAll('#split-info-card .split-col-label');
-    if (labels.length === 2) {
-      labels[0].textContent = week === '單' ? t('week.odd') : t('week.even');
-      labels[1].textContent = week === '單' ? t('week.even') : t('week.odd');
-    }
-    document.getElementById('m-type-val').textContent = t('dashboard.typeSplit');
-  } else {
-    sc.style.display = 'none';
-    document.getElementById('m-type-val').textContent = t('dashboard.typeFixed');
-  }
-  const info = processSplitName(c, week);
-  document.getElementById('m-title').textContent = info.n;
-  document.getElementById('m-icon')?.replaceChildren(subjectTile(info.n, 'lg'));
-  document.getElementById('m-teacher').textContent = [info.t, c.loc].filter(Boolean).join(' · ');
-  document.getElementById('m-count').textContent = t('dashboard.periodCount', { count });
-  document.getElementById('m-occ-list').classList.toggle('is-week', Boolean(count));
-  document.getElementById('m-occ-list').innerHTML =
-    occHtml ||
-    `<div class="occ-row"><span class="occ-row-day">×</span><div class="occ-row-meta"><div class="occ-row-period">${t('dashboard.noOccurrences')}</div></div></div>`;
-  setOverlayVisible('overlay', 'sheet', true, 'modal-open');
-}
-
-// The sheet's 調課: a class on a day can be swapped once with another
-// period (any day); a swapped one says with which, and can be put back.
-function drawModalSwap(c, date) {
-  const box = document.getElementById('m-swap');
-  const note = document.getElementById('m-swap-note');
-  const btn = document.getElementById('m-swap-btn');
-  if (!box || !note || !btn) return;
-  const here = date && Number.isInteger(c.p) ? { date: dateKey(date), p: c.p } : null;
-  const swap = here && swapOf(here);
-  box.hidden = !here;
-  if (box.hidden) return;
-  note.hidden = !swap;
-  if (swap) note.textContent = t('swap.with', { slot: slotText(swap.a.date === here.date && swap.a.p === here.p ? swap.b : swap.a) });
-  btn.textContent = swap ? t('swap.undo') : t('swap.button');
-  btn.classList.toggle('is-danger', Boolean(swap));
-  btn.onclick = async () => {
-    if (swap) {
-      if (await undoSwap(swap)) closeModal();
-      return;
-    }
-    closeModal();
-    openSwapSheet(here);
-  };
+  window.update();
 }
 
 // Exposed on window for inline HTML event handlers (onclick="..." in
-// index.html and in generated template strings).
-window.closeModal = closeModal;
+// index.html).
 window.closeTestPanel = closeTestPanel;
-window.handleNav = handleNav;
 window.openTestPanel = openTestPanel; // testsim-runtime.js's patchPanelOpeners()
 // monkey-patches this (see applyPendingSheetAfterDiscard in editor-core.js for why
 // callers go through window.openTestPanel() rather than the bare function) - it
 // needs the real function bound here first, or it wraps undefined.
-window.toggleActionMenu = toggleActionMenu;
 window.toggleTestPanel = toggleTestPanel;
 // The hero card opens the class it shows (as a row does).
-document.getElementById('cx-hero')?.addEventListener('click', () => {
-  if (heroTarget) openModal(heroTarget, { date: window.MANUALLY_TEST ? null : new Date() });
-});
+const hero = document.getElementById('cx-hero');
+const openHero = () => heroTarget && openModal(heroTarget, { date: window.MANUALLY_TEST ? null : new Date() });
+hero?.addEventListener('click', openHero);
+hero?.addEventListener('keydown', event => (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), openHero()));
 window.update = update; // testsim-runtime.js monkey-patches this; every
 // cross-module caller goes through window.update() to see that patch.
 
-export {
-  closeTestPanel,
-  handleNav,
-  keepActiveClassVisible,
-  openModal,
-  openTestPanel,
-  setOverlayVisible,
-  statusLine,
-  syncTestToolbar,
-  toggleTestPanel
-};
+export { closeTestPanel, mainClockTick, openTestPanel, setOverlayVisible, syncTestPlayPauseUi, toggleTestPanel };

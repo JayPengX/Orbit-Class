@@ -1,1655 +1,1942 @@
-/* ============================================================================
-   Orbit AI — Liquid Glass design system
-   One linear cascade, no @layer indirection: base tokens, then components in
-   roughly the order they appear on screen, each with its responsive tweaks
-   inline. Later rules intentionally win over earlier ones by coming later in
-   source order, not by fighting through arbitrary layer priority.
-   ========================================================================= */
+/* ==== Orbit Class: one stylesheet, by screen ====
+   The kit (quadra.css) draws the frame and every q- piece: the app bar's
+   glass buttons, the tab bar, page heads, the hero card, tiles, row cards,
+   rails, stats, segmented controls, switches, fields, buttons. This file is
+   only what is Class's own, in the order the screens come:
+   1. the app's colour and the page;
+   2. 今天: the hero, the classes ahead, 明天要帶, 倒數;
+   3. 課表: the week switch, the week grid, 調課;
+   4. 工具: 我的課表 and its rows;
+   5. sheets (one mechanism for all), then each sheet: a class or a day,
+      調課, the editor, 分享 / 拍照匯入, 時間模擬; the confirm alert and toast;
+   6. the welcome on a first open.
+   Colours are the kit's tokens, so light and dark both follow. */
 
-/* ---- Reset ---- */
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-/* Baseline keyboard-focus ring for every plain <button> in the app (nearly
-   every control here is one - nav days, toolbar icons, style/preset chips,
-   assign-sheet cells, editor add/delete/drill buttons, sheet close buttons -
-   none of which had ANY focus-visible styling of their own beyond a couple
-   of one-off exceptions further down). :focus-visible already excludes the
-   ring on a plain mouse/touch click in every supporting browser, so this is
-   pure upside for keyboard/switch-control navigation with zero effect on
-   how tapping a button looks. Individual components below are still free to
-   override this with a more specific rule (.row, #test-time-slider, etc.
-   already do, for a ring shaped to their own geometry). */
-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes orbit-row-in{from{opacity:0;transform:translateY(16px) scale(.97);filter:blur(3px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
-@keyframes orbit-card-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes orbit-nav-slide{from{opacity:0;transform:translateX(calc(var(--nav-dir,1) * 48px))}to{opacity:1;transform:translateX(0)}}
-/* ---- Design tokens ---- */
-:root{
-  --orbit-panel:var(--q-surface-2);
-  --orbit-panel-strong:var(--q-surface-2);
-  --orbit-coral:#ef8b77;
-  --orbit-white:#f4f8f7;
-  --orbit-muted:#9db1b5;
-  --orbit-radius-lg:26px;
-  --orbit-radius-md:16px;
-  /* Matches .top-actions-menu's own sub-buttons (see
-     .top-actions-menu .top-action-btn) so the hub button toggles into the
-     same size row it opens, instead of visibly shrinking from a bigger
-     circle into smaller ones every time it's tapped. Sized noticeably
-     smaller than .exam-countdown next to it - full height-matching was
-     tried and made this mismatch with its own sub-buttons instead. */
-  --v31-hub-size:44px;
-  --v31-radius-xl:24px;
-
-  /* Shared size for every full-width "primary action" button (confirm-sheet
-     buttons, save/close/apply buttons in the editor/style/transfer sheets) -
-     these all play the same OK/Cancel/Save role in different popups, so they
-     read as one consistent control instead of each sheet having its own
-     button height/radius/font-size. Icon-only buttons, day-nav tabs, and
-     small grid chips are a different UI category on purpose and keep their
-     own sizing. */
-  --action-btn-h:46px;
-  --action-btn-radius:14px;
-  --action-btn-font:15px;
-
-  /* User-tunable theme (JS overrides these as inline styles on <body>) -
-     these static fallbacks are only what paints before setStyleMode()'s
-     applyProAccent() runs at boot, so they need to already match what that
-     computes for the real default (DEFAULT_STYLE_PRIMARY/SECONDARY in
-     constants.js) - both --pro-accent-text and --pro-secondary-text come
-     out white for this indigo-violet/rose-magenta pair (see
-     getReadableTextColor's perceptual-brightness pick in appearance.js) -
-     or there's a brief wrong-contrast flash of text on top of the accent
-     color before JS corrects it. */
-  --pro-accent:#6C5DD3;
-  --pro-secondary:#E8497B;
-  --pro-accent-text:#FFFFFF;
-  --pro-secondary-text:#FFFFFF;
-  --pro-accent-readable:#6C5DD3;
-  --pro-secondary-readable:#E8497B;
-
-  /* Semantic aliases used across components. NOTE: every alias below this
-     point that derives from a --pro-* token is declared again on body (see
-     the "Base" section) instead of resolving here, because a custom property
-     substitutes var() using the value AT ITS OWN DECLARING ELEMENT — since
-     JS only ever overrides --pro-accent/--pro-secondary on <body>, an alias
-     resolved here at :root would forever read the default, never the user's
-     chosen color, no matter how many times --pro-accent changes on body. */
-  --card:color-mix(in srgb,var(--q-text) 7.5%,transparent);
-  --txt:#EFF8FF;
-  --sub:#92A8B9;
-
-  /* ---- Liquid Glass material ----
-     Every interactive surface in the app is glass now - buttons, toggles,
-     the schedule editor's own sections, chips, wells, not just the outer
-     shell/sheet each of them happens to sit inside. Apple's own "don't
-     stack glass on glass" guidance argued for skipping it on content
-     nested inside an already-glass panel, but in practice that read as
-     "some controls are glass and some aren't" rather than as a deliberate
-     material choice - so every one of them gets its own
-     blur/saturate/brightness pass now, same tokens, layered on top of
-     whatever glass panel it happens to sit inside. Plain text/time inputs
-     are the one deliberate holdout: a blurred input field reads worse, not
-     better, for something the eye needs to focus straight through to read
-     what's typed - a recessed "well" surface (no blur, no shine) stays
-     right for those specifically, not as a blanket "content doesn't get
-     glass" rule anymore. */
-  --glass-blur:20px;
-  --glass-sat:130%;
-  --glass-bright:104%;
-  /* How wide the refracting band at each glass edge is, and the extra pass
-     over the backdrop it applies there — see the "Liquid Glass material"
-     section below for what actually draws it. Kept as tokens so a component
-     with a much smaller box (a 40px toolbar button) can narrow the band
-     without having to restate the whole rule. */
-  --glass-rim:16px;
-  --glass-lens:blur(3px) brightness(1.16) saturate(1.45);
-  /* Specular sheen painted ON the glass, as background layers rather than
-     shadows: one broad diagonal streak for the light source, a hot spot
-     bleeding in from the top-left corner, and a much weaker bounce coming
-     back up from the bottom-right. Folded straight into the two fill tokens
-     below, so every surface that already reads one of them picks the sheen
-     up without a single component rule changing. Both fills are only ever
-     read as a `background` (verified across this file — never as a border
-     or shadow color), which is what makes promoting them from a flat color
-     to a layer list safe to do in one place. */
-  --glass-specular:
-    linear-gradient(157deg,color-mix(in srgb,var(--q-text) 10%,transparent),color-mix(in srgb,var(--q-text) 3%,transparent) 24%,color-mix(in srgb,var(--q-text) 0%,transparent) 47%,color-mix(in srgb,var(--q-text) 0%,transparent) 74%,color-mix(in srgb,var(--q-text) 5.5%,transparent)),
-    radial-gradient(130% 95% at 10% -14%,color-mix(in srgb,var(--q-text) 9.5%,transparent),transparent 56%),
-    radial-gradient(95% 75% at 106% 114%,color-mix(in srgb,var(--q-text) 5.5%,transparent),transparent 60%);
-  --glass-fill:var(--glass-specular),color-mix(in srgb,var(--orbit-panel) 22%,transparent);
-  --glass-fill-strong:var(--glass-specular),color-mix(in srgb,var(--orbit-panel-strong) 30%,transparent);
-  /* The real technique (verified against a from-scratch Apple Liquid Glass
-     recreation, not a guess): no gradient border, no mask-composite ring.
-     Just a stack of plain inset box-shadows — folded straight into the
-     outer drop-shadow token so every glass surface picks it up
-     automatically. What changed since: the rim is no longer one uniform
-     hairline all the way around. Real glass catches the light hardest where
-     the surface turns away from the viewer, so the top edge now gets a
-     tight, genuinely bright specular line, the bottom edge a dimmer one
-     from light bouncing back up through the material, and the two sides
-     something in between — which is what makes the panel read as a curved
-     slab with thickness instead of a flat outlined rectangle. */
-  --glass-edge-shadow:
-    inset 0 0 0 1px color-mix(in srgb,var(--q-text) 15%,transparent),
-    inset 0 1.5px 1px -.5px color-mix(in srgb,var(--q-text) 55%,transparent),
-    inset 0 -1.5px 1px -.5px color-mix(in srgb,var(--q-text) 22%,transparent),
-    inset 1.5px 0 1.5px -1.5px color-mix(in srgb,var(--q-text) 28%,transparent),
-    inset -1.5px 0 1.5px -1.5px color-mix(in srgb,var(--q-text) 28%,transparent),
-    inset 0 0 18px color-mix(in srgb,var(--q-text) 6%,transparent),
-    inset 0 10px 26px -6px rgba(0,0,0,.10);
-  /* Three falloffs instead of two: a 1px contact shadow that keeps the panel
-     visually touching what's under it, a mid-range one for the body of the
-     drop, and the wide ambient one. A single wide blur alone reads as a
-     sticker floating an inch off the page; the contact term is what sells
-     the panel as resting on the background. */
-  --glass-shadow:var(--glass-edge-shadow),0 1px 1px rgba(0,0,0,.18),0 4px 12px rgba(0,8,16,.26),0 22px 54px rgba(0,8,16,.42);
-  --glass-shadow-soft:var(--glass-edge-shadow),0 1px 1px rgba(0,0,0,.14),0 3px 8px rgba(0,8,16,.2),0 12px 28px rgba(0,8,16,.28);
-  /* The same material as --glass-fill, tuned for surfaces that repeat: a
-     day-nav row and a screenful of class cards are a dozen-odd blur layers
-     rather than the two or three the dashboard/sheets ever add, so the blur
-     radius is smaller (cheaper to composite on a phone) and the fill a
-     little denser (these carry the app's smallest text, so they can't lean
-     on the backdrop showing through as heavily as a big empty panel can). */
-  --glass-blur-card:14px;
-  --glass-fill-card:color-mix(in srgb,var(--orbit-panel) 42%,transparent);
-  --glass-well-fallback:linear-gradient(135deg,color-mix(in srgb,var(--row-accent,var(--pro-accent)) 11%,var(--orbit-panel)),var(--orbit-panel) 65%);
-  /* The well keeps its "recessed, no blur, no shine" job, but gains a short
-     shade falling from its top lip and a faint hairline all round, so the
-     glass sitting above it has something with visible depth to sit against
-     rather than a flat dark rectangle. */
-  --well-fill:linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,0) 42%),rgba(3,9,13,.42);
-  --well-shadow:inset 0 1px 4px rgba(0,0,0,.45),inset 0 0 0 1px color-mix(in srgb,var(--q-text) 3%,transparent),inset 0 -1px 0 color-mix(in srgb,var(--q-text) 4.5%,transparent);
-  --ease-glass:cubic-bezier(.16,1,.3,1);
-  /* Overshoots slightly on the way back. Used for the release half of a
-     press (the push itself stays short and linear-ish) so a tapped control
-     springs back the way something soft-bodied would instead of easing back
-     to rest like a rigid box. */
-  --ease-liquid:cubic-bezier(.34,1.42,.5,1);
-}
-/* ============================================================================
-   Liquid Glass material — edge refraction
-   The tokens above describe the glass as a flat translucent slab. This block
-   is the part that can't be expressed as a token, because it needs a SECOND
-   sampling of the backdrop: a soft band hugging every glass edge that blurs
-   and brightens what's behind it once more, on top of what the panel itself
-   already did. That's what real glass does — light bends hardest where the
-   surface curves away at the rim — and it's the single biggest difference
-   between "a translucent panel" and something that reads as a physical piece
-   of glass sitting on the wallpaper.
-
-   Mechanics worth knowing before editing:
-   - It's a ::after on each glass surface, always position:absolute. Every
-     panel here is display:flex, so a static pseudo-element would become a
-     real flex item and take up space; absolute positioning is what keeps it
-     purely decorative. pointer-events:none for the same reason — it must
-     never eat a tap meant for the control underneath.
-   - The band is drawn with four additive linear-gradient masks (one per
-     edge, fading inward over --glass-rim). mask-composite defaults to `add`,
-     so listing them is enough — no `exclude`/`xor` ring trick needed, and
-     the soft inward falloff looks far more like refraction than a hard ring
-     would anyway.
-   - --glass-rim is read here rather than baked into a mask token on :root,
-     because a custom property that references another one resolves at ITS
-     OWN declaring element — a --glass-rim-mask declared on :root would
-     freeze to :root's rim width and ignore every per-component override.
-     Same trap the --pro-* aliases on body document.
-   - backdrop-filter on a descendant samples the nearest ancestor backdrop
-     root, which is the panel itself (it has its own backdrop-filter), so
-     this composes with the panel's blur instead of fighting it.
-   - z-index:-1 is load-bearing, not a nudge. Glass refracts what is BEHIND
-     it; the controls sitting ON it are not distorted. Painted above the
-     content (where an ::after lands by default) the band hazes over
-     whatever happens to be within a rim's width of an edge — the week
-     badge, the countdown card, the first line of a sheet — which reads as
-     a blur bug rather than as a material. A negative z-index puts it back
-     under the content and above the panel's own fill, which is exactly
-     where the refraction belongs. Every host below establishes a stacking
-     context (isolation, a transform, or position+z-index) so the band
-     cannot escape behind an ancestor.
-   ========================================================================= */
-/* The @supports is a safety interlock, not decoration. The band's whole
-   shape IS its mask — unmasked, the same element is a full-panel wash of
-   tinted blur across every glass surface in the app, which is far worse
-   than simply not having the effect. So the rule only exists at all where
-   one of the two mask spellings is understood. (Worth knowing when reading
-   the built CSS: the minifier resolves each property against its browser
-   targets and emits only the prefixed form, so the unprefixed declarations
-   here are the source of truth, not what ships.) */
-@supports ((-webkit-mask-image:linear-gradient(#000,#000)) or (mask-image:linear-gradient(#000,#000))){
-  .dashboard::after,
-  .top-action-btn::after,
-  .top-actions-menu::after,
-  .modal-sheet::after,
-  .test-panel::after,
-  .editor-confirm-sheet::after{
-    content:"";position:absolute;inset:0;z-index:-1;
-    border-radius:inherit;pointer-events:none;
-    backdrop-filter:var(--glass-lens);-webkit-backdrop-filter:var(--glass-lens);
-    background:var(--glass-dispersion);
-    -webkit-mask-image:
-      linear-gradient(to right,#000,transparent var(--glass-rim)),
-      linear-gradient(to left,#000,transparent var(--glass-rim)),
-      linear-gradient(to bottom,#000,transparent var(--glass-rim)),
-      linear-gradient(to top,#000,transparent var(--glass-rim));
-    mask-image:
-      linear-gradient(to right,#000,transparent var(--glass-rim)),
-      linear-gradient(to left,#000,transparent var(--glass-rim)),
-      linear-gradient(to bottom,#000,transparent var(--glass-rim)),
-      linear-gradient(to top,#000,transparent var(--glass-rim));
-  }
-}
-/* The slow highlight drift across the dashboard: one soft, very dim hot spot
-   wandering over the largest piece of glass in the app. This is the "liquid"
-   half of Liquid Glass — without it the material is convincing but inert,
-   and a panel this size is the only place there's room for the movement to
-   read as light rather than as something animating for its own sake. Sits on
-   ::before because .dashboard's children are all position:relative: a
-   ::before at z-index 0 paints beneath every one of them, so the highlight
-   travels under the content the way light through glass would, instead of
-   sweeping across the text on top of it. */
-@keyframes glassDrift{
-  from{transform:translate3d(-7%,-5%,0) scale(1)}
-  to{transform:translate3d(11%,8%,0) scale(1.16)}
-}
-/* Someone who has asked the OS for less transparency wants less of exactly
-   this effect, so the rim drops its extra backdrop pass and keeps only the
-   (opaque-safe) chromatic edge. */
-@media (prefers-reduced-transparency:reduce){
-  .dashboard::after,.top-action-btn::after,.top-actions-menu::after,
-  .modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{
-    backdrop-filter:none;-webkit-backdrop-filter:none;
-  }
-}
-/* ---- Base ---- */
-html{color-scheme:dark;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--q-page)}
-/* The kit's strip under the status bar (it keeps iOS's edge blur off the header), in Orbit's page colour. */
-:root{--q-status-bg:var(--q-page)}
-body{
-  /* Derived from the --pro-* tokens JS overrides on this same element — see the
-     note in the :root design-tokens block above for why these live here and
-     not there. */
-  --orbit-line:color-mix(in srgb,var(--pro-accent) 18%,transparent);
-  --accent:var(--pro-accent);
-  --bd:color-mix(in srgb,var(--pro-accent) 15%,transparent);
-  --ok:var(--pro-secondary);
-  --warn:var(--pro-secondary);
-  --odd-bg:color-mix(in srgb,var(--pro-accent) 20%,transparent);
-  --odd-txt:var(--pro-accent-readable);
-  --even-bg:color-mix(in srgb,var(--pro-secondary) 18%,transparent);
-  --even-txt:var(--pro-secondary-readable);
-  --day-today-border:var(--pro-accent);
-  --day-tomorrow-border:var(--pro-secondary);
-  --status-tag-next-bg:var(--pro-accent);
-  --status-tag-next-fg:var(--pro-accent-text);
-  --status-tag-now-bg:var(--pro-secondary);
-  --status-tag-now-fg:var(--pro-secondary-text);
-  /* Both stops stay within the accent's own hue (lightened, then a touch
-     deepened) rather than crossing over to --pro-secondary - every primary
-     action button in the app (save/close/confirm) reads as "the app's one
-     brand color" instead of a two-hue accent-to-secondary gradient, which
-     read as a decorative rainbow sticker rather than a single deliberate
-     button color. */
-  --pro-action-bg:color-mix(in srgb,var(--pro-accent) 62%,#ffffff 22%);
-  --pro-action-bg-2:color-mix(in srgb,var(--pro-accent) 88%,#000000 6%);
-  --pro-action-text:var(--pro-accent-text);
-  /* A third hue for spots needing to tell three theme-derived things apart
-     (e.g. the three toolbar icons) without falling back to a fixed brand color. */
-  --pro-blend:color-mix(in srgb,var(--pro-accent) 50%,var(--pro-secondary) 50%);
-  /* Chromatic fringing for the glass rim (used by the "Liquid Glass
-     material" section). A real lens edge splits light, so opposite corners
-     of the band pick up opposite ends of the theme's own two-color pair
-     instead of a neutral white glow. Declared here rather than at :root for
-     the same reason as everything else in this block — a --pro-* alias
-     resolved at :root would freeze to the default accent forever. */
-  --glass-dispersion:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 24%,transparent),transparent 34%,transparent 66%,color-mix(in srgb,var(--pro-secondary) 20%,transparent));
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;
-  /* No env(safe-area-inset-bottom) here, on purpose: unlike the top notch
-     (which really does sit over content) and the sides, the home indicator
-     doesn't need reserved space to stay usable - it overlays translucently
-     on top of whatever's already there. Reserving space for it anyway
-     (tried once, reverted) only ate into the one screen edge with no
-     browser chrome to have already made room for it - most visible in
-     standalone/Home Screen mode, where there's no URL bar at all and this
-     was the single biggest source of dead space at the bottom of the app. */
-  margin:0;padding:calc(var(--q-top, env(safe-area-inset-top)) + 10px) max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));
-  display:flex;flex-direction:column;align-items:center;letter-spacing:-.02em;
-  transition:background .3s,color .3s;min-height:100dvh;height:100dvh;width:100%;
-  position:relative;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;
-  color:var(--txt);
-  background:
-    radial-gradient(115% 55% at 15% -10%,color-mix(in srgb,var(--pro-accent) 30%,transparent),transparent 62%),
-    radial-gradient(95% 60% at 105% 6%,color-mix(in srgb,var(--pro-secondary) 26%,transparent),transparent 68%),
-    radial-gradient(80% 50% at 30% 96%,color-mix(in srgb,var(--pro-accent) 12%,transparent),transparent 70%),
-    var(--q-page);
-}
-body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  mask-image:linear-gradient(180deg,rgba(0,0,0,.9),transparent 75%);
-  background:
-    linear-gradient(180deg,color-mix(in srgb,var(--q-text) 2.5%,transparent),transparent 32%),
-    repeating-linear-gradient(90deg,color-mix(in srgb,var(--q-text) 1.2%,transparent) 0 1px,transparent 1px 76px),
-    linear-gradient(90deg,color-mix(in srgb,var(--pro-accent) 3.5%,transparent) 1px,transparent 1px) 0 0/72px 72px,
-    linear-gradient(color-mix(in srgb,var(--pro-accent) 2.5%,transparent) 1px,transparent 1px) 0 0/72px 72px;
-}
-@media (max-width:430px){
-body{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
-}
-.test-banner{position:fixed;top:0;left:0;width:100%;background:var(--warn);color:var(--pro-secondary-text);font-size:11px;font-weight:800;text-align:center;z-index:999;padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));padding-top:calc(6px + var(--q-top, env(safe-area-inset-top)));display:none}
-.label{font-weight:700;text-transform:uppercase;color:var(--sub);display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.45px}
-.status-active{background:var(--pro-secondary);box-shadow:0 0 0 5px color-mix(in srgb,var(--pro-secondary) 18%,transparent),0 0 20px color-mix(in srgb,var(--pro-secondary) 32%,transparent)}
-.next-content{flex:1;min-width:0}
-.next-meta{display:flex}
-/* Live, held-state size change - shrinks the instant the finger touches
-   down, eases back the instant it lifts, same shape and same properties as
-   the day-nav buttons' own :active (see .nav-item above) and now the same
-   direction too. A fixed-length "replay the tap" animation was tried here
-   instead of this and it never felt immediate, however short it ran: it
-   only started once the tap had already ended (triggered on 'click', i.e.
-   necessarily after release), so it was always a beat behind the actual
-   gesture rather than tracking it. :active is kept as the desktop/mouse
-   path; .is-pressed (held by the pointer handlers in
-   src/dashboard-render.js for exactly as long as the finger is down) is the
-   reliable version of the same state on touch - see that file's comment for
-   why :active alone isn't enough there. transition-duration:.08s snaps the
-   shrink in quickly; release uses the base .row transition above, same as
-   .nav-item's release does. */
-/* Declared before .row:active/.is-pressed below on purpose: a mouse press
-   matches BOTH this rule and that one at once (the cursor is still over the
-   row while the button is down), and with equal specificity the LAST rule
-   in source order wins the `transform` property outright - not a blend of
-   the two. Hover-lift losing that tie-break to the press shrink is exactly
-   what should happen (a press is the more specific, more immediate thing
-   the user is doing right now), so this has to come first. */
-@media (hover:hover){.row:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--row-accent) 34%,transparent)}}
-@keyframes statusTagLivePulse{0%,100%{opacity:1}50%{opacity:.55}}
-.week-label{display:inline-flex;align-items:center;min-height:26px;padding:4px 8px;border-bottom:none;border-radius:9px;font-size:15px;line-height:1;font-weight:900;white-space:nowrap}
-.label-odd{background:var(--odd-bg);color:var(--odd-txt)}
-.label-even{background:var(--even-bg);color:var(--even-txt)}
-@keyframes rowLiveGlow{
-  0%,100%{box-shadow:var(--glass-shadow-soft),0 0 0 1px color-mix(in srgb,var(--pro-secondary) 45%,transparent),0 0 18px color-mix(in srgb,var(--pro-secondary) 28%,transparent)}
-  50%{box-shadow:var(--glass-shadow-soft),0 0 0 1px color-mix(in srgb,var(--pro-secondary) 65%,transparent),0 0 26px color-mix(in srgb,var(--pro-secondary) 42%,transparent)}
-}
-/* ============================================================================
-   Detail modal (class info popup)
-   The sheet itself (.modal-sheet below) already shares the same --glass-*
-   tokens as the settings/style/test-mode sheets, but this popup used to sit
-   over its own darker, blurred radial-gradient overlay that also blurred,
-   dimmed and scaled down the dashboard behind it - the glass panel ended up
-   floating over an already-murky background instead of the same crisp,
-   flatly-dimmed one every other sheet shows through, which read as
-   noticeably less transparent even though the panel's own material was
-   identical. Reusing .test-panel-overlay's plain, unblurred dim (and
-   dropping the dashboard blur/scale entirely) makes this popup match the
-   rest of the app's popups instead of looking like a separate UI system.
-   ========================================================================= */
-.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.58);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;z-index:100}
-.modal-overlay.show{opacity:1;visibility:visible}
-.modal-sheet{
-  position:fixed;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:12px;top:auto;
-  width:auto;max-width:none;height:min(375px,calc(100dvh - 24px));max-height:min(375px,calc(100dvh - 24px));margin:0 auto;
-  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  padding:9px 20px 20px;
-  transform:translateY(calc(100% + 24px));transition:transform .35s var(--ease-glass),visibility 0s linear .35s;
-  z-index:1001;display:flex;flex-direction:column;pointer-events:none;border-radius:28px;
-  background:var(--glass-fill-strong);box-shadow:var(--glass-shadow);
-  /* visibility (not just an off-screen transform) is the hard guarantee that
-     this can never show up somewhere unexpected — an off-screen transform
-     alone depends on the browser getting this fixed-position element's
-     containing block and percentage-height math exactly right, which iOS
-     Safari has a documented history of getting wrong in standalone
-     (Home Screen) mode specifically. */
-  visibility:hidden;
-}
-.modal-sheet.show{transform:translateY(0);pointer-events:auto;visibility:visible;transition:transform .35s var(--ease-glass),visibility 0s linear 0s}
-@media (min-width:480px){
-.modal-sheet{max-width:420px}
-}
-.test-panel-handle{width:56px;height:18px;align-self:center;margin:-7px 0 -5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
-.test-panel-handle::after{content:"";display:block;width:36px;height:4px;border-radius:3px;background:var(--sub);opacity:.35;transition:opacity .15s,width .15s}
-.test-panel-handle:active::after,.test-panel-handle.is-dragging::after{opacity:.7;width:44px;background:var(--accent)}
-.modal-sheet-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-right:2px;margin-right:-2px}
-.modal-sheet-body::-webkit-scrollbar{width:4px}
-.modal-sheet-body::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px}
-.modal-title-text{font-size:clamp(18px,5vw,22px);font-weight:800;margin-bottom:4px;text-align:center;letter-spacing:-.5px;color:var(--accent)}
-.modal-teacher-text{color:var(--sub);font-size:14px;margin-bottom:16px;text-align:center}
-.split-info-card{margin-bottom:14px;background:color-mix(in srgb,var(--pro-accent) 12%,transparent);border-radius:20px;padding:14px;border:1px solid color-mix(in srgb,var(--pro-accent) 20%,transparent)}
-.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.split-col{text-align:center}
-.split-col-right{border-left:1px solid color-mix(in srgb,var(--pro-accent) 20%,color-mix(in srgb,var(--q-text) 10%,transparent))}
-.split-col-label{font-size:9px;font-weight:800;margin-bottom:2px;color:var(--sub)}
-.split-col-label.accent{color:var(--accent)}
-.split-col-value{font-weight:700;font-size:14px}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-.stat-grid.has-location{grid-template-columns:1fr 1fr 1fr}
-.stat-card{padding:10px;border-radius:14px;text-align:center;background:color-mix(in srgb,var(--pro-accent) 8%,color-mix(in srgb,var(--q-text) 7%,transparent));border:1px solid color-mix(in srgb,var(--pro-accent) 16%,color-mix(in srgb,var(--q-text) 10%,transparent))}
-.stat-label{font-size:9px;color:var(--sub);text-transform:uppercase;margin-bottom:3px;display:block;font-weight:700}
-.stat-value{font-size:14px;font-weight:700}
-.m-occ-section{flex-shrink:0;margin-top:8px;margin-bottom:12px}
-.m-occ-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--sub);margin-bottom:6px}
-.m-occ-list{max-height:118px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--bd);background:color-mix(in srgb,var(--pro-accent) 6%,color-mix(in srgb,var(--q-text) 4%,transparent))}
-.occ-row{box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid color-mix(in srgb,var(--pro-accent) 12%,color-mix(in srgb,var(--q-text) 6%,transparent));min-height:44px}
-.occ-row:last-child{border-bottom:none}
-.occ-row-day{font-weight:600;font-size:13px;flex-shrink:0}
-.occ-row-meta{text-align:right;min-width:0}
-.occ-row-period{color:var(--txt);font-family:ui-monospace,monospace;font-size:12px;font-weight:600}
-.occ-row-time{color:var(--sub);font-size:10px;margin-top:1px;background:transparent}
-#sheet .close-btn{flex-shrink:0;margin-top:0}
-.close-btn{width:100%;min-height:var(--action-btn-h);padding:14px;border-radius:var(--action-btn-radius);border:none;font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .2s;margin-top:4px;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
-.close-btn:active{transform:scale(.96);opacity:.85;box-shadow:0 3px 10px color-mix(in srgb,var(--pro-accent) 24%,transparent)}
-/* ============================================================================
-   Editor sheet (schedule editor + all its sub-sections)
-   Built directly on .test-panel - the same base the style/test-mode sheets
-   use - instead of its own bespoke full-screen-overlay-plus-inner-card
-   structure. That old structure was a genuinely different implementation
-   (a full-viewport dim wrapper containing a separately-styled centered
-   card) stacked on top of the shared component system every other popup
-   already uses, which is exactly what kept reading as extra layers no
-   amount of color/blur tuning inside it could fully resolve. Now there is
-   only the one shared shape: .test-panel-overlay behind, one glass sheet in
-   front, nothing wrapping anything else.
-   ========================================================================= */
-.editor-sheet{
-  width:min(calc(100vw - 24px),480px);max-width:480px;
-  left:50%;right:auto;transform:translate(-50%,calc(100% + 24px));
-  max-height:calc(100dvh - 20px - var(--q-top, env(safe-area-inset-top)));overscroll-behavior:contain;
-  /* padding/gap/overflow are finished below, after .test-panel is defined -
-     .test-panel's own padding/gap/overflow shorthand would otherwise win
-     this tie (same specificity, later in the cascade) and silently undo
-     them, which is exactly what broke this panel's internal scrolling the
-     first time around. */
-}
-/* .test-panel's base height:auto shrink-wraps to whatever content is
-   actually visible - fine for a sheet with one fixed layout, but this one
-   swaps its entire visible content (courtesy of .is-layered below) between
-   pages as different in size as the full schedule grid and a two-row
-   special-time list. Height:auto plus bottom-anchored positioning means
-   drilling into a shorter page snapped the sheet's top edge sharply
-   downward, opening a big dead gap between it and the dimmed background
-   above. Pinning the sheet to its own max-height instead keeps its outline
-   constant across every page - .editor-sheet-body's own scrolling already
-   handles a page taller than that just fine, and a shorter page simply
-   leaves the rest of the same-size sheet blank, the way a normal settings
-   app's sub-pages do, rather than resizing the whole sheet around it. */
-.editor-sheet.is-layered{height:calc(100dvh - 20px - var(--q-top, env(safe-area-inset-top)))}
-.editor-sheet.is-layered .editor-fold{display:none}
-.editor-sheet.is-layered .editor-fold.active{display:block}
-.editor-inline-options{margin-bottom:9px}
-.editor-header{display:flex;align-items:center;justify-content:space-between;min-height:32px;margin-bottom:12px;padding-top:0}
-.editor-sheet .editor-title{font-size:21px;font-weight:800;letter-spacing:-.4px}
-.editor-title{color:var(--pro-accent);font-weight:800;letter-spacing:-.04em}
-.editor-close{font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:color-mix(in srgb,var(--q-text) 10%,transparent);color:var(--orbit-white);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);border-radius:12px;transition:transform .15s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.editor-close:active{transform:scale(.9);background:color-mix(in srgb,var(--q-text) 16%,transparent)}
-/* Every section inside the schedule editor (選項/倒數活動/科目與教師/課表/節次時間/特殊時段
-   etc.) is its own small glass card now, not a flat-color box sitting inside
-   the sheet's own glass - each one gets its own blur/saturate/brightness
-   pass, same tokens .row already uses for repeated content, so a screenful
-   of open sections still reads as the same material as everything else
-   instead of "floating chrome is glass, the content inside it isn't". */
-.editor-fold{margin-bottom:10px;overflow:hidden;border-radius:16px;border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 10%,transparent),var(--glass-fill-card) 78%);backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright))}
-.editor-sheet .editor-fold{margin-bottom:14px;border-radius:14px}
-.editor-fold-summary{list-style:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;font-weight:700;color:color-mix(in srgb,var(--q-text) 92%,transparent);-webkit-tap-highlight-color:transparent;padding:13px 14px;transition:opacity .12s,background .15s}
-.editor-fold-summary:active{opacity:.7;background:color-mix(in srgb,var(--q-text) 4%,transparent)}
-.editor-fold-summary::-webkit-details-marker{display:none}
-.editor-fold-summary::after{content:"";width:7px;height:7px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);transition:transform .2s;flex-shrink:0;opacity:.9}
-.editor-fold[open]>.editor-fold-summary::after{transform:rotate(-135deg)}
-.editor-fold[open]>.editor-fold-body{border-top:1px solid color-mix(in srgb,var(--q-text) 9%,transparent)}
-.editor-fold-body{padding:12px 12px 14px}
-.editor-sheet .editor-fold-body{display:flex;flex-direction:column;gap:9px}
-@keyframes editorFoldReveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.editor-fold[open]>.editor-fold-body{animation:editorFoldReveal .22s ease}
-@keyframes rowEnter{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-.editor-drill-actions{display:grid;grid-template-columns:repeat(4,minmax(max-content,1fr));gap:5px;margin-bottom:9px}
-/* Same backdrop-filter-plus-:active-transform combination as .nav-item's own
-   compositing bug (see its comment for the full explanation): pressing
-   promotes this button to its own GPU layer just for the scale, and real
-   Safari can fail to rasterize the blur/color-mix() background onto that
-   layer in time, flashing a blank or shadowed frame before it "catches up".
-   Forcing a permanent layer with translateZ(0)/backface-visibility/
-   will-change, exactly like .nav-item, keeps that layer alive across the
-   whole press so there's nothing to promote/demote/mis-rasterize. */
-.editor-drill-btn{padding:0 4px;white-space:nowrap;min-height:34px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.editor-drill-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,color-mix(in srgb,var(--q-text) 5%,transparent))}
-.editor-back-row{display:flex;justify-content:flex-start;margin-bottom:8px}
-.editor-back-btn{min-height:32px;border-radius:11px;border:1px solid color-mix(in srgb,var(--pro-accent) 38%,color-mix(in srgb,var(--q-text) 14%,transparent));background:color-mix(in srgb,var(--pro-accent) 15%,color-mix(in srgb,var(--q-text) 5%,transparent));color:var(--pro-accent-readable);font-size:12px;font-weight:800;cursor:pointer;padding:7px 10px;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.editor-back-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--pro-accent) 28%,color-mix(in srgb,var(--q-text) 5%,transparent))}
-.editor-import-diff{margin-top:10px;margin-bottom:18px;padding:10px 11px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid color-mix(in srgb,var(--q-text) 10%,transparent);color:var(--sub);font-size:12px;line-height:1.45;text-align:left;max-height:220px;overflow:auto;white-space:pre-line}
-.editor-confirm-overlay{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity .28s,visibility .28s}
-.editor-confirm-overlay.show{opacity:1;visibility:visible}
-body.editor-open .editor-confirm-overlay{z-index:1000001}
-body.editor-open .editor-confirm-sheet{z-index:1000002}
-#editor-confirm-overlay{z-index:1000002}
-#editor-confirm-sheet{z-index:1000003}
-.editor-confirm-sheet{position:fixed;left:50%;top:50%;z-index:251;width:min(calc(100vw - 24px),360px);padding:24px 20px 18px;backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));border-radius:28px;transform:translate(-50%,-50%) scale(.94);opacity:0;visibility:hidden;transition:transform .35s var(--ease-glass),opacity .28s,visibility .28s;background:var(--glass-fill-strong);box-shadow:var(--glass-shadow)}
-.editor-confirm-sheet.show{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}
-.editor-confirm-title{font-size:19px;font-weight:800;text-align:center;letter-spacing:-.4px;margin:0 0 12px}
-.editor-confirm-msg{font-size:14px;font-weight:500;color:var(--sub);text-align:center;line-height:1.5;margin:0 auto 22px;max-width:30ch}
-.editor-confirm-actions{display:flex;flex-direction:column;gap:12px}
-.editor-confirm-btn{width:100%;min-height:var(--action-btn-h);padding:13px 18px;border-radius:var(--action-btn-radius);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,color-mix(in srgb,var(--q-text) 12%,transparent));background:color-mix(in srgb,var(--pro-accent) 10%,color-mix(in srgb,var(--q-text) 9%,transparent));color:var(--q-text);font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;touch-action: pan-x pan-y;font-family:inherit;white-space:normal;line-height:1.2}
-.editor-confirm-btn:active{transform:scale(.96);opacity:.88}
-.editor-confirm-btn.primary{border-color:transparent;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
-/* Filled red, not the outlined red of an in-panel entry button (.settings-transfer-btn.danger):
-   inside a confirmation it IS the action, so it gets the same weight a primary action would. */
-.editor-confirm-btn.danger{border-color:transparent;background:#e5483d;color:#fff;box-shadow:0 8px 22px rgba(229,72,61,.28)}
-.editor-primary-btn{border-color:transparent;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
-@media (min-width:390px){
-.editor-confirm-actions{flex-direction:row}
-.editor-confirm-btn{flex:1 1 0}
-}
-/* A 3rd (extra) button - e.g. unlink's "複製代碼" - makes a side-by-side row too
-   cramped on a real phone width (labels wrap into 2 lines and everything looks
-   squished); stack those back into a full-width column regardless of viewport. */
-.editor-confirm-actions.has-extra{flex-direction:column}
-/* The odd/even-week toggle row and its switch (單雙週對調) are glass too now,
-   same as every other control in this sheet - the track picks up
-   --glass-blur-card so it reads as a small pane of the same material
-   rather than a plain flat pill; the white thumb inside it stays solid on
-   purpose (a physical "knob" sliding on a glass track, not glass itself -
-   blurring a small solid circle wouldn't read as anything different and
-   it needs to stay unambiguously visible against either track state). */
-.toggle-row{background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 12%,transparent),var(--glass-fill-card) 78%);border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border:1px solid color-mix(in srgb,var(--pro-accent) 16%,transparent);margin-bottom:0;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat)) brightness(var(--glass-bright))}
-.editor-inline-options .toggle-row{margin-bottom:0}
-.toggle-label{font-size:14px;font-weight:600}
-/* Real <button> element with its own backdrop-filter, tapped to flip .on -
-   the same compositing bug .nav-item and .editor-drill-btn already work
-   around (see .nav-item's comment): a real button's own native tap
-   treatment plus the blur background can flash on real Safari without
-   -webkit-appearance:none and a permanent GPU layer here. */
-.toggle-switch{width:44px;height:26px;border-radius:13px;border:1px solid color-mix(in srgb,var(--q-text) 14%,transparent);background:color-mix(in srgb,#3a3a3c 72%,transparent);cursor:pointer;position:relative;-webkit-appearance:none;appearance:none;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;will-change:transform;transition:background .2s;flex-shrink:0;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.toggle-switch::after{content:"";position:absolute;width:20px;height:20px;top:2px;left:2px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-.toggle-switch.on{background:color-mix(in srgb,var(--accent) 78%,transparent);border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
-.toggle-switch.on::after{transform:translateX(18px)}
-/* Grouped list style (teacher/bell/break/countdown/schedule rows): one
-   bordered container per list, flat rows inside separated by a hairline -
-   the same "single box, divided rows" pattern the class-info popup's
-   m-occ-list/occ-row already uses - instead of every row being its own
-   nested card. Fewer independently-boxed layers stacked inside each other. */
-.teacher-list,.bell-list,.countdown-editor-list,.schedule-grid{
-  display:flex;flex-direction:column;gap:0;border-radius:16px;
-  border:1px solid var(--bd);background:color-mix(in srgb,var(--q-text) 4%,transparent);
-}
-/* Rounded on the container, not clipped with overflow:hidden - a row's own
-   content (the 順序 box, 排課/delete buttons) sits close enough to the first
-   or last row's edge that overflow:hidden sliced their corners flat against
-   the container's curve instead of clipping nothing at all. Rounding each
-   list's own first/last row to match gets the same rounded-container look
-   without ever clipping anything inside it. */
-.teacher-list>:first-child,.bell-list>:first-child,.countdown-editor-list>:first-child,.schedule-grid>:first-child{border-top-left-radius:15px;border-top-right-radius:15px}
-.teacher-list>:last-child,.bell-list>:last-child,.countdown-editor-list>:last-child,.schedule-grid>:last-child{border-bottom-left-radius:15px;border-bottom-right-radius:15px}
-.teacher-card{background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);border-radius:0;width:100%;max-width:100%;box-sizing:border-box;transition:box-shadow .15s,transform .15s,opacity .15s,background .15s}
-.teacher-card:last-child{border-bottom:none}
-.teacher-card.is-dragging{transform:scale(.985);box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:.55;background:color-mix(in srgb,var(--q-text) 7%,transparent);outline:2px solid var(--accent)}
-.teacher-card-summary{display:flex;flex-wrap:nowrap;align-items:center;gap:9px;padding:13px 12px;cursor:pointer;user-select:none}
-.teacher-avatar{--avatar-hue:210;width:28px;height:28px;border-radius:50%;background:hsla(var(--avatar-hue),70%,55%,.18);color:hsl(var(--avatar-hue),70%,60%);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid hsla(var(--avatar-hue),70%,55%,.35)}
-.teacher-summary-text{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14.5px;font-weight:650;color:var(--txt)}
-.teacher-summary-text.is-empty{color:var(--sub);font-weight:500}
-.teacher-card-toggle{flex:0 0 auto;width:26px;height:26px;border:0;border-radius:8px;background:color-mix(in srgb,var(--q-text) 6%,transparent);color:var(--sub);font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .18s,background .15s}
-.teacher-card.is-expanded .teacher-card-toggle{transform:rotate(180deg)}
-.teacher-card-body{display:none;flex-wrap:wrap;align-items:center;gap:9px;padding:0 12px 13px}
-.teacher-card.is-expanded .teacher-card-body{display:flex}
-.teacher-fields{display:contents}
-.teacher-card .teacher-fields{display:flex;flex-wrap:wrap;gap:9px;flex:1 1 100%;min-width:0}
-.teacher-card .tc-subject{flex:1 1 calc(50% - 4.5px);min-width:min(96px,40%)}
-.teacher-card .tc-teacher{flex:1 1 calc(50% - 4.5px);min-width:min(96px,40%)}
-.teacher-card .tc-location{flex:1 1 100%}
-.teacher-card-body-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
-.teacher-card-buttons{display:flex;align-items:center;gap:8px}
-.teacher-card .delete-btn{flex:0 0 auto}
-.teacher-order-actions{display:flex;gap:4px;flex:0 0 auto}
-.teacher-drag-handle{min-width:40px;border-radius:12px;line-height:1;background:color-mix(in srgb,var(--q-text) 6%,transparent);display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;color:var(--sub);font-size:18px;user-select:none;touch-action:none;cursor:grab;transition:background .15s}
-.teacher-drag-handle:active{cursor:grabbing;background:color-mix(in srgb,var(--accent) 18%,transparent)}
-.break-row{align-items:flex-start}
-.break-row .teacher-fields{flex:1;min-width:0;flex-wrap:wrap;gap:8px;display:flex}
-/* .break-name inherits .editor-input's flex:1;min-width:0, so on a narrow
-   screen it and .bell-inputs (also flex:1) shrunk evenly toward the row's
-   width instead of ever actually wrapping - min-width:0 lets a flex item
-   shrink all the way to nothing, and flex-wrap only kicks in once an item
-   can no longer shrink. That left barely enough room to show 2-3 Chinese
-   characters of the name before it scrolled. A 100% flex-basis makes this
-   item alone fill the whole first line, which is what forces .bell-inputs
-   onto a line of its own beneath it - full name width, full time-input
-   width, instead of both fighting over one row. */
-.break-row .break-name{flex-basis:100%}
-.editor-input{flex:1;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid var(--bd);color:var(--txt);padding:9px 11px;border-radius:11px;font-size:14.5px;font-family:inherit;min-width:0;transition:border-color .2s,box-shadow .2s;line-height:1.25;text-align:left;text-align-last:left}
-.editor-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
-.editor-input::placeholder{opacity:.55;color:var(--sub);font-size:14px}
-.editor-sheet input,.editor-sheet select,.editor-sheet textarea{text-align:left;text-align-last:left}
-.editor-sheet .editor-input{padding:9px 11px;border-radius:11px;font-size:14.5px;min-height:44px}
-.add-btn{width:100%;padding:11px 12px;border-radius:13px;border:1px solid color-mix(in srgb,var(--accent) 24%,transparent);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;transition:transform .12s,opacity .15s,background .15s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.add-btn:active{transform:scale(.97);opacity:.85;background:color-mix(in srgb,var(--accent) 24%,transparent)}
-.editor-sheet .add-btn{min-height:48px;padding:11px 12px;margin-top:8px;font-size:14px;border-radius:14px}
-.delete-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,69,58,.42);background:rgba(255,69,58,.18);color:#ff6a5c;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.delete-btn:active{background:rgba(255,69,58,.36);transform:scale(.9)}
-.editor-sheet .delete-btn{width:26px;height:26px;font-size:13px;border-radius:7px;flex-shrink:0}
-/* A day row is a fixed-width label column beside the period grid, the same
-   two-column shape .assign-day-row already uses for the assign sheet - one
-   consistent "weekday + its slots" grammar across both editors instead of
-   the label sitting stacked above its own row here but beside it there. */
-.schedule-day-row{background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);border-radius:0;padding:12px;display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;align-items:start}
-.schedule-day-row:last-child{border-bottom:none}
-.schedule-day-label{font-size:13px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;padding-top:11px}
-/* auto-fill (not flex-wrap, not a fixed column count) so the browser packs
-   as many equal-width >=70px columns as actually fit - every schedule-periods
-   block in the grid shares the exact same available width, so they all
-   resolve to the same column count and period 1/2/3... lines up in the same
-   column across every day row underneath it, reading as a real timetable
-   grid. A hard repeat(N,...) briefly replaced this and overflowed a native
-   <select>'s minimum chrome width off the sheet's edge on a real iPhone-
-   width viewport - auto-fill can't overflow the same way since it only ever
-   picks a column count its minmax(70px,...) floor actually fits. */
-.schedule-periods{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px}
-.period-select{width:100%;min-width:0;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid var(--bd);color:var(--txt);padding:8px 9px;border-radius:11px;font-size:13px;font-family:inherit;text-overflow:ellipsis;cursor:pointer;transition:border-color .2s;text-align:left;text-align-last:left}
-.period-select:focus{outline:none;border-color:var(--accent)}
-.editor-sheet .period-select{padding:8px 9px;font-size:13px;border-radius:11px;min-height:44px}
-.bell-row{background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--q-text) 8%,transparent);border-radius:0;padding:13px;display:flex;gap:9px;align-items:center}
-.bell-row:last-child{border-bottom:none}
-.editor-sheet .bell-row{gap:9px;padding:14px 14px 14px 12px}
-.bell-num{width:29px;height:29px;border-radius:8px;background:color-mix(in srgb,var(--q-text) 5%,transparent);color:var(--sub);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.editor-sheet .bell-num{width:28px;height:28px;font-size:13px}
-.bell-inputs{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.time-input{flex:1;background:color-mix(in srgb,var(--q-text) 7%,transparent);border:1px solid var(--bd);color:var(--txt);padding:9px 4px;border-radius:11px;font-size:14.5px;font-family:ui-monospace,SFMono-Regular,monospace;text-align:center;min-width:0;transition:border-color .2s}
-.time-input:focus{outline:none;border-color:var(--accent)}
-.editor-sheet .time-input{padding:9px 4px;border-radius:11px;font-size:14.5px;min-height:44px}
-/* Chromium/WebKit both draw a calendar/clock icon (plus spin/clear buttons
-   in Chromium) inside <input type="time"> by default - pure chrome that
-   eats real width in an already-tight two-input-per-row layout (二節次時間
-   was overflowing its sheet on real phones, most visibly wherever the
-   locale renders a 12-hour AM/PM value, which needs more horizontal room
-   than a bare 24-hour "08:00"). None of it is load-bearing: tapping
-   anywhere on the field already opens the native time picker with or
-   without the icon shown, so hiding it is a pure width win. */
-.time-input::-webkit-calendar-picker-indicator,
-.time-input::-webkit-inner-spin-button,
-.time-input::-webkit-clear-button{display:none;-webkit-appearance:none;margin:0}
-.time-sep{color:var(--sub);font-weight:700;font-size:13px;flex-shrink:0}
-/* The countdown event row itself is just a .teacher-card (see
-   addCountdownEventRow) - same collapsible summary/body shell as the class
-   list, so it needs no styling of its own. Only its name/date fields below
-   are actually countdown-specific. */
-.countdown-event-fields{min-width:0;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;width:100%;flex:1 1 100%}
-.countdown-event-fields label{display:block;max-width:100%;min-width:0;box-sizing:border-box}
-.countdown-event-fields .editor-input{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
-.countdown-date-range{display:flex;align-items:center;gap:7px;width:100%}
-.countdown-date-range .time-sep{flex:0 0 auto;color:var(--sub);font-size:13px}
-.countdown-event-fields .countdown-event-start,.countdown-event-fields .countdown-event-end{display:block;-webkit-appearance:none;appearance:none;width:100%;max-width:100%;flex:1 1 0;min-height:38px;padding:7px 8px}
-.countdown-event-fields .countdown-event-name{height:38px;min-height:38px;padding:7px 8px}
-/* The sync sheet stacks a dozen of these boxes, rows, folds and status
-   lines on top of each other, so every gap in here is paid for twelve times
-   over - what read as breathing room in isolation added up to a panel you
-   had to scroll through to find the one control you came for. The whole
-   group below is deliberately tighter than the editor sheet's spacing. */
-.settings-transfer-box{display:flex;flex-direction:column;gap:7px}
-.settings-transfer-box[hidden]{display:none}
-/* Sync and AI Import are two independent ways to get a schedule into the
-   app, stacked in the same sheet (see onboarding.js's comment on why) - a
-   user arriving from either entry point had no visual cue for which block
-   below was "theirs", since both reused the same button/box styling with no
-   heading of its own above the sync boxes. A named heading plus a short
-   at-a-glance tag - "keeps auto-updating" vs "one-time" - gives that cue
-   without asking anyone to actually read the longer paragraph already in
-   each box's .editor-hint-body, which is the text people skip. */
-.transfer-section-heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px;font-size:14px;font-weight:800;color:var(--pro-accent);letter-spacing:-.02em}
-.transfer-section-tag{font-size:10.5px;font-weight:700;color:var(--sub);letter-spacing:.1px}
-/* Scoped to the top-level sync boxes only, not the .settings-transfer-box
-   reused inside the demoted manual-backup fold below (.legacy-fold-body) -
-   that one already sits inside its own bordered disclosure and doesn't need
-   a second nested card. Pairs with .ocr-import-box's own background further
-   down so Sync and AI Import read as two distinct panels while skimming,
-   not just two labels in one continuous list of boxes. */
-.transfer-sync-box{padding:10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 5%,transparent);border:1px solid var(--bd)}
-.settings-transfer-text{width:100%;min-height:142px;resize:vertical;padding:10px 11px;border-radius:12px;border:1px solid var(--bd);background:rgba(0,0,0,.18);color:var(--txt);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;line-height:1.45;outline:none}
-.settings-transfer-text:focus{border-color:color-mix(in srgb,var(--accent) 58%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
-.settings-transfer-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.settings-transfer-actions>.settings-transfer-btn:only-child{grid-column:1/-1}
-/* A sibling button hidden via the `hidden` attribute (e.g. sync-delete-all-btn
-   for a viewer) still counts as a DOM child, so :only-child above never
-   matches - without this the one remaining visible button would sit in a
-   single grid column instead of taking the full row like it visually should. */
-.settings-transfer-actions:has(>[hidden])>:not([hidden]){grid-column:1/-1}
-.settings-transfer-btn{min-height:var(--action-btn-h);font-size:var(--action-btn-font);border-radius:var(--action-btn-radius);padding:11px 12px;background:color-mix(in srgb,var(--pro-accent) 10%,color-mix(in srgb,var(--q-text) 9%,transparent));color:var(--q-text);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,color-mix(in srgb,var(--q-text) 12%,transparent));font-weight:800;cursor:pointer;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.settings-transfer-btn:active{transform:scale(.97);background:color-mix(in srgb,var(--pro-accent) 18%,color-mix(in srgb,var(--q-text) 16%,transparent))}
-.settings-transfer-btn:disabled{opacity:.5;cursor:default;pointer-events:none}
-.settings-transfer-btn.primary{box-shadow:none;background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
-.settings-transfer-btn.danger{background:rgba(255,69,58,.08);color:#ff453a;border-color:rgba(255,69,58,.35)}
-.settings-transfer-btn.danger:active{background:rgba(255,69,58,.16)}
-.settings-transfer-btn.primary:active{box-shadow:0 3px 10px color-mix(in srgb,var(--pro-accent) 20%,transparent)}
-/* Height only while it has something to say: an always-reserved 18px line
-   under every box was most of this sheet's dead space, since the status
-   lines are empty the overwhelming majority of the time. */
-.settings-transfer-status{font-size:11px;line-height:1.35;color:var(--sub);white-space:pre-line}
-.settings-transfer-status:empty{display:none}
-.sync-input{min-height:auto;height:42px;font-family:inherit;font-size:13px}
-.sync-divider{font-size:11px;color:var(--sub);text-align:center;margin:0}
-.sync-active-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:22px;font-weight:800;letter-spacing:.14em;text-align:center;padding:10px;border-radius:12px;background:rgba(0,0,0,.18);border:1px solid var(--bd);color:var(--accent);word-break:break-all}
-.sync-role-checkbox{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);padding:0 2px}
-.sync-role-label{font-size:11px;font-weight:700;color:var(--accent);text-align:center;line-height:1.35}
-.sync-role-label.is-viewer{color:var(--sub)}
-/* The sync-code + manager-passcode display shown once right after creating
-   a sync (see src/sync.js's showCreatedSyncCodes) - a row per value, each
-   with its own copy button, so the freely-shareable code and the sensitive
-   passcode are never visually ambiguous about which is which. Reused by
-   the manager-passcode reveal in the active-sync box (see
-   .sync-manager-passcode-box below), same row shape. */
-.sync-code-row{display:flex;flex-direction:column;gap:5px}
-.sync-code-row-label{font-size:11px;font-weight:700;color:var(--sub)}
-.sync-code-row-value{display:flex;align-items:center;gap:8px}
-.sync-code-row-value .sync-active-code{flex:1;min-width:0;font-size:18px;padding:11px}
-/* The show/copy actions next to a code value are secondary, inline
-   controls, not full-size primary buttons (.settings-transfer-btn's default
-   46px/15px is sized for a standalone tap target like "建立新同步" or
-   "儲存樣式") - scaled down here so they read as compact code-row actions
-   that don't visually outweigh the code itself, while staying comfortably
-   tappable. */
-.sync-code-row-value .settings-transfer-btn{flex:0 0 auto;min-height:40px;padding:0 13px;font-size:12.5px;border-radius:11px}
-/* A manager device can always redisplay its own stored passcode (see
-   copySyncManagerPasscode) - hidden by default per toggleSyncManagerPasscodeReveal,
-   so it isn't just sitting on screen in plain text every time this panel opens. */
-.sync-manager-passcode-box{display:flex;flex-direction:column;gap:7px;padding:9px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 6%,transparent);border:1px solid var(--bd)}
-.sync-manager-passcode-box[hidden]{display:none}
-.sync-manager-passcode-box .editor-hint-body{margin:0}
-.sync-manager-passcode-box .sync-active-code{min-width:0}
-/* The viewer-only fold offering to unlock manager mode later by typing in
-   the manager passcode (see orbitSyncUpgradeToManager) - same shape as the
-   passcode box above, shown instead of it (never both - see
-   renderSyncPanel) since a viewer has nothing to reveal yet. */
-.sync-upgrade-box{display:flex;flex-direction:column;gap:7px;padding:9px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 6%,transparent);border:1px solid var(--bd)}
-.sync-upgrade-box[hidden]{display:none}
-.sync-upgrade-box .editor-hint-body{margin:0}
-/* No network at all (navigator.onLine, checked on opening the transfer
-   sheet/schedule editor and kept live via the online/offline listeners -
-   see editor-core.js's applyOfflineLock, which toggles .is-offline on both
-   sheets): AI import, AI schedule edits, and setting up sync (create/join)
-   all need a real request the moment they're used, so there's no point
-   leaving them looking usable. Unlinking an existing sync and manual
-   export/import are pure local operations and stay enabled either way. */
-.transfer-sheet.is-offline #ocr-import-box,
-.transfer-sheet.is-offline #sync-setup-box,
-.editor-sheet.is-offline #nl-edit-box{
-  pointer-events:none;
-  opacity:.5;
-}
-/* Manual export/import, demoted inside the transfer sheet now that sync is
-   the default. A plain <details>, deliberately not .editor-fold — it must
-   stay outside the paged-editor/accordion machinery that .editor-fold hooks
-   into (initEditorAccordion, openEditorFold, etc.), since it's just a
-   disclosure inside a standalone sheet, not a page of the schedule editor. */
-.legacy-fold{margin-top:0;border-radius:12px;border:1px solid var(--bd);overflow:hidden}
-.legacy-fold-summary{list-style:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--sub);padding:9px 12px;user-select:none;-webkit-tap-highlight-color:transparent}
-.legacy-fold-summary::-webkit-details-marker{display:none}
-.legacy-fold-body{padding:0 12px 10px;display:flex;flex-direction:column;gap:7px}
-.ocr-import-box{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:12px 10px 10px;border-radius:12px;background:color-mix(in srgb,var(--q-text) 5%,transparent);border:1px solid var(--bd)}
-.ocr-import-file-input{display:none}
-.ocr-import-file-row{display:flex;align-items:center;gap:10px}
-.ocr-import-file-row .settings-transfer-btn{width:auto;flex:0 0 auto;min-height:38px;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:12.5px;padding:0 18px}
-.ocr-import-filename{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-size:11.5px;color:var(--sub)}
-#ocr-import-detect{width:100%}
-#ocr-import-detect:disabled{opacity:.45;filter:grayscale(.4);cursor:not-allowed}
-#ocr-import-image-label.is-disabled{opacity:.45;filter:grayscale(.4);cursor:not-allowed;pointer-events:none}
-/* #ocr-import-status ("正在請求 AI 模型…", "AI 已回應…" etc.) and #ocr-import-eta
-   (the wait estimate + elapsed clock) used to be two stacked block-level
-   lines. They describe the same in-flight request from two angles - what's
-   happening right now vs. how long it's expected to take - so this row
-   keeps them on one visual line instead, wrapping onto a second only if a
-   narrow viewport genuinely can't fit both. Both children stay independent
-   elements (not concatenated into one string) since they update on
-   different cadences: the status line changes a handful of times per
-   import, the elapsed clock every second. */
-.ocr-import-status-row{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:10px;row-gap:2px}
-.ocr-import-status-row #ocr-import-status{flex:1 1 auto;min-width:0}
-/* The estimate itself is a single static line (see startEtaTimer), not a
-   per-second countdown - see that function's comment for why. But a static
-   line alone gives no live signal that anything is happening, which matters
-   more the longer a request runs; #ocr-import-eta-elapsed is a small,
-   visually secondary ticking clock sitting beside it for exactly that job -
-   "is this still alive", not "when will it be done" - so it stays out of
-   the way instead of competing with the estimate for attention. `hidden`
-   by default (native browser behavior, not the :empty trick the single-line
-   version used) so it reserves no height until an import actually starts;
-   .ocr-import-eta[hidden] below wins over the flex display this element
-   needs to lay its two spans out side by side. */
-.ocr-import-eta{display:flex;align-items:baseline;gap:8px;font-size:10.5px;line-height:1.3;color:var(--sub);flex:0 0 auto}
-.ocr-import-eta[hidden]{display:none}
-#ocr-import-eta-estimate{flex:1 1 auto;min-width:0}
-/* aria-hidden in the markup keeps this out of the role="status" region's
-   announcements - a screen reader hearing "已等待 1 秒", "已等待 2 秒" every
-   single second is exactly the kind of noise the static estimate replaced a
-   countdown to avoid; sighted users still see it tick. Muted and slightly
-   smaller than the estimate line, and tabular-nums so the ticking digit
-   doesn't jitter the line's width every second. */
-.ocr-import-eta-elapsed{flex:0 0 auto;font-size:10px;opacity:.65;font-variant-numeric:tabular-nums}
-.ocr-import-eta-elapsed:empty{display:none}
-/* One thumbnail per decodable file picked, side by side - the box grows
-   with the selection rather than only ever showing the first, so "I meant
-   to send two of these" is visible before the request goes out. Not a
-   fixed-width box any more for the same reason. */
-.ocr-import-image-wrap{position:relative;flex:0 0 auto;display:none;align-items:center;justify-content:center;gap:4px;height:36px;border:1px solid var(--bd);border-radius:9px;background:rgba(0,0,0,.18);overflow:hidden;padding:2px}
-.ocr-import-image-wrap.has-image{display:flex}
-.ocr-import-image-wrap .ocr-import-image-preview{width:30px;height:30px;border-radius:7px;flex:0 0 auto}
-.ocr-import-image-preview{display:block;width:100%;height:100%;object-fit:cover;background:transparent;-webkit-user-select:none;user-select:none}
-.ocr-import-image-preview[hidden]{display:none}
-.ocr-import-result{display:flex;flex-direction:column;gap:12px;max-height:none;overflow:visible;margin-top:6px}
-.ocr-import-result[hidden]{display:none}
-.ocr-import-preview-title{font-size:13px;font-weight:800;color:var(--accent)}
-.ocr-import-preview-meta,.ocr-import-preview-note{font-size:11px;line-height:1.4;color:var(--sub)}
-/* Content-anomaly warnings (see gemini-ocr.js's detectScheduleAnomalies) -
-   always informational, never a reason the confirm button is hidden (that's
-   DataValidator.validate's job) - so this gets --warn's amber tone rather
-   than the hard error red used elsewhere, and [hidden] removes the whole
-   box rather than leaving an empty warning card when there's nothing to
-   flag. */
-.ocr-import-warnings{margin:2px 0;padding:9px 11px;border-radius:12px;background:color-mix(in srgb,var(--warn) 16%,transparent);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);font-size:11.5px;line-height:1.5;color:#fff}
-.ocr-import-warnings[hidden]{display:none}
-.ocr-import-warnings-title{font-weight:800;margin-bottom:3px}
-.ocr-import-warnings ul{margin:0;padding-left:18px}
-.ocr-import-warnings li{margin:2px 0}
-.ocr-import-class-card{width:100%;padding:10px 12px}
-.ocr-import-class-card .tc-subject{flex:1;min-width:0}
-.editor-sheet.is-layered #ocr-import-result .editor-fold{display:block;margin-bottom:10px}
-#ocr-import-result .editor-fold[hidden]{display:none}
-#ocr-import-result .editor-fold-summary{display:flex}
-#ocr-import-result .editor-fold-body{display:block}
-#ocr-import-result .schedule-periods{overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}
-#ocr-import-result .period-select{flex:0 0 110px;width:110px;min-width:110px;min-height:40px}
-#ocr-import-result .settings-transfer-btn{min-height:var(--action-btn-h);border-radius:var(--action-btn-radius);font-family:inherit;font-weight:800}
-.save-btn{width:100%;padding:14px;font-size:var(--action-btn-font);font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;margin-top:10px;min-height:var(--action-btn-h);border:none;border-radius:var(--action-btn-radius);background:linear-gradient(135deg,var(--pro-action-bg),var(--pro-action-bg-2));color:var(--pro-action-text);box-shadow:0 8px 22px color-mix(in srgb,var(--pro-accent) 20%,transparent);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%)}
-.save-btn:active{transform:scale(.97);opacity:.9;box-shadow:0 3px 10px color-mix(in srgb,var(--pro-accent) 22%,transparent)}
-/* A normal flow element at the end of the form, not pinned to the bottom of
-   the viewport the whole time - it only shows up once someone's actually
-   scrolled through (and, in layered mode, drilled into) the section they
-   came to edit, same as any other "confirm" button at the end of a form. */
-.editor-sheet .save-btn{border-radius:var(--action-btn-radius);padding:13px 18px;margin-top:12px;box-shadow:0 6px 20px color-mix(in srgb,var(--pro-accent) 24%,transparent);font-size:var(--action-btn-font);font-weight:700;min-height:var(--action-btn-h)}
-/* Glass rather than a solid accent pill: it floats over the dashboard and
-   list with nothing of its own behind it, which is the exact case the glass
-   material is for. The accent survives as a tint in the fill and as the
-   text color, so it still reads as the app's "saved" confirmation. */
-.save-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,color-mix(in srgb,var(--pro-secondary) 34%,transparent),var(--glass-fill-strong) 76%);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));box-shadow:var(--glass-shadow-soft);color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:700;opacity:0;z-index:300;transition:opacity .3s,transform .3s;pointer-events:none}
-@supports not (backdrop-filter:blur(1px)){
-.save-toast{background:var(--ok);color:var(--pro-secondary-text)}
-}
-.save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.assign-sheet{position:fixed;z-index:1000001;top:50%;left:50%;width:min(94vw,520px);max-height:88dvh;overflow:auto;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;pointer-events:none;background:var(--glass-fill-strong);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));border-radius:26px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.5);transition:opacity .2s,transform .2s,visibility .2s}
-.assign-sheet.show{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
-.assign-header{display:flex;align-items:center;justify-content:space-between}
-.assign-header .editor-close{margin:0}
-.assign-day-tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:12px 0 8px}
-/* Same 7-equal-column grid shape as .nav-item above (.assign-day-tabs uses
-   grid-template-columns:repeat(7,minmax(0,1fr))) - same overflow risk from
-   an over-long weekday translation, so the same nowrap+ellipsis safety net. */
-.assign-day-tab{min-height:48px;padding:0 3px;border:1px solid color-mix(in srgb,var(--pro-accent) 24%,var(--bd));border-radius:10px;background:color-mix(in srgb,var(--pro-accent) 6%,color-mix(in srgb,var(--q-text) 5.5%,transparent));color:var(--sub);font:800 14px/1 inherit;cursor:pointer;transition:transform .12s,background .15s;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.assign-day-tab:active{transform:scale(.95)}
-.assign-day-tab.active{background:var(--accent);border-color:var(--accent);color:var(--pro-accent-text);box-shadow:0 5px 14px color-mix(in srgb,var(--accent) 28%,transparent)}
-.assign-day-row{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;align-items:center}
-.assign-day-label{font-size:12px;font-weight:800;color:var(--sub)}
-.assign-grid{display:grid;gap:8px;margin:8px 0 14px}
-.assign-periods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.assign-box{transition:background .16s,border-color .16s,color .16s,transform .12s;border:1px solid var(--bd);border-radius:9px;background:color-mix(in srgb,var(--q-text) 6%,transparent);color:var(--txt);font-weight:700;cursor:pointer;min-height:42px;padding:4px 3px;font-size:11px;line-height:1.15}
-.assign-box:active{transform:scale(.95)}
-.assign-box.occupied{border-color:color-mix(in srgb,var(--accent) 50%,transparent);color:var(--accent)}
-.assign-box.assigned{background:color-mix(in srgb,var(--ok) 22%,transparent);border-color:var(--ok);color:var(--ok);box-shadow:0 0 0 1px color-mix(in srgb,var(--ok) 35%,transparent)}
-.teacher-assign{min-height:40px;padding:0 14px;border:0;border-radius:13px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 72%,#fff 18%),color-mix(in srgb,var(--accent) 48%,#fff 18%));color:var(--pro-accent-text);font-weight:850;letter-spacing:.04em;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 22%,transparent);touch-action: pan-x pan-y;transition:transform .12s;backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%)}
-.teacher-assign:active{transform:scale(.95)}
-.assign-sheet .editor-confirm-btn{margin-top:8px;min-height:var(--action-btn-h);width:100%}
-@media (max-width:480px){
-.assign-sheet{width:calc(100vw - 20px);max-height:calc(100dvh - 28px);padding:14px;border-radius:20px}
-.teacher-assign{min-height:44px;padding:0 13px}
-.assign-day-row{grid-template-columns:39px minmax(0,1fr);gap:6px}
-.assign-periods{grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:6px}
-.assign-box{min-height:48px;font-size:11px}
-}
-@media (max-width:430px){
-.assign-day-tabs{gap:4px}
-.assign-sheet{padding:15px;width:calc(100vw - 20px);border-radius:20px}
-}
-@media (max-width:390px){
-.editor-confirm-btn{flex:1 1 0}
-}
-.order-position-label{display:inline-flex;align-items:center;gap:5px;padding:4px 6px 4px 8px;border:1px solid var(--bd);border-radius:11px;background:color-mix(in srgb,var(--q-text) 5.5%,transparent);color:var(--sub);font-size:10px;font-weight:750;line-height:1;white-space:nowrap;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--q-text) 6%,transparent);transition:border-color .16s,background .16s,box-shadow .16s}
-.order-position-label:focus-within{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,color-mix(in srgb,var(--q-text) 5.5%,transparent));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
-.order-position{width:32px;min-width:32px;height:28px;padding:2px 3px;border:0;border-radius:7px;background:color-mix(in srgb,var(--accent) 14%,var(--card));color:var(--txt);font:800 14px/1 inherit;text-align:center;text-align-last:center;box-shadow:none;outline:0}
-.order-position::-webkit-inner-spin-button,.order-position::-webkit-outer-spin-button{opacity:.7;margin:0}
-@media (max-width:480px){
-.order-position-label{padding:5px 7px 5px 9px}
-.order-position{width:36px;min-width:36px;height:30px}
-.order-position-label{min-height:40px}
-}
-.editor-hint{margin-top:8px;padding:8px 11px;background:color-mix(in srgb,var(--pro-accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);color:var(--orbit-muted);border-radius:11px;backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur-card)) saturate(var(--glass-sat))}
-.editor-sheet .editor-hint{border-radius:11px;margin-top:8px;padding:8px 11px}
-.editor-hint-title{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:3px;letter-spacing:.35px}
-.editor-hint-body{font-size:11px;color:var(--sub);line-height:1.4}
-@media (max-width:480px){
-.editor-fold-summary{padding:11px 12px}
-.schedule-day-row{padding:13px 13px 13px 11px;border-radius:16px;display:block;overflow:hidden}
-.schedule-day-label{display:block}
-.schedule-periods{width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 2px 7px;scroll-snap-type:x proximity;display:flex;flex-wrap:nowrap}
-.schedule-periods .period-select{width:126px;flex:0 0 126px;min-height:46px;font-size:14px;box-sizing:border-box;scroll-snap-align:start}
-.teacher-card-summary{padding:12px 11px;gap:8px}
-.teacher-summary-text{font-size:13.5px}
-.teacher-card-body{padding:0 11px 13px;gap:9px}
-.teacher-card .teacher-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;width:100%}
-.teacher-card .tc-subject{grid-column:1 / -1}
-.teacher-card .teacher-fields .editor-input{display:block;width:100%;max-width:100%;box-sizing:border-box;min-height:44px}
-.countdown-event-fields{gap:9px}
-}
-/* 節次時間/特殊時段 (.bell-row) at phone width: every other element sharing
-   the row with the two time inputs (the period-number badge, the row's own
-   side padding, the delete button) gets trimmed down here specifically to
-   free up horizontal room for them - a real phone showing a 12-hour AM/PM
-   time value needs meaningfully more width per input than the bare 24-hour
-   "08:00" this was sized against, and was overflowing past the sheet's
-   edge without this. */
-@media (max-width:480px){.editor-sheet .bell-row{gap:6px;padding:12px 10px 12px 9px}.editor-sheet .bell-num{width:24px;height:24px;font-size:12px}.bell-inputs{gap:4px}.editor-sheet .time-input{padding:9px 2px;font-size:13.5px}.editor-sheet .delete-btn{width:22px;height:22px;font-size:12px}}
-/* Countdown date range (.countdown-date-range) at phone width: same
-   problem as .bell-row above, worse, and shrinking padding/font-size
-   (a prior attempt at this rule) wasn't a real fix - a native
-   <input type="date"> needs real width to render its own text
-   (day/month/year plus its built-in icon), and unlike a plain text input
-   it cannot just clip that text when it's too narrow: Safari wraps the
-   date's own display onto a second line inside the input instead, which
-   is what made the end date look like it had fallen onto its own row.
-   Trying to fit two of these plus the arrow separator on one shared line
-   is fighting the actual constraint - it can be made to just barely work
-   at one font size/locale/system text-size setting and break again at the
-   next. Stacking the two inputs into their own full-width rows instead
-   removes the contention entirely: each one gets the whole row, so there
-   is nothing left to negotiate over width for, and padding/font-size can
-   go back to the same comfortable sizing every other input on the sheet
-   uses rather than being squeezed down to fit. */
-@media (max-width:480px){.countdown-date-range{flex-direction:column;align-items:stretch;gap:6px}.countdown-date-range .time-sep{align-self:center;display:inline-block;transform:rotate(90deg)}}
-/* ============================================================================
-   Test panel (time simulation) and style panel
-   ========================================================================= */
-.test-panel-overlay{position:fixed;inset:0;z-index:100003;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;background:rgba(0,0,0,.58)}
-.test-panel-overlay.show{opacity:1;visibility:visible}
-.test-panel{
-  position:fixed;bottom:12px;left:50%;right:auto;height:auto;z-index:100004;display:flex;flex-direction:column;
-  transform:translate(-50%,calc(100% + 24px));transition:transform .35s var(--ease-glass),visibility 0s linear .35s;overflow:visible;gap:7px;padding:9px 13px 11px;
-  width:min(calc(100vw - 24px),480px);border-radius:28px;background:var(--glass-fill-strong);box-shadow:var(--glass-shadow);
-  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-  visibility:hidden;
-}
-.test-panel.show{transform:translate(-50%,0);visibility:visible;transition:transform .35s var(--ease-glass),visibility 0s linear 0s}
-.test-panel .editor-header{position:static;background:none;backdrop-filter:none;border-bottom:none;margin:0 0 9px;padding:0;min-height:32px}
-.test-panel .editor-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--pro-accent);font-size:17px;font-weight:800;letter-spacing:-.04em}
-.test-panel .editor-close{flex-shrink:0;font-size:13px;width:32px;height:32px}
-.test-panel .editor-fold{margin-bottom:8px;border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--pro-accent) 9%,transparent),var(--glass-fill-card) 80%);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent)}
-.test-panel .editor-fold-body{display:flex;flex-direction:column;gap:9px;padding:9px 10px 10px}
-.test-panel .editor-fold-summary{padding:11px 12px;font-size:13px}
-.test-panel .editor-hint{margin-top:0;margin-bottom:8px;border-radius:12px;background:color-mix(in srgb,var(--pro-accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--pro-accent) 18%,transparent);color:var(--orbit-muted)}
-.test-panel h4{margin:0;color:var(--accent);font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.test-panel label{font-size:11px;color:var(--sub);font-weight:600}
-.test-panel select,.test-panel input[type="number"]{background:var(--q-surface-2);color:#fff;border:1px solid var(--bd);padding:7px 10px;border-radius:9px;font-size:14px;width:100%;box-sizing:border-box;transition:border-color .15s,box-shadow .15s}
-.test-panel select:focus,.test-panel input[type="number"]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
-.test-panel input[type="range"]{width:100%;cursor:pointer;margin:6px 0 2px;touch-action: pan-x pan-y}
-.test-status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:var(--warn);color:#000;font-size:10px;font-weight:800}
-.test-panel-meta-row{display:flex;align-items:center;gap:7px;margin:-6px 0 10px}
-.app-version{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--sub);opacity:.8;white-space:nowrap}
-#test-refresh-btn{flex:0 0 auto;min-height:24px;width:auto;padding:3px 7px;border-radius:7px;background:color-mix(in srgb,var(--pro-accent) 15%,transparent);color:var(--pro-accent);border:1px solid color-mix(in srgb,var(--pro-accent) 42%,transparent);box-shadow:none;font-size:9px;font-weight:800;line-height:1;letter-spacing:0;cursor:pointer;touch-action: pan-x pan-y;transition:transform .12s,background .15s}
-#test-refresh-btn:active{transform:scale(.92);background:color-mix(in srgb,var(--pro-accent) 28%,transparent)}
-#test-refresh-btn:disabled{opacity:.6;cursor:default}
-#test-reset-btn{flex:0 0 auto;min-height:24px;width:auto;padding:3px 7px;border-radius:7px;background:rgba(255,69,58,.08);color:#ff453a;border:1px solid rgba(255,69,58,.35);box-shadow:none;font-size:9px;font-weight:800;line-height:1;letter-spacing:0;cursor:pointer;touch-action: pan-x pan-y;transition:transform .12s,background .15s}
-#test-reset-btn:active{transform:scale(.92);background:rgba(255,69,58,.16)}
-/* Shown inline in this panel rather than the app's floating .save-toast:
-   that toast renders behind this sheet's own stacking context, so it was
-   invisible right when it mattered most - immediately after a click, with
-   the panel still open. Staying inline also fits how this button is
-   actually used here (checking repeatedly until a deploy lands), where a
-   toast that vanishes after 2.5s would often be missed between clicks. */
-.test-update-status{font-size:10.5px;line-height:1.3;margin:-4px 0 8px;color:var(--sub)}
-.test-update-status:empty{display:none}
-.test-update-status.up-to-date{color:var(--ok)}
-.test-update-status.error{color:#ff453a}
-#test-time-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;background:var(--bd);margin:6px 0 2px;cursor:pointer}
-#test-time-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer;margin-top:0}
-#test-time-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer}
-#test-time-slider::-moz-range-track{height:6px;border-radius:999px;background:var(--bd)}
-#test-time-slider::-moz-range-progress{height:6px;border-radius:999px;background:var(--accent)}
-#test-time-slider:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
-/* Buttons that drive time simulation get clear, high-contrast press feedback —
-   not just a transform, so a tap is unmistakable even mid-animation. */
-.sim-btn{
-  padding:9px 12px;font-weight:bold;cursor:pointer;transition:transform .12s var(--ease-glass),background .15s,box-shadow .15s,color .15s;
-  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-size:14px;touch-action: pan-x pan-y;min-height:42px;
-  border-radius:12px;background:transparent;color:var(--pro-accent);border:1px solid color-mix(in srgb,var(--pro-accent) 58%,var(--orbit-line));box-shadow:none;
-}
-.sim-btn:active{transform:scale(.95);background:color-mix(in srgb,var(--pro-accent) 22%,transparent);box-shadow:inset 0 2px 6px rgba(0,0,0,.25)}
-.sim-btn.active{background:var(--pro-accent);color:var(--pro-accent-text,var(--q-surface-2));border-color:var(--pro-accent);box-shadow:0 7px 18px color-mix(in srgb,var(--pro-accent) 24%,transparent)}
-.sim-btn.active:active{transform:scale(.95);background:color-mix(in srgb,var(--pro-accent) 78%,#000 10%);box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
-#test-play-pause-btn:hover{background:color-mix(in srgb,var(--pro-accent) 10%,transparent)}
-#test-play-pause-btn.active:hover{background:color-mix(in srgb,var(--pro-accent) 88%,#fff)}
-.test-exit-btn{width:100%;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s,background .15s,color .15s;touch-action: pan-x pan-y;border:1px solid rgba(255,69,58,.48);opacity:1;min-height:42px;border-radius:12px;background:rgba(255,69,58,.12);color:#ff6a5c}
-.test-exit-btn:active:not(:disabled){transform:scale(.96);background:rgba(255,69,58,.26);color:#ff8a7a}
-.test-exit-btn:disabled{cursor:pointer;opacity:1}
-@media (max-width:480px){
-.test-panel{width:calc(100vw - 16px)}
-}
-@media (max-width:400px){
-.test-panel .editor-header{margin-bottom:12px}
-}
-@media (max-height:700px){
-.test-panel{bottom:8px;gap:5px;padding-top:8px;padding-bottom:10px}
-}
-/* Transfer sheet ("同步 / 匯入匯出"): sync setup, manual export/import, AI
-   photo import, and the tucked-away time-simulation disclosure. A flat
-   .test-panel variant with no paged/layered accordion machinery, since
-   none of its content needs one. Its height is fixed (not max-height) - this sheet's
-   content is a stack of <details> folds a viewer opens and closes while
-   the sheet is open, and a height that tracked their expanded/collapsed
-   total would make the sheet itself grow and shrink under them. Picked to
-   comfortably fit the common (folds collapsed) content rather than the
-   fully-expanded one - sizing for the expanded case would mean a mostly
-   empty sheet the rest of the time, so any state taller than this just
-   scrolls internally instead. */
-.transfer-sheet{
-  width:min(calc(100vw - 24px),480px);max-width:480px;border-radius:28px;
-  left:50%;right:auto;transform:translate(-50%,calc(100% + 24px));height:min(660px,calc(100dvh - 160px));overscroll-behavior:contain;
-  padding:13px 15px 0;gap:7px;background:var(--glass-fill-strong);box-shadow:var(--glass-shadow);overflow:hidden;
-  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
-}
-.transfer-sheet.show{transform:translate(-50%,0)}
-/* .editor-header sits directly in .transfer-sheet, outside this body, the
-   same way it sits outside .editor-sheet-body - so it's the body, not the
-   whole sheet, that scrolls, and the header (title + close button) stays
-   in place instead of scrolling away with the content beneath it, matching
-   the schedule editor and style tool. */
-.transfer-sheet-body{
-  flex:1 1 auto;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  padding:0 0 13px;display:flex;flex-direction:column;gap:7px;
-}
-/* Same fix as .editor-sheet-body>* below: flex items shrink to fit a
-   constrained cross-container by default, and .transfer-sheet-body's own
-   available height is regularly shorter than its total content. Without
-   this, that shrank #legacy-transfer-fold/#test-mode-fold down toward
-   nothing instead of letting the body scroll - their own overflow:hidden
-   makes their automatic minimum size 0, so they were the first thing the
-   shrink algorithm reached for. flex-shrink:0 makes every child keep its
-   natural height so there is real overflow for the body's own scrolling to
-   use. */
-.transfer-sheet-body>*{flex-shrink:0}
-/* .editor-sheet's own padding/overflow, finished here (after .test-panel) so
-   they actually win the cascade tie - see the comment on .editor-sheet's
-   main rule above. overflow:hidden, not auto: the sheet itself no longer
-   scrolls - see .editor-sheet-body below - this is only here so the sheet's
-   own rounded corners still clip whatever the body scrolls past them.
-   Side padding stays here (not duplicated on .editor-sheet-body): the
-   header is still a direct child of .editor-sheet, not of the body, and
-   needs the same inset as the content below it or the title reads shifted
-   left of everything else. .editor-sheet-body only adds its own bottom
-   padding - its sides come from this same padding box, same as the header's. */
-.editor-sheet{padding:12px 15px 0;overflow:hidden}
-/* The header (handle + title/close button) is a plain, non-scrolling flex
-   item using .test-panel's own header styling completely unmodified - no
-   sticky positioning, no background, no blur, nothing editor-specific. It
-   *looks* pinned only because .editor-sheet-body - not .editor-sheet itself
-   - is what actually scrolls: the header simply isn't part of the region
-   that moves, the same way it wouldn't be if this content just happened to
-   be short enough to never scroll, like the style tab's. That is what
-   actually mimics the style tab's header instead of approximating it with
-   position:sticky + a matching background - there is no separate "pinned
-   header" mechanism here to look unlike anything else in the first place. */
-.editor-sheet-body{
-  flex:1 1 auto;min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  padding:0 0 15px;display:flex;flex-direction:column;gap:0;
-}
-/* Flex items shrink to fit a constrained cross-container by default; with
-   .editor-sheet-body regularly shorter than its total content (a dozen rows
-   in an open fold, easily), that shrank each fold down to fit instead of
-   letting the body scroll, and .editor-fold's own overflow:hidden silently
-   clipped whatever got squeezed out. flex-shrink:0 makes every direct child
-   keep its natural height so there is real overflow for the body's own
-   scrolling to work with. */
-.editor-sheet-body>*{flex-shrink:0}
-/* ============================================================================
-   Large screens (tablet / desktop)
-   iPhone 15 Pro portrait (393×852) is the one true layout - every card's
-   proportions, spacing and type sizes are tuned against that shape, so on a
-   tablet/desktop viewport this does NOT grow the column wider (that used to
-   stretch .dashboard/.nav-bar/.list-container up to 640px, which re-flowed
-   every card's internal spacing into a visibly different, squatter-looking
-   app instead of "the same app, more of it around the edges"). What actually
-   changes here is only centering: .dashboard/.nav-bar/.list-container stay
-   pinned to their phone-first width:min(420px,100%) cap on every screen size,
-   and body's own flex layout centers that column in whatever room is left
-   over instead of it sitting pinned to one edge (.dashboard's mobile margin
-   is intentionally asymmetric by a couple px, which reads as "centered
-   enough" on a narrow phone screen but is visibly off-center once there's
-   enough room on either side to notice).
-   Height needs the same treatment, and for the same reason: .dashboard/
-   .nav-bar's base flex-basis (40%/10% of BODY's height, see .dashboard's own
-   comment above) is tuned for a phone's roughly 1:2.2 width:height shape,
-   where 40% of the height comfortably matches what the card's own content
-   needs at its capped ~393px width. An iPad held upright is still caught by
-   this same min-width:700px query (portrait iPad widths run 744-1024px) but
-   is nowhere near that shape - 40% of a ~1200px-tall screen is nearly twice
-   the ~322px .dashboard actually needs at that same capped width, which
-   left a slab of dead black space inside the card instead of an off-by-a-
-   bit oversized one. max-height pins both back to what they measure at the
-   iPhone 15 Pro truth (with a little slack for longer class names/teacher
-   chips to still fit), the same way .list-container's own max-height
-   already stops IT from stretching down a tall screen - see its comment
-   just below. */
-@media (min-width:700px){
-  .dashboard{margin:6px auto 8px;max-height:330px}
-  .nav-bar{max-height:78px}
-  /* .list-container keeps the SAME flex:1 1 50% the base phone rule above
-     already gives it (nothing to override here any more) - it claims all
-     leftover vertical space in the column exactly like it does on a phone,
-     which is what actually removes the dead top/bottom margin a portrait
-     tablet/desktop window gets once .dashboard/.nav-bar are height-capped
-     above: capping the list too (an earlier version of this block did,
-     with body{justify-content:center} centering the shorter resulting
-     group) pushed that same leftover space OUTSIDE the card group instead
-     of inside it - centering it evenly rather than removing it doesn't
-     read as "natural" on a screen tall enough that the gap runs into the
-     hundreds of px (a portrait iPad/Android tablet/Surface, or just a
-     narrow-but-tall desktop window - checked across all of them). A short
-     schedule (a light day, or a weekend) still ends up with empty space
-     at the bottom of .list-container's own card instead - exactly what
-     already happens on a phone with the same short schedule, so it reads
-     as "this card is mostly empty today" rather than "this app doesn't
-     fill its window", which is the more natural of the two. */
-}
-/* ============================================================================
-   Short viewport fallback
-   .dashboard/.nav-bar/.list-container's base flex-basis (40%/10%/50% of
-   body's own height, see .dashboard's own comment above) is an exact split
-   of whatever's available, which only works if there's comfortably enough
-   height to split three ways to begin with - true for a phone held upright,
-   false the moment the window itself is short: a phone turned sideways (this
-   is what makes landscape a reflow instead of a "please rotate back" lock -
-   see the git history for the interstitial this replaced), a laptop/tablet
-   browser window that isn't maximized, a split-screen or floating window,
-   embedded devtools eating vertical space, and so on. Forcing that same
-   three-way split into
-   a shorter box than it was ever sized for doesn't just look cramped - it
-   actively breaks: .now-stack (the current-class name's box) could get
-   squeezed down to a sliver a few px tall while dashboard-render.js's
-   fitNowTitleText() still tried to size that name's text to its usual
-   floor, painting the class name straight over the progress bar and meta
-   row beneath it instead of shrinking to match (fitNowTitleText() also
-   carries its own last-resort safety net for exactly this - see its own
-   comment - but that net is deliberately narrow, only for a box collapsed
-   well past normal, so THIS is still what keeps .now-stack from ever
-   reaching that state on an ordinary phone in the first place).
-   Below this height, let the three sections size to their own content
-   instead of a fixed share of the viewport, and let the page itself take
-   over scrolling as the genuine fallback - nothing needs to be squeezed,
-   clipped, or overlapped just because the window is short. min-height
-   floors on .now-stack/.list-container keep either from collapsing to
-   zero when their own content is momentarily empty (a boot/loading frame,
-   an empty schedule day). */
-@media (max-height:680px){
-  html,body{overflow-y:auto;overflow-x:hidden}
-  body{height:auto;min-height:100dvh}
-  .dashboard{flex:0 0 auto}
-  .dashboard > .now-stack{min-height:96px}
-  .nav-bar{flex:0 0 auto}
-  .list-container{flex:0 0 auto;min-height:160px;max-height:none}
-}
-/* ============================================================================
-   Phone landscape layout
-   The short viewport fallback right above this makes a sideways phone
-   RENDER correctly (nothing overlaps or gets clipped) by falling back to
-   auto-height sections and letting the page scroll - but it keeps body's
-   three sections in the same single column a portrait phone uses, so a
-   landscape phone still ends up scrolling through what is essentially the
-   portrait layout squeezed sideways, never actually using the width a
-   sideways phone has plenty of. That's the "banned" feeling the fix below
-   is for: not a blocked/rotate-prompt screen (that was removed earlier -
-   see the short viewport fallback's own comment and the git history for
-   the interstitial it replaced), but a layout that never adapted to the
-   shape it was given, so landscape read as an unwelcome, scroll-through
-   downgrade from portrait instead of its own real layout.
-   At this width/height combination there's plenty of horizontal room and
-   comfortably too little vertical room for the portrait 40/10/50 stack, so
-   this switches body to a two-column row instead: .dashboard+.nav-bar keep
-   their normal stacked portrait shape in a fixed-width left column, and
-   .list-container fills the entire right column at whatever height that
-   stack ends up being, then scrolls its own overflow internally exactly
-   like it does in portrait - no page-level scroll needed, since there's no
-   leftover space below the two columns once both match height.
-   .top-stack (a plain wrapper around .dashboard+.nav-bar in index.html,
-   display:contents everywhere else - see its own rule below) exists so
-   .list-container can align-items:stretch to match it in an ordinary
-   2-item flex row. The first approach tried skipped the wrapper and made
-   BODY itself a 2-column/2-row CSS grid with .list-container spanning both
-   rows directly - simpler on paper, but a grid item spanning multiple
-   content-sized (or even minmax(0,Npx)-capped) tracks contributes its OWN
-   max-content size toward growing those tracks, and .list-container's
-   max-content is however tall the full unscrolled schedule is (600px+),
-   not the ~10 rows a phone screen fits. That measurably inflated
-   .dashboard/.nav-bar's rows past their own real content in testing (e.g.
-   .nav-bar rendered 78-94px tall against its own ~53-68px natural content,
-   and inconsistently across otherwise-similar phone sizes) - there is no
-   track sizing function that both sizes to content AND is excluded from
-   that spanning-growth step. A plain 2-item flex row has no such step to
-   trigger: .top-stack sizes to its own two children's content only,
-   .list-container stretches to match via ordinary cross-axis alignment,
-   and neither one's size is otherwise coupled to the other's content.
-   min-width keeps this from firing on a landscape phone narrow enough that
-   two columns would feel cramped (a use case for the fallback right above,
-   not this) - the widest phone-landscape widths this needs to actually
-   reach (iPhone SE ~667px, most Android phones ~740-800px, iPhone 15 Pro
-   852px) are comfortably above it. */
-@media (max-height:500px) and (min-width:560px){
-  body{
-    display:flex;flex-direction:row;align-items:stretch;column-gap:10px;
-    height:100dvh;min-height:100dvh;overflow:hidden;
-  }
-  .top-stack{
-    display:flex;flex-direction:column;flex:0 0 min(360px,46%);width:min(360px,46%);
-  }
-  .dashboard{width:100%;margin:0}
-  .nav-bar{width:100%;margin:0}
-  .list-container{flex:1 1 auto;width:auto;min-height:0;margin:0}
-
-  /* The exam countdown card's own width:clamp(...) elsewhere targets a
-     comfortable card size assuming plenty of row width to work with, which
-     the top-stack column above doesn't have once the tool button and gap
-     are subtracted - shrinking toward that unreachable target clipped its
-     date range behind an ellipsis (e.g. "2027.01.22–01.24" cut down to
-     "2027.01.22-0…") on the narrowest real landscape phones (iPhone SE's
-     667px). Filling whatever the row actually has, instead of shrinking
-     away from a fixed target width, fixes that at the source - the smaller
-     fonts below then just make sure that available width is enough to show
-     the full date without wrapping. */
-}
-/* ============================================================================
-   Tablet and computer layout
-   An iPad (or a computer's window) has the width for both columns AND the
-   height for the dashboard to breathe, so the phone's single 420px column
-   centred in a wide screen left most of it empty. Here: the same two
-   columns as a sideways phone (see above for why .top-stack is a flex
-   column next to .list-container), the left one the dashboard filling the
-   height above the nav bar, the right one the whole day's schedule. The
-   pair is capped and centred so a big monitor doesn't stretch the rows
-   into long thin bars. */
-@media (min-width:700px) and (min-height:501px){
-  body{
-    display:flex;flex-direction:row;align-items:stretch;column-gap:18px;
-    height:100dvh;min-height:100dvh;overflow:hidden;
-    max-width:1180px;margin:0 auto;
-    padding:calc(14px + var(--q-top, env(safe-area-inset-top))) max(20px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
-    box-sizing:border-box;
-  }
-  .top-stack{display:flex;flex-direction:column;flex:0 0 min(460px,46%);width:min(460px,46%);min-height:0}
-  html{background:var(--q-page)}
-  .dashboard{width:100%;margin:0 0 12px;flex:1 1 auto;padding:16px 16px 18px}
-  .nav-bar{width:100%;margin:0;flex:0 0 auto;min-height:64px}
-  .list-container{flex:1 1 auto;width:auto;min-height:0;margin:0;max-width:none}
-  .title-now{font-size:58px}
-  #schedule-list .row{height:96px}
-}
-/* A tall tablet held upright: the dashboard on top at its phone shape but
-   wider, the schedule below it full width - two thin columns read worse
-   than one generous one at 820px. */
-@media (min-width:700px) and (max-width:900px) and (min-height:1000px){
-  body{flex-direction:column;column-gap:0;max-width:760px}
-  .top-stack{flex:0 0 auto;width:100%}
-  .dashboard{flex:0 0 auto;height:min(440px,38dvh)}
-  .nav-bar{margin-bottom:12px}
-  .list-container{flex:1 1 auto}
-}
-/* Sync / import-export sheet, phone landscape: the same fixed height every
-   other viewport uses (see .transfer-sheet's own height comment) works out
-   to only ~200px tall here, comfortably fitting nothing, so a viewer
-   scrolled a tiny window despite the rest of the screen sitting unused.
-   Still the same floating rounded sheet every other sheet is - same width,
-   same inset from the edges - just tall enough to slide up near the top of
-   the screen instead of stopping partway, exactly like .editor-sheet
-   already does. */
-@media (max-height:500px) and (min-width:560px){
-  .transfer-sheet{
-    height:calc(100dvh - 20px - var(--q-top, env(safe-area-inset-top)));
-    max-height:calc(100dvh - 20px - var(--q-top, env(safe-area-inset-top)));
-  }
-}
-/* ============================================================================
-   Standalone (Home Screen) mode overrides
-   Kept at the very end of the cascade on purpose: several rules above set
-   backdrop-filter with the same or higher specificity, so this block has to
-   win by SOURCE ORDER, not just by matching a media query. Placed anywhere
-   earlier, a later component rule quietly re-applies backdrop-filter and
-   this override does nothing.
-   ========================================================================= */
-/* iOS Safari has a known compositing bug where backdrop-filter blur on a
-   page running in standalone display mode can get its blurred sampling
-   region mis-tiled and repainted as a duplicate "ghost" element elsewhere
-   on screen. It reproduces reliably once installed to the Home Screen and
-   not at all in a regular browser tab — forcing a GPU layer with
-   transform:translateZ(0) was not enough to avoid it, and it affects
-   static panels (.dashboard, .nav-bar) just as much as the animated
-   bottom sheets, so it isn't specifically a transform/animation
-   invalidation issue either — just re-enabling the blur here isn't a safe
-   bet without a device to confirm it against. display-mode: standalone
-   (supported since iOS 12.2) turns the blur off only in the context where
-   it actually happens, so a normal Safari tab (or Chrome) still gets the
-   full blurred glass exactly as intended.
-   There is no WebKit/Safari engine in this environment to test this
-   against directly (only Chromium is available, and Chromium's automation
-   protocol doesn't support overriding display-mode either - confirmed by
-   trying it), so the actual ghosting bug can't be reproduced or verified
-   here. What WAS verified: this rule's own fallback look. Chromium was
-   driven headlessly with the exact ruleset below force-injected (since the
-   media query itself can't be triggered), screenshotted, and compared
-   pixel-for-pixel against the normal blurred version. Without blur-behind
-   to carry the translucency, a fill anywhere near the website's ~22-30%
-   let the busy gradient background AND whatever text sits under a panel
-   show through completely unblurred, which read as noisy/glitchy rather
-   than "more transparent" - the 85-90% this replaced avoided that but as
-   nearly solid panels, further from the website's glassy look than
-   legibility actually demands. This is the opacity where the unblurred
-   bleed-through stops being distracting without going that far.
-   That alone still read as flat/grey next to the website, though - the
-   website's colour doesn't actually come from the fill, it comes from
-   backdrop-filter's saturate/brightness intensifying body's own accent
-   gradients as they show through the blur, which a flat opaque fill has
-   none of. --glass-fill/--glass-fill-strong are read as a plain
-   `background` everywhere (verified: never as a border/shadow color), so
-   redefining them here as full multi-layer backgrounds - the same corner
-   glow body itself uses, layered under the flat mix - reaches every panel
-   that references either variable for free. Screenshotted next to the
-   website version at several strengths to land here: strong enough to
-   read as colour, not so strong it looks painted on.
-   The flat mix itself uses html/body's own near-black (var(--q-page)), not
-   --orbit-panel/--orbit-panel-strong (var(--q-surface-2)/var(--q-surface-2)): those read as a
-   subtle blue-grey tint under blur at the website's ~22-30% fill, but at
-   the opacity this fallback needs to stay legible without blur, that same
-   blue hue took over the whole panel - "blue-grey plastic" instead of the
-   black glass the website actually reads as. */
-@media (display-mode:standalone){
-  /* Declared on body, not :root, for the reason the design-tokens block at
-     the top spells out: these two read --pro-accent/--pro-secondary, and JS
-     only ever overrides those on <body>. Resolved at :root they would be
-     frozen to the default indigo/rose forever, so the whole point of this
-     fallback — panels that carry the user's OWN theme color when there's no
-     backdrop-filter left to intensify body's gradients through — silently
-     didn't happen for anyone who had picked a different color. The specular
-     sheen rides along in front so an unblurred panel still catches light
-     across its face instead of reading as flat paint. */
-  body{
-    --glass-fill:
-      var(--glass-specular),
-      radial-gradient(120% 70% at 10% -10%,color-mix(in srgb,var(--pro-accent) 14%,transparent),transparent 60%),
-      radial-gradient(100% 70% at 110% 0%,color-mix(in srgb,var(--pro-secondary) 12%,transparent),transparent 65%),
-      color-mix(in srgb,var(--q-page) 68%,transparent);
-    --glass-fill-strong:
-      var(--glass-specular),
-      radial-gradient(120% 70% at 10% -10%,color-mix(in srgb,var(--pro-accent) 10%,transparent),transparent 60%),
-      radial-gradient(100% 70% at 110% 0%,color-mix(in srgb,var(--pro-secondary) 8%,transparent),transparent 65%),
-      color-mix(in srgb,#0d1620 76%,transparent);
-  }
-  .dashboard, .nav-bar, .nav-item.active, .top-action-btn, #btn-menu.top-action-btn,
-  .modal-sheet, .test-panel, .editor-confirm-sheet,
-  .assign-sheet, .top-actions-menu, .row.is-now, .row.is-next,
-  .close-btn, .save-btn, .editor-primary-btn, .settings-transfer-btn.primary,
-  .teacher-assign, .editor-sheet, .modal-overlay, .editor-confirm-overlay,
-  .editor-drill-btn, .editor-back-btn, .toggle-row, .toggle-switch,
-  .dashboard::after, .top-action-btn::after, .top-actions-menu::after,
-  .modal-sheet::after, .test-panel::after, .editor-confirm-sheet::after{
-    backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
-  }
-  /* The edge rim loses its refraction pass along with everything else here,
-     but its masked chromatic band needs no backdrop at all, so it stays: on
-     panels that are now nearly opaque it's the one thing still marking where
-     the glass ends, and it costs nothing to keep. */
-  /* body's own 100dvh (dynamic viewport height) is meant to shrink for a
-     browser toolbar that can show/hide - useful in a normal Safari tab,
-     meaningless in standalone, since there is no toolbar to ever show.
-     iOS Safari has a specific bug where 100dvh gets stuck evaluating to
-     that shorter "toolbar visible" height in standalone mode right after a
-     JS-driven reload (exactly what the test panel's 更新 button does) -
-     body then falls short of the real screen height and the sliver below
-     it renders as the WebView's own bare canvas, which color-scheme:dark
-     (set on html) makes black rather than this app's background color,
-     since that sliver sits outside any element's painted box entirely.
-     100lvh (large viewport height - the size when browser UI is fully
-     collapsed) is never subject to that "toolbar visible" state to begin
-     with, so it can't get stuck reporting it - and in true standalone mode
-     it should always equal the same value dvh was already converging on
-     anyway, so this is a strictly safer floor, not a behavior change. */
-  body{height:100lvh}
-}
-/* The Quadra Pass panel (src/sync.js): a status card, then sharing. */
-.qp-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--pro-accent) 9%,color-mix(in srgb,var(--q-text) 6%,transparent));border:1px solid color-mix(in srgb,var(--pro-accent) 20%,var(--bd))}
-.qp-icon{width:40px;height:40px;border-radius:11px;flex:0 0 auto}
-.qp-card-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
-.qp-card-text strong{font-size:14px;font-weight:800;color:var(--text,var(--q-text))}
-.qp-card-text span{font-size:11.5px;line-height:1.4;color:var(--sub)}
-.settings-transfer-btn.qp-account{flex:0 0 auto;min-height:38px;padding:0 14px;font-size:12.5px;border-radius:11px}
-.qp-section{display:flex;flex-direction:column;gap:8px;padding-top:12px;margin-top:4px;border-top:1px solid var(--bd)}
-.qp-section-title{font-size:13px;font-weight:800;color:var(--text,var(--q-text))}
-.qp-key-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-.qp-key-row .sync-input{text-transform:uppercase;letter-spacing:.12em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
-.qp-key-row .settings-transfer-btn{min-height:42px;padding:0 14px}
-.qp-key-row .sync-input::placeholder { letter-spacing: normal; text-transform: none; font-family: inherit; }
-/* Dialogs over the dashboard: nearly solid, so the page behind never reads
-   through their text (where the backdrop blur isn't drawn, and in bright
-   themes). */
-.editor-confirm-sheet{background:var(--glass-specular),linear-gradient(var(--orbit-panel-strong),var(--orbit-panel-strong)),var(--q-surface-2)}
-/* ============================================================================
-   Native pass (2026-10-05): closer to iOS 26's own Liquid Glass.
-   What read as "web glass" rather than the system's: an outline ring round
-   every surface, five separate boxed day buttons, a coloured stripe and a
-   thick border on each class. iOS draws none of those: glass is shaped by
-   its light (a bright lip on top, a dimmer one below), controls sit in one
-   capsule with a lens-like thumb on the chosen one, and list rows are plain
-   glass with the state carried by tint alone. Later rules win, so this
-   block is the whole change.
-   ========================================================================= */
-:root{
-  /* The rim without the all-round 1px ring: light only where glass turns. */
-  --glass-edge-shadow:
-    inset 0 1px 0 color-mix(in srgb,var(--q-text) 34%,transparent),
-    inset 0 -1px 0 color-mix(in srgb,var(--q-text) 8%,transparent),
-    inset 1px 0 0 color-mix(in srgb,var(--q-text) 7%,transparent),
-    inset -1px 0 0 color-mix(in srgb,var(--q-text) 7%,transparent),
-    inset 0 0 22px color-mix(in srgb,var(--q-text) 4.5%,transparent);
-  --orbit-radius-md:22px;
-}
-@keyframes rowLiveGlow{
-  0%,100%{box-shadow:var(--glass-shadow-soft),0 0 18px color-mix(in srgb,var(--pro-secondary) 18%,transparent)}
-  50%{box-shadow:var(--glass-shadow-soft),0 0 26px color-mix(in srgb,var(--pro-secondary) 30%,transparent)}
-}
-/* ============================================================================
-   The family's layout (2026-10-05): Orbit Class as Words, Securities and
-   Sports are built. A thin top row (a short status on the left, round icon
-   buttons on the right); a summary card first (a small label, the big
-   value, the secondary figure on its right, a progress bar, the next thing
-   along its foot); a bold section title; the kit's sunken switcher for the
-   days; the classes as one card of rows with dividers. The kit's tokens
-   for every colour (light and dark follow the phone), the user's colour as
-   the one accent. Later rules win, so this block is the whole look.
-   ========================================================================= */
-html{color-scheme:light dark;background:var(--q-page)}
-:root{--q-status-bg:var(--q-page)}
-body{
-  --q-accent:var(--pro-accent);
-  --q-accent-ink:var(--pro-accent-text);
-  --q-accent-wash:color-mix(in srgb,var(--pro-accent) 12%,transparent);
-  --orbit-panel:var(--q-surface);--orbit-panel-strong:var(--q-surface-2);--orbit-white:var(--q-text);--orbit-muted:var(--q-muted);
-  --txt:var(--q-text);--sub:var(--q-muted);--text:var(--q-text);--card:var(--q-surface-2);--bd:var(--q-border);--orbit-line:var(--q-border);
-  --glass-fill:var(--q-surface);--glass-fill-strong:var(--q-surface);--glass-fill-card:var(--q-surface);
-  --glass-specular:linear-gradient(transparent,transparent);--glass-shadow:var(--q-shadow);--glass-shadow-soft:var(--q-shadow-sm);
-  --glass-dispersion:none;--well-fill:transparent;--well-shadow:none;
-  background:var(--q-page);color:var(--q-text);font-family:var(--q-font);letter-spacing:0;
-}
-body::before,.dashboard::before{display:none}
-/* Class's own surfaces are solid; the kit's glass (its tab bar, the moved
-   notice, the update veil) keeps its blur, so the tab bar reads as every
-   app's does. */
-*:not(.q-tabbar):not(.q-moved),*::before,:root:not(.quadra-updating) *::after,:root.quadra-updating *:not(body)::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-.dashboard::after,.top-action-btn::after,.top-actions-menu::after,.modal-sheet::after,.test-panel::after,.editor-confirm-sheet::after{display:none}
-.modal-overlay,.editor-confirm-overlay{background:rgba(0,0,0,.42)}
-/* The page scrolls as every app's does (no fixed-height screen, no list scrolling inside it). */
-html,body{height:auto;min-height:100%;overflow:visible;overscroll-behavior:auto}
-body{display:block;padding:0}
-.next-content,.time-card.v3-11-next-module .next-content{display:flex;align-items:baseline;gap:10px;text-align:left;min-width:0}
-.time-card.v3-11-next-module .next-content > .label,.next-content > .label{flex:0 0 auto;margin:0;opacity:1;color:var(--q-muted);font-size:14px;font-weight:600;letter-spacing:0;text-align:left}
-.time-card.v3-11-next-module .next-box .next-meta,.next-meta{flex:1 1 auto;width:auto;min-width:0;justify-content:flex-end;display:flex}
-.time-card.v3-11-next-module .next-box .next-meta #next-meta-text,#next-meta-text{color:var(--q-muted);font-size:14px!important;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* ---- Sheets, dialogs, controls: the kit's ---- */
-.modal-sheet,.editor-confirm-sheet,.orbit-welcome,.test-panel,.editor-sheet,.assign-sheet{background:var(--q-sheet,var(--q-surface));color:var(--q-text);border:1px solid var(--q-border);box-shadow:var(--q-shadow)}
-.editor-fold,.toggle-row,.orbit-welcome-choice,.qp-card{background:var(--q-surface-2);border:1px solid var(--q-border);color:var(--q-text)}
-.editor-fold-summary{color:var(--q-text)}
-.editor-close,.editor-drill-btn,.editor-back-btn{background:var(--q-surface-2);border:1px solid var(--q-border);color:var(--q-text)}
-.editor-input,.time-input,.sync-input,.settings-transfer-text,.period-select,.test-panel select,.test-panel input[type="number"]{background:var(--q-surface);border:1px solid var(--q-border);color:var(--q-text)}
-.close-btn,.editor-confirm-btn.primary,.editor-primary-btn,.settings-transfer-btn.primary,.save-btn{background:var(--q-accent);color:var(--q-accent-ink);border:0;box-shadow:none}
-.occ-row-period,.time-input{font-family:inherit;font-variant-numeric:tabular-nums}
-.next-content > .label,.time-card.v3-11-next-module .next-content > .label{color:var(--q-accent);font-weight:700;font-size:13px}
-/* Every tab at least the screen tall (工具 is short): a page shorter than the screen let iOS lift the fixed tab bar. */
-html{min-height:100%}
-body{min-height:100vh;min-height:100lvh}
-.next-content > .label,.time-card.v3-11-next-module .next-content > .label{color:var(--q-muted);font-weight:600;font-size:14px}
-.next-content{align-items:center}
-.next-box,.time-card.v3-11-next-module .next-box,.next-content{min-height:0;height:auto}
-#next-name-row{display:flex;align-items:center;gap:8px;min-width:0}
-#next-name-row #next-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-/* The sheets: the kit's. */
-.modal-sheet,.test-panel,.editor-sheet,.transfer-sheet{
-  left:50%!important;right:auto!important;bottom:0!important;width:min(100vw,460px)!important;max-width:none!important;
-  border:0!important;border-radius:24px 24px 0 0!important;
-  background:var(--q-sheet,var(--q-surface))!important;box-shadow:0 -10px 40px rgba(0,0,0,.25)!important;
-  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
-  padding-left:18px!important;padding-right:18px!important;padding-bottom:calc(18px + env(safe-area-inset-bottom))!important
-}
-.modal-sheet{transform:translate(-50%,calc(100% + 24px));height:auto!important;max-height:min(88dvh,760px)!important}
-.modal-sheet.show{transform:translate(-50%,0)}
-.test-panel-handle::after{width:36px;height:5px;background:var(--q-muted);opacity:.45}
-.editor-header,.test-panel .editor-header{min-height:40px;margin:2px 0 10px}
-.editor-title,.test-panel .editor-title{color:var(--q-text);font-size:19px;font-weight:800;letter-spacing:-.01em}
-.editor-close,.test-panel .editor-close{width:34px;height:34px;border-radius:50%;border:0;background:var(--q-sunken);color:var(--q-text-2);font-size:20px;line-height:1;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
-/* The class's sheet: its picture, name and teacher · room, then its figures and its periods. */
-.class-head{display:flex;align-items:center;gap:14px;padding:6px 0 14px}
-.class-head-icon{display:contents}
-.class-head-words{flex:1 1 auto;min-width:0}
-.class-head .modal-title-text{margin:0;color:var(--q-text);font-size:22px;font-weight:800;letter-spacing:-.01em;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.class-head .modal-teacher-text{margin:2px 0 0;color:var(--q-muted);font-size:14px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.class-head .modal-teacher-text:empty{display:none}
-.class-head .sheet-close{flex:none;align-self:flex-start}
-.modal-sheet .stat-grid{gap:10px;margin-bottom:16px}
-.modal-sheet .stat-card{padding:12px 14px;border:0;border-radius:14px;background:var(--q-surface-2);text-align:left;display:grid;gap:2px}
-.modal-sheet .stat-label{color:var(--q-muted);font-size:12px;font-weight:700;text-transform:none;letter-spacing:0}
-.modal-sheet .stat-value{font-size:18px;font-weight:800;color:var(--q-text)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.modal-sheet .m-occ-label{font-size:13px;font-weight:700;text-transform:none;letter-spacing:0;color:var(--q-muted);margin:0 2px 8px}
-.modal-sheet .m-occ-list{max-height:none;border:0;border-radius:14px;background:var(--q-surface-2)}
-.modal-sheet .occ-row{border-bottom:1px solid var(--q-divider);padding:11px 14px}
-.modal-sheet .occ-row:last-child{border-bottom:0}
-.modal-sheet .occ-row-day{font-size:15px;font-weight:700}
-.modal-sheet .occ-row-period{font-family:inherit;font-size:14px;font-weight:700}
-.modal-sheet .occ-row-time{font-size:12.5px}
-/* A class's week: five days side by side, the same height however often it meets. */
-.modal-sheet .m-occ-list.is-week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:4px}
-.occ-day{display:grid;justify-items:center;gap:2px;padding:10px 2px;border-radius:11px;min-width:0;text-align:center}
-.occ-day:not(.is-off){background:color-mix(in srgb,var(--pro-accent, var(--q-accent)) 13%,transparent)}
-.occ-day > span{white-space:nowrap;max-width:100%}
-.occ-day-name{font-size:13px;font-weight:700;color:var(--q-muted)}
-.occ-day:not(.is-off) .occ-day-name{color:var(--pro-accent, var(--q-accent))}
-.occ-day-period{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
-.occ-day-time{font-size:12px;color:var(--q-muted);font-variant-numeric:tabular-nums;min-height:15px}
-.occ-day.is-off .occ-day-period{color:var(--q-muted);font-weight:500}
-.modal-sheet .split-info-card{border:0;border-radius:14px;background:var(--q-surface-2)}
-/* Inside the sheets: flat grouped boxes, as the kit's (no tinted gradients, no box in a box in a box). */
-.editor-sheet .editor-fold,.test-panel .editor-fold,.transfer-sheet .settings-transfer-box,.transfer-sheet .ocr-import-box{background:var(--q-surface-2)!important;border:0!important;border-radius:16px!important;box-shadow:none!important}
-.editor-sheet .editor-fold .ocr-import-box,.editor-sheet .editor-fold .toggle-row,.editor-sheet .editor-fold .schedule-grid > *{background:var(--q-surface)!important;border:0!important;box-shadow:none!important}
-.editor-drill-btn{background:var(--q-surface)!important;border:0!important;border-radius:999px!important;font-weight:700}
-.transfer-section-heading > span:first-child,.editor-sheet .transfer-section-heading > span:first-child{color:var(--q-text)}
-/* ---- iOS 26: the family's look on Class's own pieces (light: its glass stays) ----
-   Light at the rim, no outline rings: sheets and the welcome card
-   lose their 1px ring for the kit's rim; what sits in a sheet (rows, folds,
-   the welcome card's choices, fields) is iOS's grey fill; text buttons are
-   capsules, icon buttons circles. Borders go transparent, never 0, so a
-   focused field's ring still shows; kit tokens each have a fallback. */
-:root{--action-btn-radius:999px}
-.modal-sheet,.editor-confirm-sheet,.orbit-welcome,.test-panel,.editor-sheet,.assign-sheet{border-color:transparent;box-shadow:var(--q-glass-rim,none),var(--q-shadow)}
-.editor-fold,.toggle-row,.orbit-welcome-choice,.qp-card,.editor-close,.editor-drill-btn,.editor-back-btn{border-color:transparent;background:var(--q-fill,var(--q-surface-2))}
-.editor-input,.time-input,.sync-input,.settings-transfer-text,.period-select,.test-panel select,.test-panel input[type="number"]{border-color:transparent;background-color:var(--q-fill,var(--q-surface))}
-.editor-close{border-radius:50%}
-.editor-back-btn{border-radius:999px}
-.orbit-welcome-choice:active,.editor-close:active,.editor-back-btn:active{transform:scale(.97);transition:transform .3s var(--q-spring,ease)}
-/* ==== On the kit's iOS 27 design (Shared-Proxy kit/quadra.css) ====
-   Class's own pieces drawn as the kit's: capsule buttons at iOS's large
-   size, the sheets' deep corners, the kit's springs for every movement, and
-   iOS 26's switch (the kit's .q-switch, in Class's .toggle-switch markup). */
+/* ---- 1. The app's colour and the page ---- */
 :root {
-  --action-btn-h: 50px;
-  --action-btn-radius: 999px;
-  --action-btn-font: 17px;
-  --ease-glass: var(--q-ease);
-  --ease-liquid: var(--q-spring-bouncy);
-  --orbit-radius-lg: var(--q-r-card);
+  --q-accent: #0284c7;
+  --q-accent-ink: #ffffff;
+  --cx-cell-h: 46px;
 }
-.modal-sheet {
-  border-radius: var(--q-r-sheet);
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --q-accent: #38bdf8;
+    --q-accent-ink: #062a40;
+  }
 }
-.toggle-switch {
-  width: 64px;
-  height: 28px;
+:root[data-theme='dark'] {
+  --q-accent: #38bdf8;
+  --q-accent-ink: #062a40;
+}
+
+.cx-panel {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 var(--q-margin, 16px) calc(var(--q-nav, 0px) + 32px);
+}
+.cx-panel[hidden] {
+  display: none;
+}
+.cx-glyph {
+  display: inline-grid;
+  place-items: center;
+}
+.cx-glyph svg {
+  width: 16px;
+  height: 16px;
+}
+.cx-sec[hidden] {
+  display: none;
+}
+.cx-more {
+  white-space: nowrap;
+}
+/* A grey tile (a day off, an event over, the simulation). */
+.q-tile.cx-gray {
+  --t: var(--q-gray);
+}
+/* A tile on the hero: frosted white, the glyph white. */
+.q-tile.cx-glass {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.3);
+}
+.cx-foot-line {
+  margin: 8px 4px 0;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.cx-foot-line:empty {
+  display: none;
+}
+.cx-status {
+  margin: 8px 4px 0;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.cx-status:empty {
+  display: none;
+}
+.cx-status.error,
+.cx-status.is-error {
+  color: var(--q-red);
+}
+/* A split week's or 調課's tag beside a class name. */
+.week-label {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--t, var(--q-accent)) 16%, transparent);
+  color: var(--t, var(--q-accent));
+  font: 600 11px/1 var(--q-font);
+  white-space: nowrap;
+}
+.week-label.label-odd {
+  --t: var(--q-indigo);
+}
+.week-label.label-even {
+  --t: var(--q-teal);
+}
+.week-label.label-swap {
+  --t: var(--q-orange);
+}
+/* The time simulation running: a strip at the top says so. */
+.test-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 70;
+  display: none;
+  padding: calc(var(--q-top, 0px) + 2px) 8px 4px;
+  background: var(--q-orange);
+  color: #fff;
+  font: 700 12px/16px var(--q-font);
+  text-align: center;
+}
+body.testing .test-banner {
+  display: block;
+}
+/* (The page hidden while away: nothing to animate.) */
+body.orbit-motion-paused * {
+  animation-play-state: paused !important;
+}
+
+/* ---- 2. 今天 ---- */
+/* The hero: the class now (or next, or the day's state). */
+.cx-hero {
+  gap: 12px;
+  padding: 16px 16px 14px;
+  cursor: pointer;
+}
+.cx-hero:focus-visible {
+  outline: 2px solid var(--q-accent);
+  outline-offset: 3px;
+}
+.cx-hero[data-mode='off'] {
+  cursor: default;
+}
+.cx-hero[data-mode='break'] {
+  --q-hc-b: color-mix(in srgb, var(--q-accent) 80%, var(--q-teal));
+}
+.cx-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.cx-hero-top .q-hc-eyebrow {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+#cx-kicker:empty {
+  display: none;
+}
+.cx-span {
+  flex: none;
+  font: 600 13px/1 var(--q-font);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+.cx-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.cx-hero-words {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.cx-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 700 26px/31px var(--q-font);
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.cx-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font: var(--q-t-subhead);
+}
+.cx-meta[hidden],
+.cx-meta > :empty {
+  display: none;
+}
+.cx-meta > #now-teacher:not(:empty) ~ #now-place:not(:empty)::before {
+  content: '· ';
+}
+.cx-meta .week-label {
+  --t: #fff;
+  background: rgba(255, 255, 255, 0.2);
+}
+.cx-timer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.cx-timer .q-hc-big {
+  font-size: 44px;
+  line-height: 46px;
+}
+#timer-label {
+  font: 600 15px/1 var(--q-font);
+  opacity: 0.85;
+}
+.cx-bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+}
+.cx-bar[hidden] {
+  display: none;
+}
+.cx-bar > i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: #fff;
+  transition: width 0.6s linear;
+}
+/* Its foot: what comes after, in a frosted strip. */
+.cx-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  margin-top: 2px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.cx-foot[hidden] {
+  display: none;
+}
+.cx-foot-icon:empty {
+  display: none;
+}
+.cx-foot-words {
+  flex: 1;
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.cx-foot-words small,
+.cx-foot-end small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.78);
+  font: 500 12px/16px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-foot-words b {
+  overflow: hidden;
+  font: 600 16px/21px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-foot-end {
+  flex: none;
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  max-width: 45%;
+}
+.cx-foot-end b {
+  font: 700 17px/21px var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+}
+.cx-foot-note {
+  display: none;
+  margin: 0;
+  font: 500 15px/20px var(--q-font);
+}
+.cx-foot[data-kind='note'] > :not(.cx-foot-note) {
+  display: none;
+}
+.cx-foot[data-kind='note'] .cx-foot-note {
+  display: block;
+}
+
+/* A day's classes: a tile, the name, teacher · room, start over end. */
+.cx-day .row {
+  min-height: 62px;
+}
+.cx-row-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.cx-row-title .q-ritem-title {
+  min-width: 0;
+}
+.cx-time {
+  flex: none;
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.cx-time b {
+  font: 600 16px/20px var(--q-font-rounded);
+}
+.cx-time small {
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+/* A named break between two classes: a quiet line in the card. */
+.q-ritem.cx-gap {
+  justify-content: space-between;
+  min-height: 32px;
+  padding: 4px 12px 4px 64px;
+  color: var(--q-label-2);
+  font: 500 13px/18px var(--q-font);
+  font-variant-numeric: tabular-nums;
+}
+.row.is-empty {
+  min-height: 64px;
+}
+
+/* 倒數: a rail of cards, the days to go in large type. */
+.cx-cds {
+  --q-rail-w: 156px;
+}
+.cx-cd {
   border: 0;
-  border-radius: 999px;
-  background: var(--q-fill-1);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  transition: background-color 0.3s;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.toggle-switch::after {
-  width: 38px;
-  height: 24px;
-  top: 2px;
-  left: 2px;
-  border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14), 0 0.5px 1px rgba(0, 0, 0, 0.08);
-  transition: transform var(--q-dur-bouncy) var(--q-spring-bouncy), width var(--q-dur-snappy) var(--q-spring-snappy);
+.cx-cd-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
-.toggle-switch:active::after {
+.cx-cd-top small {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: 600 12px/16px var(--q-font);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-cd-name {
+  overflow: hidden;
+  margin-top: 4px;
+  font: 600 15px/20px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-cd-big {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-height: 36px;
+}
+.cx-cd-big b {
+  font: 700 32px/36px var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.cx-cd-big small {
+  color: var(--q-label-2);
+  font: 600 14px/1 var(--q-font);
+}
+.cx-cd-big em {
+  align-self: center;
+  color: var(--q-accent);
+  font: 700 18px/24px var(--q-font);
+  font-style: normal;
+}
+.cx-cd.is-over {
+  opacity: 0.6;
+}
+.cx-cd.is-over .cx-cd-big em {
+  color: var(--q-label-2);
+}
+
+/* ---- 3. 課表 ---- */
+.cx-week-switch {
+  margin: 0 0 12px;
+}
+.cx-grid-card {
+  padding: 12px 10px;
+  border-radius: 20px;
+  background: var(--q-surface);
+}
+.cx-tl-grid {
+  display: grid;
+  grid-template-columns: 34px repeat(var(--days, 5), minmax(0, 1fr));
+  gap: 4px;
+}
+.cx-tl-day {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 2px 0 6px;
+  border: 0;
+  background: none;
+  color: var(--q-label);
+  font: inherit;
+  cursor: pointer;
+}
+.cx-tl-day small {
+  color: var(--q-label-2);
+  font: 600 12px/16px var(--q-font);
+}
+.cx-tl-day b {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font: 600 17px/1 var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+}
+.cx-tl-day.is-today small {
+  color: var(--q-accent);
+}
+.cx-tl-day.is-today b {
+  background: var(--q-accent);
+  color: var(--q-accent-ink);
+}
+.cx-tl-day.is-off b {
+  color: var(--q-red);
+}
+.cx-tl-row {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: var(--cx-cell-h);
+}
+.cx-tl-num {
+  font: 700 15px/18px var(--q-font-rounded);
+}
+.cx-tl-row small {
+  color: var(--q-label-3);
+  font: 500 10px/12px var(--q-font);
+  font-variant-numeric: tabular-nums;
+}
+.cx-tl-cell {
+  --subject: var(--q-accent);
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: var(--cx-cell-h);
+  padding: 0 2px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--subject) 18%, transparent);
+  color: color-mix(in srgb, var(--subject) 70%, var(--q-label));
+  font: 600 14px/17px var(--q-font);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: clip;
+  cursor: pointer;
+}
+.cx-tl-cell.is-long {
+  font-size: 12px;
+  letter-spacing: -0.03em;
+}
+.cx-tl-cell.is-pair {
+  align-content: center;
+  gap: 0;
+  font-size: 13px;
+  line-height: 15px;
+}
+.cx-tl-cell.is-pair > span {
+  display: block;
+}
+.cx-tl-cell.is-now {
+  background: var(--subject);
+  color: #fff;
+  box-shadow: 0 6px 14px -8px var(--subject);
+}
+.cx-tl-cell.is-swap {
+  box-shadow: inset 0 0 0 1.5px var(--q-orange);
+}
+.cx-tl-cell.is-empty {
+  background: var(--q-fill-4);
+  cursor: default;
+}
+.cx-tl-cell.is-off {
+  background: none;
+}
+.cx-tl-offs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 2px 0;
+}
+.cx-tl-empty {
+  margin: 0;
+  padding: 24px 8px;
+  color: var(--q-label-2);
+  font: var(--q-t-subhead);
+  text-align: center;
+}
+/* 調課 to come: both sides on one row. */
+.cx-swap-sides {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+.cx-swap-side {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.cx-swap-side b {
+  overflow: hidden;
+  font: 600 15px/20px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-swap-side small {
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  white-space: nowrap;
+}
+.cx-swap-side + .cx-swap-side {
+  padding-left: 8px;
+  border-left: var(--q-hairline) solid var(--q-sep);
+}
+
+/* ---- 4. 工具 ---- */
+.cx-tools-hero {
+  gap: 12px;
+}
+.cx-figs-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  min-width: 0;
+}
+.cx-fig {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cx-fig b {
+  font: 700 34px/38px var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.cx-fig small {
+  color: rgba(255, 255, 255, 0.8);
+  font: 600 13px/18px var(--q-font);
+}
+.cx-fig + .cx-fig b {
+  font-size: 26px;
+}
+
+/* ---- 5. Sheets: up from the foot, as the kit's, for the app's own panels ---- */
+.cx-dim,
+.editor-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--q-dim);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+:is(.cx-dim, .editor-confirm-overlay).show {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+.cx-sheet,
+.assign-sheet {
+  --q-surface: var(--q-sheet-cell, var(--q-grouped-2));
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  width: min(520px, calc(100vw - 16px));
+  max-height: min(calc(100dvh - var(--q-top, 0px) - 24px), 900px);
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: var(--q-r-sheet);
+  background: var(--q-sheet);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+  color: var(--q-label);
+  font-family: var(--q-font);
+  transform: translateY(calc(100% + 24px));
+  visibility: hidden;
+  transition: transform 0.42s var(--q-ease), visibility 0s linear 0.42s;
+}
+:is(.cx-sheet, .assign-sheet).show {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform 0.42s var(--q-ease);
+}
+.cx-sheet.is-tall {
+  height: min(calc(100dvh - var(--q-top, 0px) - 24px), 900px);
+}
+/* The grabber; dragged down, the sheet closes (src/sheet-drag.js). */
+.test-panel-handle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 5;
+  width: 80px;
+  height: 18px;
+  transform: translateX(-50%);
+  cursor: grab;
+  touch-action: none;
+}
+.test-panel-handle::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 22px;
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--q-label-3);
+  transition: width 0.2s;
+}
+.test-panel-handle.is-dragging::after {
+  left: 18px;
   width: 44px;
 }
-.toggle-switch.on {
-  background: var(--q-green);
-  border-color: transparent;
+.cx-sheet-head {
+  flex: none;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 12px 10px;
+  background: var(--q-sheet);
 }
-.toggle-switch.on::after {
+.cx-sheet-head > h2,
+.cx-sheet-words h2 {
+  margin: 0;
+  overflow: hidden;
+  font: var(--q-t-headline);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-sheet-head > h2,
+.cx-sheet-words.is-center {
+  text-align: center;
+}
+.cx-sheet-head > :last-child {
+  justify-self: end;
+}
+.cx-sheet-words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cx-sheet-words p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-sheet-words p:empty {
+  display: none;
+}
+/* A head led by its picture (a class, a day): picture, name and line, ✕. */
+.cx-sheet-head-lead {
+  grid-template-columns: auto minmax(0, 1fr) 36px;
+  gap: 12px;
+  padding: 22px 16px 8px;
+}
+.cx-sheet-head-lead .cx-sheet-words h2 {
+  font: 700 22px/28px var(--q-font);
+}
+.cx-sheet-head-lead .cx-sheet-words p {
+  font: var(--q-t-subhead);
+}
+.cx-sheet-head-lead > .q-close {
+  align-self: start;
+}
+.cx-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 4px var(--q-margin, 16px) calc(16px + max(env(safe-area-inset-bottom, 0px) - 8px, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.cx-sheet-body > * + * {
+  margin-top: 12px;
+}
+.cx-sheet-h {
+  margin: 22px 4px 8px;
+  color: var(--q-label-2);
+  font: 600 13px/18px var(--q-font);
+}
+.cx-sheet-body > .cx-sheet-h {
+  margin-top: 22px;
+}
+.cx-sheet-body > .cx-sheet-h:first-child {
+  margin-top: 4px;
+}
+body:is(.modal-open, .editor-open, .transfer-open) {
+  overflow: hidden;
+}
+@media (min-width: 720px) {
+  .cx-sheet,
+  .assign-sheet {
+    bottom: 24px;
+  }
+}
+
+/* A class: its halves, its figures, its week, 調課. */
+.cx-halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cx-half {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--q-surface);
+}
+.cx-half small {
+  color: var(--q-label-2);
+  font: 600 12px/16px var(--q-font);
+}
+.cx-half strong {
+  overflow: hidden;
+  font: 600 17px/22px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-half span {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-half.is-this {
+  box-shadow: inset 0 0 0 2px var(--q-accent);
+}
+.cx-half.is-this small {
+  color: var(--q-accent);
+}
+.cx-figs {
+  gap: 8px;
+}
+.cx-figs .q-stat {
+  padding: 12px 14px;
+}
+.cx-figs .q-stat strong {
+  font-size: 20px;
+  line-height: 26px;
+}
+.cx-occ {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.occ-day {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 2px;
+  border-radius: 14px;
+  background: var(--q-accent-wash);
+  text-align: center;
+}
+.occ-day-name {
+  color: var(--q-label-2);
+  font: 600 12px/16px var(--q-font);
+}
+.occ-day-period {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--q-accent);
+  font: 700 13px/18px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.occ-day-time {
+  color: var(--q-label-2);
+  font: 500 11px/14px var(--q-font);
+  font-variant-numeric: tabular-nums;
+}
+.occ-day.is-off {
+  background: var(--q-surface);
+}
+.occ-day.is-off .occ-day-period {
+  color: var(--q-label-3);
+}
+.cx-swap-part {
+  margin-top: 20px;
+}
+.cx-swap-part .cx-foot-line {
+  margin: 0 4px 8px;
+}
+
+/* 調課: the period chosen, a date, that date's periods. */
+.swap-first {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--q-accent-wash);
+  color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.swap-first[hidden] {
+  display: none;
+}
+.swap-first-words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.swap-first-words small {
+  color: var(--q-label-2);
+  font: 600 13px/18px var(--q-font);
+}
+.swap-first-words strong {
+  overflow: hidden;
+  font: 600 17px/22px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.swap-first-change {
+  flex: none;
+  color: var(--q-accent);
+  font: 500 15px/1 var(--q-font);
+}
+.cx-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: var(--q-surface);
+  font: 500 16px/1 var(--q-font);
+}
+.cx-field-row input {
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--q-accent);
+  font: 500 16px/1 var(--q-font);
+  text-align: right;
+}
+.swap-slot {
+  width: 100%;
+}
+.swap-slot:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.swap-slot-when {
+  flex: none;
+  display: grid;
+  gap: 1px;
+  width: 64px;
+  font-variant-numeric: tabular-nums;
+}
+.swap-slot-when b {
+  font: 600 14px/18px var(--q-font);
+}
+.swap-slot-when span {
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.swap-slot-words {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.swap-slot-words strong {
+  overflow: hidden;
+  font: 600 16px/21px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.swap-slot.is-free .swap-slot-words strong {
+  color: var(--q-label-2);
+  font-weight: 500;
+}
+.swap-slot-words small {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.swap-note {
+  margin: 0;
+  padding: 16px 14px;
+  color: var(--q-label-2);
+  font: var(--q-t-subhead);
+}
+
+/* ---- The editor: one page per part, the timetable first ---- */
+.editor-sheet .cx-sheet-head {
+  grid-template-columns: 88px minmax(0, 1fr) 88px;
+}
+.editor-sheet .cx-save {
+  min-width: 64px;
+}
+.editor-fold {
+  margin: 0;
+}
+.editor-fold + .editor-fold {
+  margin-top: 12px;
+}
+.editor-fold-summary {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: var(--q-surface);
+  font: 600 16px/1 var(--q-font);
+  list-style: none;
+  cursor: pointer;
+}
+.editor-fold-summary::-webkit-details-marker {
+  display: none;
+}
+.editor-fold-body {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+}
+.editor-fold-body > .cx-foot-line {
+  margin-top: -4px;
+}
+/* Layered (editor-core.js): only the open page shows; the timetable page
+   under the sheet's own title, the others under theirs, large. */
+.editor-sheet.is-layered .editor-fold:not(.active) {
+  display: none;
+}
+.editor-sheet.is-layered .editor-fold + .editor-fold {
+  margin-top: 0;
+}
+.editor-sheet.is-layered #editor-fold-schedule > .editor-fold-summary {
+  display: none;
+}
+.editor-sheet.is-layered .editor-fold.active > .editor-fold-summary {
+  min-height: 0;
+  padding: 2px 4px 4px;
+  background: none;
+  font: var(--q-t-title1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: default;
+}
+.editor-sheet.is-layered .editor-fold-body {
+  padding-top: 8px;
+}
+/* ‹ 課表: over the head where the ✕ is, on a part's own page. */
+.editor-back-row {
+  position: absolute;
+  top: 18px;
+  left: 12px;
+  z-index: 4;
+}
+.editor-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 36px;
+  padding: 0 14px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--q-glass-strong);
+  box-shadow: var(--q-glass-rim), var(--q-glass-drop);
+  color: var(--q-accent);
+  font: 600 15px/1 var(--q-font);
+  cursor: pointer;
+}
+.editor-back-btn::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+.editor-sheet:has(.editor-fold.active:not(#editor-fold-schedule)) .editor-close {
+  visibility: hidden;
+}
+.editor-sheet:not(.is-layered) .editor-back-row {
+  display: none;
+}
+
+/* The timetable page: a day picker, then that day's periods by number. */
+.ed-days .q-seg {
+  margin: 0;
+}
+.schedule-grid {
+  padding: 8px 12px;
+  border-radius: 18px;
+  background: var(--q-surface);
+}
+#schedule-grid .schedule-day-row:not(.is-shown) {
+  display: none;
+}
+.schedule-day-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 0 8px;
+}
+#schedule-grid .schedule-day-label {
+  display: none;
+}
+.ed-nums,
+.schedule-periods {
+  display: grid;
+  grid-auto-rows: 44px;
+  gap: 6px;
+  padding: 2px 0;
+}
+.ed-nums > span {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  align-self: center;
+}
+.ed-nums b {
+  font: 700 17px/1 var(--q-font-rounded);
+}
+.ed-nums small {
+  color: var(--q-label-2);
+  font: 500 11px/1 var(--q-font);
+  font-variant-numeric: tabular-nums;
+}
+.period-select,
+.editor-input,
+.time-input,
+.order-position,
+.sim-fields select,
+.sim-time input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--q-fill-3);
+  color: var(--q-label);
+  font: 400 16px/1.2 var(--q-font);
+  box-sizing: border-box;
+  outline: 0;
+}
+.period-select,
+.sim-fields select {
+  width: 100%;
+  padding-right: 30px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238e8e93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  text-overflow: ellipsis;
+}
+:is(.period-select, .editor-input, .time-input, .order-position):focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--q-accent) 55%, transparent);
+}
+.editor-input {
+  width: 100%;
+}
+/* The photo import's assignment: every day, each a row of periods. */
+.schedule-grid.is-all {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+.schedule-grid.is-all .schedule-day-row {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.schedule-grid.is-all .schedule-day-label {
+  color: var(--q-label-2);
+  font: 600 13px/18px var(--q-font);
+}
+.schedule-grid.is-all .schedule-periods {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  grid-auto-rows: 40px;
+}
+.schedule-grid.is-all .period-select {
+  min-height: 40px;
+  padding: 0 24px 0 8px;
+  background-position: right 8px center;
+  font-size: 14px;
+}
+.toggle-row {
+  min-height: 52px;
+}
+.q-switch.on {
+  background: var(--q-green);
+}
+.q-switch.on::after {
   transform: translateX(22px);
 }
-.toggle-switch.on:active::after {
+.q-switch.on:is(:active, [data-q-press])::after {
   transform: translateX(16px);
 }
-/* ---- 調課 (src/swap.js): the class sheet's button, the swap sheet, 工具's list ---- */
-.m-swap{display:grid;gap:10px;margin:4px 0 8px}
-.m-swap[hidden],.m-swap-note[hidden]{display:none}
-.m-swap-note{margin:0 2px;color:var(--q-muted);font-size:14px;font-weight:600}
-.m-swap-btn{width:100%}
-.m-swap-btn.is-danger{background:var(--q-fill-2);color:var(--q-red)}
-.label-swap{background:color-mix(in srgb,var(--q-orange) 18%,transparent);color:var(--q-orange)}
-.swap-first{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border:0;border-radius:14px;background:var(--q-accent-wash);color:var(--q-text);font:inherit;text-align:left;cursor:pointer}
-.swap-first[hidden]{display:none}
-.swap-first-words{display:grid;gap:2px;min-width:0}
-.swap-first-words small{color:var(--q-muted);font-size:13px;font-weight:600}
-.swap-first-words strong{font-size:17px;font-weight:800;overflow-wrap:anywhere}
-.swap-first-change{flex:none;color:var(--q-accent);font-size:15px;font-weight:600}
-.swap-date{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin:0 0 12px;padding:0 14px;border-radius:14px;background:var(--q-sheet-cell,var(--q-surface));color:var(--q-text);font-size:16px;font-weight:600}
-.swap-date input{min-width:0;border:0;background:none;color:var(--q-accent);font:inherit;font-weight:600;text-align:right}
-.swap-periods{display:grid;border-radius:14px;background:var(--q-sheet-cell,var(--q-surface));overflow:hidden}
-.swap-slot{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:12px;min-height:52px;padding:10px 14px;border:0;border-bottom:1px solid var(--q-divider);background:none;color:var(--q-text);font:inherit;text-align:left;cursor:pointer}
-.swap-slot:last-child{border-bottom:0}
-.swap-slot:active:not(:disabled){background:var(--q-fill-2)}
-.swap-slot:disabled{opacity:.4;cursor:default}
-.swap-slot-when{display:grid;gap:1px;font-variant-numeric:tabular-nums}
-.swap-slot-when b{font-size:14px;font-weight:700}
-.swap-slot-when span{color:var(--q-muted);font-size:13px}
-.swap-slot-words{display:grid;gap:2px;min-width:0}
-.swap-slot-words strong{font-size:16px;font-weight:700;overflow-wrap:anywhere}
-.swap-slot.is-free .swap-slot-words strong{color:var(--q-muted);font-weight:600}
-.swap-slot-words small{color:var(--q-muted);font-size:13px;overflow-wrap:anywhere}
-.swap-note{margin:0;padding:16px 14px;color:var(--q-muted);font-size:15px}
-/* The transfer sheet opened for one thing: 拍照匯入 shows AI 匯入 alone,
-   分享金鑰 the Quadra Pass and the key alone. */
-#transfer-sheet[data-focus="photo"] #quadra-box,#transfer-sheet[data-focus="photo"] #sync-status,#transfer-sheet[data-focus="photo"] #test-mode-fold{display:none}
-#transfer-sheet[data-focus="key"] #ocr-import-box{display:none}
-/* 課表: which week's day is shown (單週 / 雙週, each with its date), and the
-   調課 still to come under the day; neither on 今天. */
-.cx-week-switch{margin:0 0 12px}
-.cx-week-switch:empty,body:not([data-tab="week"]) .cx-week-switch,body:not([data-tab="week"]) .cx-swaps-page{display:none}
-#editor-fold-ai #nl-edit-box{margin-top:0}
+
+/* A part's rows: a summary that opens to its fields (subjects, countdowns). */
+.teacher-card {
+  position: relative;
+}
+.teacher-card + .teacher-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 54px;
+  right: 0;
+  border-top: var(--q-hairline) solid var(--q-sep);
+}
+.countdown-event-row + .countdown-event-row::before {
+  left: 12px;
+}
+.bell-row + .bell-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 0;
+  border-top: var(--q-hairline) solid var(--q-sep);
+}
+.teacher-card.is-dragging {
+  z-index: 2;
+  background: var(--q-elevated);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
+}
+.teacher-card-summary,
+.bell-row {
+  box-sizing: border-box;
+}
+.teacher-card-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.teacher-avatar {
+  --avatar-hue: 210;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: hsl(var(--avatar-hue) 70% 52%);
+  color: #fff;
+  font: 700 15px/1 var(--q-font);
+}
+.teacher-summary-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 500 16px/21px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.teacher-order-actions {
+  flex: none;
+}
+.teacher-drag-handle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--q-label-3);
+  font-size: 16px;
+  cursor: grab;
+  touch-action: none;
+}
+.teacher-card-toggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--q-fill-3);
+  color: var(--q-label-2);
+  font: 600 14px/1 var(--q-font);
+  cursor: pointer;
+  transition: transform 0.25s var(--q-ease);
+}
+.teacher-card.is-expanded .teacher-card-toggle {
+  transform: rotate(180deg);
+}
+.teacher-card-body {
+  display: none;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+.teacher-card.is-expanded .teacher-card-body {
+  display: grid;
+}
+.teacher-card .teacher-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+.teacher-card .tc-subject {
+  grid-column: 1 / -1;
+}
+.teacher-card-body-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.order-position-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--q-label-2);
+  font: 500 14px/1 var(--q-font);
+}
+.order-position {
+  width: 64px;
+  text-align: center;
+}
+.teacher-card-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.teacher-assign {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--q-accent-wash);
+  color: var(--q-accent);
+  font: 600 14px/1 var(--q-font);
+  cursor: pointer;
+}
+.delete-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--q-red) 14%, transparent);
+  color: var(--q-red);
+  font: 500 20px/1 var(--q-font);
+  cursor: pointer;
+}
+.countdown-event-fields {
+  display: grid;
+  gap: 10px;
+}
+.countdown-event-fields label {
+  display: grid;
+  gap: 6px;
+  color: var(--q-label-2);
+  font: 600 13px/18px var(--q-font);
+}
+.countdown-date-range,
+.bell-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.countdown-date-range .editor-input,
+.bell-inputs .time-input {
+  flex: 1 1 0;
+  width: 0;
+  padding: 0 8px;
+  font-variant-numeric: tabular-nums;
+}
+.time-sep {
+  flex: none;
+  color: var(--q-label-3);
+  font: 500 14px/1 var(--q-font);
+}
+/* 節次時間 and 特殊時段: one row each. */
+.bell-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 8px 12px;
+}
+.bell-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--q-accent-wash);
+  color: var(--q-accent);
+  font: 700 15px/1 var(--q-font-rounded);
+}
+.bell-row > .bell-inputs,
+.bell-row > .teacher-fields,
+.bell-row > .countdown-event-fields {
+  flex: 1;
+  min-width: 0;
+}
+.break-row .teacher-fields {
+  display: grid;
+  gap: 8px;
+}
+.row-enter {
+  animation: q-rise var(--q-dur-smooth) var(--q-spring-smooth);
+}
+.ocr-import-class-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.ocr-import-class-card .teacher-avatar {
+  margin-top: 6px;
+}
+.ocr-import-class-card .teacher-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 排課: a teacher's periods across the week, from their card. */
+.assign-sheet {
+  z-index: 1011;
+}
+#assign-overlay {
+  z-index: 1010;
+}
+.assign-sheet {
+  padding: 0 var(--q-margin, 16px) calc(16px + max(env(safe-area-inset-bottom, 0px) - 8px, 0px));
+  overflow-y: auto;
+}
+.assign-sheet > .cx-sheet-head {
+  margin: 0 -4px;
+  padding-inline: 0;
+}
+.assign-sheet > * + * {
+  margin-top: 12px;
+}
+#assign-subtitle {
+  margin: 0 4px;
+}
+.assign-grid {
+  display: grid;
+  gap: 8px;
+}
+.assign-day-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+.assign-day-label {
+  color: var(--q-label-2);
+  font: 600 13px/1 var(--q-font);
+}
+.assign-periods {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 6px;
+}
+.assign-box {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 4px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  background: var(--q-fill-3);
+  color: var(--q-label);
+  font: 500 12px/15px var(--q-font);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.assign-box.occupied {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--q-accent) 50%, transparent);
+  color: var(--q-accent);
+}
+.assign-box.assigned {
+  background: color-mix(in srgb, var(--q-green) 20%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--q-green);
+  color: var(--q-green);
+  font-weight: 700;
+}
+
+/* AI: one sentence, in a pill on the app's colour. */
+.ed-ask {
+  gap: 12px;
+}
+.ed-ask-pill {
+  padding: 0 6px 0 16px;
+}
+.ed-ask-pill input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: 400 16px/1.2 var(--q-font);
+  outline: 0;
+}
+.ed-ask-pill input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+.ed-ask-send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--q-hc-b);
+  cursor: pointer;
+}
+.ed-ask-send .cx-glyph svg {
+  width: 18px;
+  height: 18px;
+}
+.ed-ask-send:disabled {
+  opacity: 0.5;
+}
+
+/* ---- 分享 and 拍照匯入: one sheet, opened for one of them ---- */
+#transfer-sheet[data-focus='photo'] :is(#quadra-box, #sync-status, #test-mode-fold) {
+  display: none;
+}
+#transfer-sheet[data-focus='key'] #ocr-import-box {
+  display: none;
+}
+.tr-key > .q-rowcard:first-child {
+  margin-bottom: 4px;
+}
+img.q-tile.tr-app {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  object-fit: contain;
+}
+.tr-keycard {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--q-surface);
+}
+.tr-keycard small {
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.tr-keycard-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sync-active-code {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--q-accent);
+  font: 700 28px/34px var(--q-font-mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.qp-key-row {
+  display: flex;
+  gap: 8px;
+}
+.qp-key-row .q-field {
+  flex: 1;
+  min-width: 0;
+  background: var(--q-surface);
+  font-family: var(--q-font-mono, ui-monospace, monospace);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.qp-key-row .q-btn {
+  flex: none;
+}
+.tr-more {
+  margin-top: 24px;
+}
+/* 拍照匯入: a big target to pick the pictures, then 匯入. */
+.tr-photo {
+  display: grid;
+  gap: 12px;
+}
+.tr-photo > * + * {
+  margin-top: 0;
+}
+.tr-pick {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 22px 16px;
+  border-radius: 20px;
+  background: var(--q-surface);
+  text-align: center;
+  cursor: pointer;
+}
+.tr-pick-tile {
+  --t: var(--q-orange);
+  margin-bottom: 4px;
+}
+.tr-pick strong {
+  color: var(--q-accent);
+  font: 600 17px/22px var(--q-font);
+}
+.tr-pick small {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tr-pick.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.tr-thumbs {
+  display: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.tr-thumbs.has-image {
+  display: flex;
+}
+.ocr-import-image-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.ocr-import-image-preview[hidden] {
+  display: none;
+}
+.tr-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.tr-photo > .cx-foot-line {
+  margin-top: -4px;
+  text-align: center;
+}
+.tr-eta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 6px 4px 0;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  font-variant-numeric: tabular-nums;
+}
+.tr-eta[hidden] {
+  display: none;
+}
+.tr-result {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+.tr-result[hidden] {
+  display: none;
+}
+.tr-result-head {
+  display: grid;
+  gap: 2px;
+  padding: 0 4px;
+}
+.tr-result-head strong {
+  font: var(--q-t-headline);
+}
+.tr-result-head small {
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.tr-warn {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--q-orange) 14%, transparent);
+  color: var(--q-label);
+  font: var(--q-t-footnote);
+}
+.tr-warn[hidden] {
+  display: none;
+}
+.tr-warn strong {
+  color: var(--q-orange);
+}
+.tr-warn ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.tr-result .editor-fold + .editor-fold {
+  margin-top: 0;
+}
+.tr-result .editor-fold[hidden] {
+  display: none;
+}
+/* Offline: the parts that need the network say so by fading. */
+:is(.transfer-sheet, .editor-sheet).is-offline :is(#ocr-import-box, #nl-edit-box) {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ---- 時間模擬 ---- */
+.test-panel {
+  z-index: 1021;
+}
+#test-panel-overlay {
+  z-index: 1020;
+}
+.sim-indicator {
+  color: var(--q-orange) !important;
+  font-weight: 600;
+}
+.sim-fields .q-ritem {
+  justify-content: space-between;
+  cursor: default;
+}
+.sim-fields select {
+  width: auto;
+  min-width: 96px;
+}
+.sim-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sim-time input {
+  width: 60px;
+  padding: 0 6px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+#test-time-slider {
+  flex: 1;
+  width: 100%;
+  accent-color: var(--q-accent);
+}
+#test-play-pause-btn.active {
+  background: var(--q-orange);
+}
+.sim-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.app-version {
+  flex: 1;
+  min-width: 0;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.test-update-status {
+  margin: 6px 4px 0;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.test-update-status:empty {
+  display: none;
+}
+.test-update-status.up-to-date {
+  color: var(--q-green);
+}
+.test-update-status.error {
+  color: var(--q-red);
+}
+
+/* ---- Over the sheets: the confirm alert, the saved toast ---- */
+#editor-confirm-overlay {
+  z-index: 1030;
+}
+.cx-alert {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 1031;
+  display: grid;
+  gap: 8px;
+  width: min(320px, calc(100vw - 48px));
+  max-height: calc(100dvh - 64px);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 20px 16px 16px;
+  overflow-y: auto;
+  border-radius: var(--q-r-alert, 28px);
+  background: var(--q-sheet);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+  color: var(--q-label);
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-50%) scale(1.06);
+  transition: opacity 0.2s, transform 0.25s var(--q-ease), visibility 0s linear 0.25s;
+}
+.cx-alert.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) scale(1);
+  transition: opacity 0.2s, transform 0.25s var(--q-ease);
+}
+.cx-alert h2 {
+  margin: 0;
+  font: var(--q-t-headline);
+}
+.cx-alert p {
+  margin: 0;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+.editor-import-diff {
+  max-height: 40dvh;
+  padding: 10px 12px;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: var(--q-fill-4);
+  color: var(--q-label-2);
+  font: 13px/18px var(--q-font);
+  text-align: left;
+  white-space: pre-wrap;
+}
+.editor-import-diff:empty {
+  display: none;
+}
+.editor-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.editor-confirm-actions.has-extra {
+  grid-template-columns: 1fr;
+}
+.editor-confirm-btn {
+  min-height: 46px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--q-fill-3);
+  color: var(--q-label);
+  font: 600 16px/1.2 var(--q-font);
+  cursor: pointer;
+}
+.editor-confirm-btn.primary {
+  background: var(--q-accent);
+  color: var(--q-accent-ink);
+}
+.editor-confirm-btn.danger {
+  color: var(--q-red);
+}
+.editor-confirm-btn[hidden],
+#editor-confirm-extra-btn:empty {
+  display: none;
+}
+.save-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--q-nav, 0px) + 24px + env(safe-area-inset-bottom, 0px));
+  z-index: 1040;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--q-glass-strong);
+  -webkit-backdrop-filter: var(--q-glass-blur);
+  backdrop-filter: var(--q-glass-blur);
+  box-shadow: var(--q-glass-rim), var(--q-glass-drop);
+  color: var(--q-label);
+  font: 600 15px/20px var(--q-font);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity 0.25s, transform 0.3s var(--q-ease);
+}
+.save-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---- 6. The welcome on a first open: three ways to get a timetable ---- */
+.orbit-welcome {
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--q-r-sheet);
+  background: var(--q-sheet);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+  color: var(--q-label);
+}
+.orbit-welcome::backdrop {
+  background: var(--q-dim);
+}
+.orbit-welcome-box {
+  --q-surface: var(--q-sheet-cell, var(--q-grouped-2));
+  display: grid;
+  gap: 8px;
+  padding: 24px 16px 16px;
+}
+.orbit-welcome-kicker {
+  margin: 0 4px;
+  color: var(--q-accent);
+  font: 700 12px/16px var(--q-font);
+  letter-spacing: 0.08em;
+}
+.orbit-welcome-title {
+  margin: 0 4px;
+  font: var(--q-t-title2);
+  font-weight: 700;
+}
+.orbit-welcome-lede {
+  margin: 0 4px 8px;
+  color: var(--q-label-2);
+  font: var(--q-t-subhead);
+}
+.orbit-welcome-choice {
+  width: 100%;
+}
+.orbit-welcome-later {
+  min-height: 44px;
+  margin-top: 4px;
+  border: 0;
+  background: none;
+  color: var(--q-accent);
+  font: 500 16px/1 var(--q-font);
+  cursor: pointer;
+}
+
+/* A narrow phone (320): the grid's numbers and the hero's timer a step smaller. */
+@media (max-width: 359px) {
+  .cx-tl-grid {
+    grid-template-columns: 28px repeat(var(--days, 5), minmax(0, 1fr));
+    gap: 3px;
+  }
+  .cx-grid-card {
+    padding: 10px 8px;
+  }
+  .cx-tl-row small {
+    display: none;
+  }
+  .cx-tl-cell {
+    font-size: 13px;
+  }
+  .cx-tl-cell.is-long,
+  .cx-tl-cell.is-pair {
+    font-size: 11px;
+  }
+  .cx-title {
+    font-size: 23px;
+    line-height: 28px;
+  }
+  .cx-timer .q-hc-big {
+    font-size: 40px;
+  }
+  .cx-figs-row {
+    gap: 16px;
+  }
+  .cx-occ {
+    gap: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-sheet,
+  .assign-sheet,
+  .cx-alert,
+  .save-toast {
+    transition: none;
+  }
+}
+
+/* A phone: times and dates without the desktop picker's icon (iOS draws
+   none; a tap opens its own wheel), so a whole time fits beside its pair. */
+@media (max-width: 600px) {
+  :is(.time-input, .countdown-date-range .editor-input)::-webkit-calendar-picker-indicator {
+    display: none;
+  }
+  :is(.time-input, .countdown-date-range .editor-input) {
+    text-align: center;
+  }
+}

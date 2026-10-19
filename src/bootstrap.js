@@ -2,9 +2,7 @@
 // Boot sequence: load settings, build the schedule, start the per-second
 // clock. Runs once every other module has finished defining its functions -
 // see main.js for why import order matters here.
-import { setStyleMode } from './appearance.js';
-import { syncTestToolbar } from './dashboard.js';
-import { mainClockTick, syncTestPlayPauseUi } from './dashboard-render.js';
+import { mainClockTick, syncTestPlayPauseUi } from './dashboard.js';
 import { loadData } from './data.js';
 import { applyStaticTranslations } from './i18n-dom.js';
 import { showOnboardingPrompt } from './onboarding.js';
@@ -53,14 +51,8 @@ applyStaticTranslations();
 // work with.
 state.applicationData = loadData();
 buildSchedule();
-try {
-  setStyleMode();
-} catch {
-  // Best-effort: a failure here (e.g. the DOM not being ready yet) shouldn't block boot.
-}
 setInterval(mainClockTick, 1000);
 syncTestPlayPauseUi();
-syncTestToolbar();
 window.update();
 renderSyncPanel();
 if (!gated) startSyncLoop();

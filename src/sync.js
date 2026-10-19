@@ -274,14 +274,16 @@ async function startQuadraOnce() {
       }).then(() => localDirty && pushSyncSnapshot({ mine: false }));
     else if (first?.payload)
       await serial(async () => {
-        if ((await applyPayload(first.payload, t('sync.syncedFromOtherDevice'))) !== DEFERRED) setBase(first.payload);
+        if ((await applyPayload(first.payload, t('sync.syncedFromOtherDevice'))) !== DEFERRED)
+          setBase(first.payload);
       });
     else if (!first?.offline && 'payload' in (first || {})) {
       setBase('');
       if (hasSavedSchedule()) await pushSyncSnapshot();
     }
   } catch (error) {
-    if (error.code !== 'ECO_SESSION_MOVED') setSyncStatusUi(t('sync.downloadFailed', { message: failText(error) }), true);
+    if (error.code !== 'ECO_SESSION_MOVED')
+      setSyncStatusUi(t('sync.downloadFailed', { message: failText(error) }), true);
   }
   renderSyncPanel();
 }
@@ -385,10 +387,10 @@ function el(tag, props = {}, children = []) {
   for (const child of [].concat(children)) if (child != null && child !== false) node.append(child);
   return node;
 }
-const btn = (text, onclick, primary = false) =>
+const btn = (text, onclick, primary = false, cls = '') =>
   el('button', {
     type: 'button',
-    class: `settings-transfer-btn${primary ? ' primary' : ''}`,
+    class: `settings-transfer-btn q-btn ${primary ? 'primary' : 'tinted'}${cls ? ` ${cls}` : ''}`,
     text,
     onclick
   });
@@ -421,47 +423,46 @@ function renderSyncPanel() {
         hour12: false
       })
     : '';
-  box.replaceChildren(
-    el('div', { class: 'transfer-section-heading' }, [
-      el('span', { text: 'Quadra Pass' }),
-      el('span', { class: 'transfer-section-tag', text: t('quadra.tag') })
-    ]),
-    el('div', { class: 'qp-card' }, [
-      el('img', { class: 'qp-icon', src: './favicon.svg', alt: '' }),
-      el('div', { class: 'qp-card-text' }, [
-        el('strong', { text: q.pass ? t('quadra.signedIn') : t('quadra.signedOut') }),
-        el('span', { text: t('quadra.hint') })
+  // The Pass that keeps the timetable, then the share key both ways.
+  const pass = el('div', { class: 'q-rowcard' }, [
+    el('div', { class: 'q-ritem' }, [
+      el('img', { class: 'q-tile tr-app', src: './favicon.svg', alt: '' }),
+      el('span', { class: 'q-ritem-text' }, [
+        el('span', {
+          class: 'q-ritem-title',
+          text: q.pass ? t('quadra.signedIn') : t('quadra.signedOut')
+        }),
+        el('small', { text: t('quadra.hint') })
       ]),
       el('button', {
         type: 'button',
-        class: 'settings-transfer-btn qp-account',
+        class: 'q-btn small tinted',
         text: t('quadra.account'),
         onclick: () => accountSheet(q)
       })
-    ]),
-    el('div', { class: 'qp-section' }, [
-      el('div', { class: 'qp-section-title', text: t('quadra.shareTitle') }),
-      el('div', { class: 'editor-hint-body', text: t('quadra.shareHint') }),
-      shared
-        ? el('div', { class: 'sync-code-row' }, [
-            el('div', { class: 'sync-code-row-label', text: t('quadra.keyLabel', { time: when }) }),
-            el('div', { class: 'sync-code-row-value' }, [
-              el('div', { class: 'sync-active-code', text: shared.key }),
-              btn(t('common.copy'), copyKey)
-            ])
-          ])
-        : null,
-      el('div', { class: 'settings-transfer-actions' }, [
-        btn(t(shared ? 'quadra.newKey' : 'quadra.makeKey'), createShareKey, !shared)
+    ])
+  ]);
+  const key = shared
+    ? el('div', { class: 'tr-keycard' }, [
+        el('small', { text: t('quadra.keyLabel', { time: when }) }),
+        el('div', { class: 'tr-keycard-row' }, [
+          el('strong', { class: 'sync-active-code', text: shared.key }),
+          btn(t('common.copy'), copyKey, false, 'small')
+        ])
       ])
-    ]),
-    el('div', { class: 'qp-section' }, [
-      el('div', { class: 'qp-section-title', text: t('quadra.receiveTitle') }),
-      el('div', { class: 'editor-hint-body', text: t('quadra.receiveHint') }),
+    : null;
+  box.replaceChildren(
+    ...[
+      pass,
+      el('h3', { class: 'cx-sheet-h', text: t('quadra.shareTitle') }),
+      key,
+      btn(t(shared ? 'quadra.newKey' : 'quadra.makeKey'), createShareKey, !shared, 'large block'),
+      el('p', { class: 'cx-foot-line', text: t('quadra.shareHint') }),
+      el('h3', { class: 'cx-sheet-h', text: t('quadra.receiveTitle') }),
       el('div', { class: 'qp-key-row' }, [
         el('input', {
           id: 'quadra-key',
-          class: 'settings-transfer-text sync-input',
+          class: 'q-field',
           type: 'text',
           autocapitalize: 'characters',
           autocomplete: 'off',
@@ -470,8 +471,9 @@ function renderSyncPanel() {
           placeholder: t('quadra.keyPlaceholder')
         }),
         btn(t('quadra.copy'), redeemKey, true)
-      ])
-    ])
+      ]),
+      el('p', { class: 'cx-foot-line', text: t('quadra.receiveHint') })
+    ].filter(Boolean)
   );
   restore();
 }
@@ -487,7 +489,8 @@ function clearSyncInputFields() {
 // "from Class": "安全教育與傷害防護 10 分鐘後…" was cut), when it starts
 // first in the body, which wraps: "10 分鐘後上課 · 14:00 · 李榮哲 · 314 教室".
 const soonTitle = name => name;
-const soonBody = (meta, lead = 5) => [lang === 'en' ? `In ${lead} minutes` : `${lead} 分鐘後上課`, meta].filter(Boolean).join(' · ');
+const soonBody = (meta, lead = 5) =>
+  [lang === 'en' ? `In ${lead} minutes` : `${lead} 分鐘後上課`, meta].filter(Boolean).join(' · ');
 function notifyClassSoon({ tag, name, meta, lead }) {
   notify(q, {
     title: soonTitle(name),
