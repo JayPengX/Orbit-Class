@@ -425,7 +425,7 @@ function renderSyncPanel() {
     : '';
   // The Pass that keeps the timetable, then the share key both ways.
   const pass = el('div', { class: 'q-rowcard' }, [
-    el('div', { class: 'q-ritem' }, [
+    el('div', { class: 'q-ritem tr-pass' }, [
       el('img', { class: 'q-tile tr-app', src: './favicon.svg', alt: '' }),
       el('span', { class: 'q-ritem-text' }, [
         el('span', {

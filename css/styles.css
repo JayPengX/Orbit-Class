@@ -1940,3 +1940,7 @@ img.q-tile.tr-app {
     text-align: center;
   }
 }
+/* The Pass row in the key sheet: its words wrap at 320 rather than cut. */
+.tr-pass .q-ritem-title { white-space: normal; overflow: visible; text-overflow: clip; }
+.tr-pass .q-ritem-text small { display: block; overflow: visible; -webkit-line-clamp: unset; }
+
