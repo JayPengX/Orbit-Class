@@ -156,7 +156,7 @@ function update() {
   const hero = heroView(viewModel, { now, week, todaySchedule, nextDay, holiday });
   // What a tap on the card opens: the class it shows.
   heroTarget = viewModel.curIdx >= 0 ? todaySchedule[viewModel.curIdx] : hero.subject && viewModel.nxtIdx >= 0 ? todaySchedule[viewModel.nxtIdx] : null;
-  renderHero(hero);
+  renderHero(hero, week);
 
   // As the break before a class starts (five minutes before, after a long
   // one): a notice (once per class; not in test mode), only in its own

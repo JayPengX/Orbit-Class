@@ -22,7 +22,7 @@ const $ = id => document.getElementById(id);
 function heroDom() {
   if (dom) return dom;
   dom = {};
-  for (const id of ['cx-hero', 'cx-kicker', 'cx-span', 'now-name', 'cx-meta', 'now-teacher', 'now-place', 'now-class-label', 'timer-group', 'timer-val', 'timer-label', 'cx-bar', 'cx-fill', 'cx-foot', 'next-label', 'next-name', 'next-time', 'next-sub', 'next-note', 'cx-icon', 'cx-glyph', 'next-icon']) dom[id] = $(id);
+  for (const id of ['cx-hero', 'cx-kicker', 'cx-span', 'now-name', 'cx-meta', 'now-teacher', 'now-place', 'now-class-label', 'timer-group', 'timer-val', 'timer-label', 'cx-bar', 'cx-fill', 'cx-foot', 'next-label', 'next-name', 'next-time', 'next-sub', 'next-note', 'cx-icon', 'cx-glyph', 'cx-week', 'next-icon']) dom[id] = $(id);
   return dom;
 }
 // Last-drawn values: the card is asked every second, but only the time left
@@ -35,11 +35,17 @@ function put(key, value, write) {
 }
 const GLYPH = { class: 'clock', break: 'bell', before: 'clock', off: 'moon' };
 
-export function renderHero(hero) {
+export function renderHero(hero, week = '') {
   const d = heroDom();
   if (!d['cx-hero']) return;
   put('mode', hero.mode, v => (d['cx-hero'].dataset.mode = v));
   put('glyph', hero.mode, v => (d['cx-glyph'].innerHTML = glyph(GLYPH[v] || 'clock')));
+  put('week', week, v => {
+    d['cx-week'].hidden = !v;
+    d['cx-week'].textContent = v ? t(v === '單' ? 'week.odd' : 'week.even') : '';
+    d['cx-week'].classList.toggle('label-odd', v === '單');
+    d['cx-week'].classList.toggle('label-even', v === '雙');
+  });
   put('kicker', hero.kicker, v => (d['cx-kicker'].textContent = v));
   put('span', hero.span, v => (d['cx-span'].textContent = v));
   put('title', hero.title, v => (d['now-name'].textContent = v));

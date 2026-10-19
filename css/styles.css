@@ -29,6 +29,9 @@
   --q-accent-ink: #062a40;
 }
 
+body {
+  margin: 0;
+}
 .cx-panel {
   max-width: 640px;
   margin: 0 auto;
@@ -147,6 +150,22 @@ body.orbit-motion-paused * {
   justify-content: space-between;
   gap: 8px;
   min-width: 0;
+}
+.cx-hero-lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cx-hero-lead .cx-week {
+  --t: #fff;
+  min-height: 22px;
+  padding: 0 8px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+}
+.cx-week[hidden] {
+  display: none;
 }
 .cx-hero-top .q-hc-eyebrow {
   min-width: 0;
@@ -277,6 +296,11 @@ body.orbit-motion-paused * {
   gap: 1px;
   max-width: 45%;
 }
+@media (max-width: 360px) {
+  .cx-foot-end small {
+    display: none;
+  }
+}
 .cx-foot-end b {
   font: 700 17px/21px var(--q-font-rounded);
   font-variant-numeric: tabular-nums;
@@ -335,7 +359,7 @@ body.orbit-motion-paused * {
 
 /* 倒數: a rail of cards, the days to go in large type. */
 .cx-cds {
-  --q-rail-w: 156px;
+  --q-rail-w: 176px;
 }
 .cx-cd {
   border: 0;
