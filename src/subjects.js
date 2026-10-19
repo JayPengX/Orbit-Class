@@ -1,3 +1,4 @@
+import * as kitUI from '#kit/ui.mjs';
 // ---- src/subjects.js ----
 // Every subject's picture: an icon and a colour, from its name (Traditional
 // Chinese first, English too), as the family gives every team its logo and
@@ -96,22 +97,27 @@ export function picture(name) {
   return P[name] ? svg(P[name]) : '';
 }
 
+// A kit tile (kitUI.tile) around a glyph's svg; drawn by hand on a cached kit without it.
+function makeTile(html, color, size, glass) {
+  const tile = document.createElement('span');
+  tile.className = `q-tile${size ? ` ${size}` : ''}${glass ? ' cx-glass' : ''}`;
+  if (color) tile.style.setProperty('--t', color);
+  tile.setAttribute('aria-hidden', 'true');
+  tile.innerHTML = html;
+  if (typeof kitUI.tile === 'function') {
+    const k = kitUI.tile(tile.firstElementChild ?? '', color, size);
+    if (glass) k.classList.add('cx-glass');
+    return k;
+  }
+  return tile;
+}
 // The subject's picture as a kit tile (.q-tile): its colour, the glyph in
 // white; `size` '' | 'sm' | 'lg'. `glass` sits it on the hero card (white on a wash).
 export function subjectTile(name, size = '', glass = false) {
   const look = subjectLook(name);
-  const tile = document.createElement('span');
-  tile.className = `q-tile${size ? ` ${size}` : ''}${glass ? ' cx-glass' : ''}`;
-  tile.style.setProperty('--t', look.color);
-  tile.setAttribute('aria-hidden', 'true');
-  tile.innerHTML = look.icon;
-  return tile;
+  return makeTile(look.icon, look.color, size, glass);
 }
 // A class-less picture as a kit tile: a break's cup, a day over the moon.
 export function stateTile(mode, size = '', glass = false) {
-  const tile = document.createElement('span');
-  tile.className = `q-tile${size ? ` ${size}` : ''}${glass ? ' cx-glass' : ''}`;
-  tile.setAttribute('aria-hidden', 'true');
-  tile.innerHTML = svg(P[mode === 'break' ? 'cup' : 'moon']);
-  return tile;
+  return makeTile(svg(P[mode === 'break' ? 'cup' : 'moon']), '', size, glass);
 }

@@ -65,9 +65,32 @@ function tileNode(icon, color) {
   return node;
 }
 
+// The welcome as the kit's sheet: a lead line, the three ways in as numbered
+// rows (kit tiles), a sticky 稍後 at the foot. An older cached kit: the card below.
+function showKitWelcome() {
+  if (typeof kitUI.sheet !== 'function') return false;
+  const lead = el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') });
+  const rows = CHOICES.map(([id, icon, color, go], i) =>
+    el('button', { class: 'orbit-welcome-choice q-ritem chevron', type: 'button', 'data-choice': id, onclick: () => (done(), go()) }, [
+      tileNode(icon, color),
+      el('span', { class: 'orbit-welcome-text q-ritem-text' }, [
+        el('strong', { class: 'q-ritem-title', text: `${i + 1}. ${t(`onboarding.${id}Title`)}` }),
+        el('small', { text: t(`onboarding.${id}Hint`) })
+      ])
+    ])
+  );
+  const later = kitUI.sheetFoot?.({ button: { label: t('onboarding.later'), onClick: () => done() } }) ?? el('button', { class: 'orbit-welcome-later', type: 'button', text: t('onboarding.later'), onclick: () => done() });
+  later.querySelector?.('button')?.classList.add('orbit-welcome-later');
+  const done = () => (sheet.close(), !sheet.el.open && sheet.el.remove());
+  const sheet = kitUI.sheet({ title: t('onboarding.welcomeTitle'), cls: 'orbit-welcome-sheet', body: [lead, el('div', { class: 'orbit-welcome-choices q-rowcard' }, rows), later] });
+  sheet.el.id = 'orbit-welcome';
+  return true;
+}
+
 function showOnboardingPrompt() {
   if (hasSavedSchedule() || hasSeenOnboarding()) return;
   markOnboardingSeen();
+  if (showKitWelcome()) return;
   const dialog = el('dialog', {
     id: 'orbit-welcome',
     class: 'orbit-welcome',

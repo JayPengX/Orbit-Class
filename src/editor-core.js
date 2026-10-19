@@ -35,6 +35,7 @@ import {
 // module-evaluation time.
 import { clearSyncInputFields } from './sync.js';
 import { t } from './strings.js';
+import { toast } from './toast.js';
 
 // Builds a short display label for a class from its subject/teacher text.
 // Teacher is appended in parentheses whenever the subject alone would be
@@ -780,17 +781,7 @@ async function hasUnconsumedImportData() {
 
 // Reminds the user that unapplied import data (pasted text or AI photo result) is being discarded.
 function notifyDiscardedImportData() {
-  const toast = document.getElementById('save-toast');
-  if (!toast) return;
-  const previousText = toast.textContent;
-  toast.textContent = t('editorCore.clearedUnimportedContent');
-  toast.classList.add('show');
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => {
-      toast.textContent = previousText;
-    }, 300);
-  }, 2500);
+  toast(t('editorCore.clearedUnimportedContent'));
 }
 
 // Closes the editor, asking for confirmation when there are unsaved

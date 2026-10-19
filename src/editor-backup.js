@@ -48,6 +48,7 @@ import { renderEditorTeachers } from './editor-teachers.js';
 import { buildSchedule } from './schedule.js';
 import { isSyncConfigured, pushSyncSnapshot, setSyncStatusUi } from './sync.js';
 import { t } from './strings.js';
+import { toast } from './toast.js';
 
 // Reads the editor form and converts it into the app data shape. With
 // `includeDraft: true` (only editorFormSnapshotString below needs this),
@@ -1107,10 +1108,7 @@ function applyEditorSettingsData(
   state.editorBaselineData = cloneSettingsData(state.applicationData);
   state.lastListKey = '';
   window.update();
-  const toast = document.getElementById('save-toast');
-  toast.textContent = fromSync ? t('editorBackup.updatedFromOtherDevice') : t('editorBackup.saved');
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
+  toast(fromSync ? t('editorBackup.updatedFromOtherDevice') : t('editorBackup.saved'));
   if (closeAfter) setTimeout(() => closeEditor(true), 400);
   // A real local change (never one sync itself just applied) pushes right
   // away instead of waiting for the next poll tick - see sync.js's syncTick

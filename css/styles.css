@@ -14,19 +14,8 @@
 
 /* ---- 1. The app's colour and the page ---- */
 :root {
-  --q-accent: #0284c7;
-  --q-accent-ink: #ffffff;
+  /* The accent is the kit's: <html data-app="orbit"> sets --q-accent (light and dark). */
   --cx-cell-h: 46px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --q-accent: #38bdf8;
-    --q-accent-ink: #062a40;
-  }
-}
-:root[data-theme='dark'] {
-  --q-accent: #38bdf8;
-  --q-accent-ink: #062a40;
 }
 
 body {
@@ -1910,6 +1899,13 @@ img.q-tile.tr-app {
   color: var(--q-accent);
   font: 500 16px/1 var(--q-font);
   cursor: pointer;
+}
+
+.orbit-welcome-sheet .orbit-welcome-lede {
+  margin: 4px 20px 12px;
+}
+.orbit-welcome-sheet .orbit-welcome-choices {
+  margin: 0 16px 12px;
 }
 
 /* A narrow phone (320): the grid's numbers and the hero's timer a step smaller. */

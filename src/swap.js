@@ -18,6 +18,7 @@ import { pushSyncSnapshot } from './sync.js';
 import { setOverlayVisible } from './dashboard.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { t } from './strings.js';
+import { toast } from './toast.js';
 
 const todayKey = () => dateKey(new Date());
 const slotKey = s => `${s.date}#${s.p}`;
@@ -47,13 +48,6 @@ function store(next) {
   pushSyncSnapshot();
   state.lastListKey = '';
   window.update?.();
-}
-function toast(text) {
-  const el = document.getElementById('save-toast');
-  if (!el) return;
-  el.textContent = text;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
 }
 // The two sides as the dialog's two lines: each class, and when it is.
 const sides = (a, b) => [
