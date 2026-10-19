@@ -17,7 +17,7 @@ import {
 } from './editor-core.js';
 import { closeAssignSheet } from './editor-teachers.js';
 import { dateKey, pad2 } from './dates.js';
-import { classesOn, classesOnDate, dateOfDay, getNextSchoolDay, getWeekLabelHtml, getWeekType, processSplitName } from './schedule.js';
+import { classesOn, classesOnDate, dateOfDay, getNextSchoolDay, getWeekType, processSplitName } from './schedule.js';
 import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
 import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
@@ -25,7 +25,7 @@ import { holidayOn, holidaysReady } from './holidays.js';
 import { closeModal, openModal } from './view-sheet.js';
 import { renderBring, renderCountdowns, renderHero, renderTodayList } from './view-today.js';
 import { renderWeek } from './view-week.js';
-import { getLocale, t } from './strings.js';
+import { t } from './strings.js';
 
 // Opens or closes the manual time simulation panel.
 // Modal and toolbar state is separate from saved schedule settings.
@@ -87,21 +87,6 @@ document.addEventListener('keydown', event => {
     closeTransferSheet();
 });
 
-// 今天's line over its title: the date and the week (10月6日 週二 · 雙週).
-function statusLine(week) {
-  const en = getLocale() === 'en';
-  const date = new Date().toLocaleDateString(en ? 'en-US' : 'zh-TW', { month: en ? 'short' : 'long', day: 'numeric', weekday: 'short' });
-  return [date, getWeekLabelHtml(week).replace(/<[^>]+>/g, '')].join(' · ');
-}
-let overDrawn = '';
-function showStatus(week, now) {
-  const key = `${now.toDateString()}|${week}|${getLocale()}`;
-  if (key === overDrawn) return;
-  overDrawn = key;
-  const over = document.getElementById('cx-over');
-  if (over) over.textContent = statusLine(week);
-}
-
 // The next school day after `day`, for the card's foot once today is over.
 // The next day with classes, past any national holiday (國慶日補假 on a
 // Friday: Monday's first class, not Friday's).
@@ -143,7 +128,6 @@ function update() {
   } else if (simStatus) simStatus.textContent = '';
   const curDay = window.MANUALLY_TEST ? window.TEST_DAY : now.getDay();
   const week = getWeekType();
-  showStatus(week, new Date());
   renderCountdowns();
   renderBring();
 

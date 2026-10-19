@@ -65,8 +65,7 @@ function renderTools() {
     row({ cls: 'cx-way is-photo', icon: tile('camera', 'var(--q-orange)'), title: t('tools.photoTitle'), sub: t('tools.photoSub'), onClick: () => openTransfer('photo') })
   ]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
-  const head = el('header', 'q-page-head', [el('h1', '', t('tab.tools'))]);
-  box.replaceChildren(head, hero(), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
+  box.replaceChildren(hero(), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).
