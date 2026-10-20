@@ -106,7 +106,6 @@ export default {
   'tools.day5': '五',
   'tools.day6': '六',
   'dashboard.nextPeriod': '下一節',
-  'dashboard.noClassesToday': '這天沒有課',
   'dashboard.holidayKicker': '今天放假',
   'dashboard.holidayTitle': '{zh}',
   'dashboard.restOrStudy': '可以休息或安排自習',

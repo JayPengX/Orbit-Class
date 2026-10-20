@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { detectLocale, getLocale, setLocale, t } from '../src/strings.js';
+import { describe, expect, it } from 'vitest';
+import { detectLocale, getLocale, t } from '../src/strings.js';
 
 describe('t()', () => {
   it('resolves a known key to its zh-TW string', () => {
@@ -21,21 +21,6 @@ describe('t()', () => {
   it('returns the raw string unchanged when vars is omitted, even for a key with tokens', () => {
     expect(t('dashboard.periodCount')).toBe('{count} 節');
   });
-});
-
-// setLocale keeps the choice in quadra.lang (see readFamilyLocale in
-// strings.js), so every test that changes the active locale resets it back
-// to zh-TW afterward - both so later tests in this file see the same
-// default every other test in the suite assumes, and so nothing leaks a
-// stored override into a later test file's fresh module registry via
-// localStorage (test isolation covers module state, not browser storage).
-afterEach(() => {
-  setLocale('zh-TW');
-  try {
-    localStorage.removeItem('quadra.lang');
-  } catch {
-    /* localStorage unavailable - nothing to clean up. */
-  }
 });
 
 describe('detectLocale()', () => {
@@ -78,24 +63,8 @@ describe('detectLocale()', () => {
   });
 });
 
-describe('getLocale()/setLocale()', () => {
+describe('getLocale()', () => {
   it('defaults to zh-TW in this test environment', () => {
-    expect(getLocale()).toBe('zh-TW');
-  });
-
-  it('switches the active locale and what t() resolves against', () => {
-    setLocale('en');
-    expect(getLocale()).toBe('en');
-    expect(t('dashboard.notStarted')).toBe('Not started yet');
-  });
-
-  it("keeps the choice as the family's quadra.lang, so it survives a reload and reaches the other apps", () => {
-    setLocale('en');
-    expect(localStorage.getItem('quadra.lang')).toBe('en');
-  });
-
-  it('falls back to zh-TW for an invalid value rather than storing garbage', () => {
-    setLocale('fr');
     expect(getLocale()).toBe('zh-TW');
   });
 });

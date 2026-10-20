@@ -61,7 +61,7 @@ Live: https://jaypengx.github.io/Orbit-Class/
 | --- | --- |
 | `data.js` | Read, write, validate, normalize (`classFocusData` in localStorage) |
 | `schedule.js`, `schedule-calc.js` | The running schedule; what to show now (pure, tested) |
-| `dashboard.js`, `dashboard-render.js` | The per-second loop and its rendering |
+| `dashboard.js` | The per-second loop and its rendering |
 | `editor-*.js` | The editor; backup format; AI editing |
 | `gemini-ocr.js` | Photo import |
 | `swap.js`, `tools.js`, `sync.js` | 調課; the 工具 tab; the Pass |

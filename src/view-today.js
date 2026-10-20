@@ -85,7 +85,7 @@ function breakBetween(end, start) {
   return (state.applicationData.breakTimes || []).find(b => b.name && b.start && b.end && parseTime(b.start) >= from && parseTime(b.end) <= to && parseTime(b.end) > parseTime(b.start));
 }
 // One class: its tile, name (a split week's or 調課's label beside it), teacher · room, and its times.
-export function classRow(c, week, { date = null, cls = '' } = {}) {
+function classRow(c, week, { date = null, cls = '' } = {}) {
   const info = processSplitName(c, week);
   const name = el('span', 'q-ritem-title row-name', info.n);
   const title = el('span', 'cx-row-title', [name]);

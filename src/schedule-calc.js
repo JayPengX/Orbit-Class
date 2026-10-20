@@ -258,7 +258,7 @@ export function computeDashboardViewModel({ now, curDay, week, todaySchedule, br
 // When a class's notice goes: as the break before it starts (a short break
 // is the time to get there), or five minutes before it after a long one
 // (lunch) or as the day's first. In minutes before the class.
-export const LONG_BREAK = 15;
+const LONG_BREAK = 15;
 export function noticeLead(schedule, i) {
   const prev = schedule[i - 1];
   const gap = prev ? parseTime(schedule[i].s) - parseTime(prev.e) : Infinity;

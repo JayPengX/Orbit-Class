@@ -9,7 +9,7 @@
 // if it declines to close (panel keeps the 'show' class), the sheet snaps
 // back open instead of staying hidden.
 // (A row's reorder handle: touch-action none, set on it by bindEditorDragReorder.)
-export const SHEET_SKIP = 'input, textarea, select, [contenteditable="true"], .teacher-drag-handle, [style*="touch-action: none"], [data-no-sheet-drag]';
+const SHEET_SKIP = 'input, textarea, select, [contenteditable="true"], .teacher-drag-handle, [style*="touch-action: none"], [data-no-sheet-drag]';
 // The scrolled box between the finger and the sheet (the sheet itself included) that isn't at its top.
 function scrolledAbove(target, panel) {
   for (let node = target; node && node !== panel.parentElement; node = node.parentElement) {

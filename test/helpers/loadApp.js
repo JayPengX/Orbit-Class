@@ -33,4 +33,3 @@ export async function loadApp() {
   await import('../../src/main.js');
 }
 
-export { repoRoot };

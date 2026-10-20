@@ -52,27 +52,13 @@ function readFamilyLocale() {
   }
 }
 
-let currentLocale = readFamilyLocale() || detectLocale();
+const currentLocale = readFamilyLocale() || detectLocale();
 
 /**
  * Returns the active locale ('zh-TW' or 'en').
  */
 function getLocale() {
   return currentLocale;
-}
-
-/**
- * Sets the active locale and keeps it as the family's choice (quadra.lang),
- * so it survives reloads and carries into the other apps.
- */
-function setLocale(locale) {
-  currentLocale = locale === 'en' ? 'en' : 'zh-TW';
-  try {
-    localStorage.setItem('quadra.lang', currentLocale === 'en' ? 'en' : 'zh');
-  } catch {
-    /* localStorage unavailable (private browsing, etc.) - the in-memory
-       value above still takes effect for the rest of this session. */
-  }
 }
 
 /**
@@ -86,4 +72,4 @@ function t(key, vars) {
   return raw.replace(/\{(\w+)\}/g, (match, name) => (name in vars ? String(vars[name]) : match));
 }
 
-export { detectLocale, getLocale, setLocale, t };
+export { detectLocale, getLocale, t };

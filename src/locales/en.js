@@ -127,7 +127,6 @@ export default {
   'tools.day5': 'Fri',
   'tools.day6': 'Sat',
   'dashboard.nextPeriod': 'Next period',
-  'dashboard.noClassesToday': 'No classes on this day',
   'dashboard.holidayKicker': 'A day off',
   'dashboard.holidayTitle': '{en}',
   'dashboard.restOrStudy': 'Feel free to rest or plan your own study time',

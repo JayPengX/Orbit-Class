@@ -9,7 +9,7 @@ import { WEEKDAY_LABELS } from './constants.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { subjectLook } from './subjects.js';
 
-export const BRING_FROM_HOUR = 17;
+const BRING_FROM_HOUR = 17;
 // Subject kind → the thing to bring (strings 'bring.<item>'). A subject that
 // matches none brings nothing.
 const SWIM = /游泳|swim/i;
@@ -21,7 +21,7 @@ export function bringItem(subject) {
 
 // What to bring for a day's classes: one row per item, the first class that
 // needs it; [{ item, subject }].
-export function bringList(classes, week) {
+function bringList(classes, week) {
   const seen = new Set();
   const out = [];
   for (const c of classes) {
