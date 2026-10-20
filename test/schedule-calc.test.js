@@ -305,6 +305,13 @@ describe('heroView: the card says one thing', () => {
     const h = hero(at(12, 0), { nextDay: { label: '明天', first: todaySchedule[1], week: '雙' } });
     expect(h).toMatchObject({ mode: 'off', title: '放學時間', timer: null, progress: null });
     expect(h.foot).toMatchObject({ label: '明天', name: '公民' });
+    expect(h).toMatchObject({ through: -1, strip: null });
+  });
+  it('names the classes it shows (the list goes on after them), and the day as a strip', () => {
+    const inClass = hero(at(9, 30));
+    expect(inClass.through).toBe(2);
+    expect(inClass.strip).toEqual({ left: 2, end: '11:00', chips: [{ name: '數學', start: '08:00', state: 'done' }, { name: '國文', start: '09:10', state: 'now' }, { name: '英文', start: '10:10', state: 'ahead' }] });
+    expect(hero(at(7, 0)).through).toBe(1);
   });
 });
 

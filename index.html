@@ -70,14 +70,11 @@
   </div>
 </header>
 <main class="cx-page">
-  <!-- 今天: the class now and next, then what's ahead today, what to bring, the countdowns (src/view-today.js). -->
+  <!-- 今天: the class now and next with the day as a strip, then the classes after, what to bring, the countdowns (src/view-today.js). -->
   <section id="panel-today" class="cx-panel" role="tabpanel">
     <section class="q-hero-card cx-hero dashboard" id="cx-hero" data-mode="off" role="button" tabindex="0">
       <div class="cx-hero-top">
-        <span class="cx-hero-lead">
-          <span class="q-hc-eyebrow"><span class="cx-glyph" id="cx-glyph"></span><span id="cx-kicker"></span></span>
-          <span class="week-label cx-week" id="cx-week" hidden></span>
-        </span>
+        <span class="q-hc-eyebrow"><span class="cx-glyph" id="cx-glyph"></span><span id="cx-kicker"></span></span>
         <span class="cx-span" id="cx-span"></span>
       </div>
       <div class="cx-hero-main">
@@ -95,15 +92,13 @@
         <span class="cx-foot-end"><b id="next-time"></b><small id="next-sub"></small></span>
         <p class="cx-foot-note" id="next-note"></p>
       </div>
+      <div class="cx-strip" id="cx-strip" hidden></div>
     </section>
-    <section class="q-section cx-sec" id="cx-timeline" hidden></section>
     <section class="q-section cx-sec" id="cx-list-sec">
-      <div class="q-section-head"><h2 id="cx-list-title" data-i18n="dashboard.todayClasses">今天的課</h2><button type="button" class="cx-more" data-go="week" data-i18n="common.all">全部</button></div>
+      <div class="q-section-head"><h2 id="cx-list-title" data-i18n="dashboard.laterToday">之後的課</h2><button type="button" class="cx-more" data-go="week" data-i18n="common.all">全部</button></div>
       <div id="schedule-list"></div>
     </section>
     <section class="q-section cx-sec" id="cx-bring" hidden></section>
-    <section class="q-section cx-sec" id="cx-next" hidden></section>
-    <section class="q-section cx-sec" id="cx-weekmini"></section>
     <section class="q-section cx-sec" id="cx-countdowns"></section>
   </section>
   <!-- 課表: the week as a grid, this week or next; then 調課 (src/view-week.js). -->

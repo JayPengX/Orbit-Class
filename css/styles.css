@@ -139,22 +139,6 @@ body.orbit-motion-paused * {
   gap: 8px;
   min-width: 0;
 }
-.cx-hero-lead {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.cx-hero-lead .cx-week {
-  --t: #fff;
-  min-height: 22px;
-  padding: 0 8px;
-  background: rgba(255, 255, 255, 0.2);
-  font-size: 12px;
-}
-.cx-week[hidden] {
-  display: none;
-}
 .cx-hero-top .q-hc-eyebrow {
   min-width: 0;
   overflow: hidden;
@@ -162,6 +146,10 @@ body.orbit-motion-paused * {
   text-overflow: ellipsis;
 }
 #cx-kicker:empty {
+  display: none;
+}
+/* No words on the top line (a day over): no lone glyph above the moon tile. */
+.cx-hero-top:has(#cx-kicker:empty):has(#cx-span:empty) {
   display: none;
 }
 .cx-span {
@@ -303,6 +291,62 @@ body.orbit-motion-paused * {
 }
 .cx-foot[data-kind='note'] .cx-foot-note {
   display: block;
+}
+
+/* The day as a strip: a chip per class in its colour, the done ones faded,
+   the one now ringed; how many are left and when school's out beside it. */
+.cx-strip {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+.cx-strip[hidden] {
+  display: none;
+}
+.cx-chips {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 5px;
+}
+.cx-chip {
+  display: grid;
+  place-items: center;
+  height: 30px;
+  min-width: 0;
+  border-radius: 9px;
+  background: var(--subject);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font: 700 14px/1 var(--q-font);
+  font-style: normal;
+}
+.cx-chip.is-done {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.55);
+}
+.cx-chip.is-now {
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+  color: var(--subject);
+  transform: scale(1.08);
+}
+.cx-strip-words {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.cx-strip-words b {
+  font: 600 15px/20px var(--q-font);
+}
+.cx-strip-words small {
+  color: rgba(255, 255, 255, 0.8);
+  font: 500 13px/18px var(--q-font);
+  white-space: nowrap;
 }
 
 /* A day's classes: a tile, the name, teacher · room, start over end. */
@@ -1896,204 +1940,8 @@ img.q-tile.tr-app {
 .tr-pass .q-ritem-text small { display: block; overflow: visible; -webkit-line-clamp: unset; }
 
 
-/* 今天 (round 4): the timeline, the next event, the week at a glance. */
-body[data-timeline='1'] #cx-list-sec {
-  display: none;
-}
-.cx-tl2 {
-  position: relative;
-  margin-left: 0;
-  padding: 0;
-}
-.cx-tl2-hour {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 0;
-}
-.cx-tl2-hour::after {
-  content: '';
-  position: absolute;
-  left: 52px;
-  right: 0;
-  border-top: 1px solid var(--q-separator, rgba(120, 120, 128, 0.2));
-}
-.cx-tl2-hour small {
-  position: absolute;
-  top: -8px;
-  left: 0;
-  width: 44px;
-  color: var(--q-label-2);
-  font: 500 12px/16px var(--q-font);
-  font-variant-numeric: tabular-nums;
-}
-.cx-tl2-block {
-  position: absolute;
-  left: 52px;
-  right: 0;
-  display: grid;
-  align-content: center;
-  gap: 1px;
-  min-width: 0;
-  padding: 4px 10px 4px 12px;
-  overflow: hidden;
-  border: 0;
-  border-left: 4px solid var(--subject);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--subject) 16%, var(--q-surface, #fff));
-  color: var(--q-label);
-  font: inherit;
-  text-align: left;
-}
-.cx-tl2-block b {
-  font: 600 15px/20px var(--q-font);
-  white-space: nowrap;
-}
-.cx-tl2-block small {
-  color: var(--q-label-2);
-  font: 12px/16px var(--q-font);
-  white-space: nowrap;
-}
-.cx-tl2-block.is-past {
-  opacity: 0.55;
-}
-.cx-tl2-block.is-now {
-  background: color-mix(in srgb, var(--subject) 30%, var(--q-surface, #fff));
-  box-shadow: 0 0 0 2px var(--subject);
-}
-.cx-tl2-now {
-  position: absolute;
-  left: 44px;
-  right: 0;
-  height: 2px;
-  margin-top: -1px;
-  background: var(--q-red, #ff3b30);
-  pointer-events: none;
-}
-.cx-tl2-block {
-  z-index: 1;
-}
-.cx-tl2-now {
-  z-index: 0;
-}
-.cx-tl2-block.is-now {
-  z-index: 2;
-}
 .cx-sec .q-section-head .cx-more {
   margin-left: auto;
-}
-.cx-tl2-now::before {
-  content: '';
-  position: absolute;
-  left: -5px;
-  top: -4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: inherit;
-}
-.cx-next-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 16px;
-  border: 0;
-  border-radius: 22px;
-  background: var(--q-surface, #fff);
-  color: var(--q-label);
-  font: inherit;
-  text-align: left;
-}
-.cx-next-card .q-tile {
-  flex: none;
-  width: 48px;
-  height: 48px;
-}
-.cx-next-text {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-}
-.cx-next-text strong {
-  font: 600 17px/22px var(--q-font);
-}
-.cx-next-text small {
-  color: var(--q-label-2);
-  font: 13px/18px var(--q-font);
-}
-.cx-next-days {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  flex: none;
-}
-.cx-next-days b {
-  color: var(--q-accent);
-  font: 700 34px/38px var(--q-font-rounded, var(--q-font));
-}
-.cx-next-days small,
-.cx-next-days em {
-  color: var(--q-label-2);
-  font: 600 14px/18px var(--q-font);
-  font-style: normal;
-}
-.cx-wm {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 4px;
-  padding: 10px 6px;
-}
-.cx-wm-day {
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 4px;
-  min-width: 0;
-  padding: 8px 0 6px;
-  border: 0;
-  border-radius: 14px;
-  background: none;
-  color: var(--q-label);
-  font: inherit;
-}
-.cx-wm-day small {
-  color: var(--q-label-2);
-  font: 600 12px/16px var(--q-font);
-}
-.cx-wm-day b {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font: 600 16px/1 var(--q-font-rounded, var(--q-font));
-}
-.cx-wm-day.is-today b {
-  background: var(--q-accent);
-  color: #fff;
-}
-.cx-wm-day.is-off {
-  opacity: 0.55;
-}
-.cx-wm-dots {
-  display: grid;
-  grid-template-columns: repeat(3, 8px);
-  justify-content: center;
-  gap: 3px;
-  min-height: 24px;
-  align-content: start;
-}
-.cx-wm-dots i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--subject);
-}
-.cx-wm-day .cx-wm-n {
-  font-weight: 500;
 }
 
 /* The time simulation's label wraps beside its fields instead of being cut at 320. */

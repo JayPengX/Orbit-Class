@@ -8,8 +8,11 @@ Live: https://jaypengx.github.io/Orbit-Class/
 ## How it works
 
 - **Tabs, one question each:**
-  - **今天:** the class now (teacher, room, time left), the next, and the
-    day. After the last class it shows the next school day.
+  - **今天:** one card answers "what's left today": the class now (teacher,
+    room, time left), the next, and the day as a strip of coloured chips
+    (done faded, now ringed) with how many are left and when school's out.
+    Below it the classes after those, then 明天要帶 and the countdowns.
+    After the last class it shows the next school day.
   - **課表:** any weekday in either week (單週 / 雙週), and 調課.
   - **工具:** the week as a grid with 編輯課表; AI 課表編輯 and 拍照匯入;
     分享金鑰.

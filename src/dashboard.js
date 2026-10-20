@@ -23,7 +23,7 @@ import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.
 import { bindSheetDragToDismiss } from './sheet-drag.js';
 import { holidayOn } from './holidays.js';
 import { openModal } from './view-sheet.js';
-import { renderBring, renderCountdowns, renderHero, renderNextEvent, renderTimeline, renderTodayList, renderWeekMini } from './view-today.js';
+import { renderBring, renderCountdowns, renderHero, renderTodayList } from './view-today.js';
 import { renderWeek } from './view-week.js';
 import { t } from './strings.js';
 
@@ -121,10 +121,7 @@ function update() {
   const curDay = window.MANUALLY_TEST ? window.TEST_DAY : now.getDay();
   const week = getWeekType();
   renderCountdowns();
-  renderNextEvent();
   renderBring();
-  renderTimeline(now, curDay);
-  renderWeekMini(now, curDay);
 
   // A day with no classes is never the one 今天 lists: the next day that has
   // some instead (only when any day has classes at all; a day the timetable
@@ -171,11 +168,11 @@ function update() {
   // the day, the week chosen, the tab, the minute on 課表's grid).
   const tab = document.body.dataset.tab;
   const minute = tab === 'week' ? Math.floor(now.getTime() / 60_000) : '';
-  const listKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${now.toDateString()}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${tab}-${document.body.dataset.heroClass}-${minute}`;
+  const listKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${now.toDateString()}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${tab}-${hero.through}-${minute}`;
   if (state.lastListKey !== listKey) {
     state.lastListKey = listKey;
     if (tab === 'week') renderWeek(now);
-    else renderTodayList({ week, curIdx: viewModel.curIdx, nxtIdx: viewModel.nxtIdx, curDay, isDayFinished: viewModel.isDayFinished, now });
+    else renderTodayList({ week, through: hero.through, curDay, now });
   }
 }
 

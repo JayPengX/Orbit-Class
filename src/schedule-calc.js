@@ -301,8 +301,10 @@ export function classStartingSoon({ now, week, todaySchedule }) {
 // ends long before the next class) is the card itself, with the time until
 // it ends. Otherwise the day's state, and the next school day's first class
 // along the foot (`nextDay`: { label, first, week }).
-// Returns { mode, kicker, span, title, teacher, place, label, timer, progress, foot },
-// foot either { label, name, time, sub } or { note }, timer { value, label }.
+// Returns { mode, kicker, span, title, teacher, place, label, timer, progress, foot, through, strip },
+// foot either { label, name, time, sub } or { note }, timer { value, label },
+// through the last of today's classes the card names (-1: none), strip the
+// day's classes as chips while it has any to go ({ left, end, chips }).
 export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday = null }) {
   const today = todaySchedule || [];
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -318,6 +320,10 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
   const lastNote = () => ({ note: t('dashboard.lastPeriodNote', { time: last.e }) });
   const dayFoot = () => (nextDay?.first ? footFor(nextDay.first, nextDay.week, nextDay.label) : null);
   const none = { teacher: '', place: '', label: '' };
+  // The day as a strip, one chip per class (done, now, to come), and how many are left.
+  const strip = vm.isSchoolDay && !vm.isDayFinished && !holiday
+    ? { left: classesLeft(today, now), end: last.e, chips: today.map((c, i) => ({ name: processSplitName(c, week).n, start: c.s, state: parseTime(c.e) * 60 <= secs ? 'done' : i === vm.curIdx ? 'now' : 'ahead' })) }
+    : null;
 
   if (vm.curIdx >= 0) {
     const c = today[vm.curIdx];
@@ -328,7 +334,9 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
       ...about(c, week),
       timer: { value: vm.timerValue, label: t('dashboard.untilEnd') },
       progress: vm.progressPercent,
-      foot: vm.nxtIdx >= 0 ? footFor(today[vm.nxtIdx], week, t('dashboard.nextPeriod')) : lastNote()
+      foot: vm.nxtIdx >= 0 ? footFor(today[vm.nxtIdx], week, t('dashboard.nextPeriod')) : lastNote(),
+      through: vm.nxtIdx >= 0 ? vm.nxtIdx : vm.curIdx,
+      strip
     };
   }
   const next = vm.isSchoolDay && vm.nxtIdx >= 0 ? today[vm.nxtIdx] : null;
@@ -349,7 +357,9 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
       ...about(next, week),
       timer: { value: formatCountdown(Math.max(0, startSec - secs)), label: t('dashboard.untilStart') },
       progress: from != null && startSec > from ? Math.min(100, Math.max(0, ((secs - from) / (startSec - from)) * 100)) : null,
-      foot: today[vm.nxtIdx + 1] ? footFor(today[vm.nxtIdx + 1], week, t('dashboard.thenLabel')) : lastNote()
+      foot: today[vm.nxtIdx + 1] ? footFor(today[vm.nxtIdx + 1], week, t('dashboard.thenLabel')) : lastNote(),
+      through: today[vm.nxtIdx + 1] ? vm.nxtIdx + 1 : vm.nxtIdx,
+      strip
     };
   }
   if (brk) {
@@ -361,10 +371,12 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
       ...none,
       timer: { value: vm.timerValue, label: t('dashboard.untilBreakEnd') },
       progress: vm.progressPercent,
-      foot: next ? footFor(next, week, t('dashboard.nextPeriod')) : dayFoot()
+      foot: next ? footFor(next, week, t('dashboard.nextPeriod')) : dayFoot(),
+      through: next ? vm.nxtIdx : -1,
+      strip
     };
   }
   // A national holiday: its name, and the next school day's first class.
-  if (holiday) return { mode: 'off', kicker: t('dashboard.holidayKicker'), span: '', title: t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }), ...none, timer: null, progress: null, foot: dayFoot() };
-  return { mode: 'off', kicker: '', span: '', title: vm.statusText, ...none, timer: null, progress: null, foot: dayFoot() };
+  if (holiday) return { mode: 'off', kicker: t('dashboard.holidayKicker'), span: '', title: t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }), ...none, timer: null, progress: null, foot: dayFoot(), through: -1, strip: null };
+  return { mode: 'off', kicker: '', span: '', title: vm.statusText, ...none, timer: null, progress: null, foot: dayFoot(), through: -1, strip };
 }
