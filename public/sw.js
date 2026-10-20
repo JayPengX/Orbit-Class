@@ -45,7 +45,11 @@ self.addEventListener('activate', event => {
     caches
       .keys()
       .then(keys =>
-        Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
+        // Only Class's own older copies: the other apps share this site and
+        // its caches (their files, the kit's saved data, logos, team lists),
+        // and every Class deploy threw all of them away, so each app's next
+        // opening downloaded everything again.
+        Promise.all(keys.filter(key => key.startsWith('orbit-cache-') && key !== CACHE_NAME).map(key => caches.delete(key)))
       )
       .then(() => self.clients.claim())
   );
