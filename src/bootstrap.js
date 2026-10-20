@@ -56,24 +56,27 @@ syncTestPlayPauseUi();
 window.update();
 renderSyncPanel();
 if (!gated) startSyncLoop();
-// Deferred rather than shown inline here: this runs before testsim-
-// runtime.js's finishBoot() shows the dashboard (see main.js's
-// import order), so showing a modal this early would sit behind/under it.
-// A plain setTimeout still fires well after that regardless of exactly
-// where in the boot sequence it's scheduled from, since it can't run until
-// the current synchronous script (the rest of this module-import chain)
-// finishes - which is all "deferred" needs to mean here.
-if (!gated) whenReady().then(() => setTimeout(showOnboardingPrompt, 400));
-
 // The family's loading screen (the kit's boot.js, drawn into #loading)
 // lifts once, onto the finished first screen: the pass's schedule in
 // (sync.js), or after 3 s the copy on this device, swapped in place if the
 // pass's comes later. A gate (signing in, add to the home
 // screen, open on a phone) lifts it itself. __fxStarted tells boot.js the
-// app ran (no "didn't start" after 15 s).
+// app ran (no "didn't start" after 15 s). It lifts onto the whole first
+// screen: drawn again from what the pass sent, and the welcome card (a pass
+// with no schedule yet) already up, so nothing arrives after it.
 window.__fxStarted = true;
-const liftLoading = () => document.getElementById('loading')?.setAttribute('hidden', '');
-if (!gated) Promise.race([whenReady(), new Promise(resolve => setTimeout(resolve, 3000))]).then(liftLoading, liftLoading);
+// (After 3 s without the pass, the welcome waits for it: the pass may yet bring a schedule.)
+// Under the loading screen the welcome opens already risen (no slide).
+const liftLoading = ready => {
+  window.update();
+  if (ready) showOnboardingPrompt({ still: true });
+  document.getElementById('loading')?.setAttribute('hidden', '');
+};
+if (!gated) {
+  const ready = whenReady();
+  Promise.race([ready.then(() => true), new Promise(resolve => setTimeout(resolve, 3000, false))]).then(liftLoading, () => liftLoading(false));
+  ready.then(() => document.getElementById('loading')?.hidden && showOnboardingPrompt());
+}
 
 // Caches the whole app shell so a return visit can load almost entirely
 // from disk instead of the network - see public/sw.js for the actual

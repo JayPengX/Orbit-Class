@@ -61,8 +61,9 @@ function tileNode(icon, color) {
 
 // The welcome as the kit's sheet: a lead line, the three ways in as numbered
 // rows (kit tiles), a sticky 稍後 at the foot. `force`: asked for (今天's
-// 加入課表), so shown even after it was seen once.
-function showOnboardingPrompt({ force = false } = {}) {
+// 加入課表), so shown even after it was seen once; `still`: already up as
+// the loading screen lifts (the kit's .q-risen: no rise).
+function showOnboardingPrompt({ force = false, still = false } = {}) {
   if (hasSavedSchedule() || (!force && hasSeenOnboarding())) return;
   markOnboardingSeen();
   const lead = el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') });
@@ -80,6 +81,7 @@ function showOnboardingPrompt({ force = false } = {}) {
   const done = () => (sheet.close(), !sheet.el.open && sheet.el.remove());
   const sheet = kitUI.sheet({ title: t('onboarding.welcomeTitle'), cls: 'orbit-welcome-sheet', body: [lead, el('div', { class: 'orbit-welcome-choices q-rowcard' }, rows), later] });
   sheet.el.id = 'orbit-welcome';
+  if (still) sheet.el.classList.add('q-risen');
 }
 
 export { showOnboardingPrompt };

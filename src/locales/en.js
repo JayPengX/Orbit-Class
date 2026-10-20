@@ -163,7 +163,7 @@ export default {
   'editorTeachers.deleteTitle': 'Delete "{label}"?',
   'editorTeachers.deleteMessage':
     'This will remove this class and clear every schedule cell that uses it.',
-  'onboarding.welcomeTitle': 'Welcome to Orbit Class',
+  'onboarding.welcomeTitle': 'Welcome to Class',
   'onboarding.welcomeMessage':
     'Add your schedule and always know what’s on now.',
   'onboarding.photoTitle': 'Import from a photo',
