@@ -340,18 +340,19 @@ function sanitizeBreakTimes(bellTimes, breakTimes = []) {
   return validBreaks;
 }
 
-// If localStorage's saved schedule fails to load for any reason - it isn't
-// valid JSON, it's missing required fields, a field is the wrong shape, or
-// something later on chokes while reading it - this clears the stored key
-// outright rather than leaving corrupt data sitting there to fail the same
-// way on every future load. loadData() falls back to a clean default
-// schedule either way; clearing it here just means that's a one-time thing,
-// not a repeat failure on the next visit too.
-function clearStoredData() {
+// This device's saved schedule is only a cache of the Quadra Pass's copy
+// (src/sync.js). One that can't be read is never erased: it's kept aside
+// (classFocusData.unreadable), and the edit-waiting marker is dropped so the
+// pass's copy is applied on opening instead of the default schedule going up
+// over it.
+function setAsideStoredData() {
   try {
+    const raw = localStorage.getItem('classFocusData');
+    if (raw != null) localStorage.setItem('classFocusData.unreadable', raw);
     localStorage.removeItem('classFocusData');
+    localStorage.removeItem('orbit-class.sync.pending');
   } catch {
-    /* localStorage unavailable (private browsing, etc.) - nothing to clear. */
+    /* localStorage unavailable (private browsing, etc.) - nothing to keep. */
   }
 }
 
@@ -443,7 +444,7 @@ function loadData() {
 
     return { ...normalized, ...sortPeriodsByTime(normalized) };
   } catch {
-    clearStoredData();
+    setAsideStoredData();
     return getDefaultData();
   }
 }

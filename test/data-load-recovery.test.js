@@ -7,13 +7,16 @@ import { loadApp } from './helpers/loadApp.js';
 // module registry so that boot happens fresh against that specific bad
 // value, matching the pattern other multi-scenario test files in this suite
 // use (see sync-default-project.test.js's comment on the same constraint).
-describe('loadData() clears a saved schedule it fails to load, instead of leaving it to fail again next time', () => {
-  it('clears invalid JSON', async () => {
+describe("loadData() sets a saved schedule it can't read aside, never erasing it, so the pass's copy comes back", () => {
+  it('keeps invalid JSON aside and drops the waiting-edit marker', async () => {
     localStorage.setItem('classFocusData', '{not valid json');
+    localStorage.setItem('orbit-class.sync.pending', 'abc:12');
     await loadApp();
     const { state } = await import('../src/state.js');
 
     expect(localStorage.getItem('classFocusData')).toBeNull();
+    expect(localStorage.getItem('classFocusData.unreadable')).toBe('{not valid json');
+    expect(localStorage.getItem('orbit-class.sync.pending')).toBeNull();
     expect(state.applicationData.teacherDB).toHaveProperty('01國文');
   });
 });
