@@ -55,7 +55,7 @@ if (grid) {
   new MutationObserver(numberRows).observe(grid, { childList: true });
   document.getElementById('bell-list')?.addEventListener('change', numberRows);
   const days = document.getElementById('ed-days');
-  if (days && kitUI.segmented) {
+  if (days) {
     const seg = kitUI.segmented(
       WEEKDAYS_DISPLAY_ORDER.map(d => ({ id: d, label: dayLabel(d) })),
       {

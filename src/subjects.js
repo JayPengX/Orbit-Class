@@ -92,24 +92,11 @@ export function eventLook(name) {
   return svg(P[hit ? hit[0] : 'calendar']);
 }
 
-// One of the pictures above by name (src/ui.js's glyph() falls back to these).
-export function picture(name) {
-  return P[name] ? svg(P[name]) : '';
-}
-
-// A kit tile (kitUI.tile) around a glyph's svg; drawn by hand on a cached kit without it.
+// A kit tile (kitUI.tile) around a glyph's svg.
 function makeTile(html, color, size, glass) {
-  const tile = document.createElement('span');
-  tile.className = `q-tile${size ? ` ${size}` : ''}${glass ? ' cx-glass' : ''}`;
-  if (color) tile.style.setProperty('--t', color);
-  tile.setAttribute('aria-hidden', 'true');
-  tile.innerHTML = html;
-  if (typeof kitUI.tile === 'function') {
-    const k = kitUI.tile(tile.firstElementChild ?? '', color, size);
-    if (glass) k.classList.add('cx-glass');
-    return k;
-  }
-  return tile;
+  const node = kitUI.tile(html, color, size);
+  if (glass) node.classList.add('cx-glass');
+  return node;
 }
 // The subject's picture as a kit tile (.q-tile): its colour, the glyph in
 // white; `size` '' | 'sm' | 'lg'. `glass` sits it on the hero card (white on a wash).

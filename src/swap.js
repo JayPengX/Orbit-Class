@@ -54,7 +54,6 @@ const sides = (a, b) => [
   ['↑', nameAt(a), slotText(a)],
   ['↓', nameAt(b), slotText(b)]
 ];
-const confirm = opts => (typeof kit.ask === 'function' ? kit.ask(opts) : Promise.resolve(true));
 
 // A swap by its two sides, never by the object: the timetable from the pass
 // arriving while its dialog was open (a tap is a sync check) replaced every
@@ -73,7 +72,7 @@ function addSwap(a, b) {
   return true;
 }
 async function undoSwap(swap) {
-  const ok = await confirm({
+  const ok = await kit.ask({
     title: t('swap.undoTitle'),
     points: sides(swap.a, swap.b),
     ok: t('swap.undo'),
@@ -189,7 +188,7 @@ async function pick(slot) {
     return;
   }
   const a = first;
-  const ok = await confirm({
+  const ok = await kit.ask({
     title: t('swap.title'),
     points: sides(a, slot),
     ok: t('swap.button'),

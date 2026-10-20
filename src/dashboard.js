@@ -21,7 +21,7 @@ import { classesOn, classesOnDate, dateOfDay, getNextSchoolDay, getWeekType, pro
 import { classStartingSoon, computeDashboardViewModel, heroView, noticeLead } from './schedule-calc.js';
 import { notifyClassSoon, pushSyncSnapshot, scheduleClassNotices } from './sync.js';
 import { bindSheetDragToDismiss } from './sheet-drag.js';
-import { holidayOn, holidaysReady } from './holidays.js';
+import { holidayOn } from './holidays.js';
 import { openModal } from './view-sheet.js';
 import { renderBring, renderCountdowns, renderHero, renderNextEvent, renderTimeline, renderTodayList, renderWeekMini } from './view-today.js';
 import { renderWeek } from './view-week.js';
@@ -66,12 +66,6 @@ function openTestPanel() {
   setOverlayVisible('test-panel-overlay', 'debug-panel', true);
 }
 bindSheetDragToDismiss('debug-panel', closeTestPanel);
-// The holidays arrive after the first draw (the card redraws every second):
-// the week's notices worked out again without a holiday's classes.
-holidaysReady.then(() => {
-  state.classPushSlot = null;
-  state.lastListKey = '';
-});
 bindSheetDragToDismiss('editor-sheet', () => closeEditor());
 bindSheetDragToDismiss('transfer-sheet', () => closeTransferSheet());
 document.addEventListener('keydown', event => {

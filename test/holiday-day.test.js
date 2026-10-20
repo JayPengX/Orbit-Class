@@ -1,12 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import * as kit from '../.kit/holidays.mjs';
 import { loadApp } from './helpers/loadApp.js';
 import { seedLocalStorage } from './helpers/fixtureData.js';
 
 // 國慶日補假, Friday 2026-10-09: no classes that day, whatever the timetable
 // says. 今天 said so on its card but listed Friday's classes under it.
 let state;
-let holidays;
 const names = () => [...document.querySelectorAll('#schedule-list .row .row-name')].map(n => n.textContent);
 
 beforeAll(async () => {
@@ -16,8 +14,6 @@ beforeAll(async () => {
     weeklySchedule: { 1: ['A', 'B', 'C'], 2: ['C'], 3: [], 4: [], 5: ['C', 'A'], 6: [], 0: [] }
   });
   await loadApp();
-  holidays = await import('../src/holidays.js');
-  holidays.useHolidays(kit);
   ({ state } = await import('../src/state.js'));
 });
 afterAll(() => vi.useRealTimers());

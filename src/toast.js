@@ -3,5 +3,5 @@
 import * as kitUI from '#kit/ui.mjs';
 
 export function toast(text, ms = 2500) {
-  return kitUI.toast?.(text, { ms, batch: 'class' });
+  return kitUI.toast(text, { ms, batch: 'class' });
 }

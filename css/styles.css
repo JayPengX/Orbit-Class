@@ -68,8 +68,7 @@ body {
 .cx-status:empty {
   display: none;
 }
-.cx-status.error,
-.cx-status.is-error {
+.cx-status.error {
   color: var(--q-red);
 }
 /* A split week's or 調課's tag beside a class name. */
@@ -698,21 +697,6 @@ body.orbit-motion-paused * {
 .cx-sheet-words p:empty {
   display: none;
 }
-/* A head led by its picture (a class, a day): picture, name and line, ✕. */
-.cx-sheet-head-lead {
-  grid-template-columns: auto minmax(0, 1fr) 36px;
-  gap: 12px;
-  padding: 22px 16px 8px;
-}
-.cx-sheet-head-lead .cx-sheet-words h2 {
-  font: 700 22px/28px var(--q-font);
-}
-.cx-sheet-head-lead .cx-sheet-words p {
-  font: var(--q-t-subhead);
-}
-.cx-sheet-head-lead > .q-close {
-  align-self: start;
-}
 .cx-sheet-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -734,7 +718,7 @@ body.orbit-motion-paused * {
 .cx-sheet-body > .cx-sheet-h:first-child {
   margin-top: 4px;
 }
-body:is(.modal-open, .editor-open, .transfer-open) {
+body:is(.editor-open, .transfer-open) {
   overflow: hidden;
 }
 @media (min-width: 720px) {
@@ -1831,36 +1815,6 @@ img.q-tile.tr-app {
 }
 
 /* ---- 6. The welcome on a first open: three ways to get a timetable ---- */
-.orbit-welcome {
-  width: min(400px, calc(100vw - 32px));
-  max-height: calc(100dvh - 48px);
-  padding: 0;
-  border: 0;
-  border-radius: var(--q-r-sheet);
-  background: var(--q-sheet);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
-  color: var(--q-label);
-}
-.orbit-welcome::backdrop {
-  background: var(--q-dim);
-}
-.orbit-welcome-box {
-  --q-surface: var(--q-sheet-cell, var(--q-grouped-2));
-  display: grid;
-  gap: 8px;
-  padding: 24px 16px 16px;
-}
-.orbit-welcome-kicker {
-  margin: 0 4px;
-  color: var(--q-accent);
-  font: 700 12px/16px var(--q-font);
-  letter-spacing: 0.08em;
-}
-.orbit-welcome-title {
-  margin: 0 4px;
-  font: var(--q-t-title2);
-  font-weight: 700;
-}
 .orbit-welcome-lede {
   margin: 0 4px 8px;
   color: var(--q-label-2);

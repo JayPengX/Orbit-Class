@@ -61,7 +61,9 @@ vi.mock('#kit/quadra.mjs', () => ({
   accountSheet: () => {},
   errorText: error => error.message,
   detectLang: () => 'zh',
-  notify: () => {}
+  notify: () => {},
+  tabBar: () => ({ select() {} }),
+  topActions: () => {}
 }));
 
 // The editor open with changes not saved when a newer copy arrives: the

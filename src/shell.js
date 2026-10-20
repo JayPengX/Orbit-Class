@@ -33,22 +33,12 @@ function show(id) {
   else window.update?.();
 }
 
-// Through the kit's module, each with a fallback: an older kit on a phone,
-// or a test's stand-in, without them.
-const has = name => {
-  try {
-    return typeof kit[name] === 'function';
-  } catch {
-    return false;
-  }
-};
-const nav = has('tabBar') ? kit.tabBar({ tabs: TABS.map(x => ({ ...x, label: t(`tab.${x.id}`) })), onSelect: (id, { again }) => !again && show(id), hash: id => `#${id}` }) : { select() {} };
-if (has('topActions')) kit.topActions(orbitSession);
+const nav = kit.tabBar({ tabs: TABS.map(x => ({ ...x, label: t(`tab.${x.id}`) })), onSelect: (id, { again }) => !again && show(id), hash: id => `#${id}` });
+kit.topActions(orbitSession);
 // Every tab but the first opens on the kit's large title (今天 has none).
 for (const x of TABS.slice(1)) {
   const panel = document.getElementById(`panel-${x.id}`);
-  const title = kitUI.navTitle?.(t(`tab.${x.id}`));
-  if (panel && title) panel.prepend(title);
+  if (panel) panel.prepend(kitUI.navTitle(t(`tab.${x.id}`)));
 }
 // A link to another tab (今天's 全部 → 課表).
 document.addEventListener('click', event => {

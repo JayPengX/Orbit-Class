@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import * as kit from '../.kit/holidays.mjs';
-import { holidayOn, useHolidays } from '../src/holidays.js';
+import { holidayOn } from '../src/holidays.js';
 import { computeDashboardViewModel, heroView } from '../src/schedule-calc.js';
 
 describe('Taiwan national holidays: no classes', () => {
-  useHolidays(kit);
   it('knows the days off, in lieu ones too', () => {
     expect(holidayOn(new Date(2026, 9, 9))?.zh).toBe('國慶日補假');
     expect(holidayOn(new Date(2026, 8, 28))?.zh).toBe('教師節');

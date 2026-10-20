@@ -58,7 +58,9 @@ vi.mock('#kit/quadra.mjs', () => ({
   accountSheet: () => {},
   errorText: error => error.message,
   detectLang: () => 'zh',
-  notify: () => {}
+  notify: () => {},
+  tabBar: () => ({ select() {} }),
+  topActions: () => {}
 }));
 
 // An edit made with no connection, the app closed before it went up: the

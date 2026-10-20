@@ -34,13 +34,7 @@ function focusAIImportSection() {
   window.openTransferSheet('photo');
 }
 
-// Each way in has a kit glyph on a colour tile (drawn here when an old kit has none).
-const GLYPHS = {
-  camera: '<path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.3L9.5 4.5h5L16.2 7h2.3A1.5 1.5 0 0 1 20 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"/><circle cx="12" cy="13" r="3.5"/>',
-  pencil: '<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/>',
-  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 7l2.5 2.5M14 9l2 2"/>'
-};
-const glyph = name => (kitUI.icons ?? {})[name] ?? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GLYPHS[name]}</svg>`;
+// Each way in has a kit glyph on a colour tile.
 const CHOICES = [
   ['photo', 'camera', 'var(--q-orange)', focusAIImportSection],
   ['manual', 'pencil', 'var(--q-accent)', () => window.openEditor()],
@@ -60,15 +54,16 @@ function el(tag, props = {}, children = []) {
 
 function tileNode(icon, color) {
   const node = el('span', { class: 'q-tile orbit-welcome-icon', 'aria-hidden': 'true' });
-  node.innerHTML = glyph(icon);
+  node.innerHTML = kitUI.icons[icon];
   node.style.setProperty('--t', color);
   return node;
 }
 
 // The welcome as the kit's sheet: a lead line, the three ways in as numbered
-// rows (kit tiles), a sticky 稍後 at the foot. An older cached kit: the card below.
-function showKitWelcome() {
-  if (typeof kitUI.sheet !== 'function') return false;
+// rows (kit tiles), a sticky 稍後 at the foot.
+function showOnboardingPrompt() {
+  if (hasSavedSchedule() || hasSeenOnboarding()) return;
+  markOnboardingSeen();
   const lead = el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') });
   const rows = CHOICES.map(([id, icon, color, go]) =>
     el('button', { class: 'orbit-welcome-choice q-ritem chevron', type: 'button', 'data-choice': id, onclick: () => (done(), go()) }, [
@@ -79,73 +74,11 @@ function showKitWelcome() {
       ])
     ])
   );
-  const later = kitUI.sheetFoot?.({ button: { label: t('onboarding.later'), onClick: () => done() } }) ?? el('button', { class: 'orbit-welcome-later', type: 'button', text: t('onboarding.later'), onclick: () => done() });
-  later.querySelector?.('button')?.classList.add('orbit-welcome-later');
+  const later = kitUI.sheetFoot({ button: { label: t('onboarding.later'), onClick: () => done() } });
+  later.querySelector('button').classList.add('orbit-welcome-later');
   const done = () => (sheet.close(), !sheet.el.open && sheet.el.remove());
   const sheet = kitUI.sheet({ title: t('onboarding.welcomeTitle'), cls: 'orbit-welcome-sheet', body: [lead, el('div', { class: 'orbit-welcome-choices q-rowcard' }, rows), later] });
   sheet.el.id = 'orbit-welcome';
-  return true;
-}
-
-function showOnboardingPrompt() {
-  if (hasSavedSchedule() || hasSeenOnboarding()) return;
-  markOnboardingSeen();
-  if (showKitWelcome()) return;
-  const dialog = el('dialog', {
-    id: 'orbit-welcome',
-    class: 'orbit-welcome',
-    'aria-labelledby': 'orbit-welcome-title'
-  });
-  const close = () => {
-    if (dialog.open) dialog.close();
-    dialog.remove();
-  };
-  dialog.append(
-    el('div', { class: 'orbit-welcome-box' }, [
-      el('p', { class: 'orbit-welcome-kicker', text: 'ORBIT CLASS' }),
-      el('h2', {
-        id: 'orbit-welcome-title',
-        class: 'orbit-welcome-title',
-        text: t('onboarding.welcomeTitle')
-      }),
-      el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') }),
-      el(
-        'div',
-        { class: 'orbit-welcome-choices q-rowcard' },
-        CHOICES.map(([id, icon, color, go]) =>
-          el(
-            'button',
-            {
-              class: 'orbit-welcome-choice q-ritem chevron',
-              type: 'button',
-              'data-choice': id,
-              onclick: () => (close(), go())
-            },
-            [
-              tileNode(icon, color),
-              el('span', { class: 'orbit-welcome-text q-ritem-text' }, [
-                el('strong', { class: 'q-ritem-title', text: t(`onboarding.${id}Title`) }),
-                el('small', { text: t(`onboarding.${id}Hint`) })
-              ])
-            ]
-          )
-        )
-      ),
-      el('button', {
-        class: 'orbit-welcome-later',
-        type: 'button',
-        text: t('onboarding.later'),
-        onclick: close
-      })
-    ])
-  );
-  dialog.addEventListener('cancel', e => (e.preventDefault(), close()));
-  document.body.append(dialog);
-  try {
-    dialog.showModal();
-  } catch {
-    dialog.setAttribute('open', '');
-  }
 }
 
 export { showOnboardingPrompt };

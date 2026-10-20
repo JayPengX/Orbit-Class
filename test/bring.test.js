@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { loadApp } from './helpers/loadApp.js';
 import { seedLocalStorage } from './helpers/fixtureData.js';
-import * as kit from '../.kit/holidays.mjs';
 
 // 明天要帶: the night before, what tomorrow's classes need.
 let bring;
@@ -20,7 +19,6 @@ beforeAll(async () => {
   bring = await import('../src/bring.js');
   schedule = await import('../src/schedule.js');
   ({ state } = await import('../src/state.js'));
-  (await import('../src/holidays.js')).useHolidays(kit);
 });
 afterAll(() => vi.useRealTimers());
 

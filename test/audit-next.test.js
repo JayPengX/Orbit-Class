@@ -4,7 +4,7 @@ import { seedLocalStorage } from './helpers/fixtureData.js';
 import { normalizeClassSwaps, normalizeCountdownEvents } from '../src/data.js';
 import { getWeekType, getWeekNumber } from '../src/schedule.js';
 import { state } from '../src/state.js';
-import { useHolidays, holidayOn } from '../src/holidays.js';
+import { holidayOn } from '../src/holidays.js';
 
 let applyNlEditResult;
 let validateNlEditResult;
@@ -18,7 +18,6 @@ beforeAll(async () => {
   await loadApp();
   ({ applyNlEditResult, extractJsonObject, validateNlEditResult } = await import('../src/editor-nl-edit.js'));
   ({ decodeTransferData, encodeTransferData, normalizeSettingsData } = await import('../src/editor-backup.js'));
-  useHolidays(await import('../.kit/holidays.mjs'));
 });
 
 describe('impossible dates are not dates', () => {

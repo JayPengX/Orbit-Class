@@ -58,7 +58,9 @@ vi.mock('#kit/quadra.mjs', () => ({
   accountSheet: () => {},
   errorText: error => error.message,
   detectLang: () => 'zh',
-  notify: () => {}
+  notify: () => {},
+  tabBar: () => ({ select() {} }),
+  topActions: () => {}
 }));
 
 // Data loss: a device left open with an older schedule must never save it

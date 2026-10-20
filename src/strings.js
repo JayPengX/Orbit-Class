@@ -42,21 +42,9 @@ function detectLocale() {
 }
 
 // The family's choice (quadra.lang, set in any Quadra or Orbit app's
-// settings and kept on the device) before the phone's language. Class used
-// to keep its own choice under orbitLocaleOverride, which then outranked a
-// change made in another app: it is moved into quadra.lang once (when the
-// family has none yet) and dropped.
-const LEGACY_LOCALE_KEY = 'orbitLocaleOverride';
-
+// settings and kept on the device) before the phone's language.
 function readFamilyLocale() {
   try {
-    const legacy = localStorage.getItem(LEGACY_LOCALE_KEY);
-    if (legacy !== null) {
-      if (localStorage.getItem('quadra.lang') === null && (legacy === 'en' || legacy === 'zh-TW')) {
-        localStorage.setItem('quadra.lang', legacy === 'en' ? 'en' : 'zh');
-      }
-      localStorage.removeItem(LEGACY_LOCALE_KEY);
-    }
     const value = localStorage.getItem('quadra.lang');
     return value === 'en' ? 'en' : value === 'zh' ? 'zh-TW' : null;
   } catch {

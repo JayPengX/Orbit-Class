@@ -57,7 +57,9 @@ vi.mock('#kit/quadra.mjs', () => ({
   accountSheet: () => {},
   errorText: error => error.message,
   detectLang: () => 'zh',
-  notify: () => {}
+  notify: () => {},
+  tabBar: () => ({ select() {} }),
+  topActions: () => {}
 }));
 
 let sync;

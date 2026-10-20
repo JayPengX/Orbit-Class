@@ -589,7 +589,7 @@ window.exitTestMode = function () {
   enableExitButton();
   syncTestPlayPauseUi();
   syncTestingBody();
-  if (typeof closeTestPanel === 'function') closeTestPanel();
+  closeTestPanel();
   window.update();
 };
 // Compares the module script this page actually has loaded against the one
