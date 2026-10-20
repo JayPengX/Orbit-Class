@@ -3,12 +3,14 @@
 // schedule-calc.js heroView, with the day as a strip of chips), the classes
 // after it, 明天要帶 in the evening, and the countdowns. dashboard.js's update() asks every second;
 // each part is written only when what it shows changed.
+import * as kitUI from '#kit/ui.mjs';
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { formatCountdownEventDate, getCountdownEvents } from './data.js';
 import { dateFromKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { bringTomorrow } from './bring.js';
+import { showOnboardingPrompt } from './onboarding.js';
 import { holidayOn } from './holidays.js';
 import { eventLook, stateTile, subjectLook, subjectTile } from './subjects.js';
 import { openModal } from './view-sheet.js';
@@ -141,15 +143,19 @@ export function renderTodayList({ week, through, curDay, now }) {
   const rows = date ? classesOn(date) : state.runtimeSchedule[state.viewDay] || [];
   if (date) week = getWeekType(date);
   const isToday = state.viewDay === curDay && (!date || date.toDateString() === now.toDateString());
-  const items = dayRows(rows, week, { date, from: isToday ? through + 1 : 0 });
-  if (!rows.length) items.push(emptyDay(holiday));
+  // No timetable yet: one card that says so and adds it.
+  const none = !Object.values(state.runtimeSchedule || {}).some(r => (r || []).length);
+  const items = none ? [] : dayRows(rows, week, { date, from: isToday ? through + 1 : 0 });
+  if (none) items.push(kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } }));
+  else if (!rows.length) items.push(emptyDay(holiday));
   const title = $('cx-list-title');
   if (title) {
     const ahead1 = (state.viewDay - curDay + 7) % 7 === 1;
-    title.textContent = isToday ? t('dashboard.laterToday') : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
+    title.textContent = none ? t('tools.myTimetable') : isToday ? t('dashboard.laterToday') : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
   }
+  sec.querySelector('.cx-more')?.toggleAttribute('hidden', none);
   sec.hidden = !items.length;
-  list.replaceChildren(...(items.length ? [el('div', 'q-rowcard cx-day', items)] : []));
+  list.replaceChildren(...(none ? items : items.length ? [el('div', 'q-rowcard cx-day', items)] : []));
 }
 
 // ---- 明天要帶: the evening before, one row per thing ----

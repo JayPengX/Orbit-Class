@@ -104,7 +104,9 @@ export function subjectTile(name, size = '', glass = false) {
   const look = subjectLook(name);
   return makeTile(look.icon, look.color, size, glass);
 }
-// A class-less picture as a kit tile: a break's cup, a day over the moon.
+// A class-less picture as a kit tile: a break's cup, a free period's, a day over the moon.
 export function stateTile(mode, size = '', glass = false) {
-  return makeTile(svg(P[mode === 'break' ? 'cup' : 'moon']), '', size, glass);
+  const node = makeTile(svg(P[mode === 'break' || mode === 'free' ? 'cup' : 'moon']), '', size, glass);
+  if (mode === 'free') node.classList.add('soft', 'cx-gray');
+  return node;
 }

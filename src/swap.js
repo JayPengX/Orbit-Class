@@ -17,6 +17,7 @@ import { state } from './state.js';
 import { pushSyncSnapshot } from './sync.js';
 import * as kitUI from '#kit/ui.mjs';
 import { el as box } from './ui.js';
+import { stateTile, subjectTile } from './subjects.js';
 import { t } from './strings.js';
 import { toast } from './toast.js';
 
@@ -175,7 +176,7 @@ function drawSheet() {
     words.append(el('strong', '', info ? info.n : t('swap.free')));
     const note = isFirst ? t('swap.thisOne') : taken ? t('swap.taken') : info?.t || '';
     if (note) words.append(el('small', '', note));
-    row.append(when, words);
+    row.append(when, info ? subjectTile(info.n, 'sm') : stateTile('free', 'sm'), words);
     row.addEventListener('click', () => pick(slot));
     box.append(row);
   });

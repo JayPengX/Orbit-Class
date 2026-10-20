@@ -547,6 +547,9 @@ body.orbit-motion-paused * {
   color: #fff;
   box-shadow: 0 6px 14px -8px var(--subject);
 }
+.cx-tl-cell.is-past {
+  opacity: 0.4;
+}
 .cx-tl-cell.is-swap {
   box-shadow: inset 0 0 0 1.5px var(--q-orange);
 }
@@ -1948,3 +1951,6 @@ img.q-tile.tr-app {
 #debug-panel .q-ritem-text { min-width: 0; }
 #debug-panel .q-ritem-title { white-space: normal; overflow-wrap: anywhere; }
 #debug-panel .sim-time { flex: none; }
+.cx-more[hidden] {
+  display: none;
+}

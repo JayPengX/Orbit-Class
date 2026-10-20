@@ -1,12 +1,12 @@
 // ---- src/view-sheet.js ----
 // The sheet from the foot (#sheet in index.html) for one class or one day.
 // A class: its picture, name, teacher · room; its figures (a week's
-// periods, fixed or split, room); its two halves when it splits by week;
+// periods, when it meets next); its two halves when it splits by week;
 // its week as five day cells; 調課 for the date it was opened on. A day
 // (from 課表's grid): its classes in order, as on 今天.
 import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { dateFromKey, dateKey } from './dates.js';
+import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { holidayOn } from './holidays.js';
 import * as kitUI from '#kit/ui.mjs';
@@ -72,7 +72,8 @@ export function openModal(shown, { date = null } = {}) {
     const half = (j, label) => el('div', `cx-half${j === i ? ' is-this' : ''}`, [el('small', '', label), el('strong', '', terms[j] || ''), el('span', '', teachers[j] || teachers[0] || '')]);
     body.push(el('div', 'cx-halves', [half(0, t('week.odd')), half(1, t('week.even'))]));
   }
-  const stats = el('div', 'q-stats cx-figs', [fig(t('dashboard.periodsPerWeekLabel'), t('dashboard.periodCount', { count }), 'm-count'), fig(t('dashboard.typeLabel'), c.isSplit ? t('dashboard.typeSplit') : t('dashboard.typeFixed'), 'm-type-val'), c.loc ? fig(t('dashboard.locationLabel'), c.loc, 'm-location-val') : null].filter(Boolean));
+  const next = nextMeeting(info.n);
+  const stats = el('div', 'q-stats cx-figs', [fig(t('dashboard.periodsPerWeekLabel'), String(count), 'm-count'), next ? fig(`${t('dashboard.nextClassLabel')} · ${next.day}`, next.time, 'm-next') : null].filter(Boolean));
   stats.style.setProperty('--q-stats-n', String(stats.childElementCount));
   body.push(stats);
   const occ = el(
@@ -89,6 +90,21 @@ export function openModal(shown, { date = null } = {}) {
   const swap = swapPart(shown, date);
   if (swap) body.push(swap);
   show(subjectTile(info.n, 'lg'), info.n, [info.t, c.loc].filter(Boolean).join(' · '), body);
+}
+
+// When the subject meets next (調課 and holidays applied): { day: 今天 /
+// 明天 / 週四 / a date two weeks out at most, time: its start }.
+function nextMeeting(name, now = new Date()) {
+  const mins = now.getHours() * 60 + now.getMinutes();
+  for (let ahead = 0; ahead < 14; ahead++) {
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ahead);
+    const week = getWeekType(date);
+    const hit = classesOn(date).find(x => processSplitName(x, week).n === name && (ahead > 0 || parseTime(x.s) > mins));
+    if (!hit) continue;
+    const day = ahead === 0 ? t('dashboard.today') : ahead === 1 ? t('dashboard.tomorrow') : ahead < 7 ? WEEKDAY_LABELS[date.getDay()] : `${date.getMonth() + 1}/${date.getDate()}`;
+    return { day, time: hit.s };
+  }
+  return null;
 }
 
 // 調課: a class on a date can be swapped once with another period (any

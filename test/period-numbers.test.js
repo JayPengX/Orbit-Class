@@ -47,7 +47,7 @@ describe('a class’s card names each day’s periods by their own number', () =
       ['週二', '第 1 節', '08:00'],
       ['週三', '第 3 節', '10:10']
     ]);
-    expect(document.getElementById('m-count').textContent).toBe('3 節');
+    expect(document.getElementById('m-count').textContent).toBe('3');
     window.closeModal();
   });
 });

@@ -2,7 +2,7 @@
 // 課表: the week as one grid, this school week or the next (單週 / 雙週,
 // each by its Monday's date). Each column a date (調課 and holidays applied,
 // that date's half of a split class), each row a period by its own number
-// and start time; the class on now filled. A tap on a class opens it for
+// and start time; the class on now filled, today's done ones faded. A tap on a class opens it for
 // that date (and its 調課), a tap on a day its classes in order. Then 調課:
 // the swaps still to come, a tap to undo one, and 新增調課.
 import * as kitUI from '#kit/ui.mjs';
@@ -118,11 +118,13 @@ function drawGrid(monday, now) {
       }
       const name = processSplitName(item, c.week).n || '';
       const label = short.get(name) || name;
-      const on = dateKey(c.date) === dateKey(today) && nowMin >= parseTime(item.s) && nowMin < parseTime(item.e);
+      const isToday = dateKey(c.date) === dateKey(today);
+      const on = isToday && nowMin >= parseTime(item.s) && nowMin < parseTime(item.e);
+      const past = isToday && nowMin >= parseTime(item.e);
       // Four characters (自主學習) on two lines of two, so a narrow column keeps them whole.
       const chars = [...label];
       const pair = chars.length === 4 && !/^[ -~]+$/.test(label);
-      const cell = button(`cx-tl-cell${on ? ' is-now' : ''}${item.swap ? ' is-swap' : ''}${pair ? ' is-pair' : chars.length > 2 ? ' is-long' : ''}`, () => openModal(item, { date: testing ? null : c.date }), pair ? [el('span', '', chars.slice(0, 2).join('')), el('span', '', chars.slice(2).join(''))] : label);
+      const cell = button(`cx-tl-cell${on ? ' is-now' : ''}${past ? ' is-past' : ''}${item.swap ? ' is-swap' : ''}${pair ? ' is-pair' : chars.length > 2 ? ' is-long' : ''}`, () => openModal(item, { date: testing ? null : c.date }), pair ? [el('span', '', chars.slice(0, 2).join('')), el('span', '', chars.slice(2).join(''))] : label);
       cell.style.setProperty('--subject', subjectLook(name).color);
       cell.setAttribute('aria-label', `${WEEKDAY_LABELS[c.d]} ${t('dashboard.periodNumber', { number: p + 1 })} ${name}`);
       grid.append(cell);

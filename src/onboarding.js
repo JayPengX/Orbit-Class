@@ -60,9 +60,10 @@ function tileNode(icon, color) {
 }
 
 // The welcome as the kit's sheet: a lead line, the three ways in as numbered
-// rows (kit tiles), a sticky 稍後 at the foot.
-function showOnboardingPrompt() {
-  if (hasSavedSchedule() || hasSeenOnboarding()) return;
+// rows (kit tiles), a sticky 稍後 at the foot. `force`: asked for (今天's
+// 加入課表), so shown even after it was seen once.
+function showOnboardingPrompt({ force = false } = {}) {
+  if (hasSavedSchedule() || (!force && hasSeenOnboarding())) return;
   markOnboardingSeen();
   const lead = el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') });
   const rows = CHOICES.map(([id, icon, color, go]) =>
