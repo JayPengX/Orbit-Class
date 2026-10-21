@@ -11,7 +11,7 @@ Live: https://jaypengx.github.io/Orbit-Class/
   - **今天:** one card answers "what's left today": the class now (teacher,
     room, time left), the next, and the day as a strip of coloured chips
     (done faded, now ringed) with how many are left and when school's out.
-    Below it the classes after those, then 明天要帶 and the countdowns.
+    Below it the classes after those and the countdowns.
     After the last class it shows the next school day.
   - **課表:** any weekday in either week (單週 / 雙週), and 調課.
   - **工具:** the week as a grid with 編輯課表; AI 課表編輯 and 拍照匯入;
@@ -27,7 +27,6 @@ Live: https://jaypengx.github.io/Orbit-Class/
   (`WEEK_EPOCH`; the same as ISO through 2026, and still alternating over
   2026's 53rd week, where ISO's would repeat odd). A swap toggle if the
   school counts differently; `語文/公民` in a slot splits by week.
-- **明天要帶:** the night before, 今天 lists what tomorrow's classes need (PE clothes, swim gear, art supplies, instrument, materials).
 - **Countdowns** to exams and events; 結束後自動刪除 optional.
 - **Notices** five minutes before each class, handed to the Worker so they
   arrive with the app closed. No classes or notices on Taiwan's holidays.

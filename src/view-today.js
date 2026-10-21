@@ -1,7 +1,7 @@
 // ---- src/view-today.js ----
 // 今天: the hero (the class now, or the one coming, or a day over, from
 // schedule-calc.js heroView, with the day as a strip of chips), the classes
-// after it, 明天要帶 in the evening, and the countdowns. dashboard.js's update() asks every second;
+// after it, and the countdowns. dashboard.js's update() asks every second;
 // each part is written only when what it shows changed.
 import * as kitUI from '#kit/ui.mjs';
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
@@ -9,7 +9,6 @@ import { state } from './state.js';
 import { formatCountdownEventDate, getCountdownEvents } from './data.js';
 import { dateFromKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
-import { bringTomorrow } from './bring.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { holidayOn } from './holidays.js';
 import { breakIcon, eventLook, subjectIcon, subjectLook, subjectTile } from './subjects.js';
@@ -194,21 +193,6 @@ export function renderTodayList({ week, through, curDay, now }) {
   sec.hidden = !items.length;
   const body = none ? items : !rows.length ? [el('div', 'q-rowcard cx-day', items)] : [el('div', 'q-rail cx-cls', items)];
   list.replaceChildren(...(items.length ? body : []));
-}
-
-// ---- 明天要帶: the evening before, one row per thing ----
-let bringDrawn = null;
-export function renderBring(now = new Date()) {
-  const box = $('cx-bring');
-  if (!box) return;
-  const plan = bringTomorrow(now);
-  const key = plan ? `${t('bring.title')}|${plan.day}|${JSON.stringify(plan.items)}` : '';
-  if (key === bringDrawn) return;
-  bringDrawn = key;
-  box.hidden = !plan;
-  if (!plan) return box.replaceChildren();
-  const cards = plan.items.map(({ item, subject }) => el('div', 'cx-bring-card', [subjectTile(subject, 'sm'), el('span', 'cx-bring-words', [el('b', '', t(`bring.${item}`)), el('small', '', subject)])]));
-  box.replaceChildren(...section(t('bring.title', { day: plan.day }), el('div', 'cx-bring-grid', cards)).childNodes);
 }
 
 // ---- 倒數: a rail of cards, each its days to go in large type ----

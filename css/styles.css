@@ -4,7 +4,7 @@
    rails, stats, segmented controls, switches, fields, buttons. This file is
    only what is Class's own, in the order the screens come:
    1. the app's colour and the page;
-   2. 今天: the hero, the classes ahead, 明天要帶, 倒數;
+   2. 今天: the hero, the classes ahead, 倒數;
    3. 課表: the week switch, the week grid, 調課;
    4. 工具: 我的課表 and its rows;
    5. sheets (one mechanism for all), then each sheet: a class or a day,
@@ -2147,39 +2147,6 @@ img.q-tile.tr-app {
 }
 .cx-cd.is-over {
   opacity: 0.55;
-}
-
-/* 明天要帶: two to a row. */
-.cx-bring-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.cx-bring-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 12px;
-  border-radius: 18px;
-  background: var(--q-surface);
-}
-.cx-bring-words {
-  display: grid;
-  min-width: 0;
-}
-.cx-bring-words b,
-.cx-bring-words small {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.cx-bring-words b {
-  font: 600 15px/20px var(--q-font);
-}
-.cx-bring-words small {
-  color: var(--q-label-2);
-  font: 13px/17px var(--q-font);
 }
 
 /* 課表: each class a block in its subject's colour, white type. */
