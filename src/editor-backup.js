@@ -716,6 +716,12 @@ function describeSettingsDiff(current, next, { isImport = false } = {}) {
   const afterSwaps = normalizeClassSwaps(next.classSwaps).map(swapText);
   afterSwaps.filter(x => !beforeSwaps.includes(x)).forEach(x => lines.push(t('editorBackup.swapAdded', { swap: x })));
   beforeSwaps.filter(x => !afterSwaps.includes(x)).forEach(x => lines.push(t('editorBackup.swapRemoved', { swap: x })));
+  // A subject's picked icon set, changed or put back to its own.
+  const iconsBefore = normalizeSubjectIcons(current.subjectIcons);
+  const iconsAfter = normalizeSubjectIcons(next.subjectIcons);
+  [...new Set([...Object.keys(iconsBefore), ...Object.keys(iconsAfter)])]
+    .filter(name => iconsBefore[name] !== iconsAfter[name])
+    .forEach(name => lines.push(t(iconsAfter[name] ? 'editorBackup.iconPicked' : 'editorBackup.iconAuto', { name })));
   const currentProAccent = normalizeProAccent(current.proAccent);
   const nextProAccent = normalizeProAccent(next.proAccent);
   const describeColorChange = (label, before, after) =>

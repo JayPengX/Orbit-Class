@@ -485,6 +485,8 @@ export default {
   'swap.undo': 'Undo swap',
   'swap.undoTitle': 'Undo this swap?',
   'swap.undone': 'Swap undone',
+  'editorBackup.iconPicked': '{name}: new icon',
+  'editorBackup.iconAuto': '{name}: automatic icon',
   'editorBackup.swapSide': '{date} P{n}',
   'editorBackup.swapAdded': 'Swap + {swap}',
   'editorBackup.swapRemoved': 'Swap cancelled: {swap}',

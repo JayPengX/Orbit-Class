@@ -433,6 +433,8 @@ export default {
   'swap.undo': '取消調課',
   'swap.undoTitle': '取消這次調課？',
   'swap.undone': '已取消調課',
+  'editorBackup.iconPicked': '{name} 換圖示',
+  'editorBackup.iconAuto': '{name} 圖示改回自動',
   'editorBackup.swapSide': '{date} 第{n}節',
   'editorBackup.swapAdded': '調課 + {swap}',
   'editorBackup.swapRemoved': '取消調課 {swap}',

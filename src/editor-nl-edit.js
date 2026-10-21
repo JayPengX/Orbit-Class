@@ -47,6 +47,8 @@ import {
 import { proxyPath } from './proxy-config.js';
 import { parseLocalNlEdit } from './nl-edit-local.js';
 import { parseSwapEdit } from './nl-swap.js';
+import { dateKey } from './dates.js';
+import { ICON_CHOICES } from './subjects.js';
 import { normalizeClassSwaps } from './data.js';
 
 // Must match GEMINI_ALLOWED_MODELS in the shared-proxy repo's worker.js -
@@ -100,7 +102,14 @@ function buildNlEditContext() {
     bellTimes: data.bellTimes,
     breakTimes: data.breakTimes,
     countdownEvents: data.countdownEvents,
-    reverseWeek: data.reverseWeek
+    reverseWeek: data.reverseWeek,
+    // 調課 (by date: hence today), the picked icons and the prune setting,
+    // so the AI box can do what the sheets do.
+    today: dateKey(new Date()),
+    classSwaps: data.classSwaps || [],
+    subjectIcons: data.subjectIcons || {},
+    iconChoices: ICON_CHOICES,
+    pruneCountdowns: !!data.pruneCountdowns
   };
 }
 
@@ -388,11 +397,32 @@ function applyNlEditResult(current, result) {
   if (result.breakTimesChanged) next.breakTimes = result.breakTimes;
   if (result.countdownEventsChanged) next.countdownEvents = result.countdownEvents;
   if (result.reverseWeekChanged) next.reverseWeek = result.reverseWeek;
+  if (result.pruneCountdownsChanged === true) next.pruneCountdowns = result.pruneCountdowns === true;
+  // 調課: the complete list after the change.
+  if (result.classSwapsChanged === true) {
+    if (!Array.isArray(result.classSwaps)) throw garbled();
+    next.classSwaps = result.classSwaps.map(x => ({ a: { date: String(x?.aDate || ''), p: x?.aPeriod }, b: { date: String(x?.bDate || ''), p: x?.bPeriod } }));
+    if (next.classSwaps.some(({ a, b }) => ![a, b].every(side => /^\d{4}-\d{2}-\d{2}$/.test(side.date) && Number.isInteger(side.p) && side.p >= 0 && side.p < periods))) throw garbled();
+  }
+  // Icons: only the subjects that change; "" puts one back to its own.
+  if (result.subjectIconsChanged === true) {
+    if (!Array.isArray(result.subjectIcons)) throw garbled();
+    const picked = { ...(current.subjectIcons || {}) };
+    for (const entry of result.subjectIcons) {
+      const name = String(entry?.subject || '').trim();
+      const icon = String(entry?.icon ?? '');
+      if (!name || (icon && !ICON_CHOICES.includes(icon))) throw garbled();
+      if (icon) picked[name] = icon;
+      else delete picked[name];
+    }
+    next.subjectIcons = picked;
+  }
 
   const done = normalizeSettingsData(next);
   // The cleaning drops what it can't read; for a field the answer set,
   // anything dropped is a garbled answer.
   if (result.countdownEventsChanged && done.countdownEvents.length !== result.countdownEvents.length) throw garbled();
+  if (result.classSwapsChanged === true && done.classSwaps.length !== next.classSwaps.length) throw garbled();
   if (
     result.breakTimesChanged &&
     !result.breakTimes.every(b => done.breakTimes.some(d => d.name === b?.name && d.start === b.start && d.end === b.end))

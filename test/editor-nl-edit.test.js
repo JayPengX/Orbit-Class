@@ -203,6 +203,28 @@ function patch(overrides) {
 }
 
 describe('applyNlEditResult', () => {
+  it('調課, icons and the prune setting from the AI: the complete swap list, icons merged ("" back to its own)', () => {
+    const next = applyNlEditResult(
+      makeCurrentData({ subjectIcons: { 數學: 'calculator', 國文: 'feather' } }),
+      patch({
+        classSwapsChanged: true,
+        classSwaps: [{ aDate: '2030-01-07', aPeriod: 0, bDate: '2030-01-08', bPeriod: 0 }],
+        subjectIconsChanged: true,
+        subjectIcons: [{ subject: '數學', icon: 'ruler' }, { subject: '國文', icon: '' }],
+        pruneCountdownsChanged: true,
+        pruneCountdowns: true
+      })
+    );
+    expect(next.classSwaps).toEqual([{ a: { date: '2030-01-07', p: 0 }, b: { date: '2030-01-08', p: 0 } }]);
+    expect(next.subjectIcons).toEqual({ 數學: 'ruler' });
+    expect(next.pruneCountdowns).toBe(true);
+  });
+
+  it('refuses a 調課 past the last period, or an icon not in the set', () => {
+    expect(() => applyNlEditResult(makeCurrentData(), patch({ classSwapsChanged: true, classSwaps: [{ aDate: '2030-01-07', aPeriod: 3, bDate: '2030-01-08', bPeriod: 0 }] }))).toThrow();
+    expect(() => applyNlEditResult(makeCurrentData(), patch({ subjectIconsChanged: true, subjectIcons: [{ subject: '數學', icon: 'banana' }] }))).toThrow();
+  });
+
   it('refuses a slot past the last period (never fills a day with empty cells, never applies the rest)', () => {
     const started = Date.now();
     expect(() =>
