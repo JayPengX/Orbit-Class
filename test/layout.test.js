@@ -112,12 +112,13 @@ describe('工具', () => {
     window.closeTransferSheet?.(true);
   });
 
-  it('AI 課表編輯 opens the editor on its own page', () => {
+  it('AI 課表編輯 opens the editor on the week, the AI box above it', () => {
     document.body.dataset.tab = 'tools';
     renderTools();
     document.querySelector('#cx-tools .cx-way.is-ai').click();
-    expect(document.getElementById('editor-fold-ai').classList.contains('active')).toBe(true);
-    expect(document.querySelector('#editor-fold-ai #nl-edit-input')).not.toBeNull();
+    expect(document.getElementById('editor-fold-schedule').classList.contains('active')).toBe(true);
+    expect(document.querySelector('#editor-fold-schedule #nl-edit-input')).not.toBeNull();
+    expect(document.querySelector('#editor-fold-schedule #schedule-grid')).not.toBeNull();
     window.closeEditor?.(true);
   });
 });

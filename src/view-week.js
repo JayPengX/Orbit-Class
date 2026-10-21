@@ -16,7 +16,7 @@ import { showOnboardingPrompt } from './onboarding.js';
 import { subjectLook } from './subjects.js';
 import { nameAt, openSwapSheet, slotText, undoSwap } from './swap.js';
 import { openDaySheet, openModal } from './view-sheet.js';
-import { el, button, row, section, tile } from './ui.js';
+import { el, button, fitText, row, section, tile } from './ui.js';
 import { t } from './strings.js';
 
 const $ = id => document.getElementById(id);
@@ -27,13 +27,13 @@ const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 
 // (民主政治與法律 → 民主), and where two would read the same, its first
 // character and the first one that tells it apart (社會經濟補給站 beside
 // 社會 → 社經; 英文閱讀 and 英文寫作 → 英閱, 英寫). A name in Latin letters
-// by its first word, cut to six.
+// whole: its cell wraps it by word and shrinks it to fit (never cut).
 const FULL = 4;
 export function shortNames(names) {
   const list = [...new Set(names.filter(Boolean))];
   const chars = name => [...name];
   const latin = name => /^[ -~]+$/.test(name);
-  const base = name => (latin(name) ? name.split(/\s+/)[0].slice(0, 6) : chars(name).length <= FULL ? name : chars(name).slice(0, 2).join(''));
+  const base = name => (latin(name) ? name : chars(name).length <= FULL ? name : chars(name).slice(0, 2).join(''));
   const first = new Map(list.map(name => [name, base(name)]));
   const out = new Map(first);
   for (const name of list) {
@@ -124,8 +124,9 @@ function drawGrid(monday, now) {
       const past = isToday && nowMin >= parseTime(item.e);
       // Four characters (自主學習) on two lines of two, so a narrow column keeps them whole.
       const chars = [...label];
-      const pair = chars.length === 4 && !/^[ -~]+$/.test(label);
-      const cell = button(`cx-tl-cell${on ? ' is-now' : ''}${past ? ' is-past' : ''}${item.swap ? ' is-swap' : ''}${pair ? ' is-pair' : chars.length > 2 ? ' is-long' : ''}`, () => openModal(item, { date: testing ? null : c.date }), pair ? [el('span', '', chars.slice(0, 2).join('')), el('span', '', chars.slice(2).join(''))] : label);
+      const isLatin = /^[ -~]+$/.test(label);
+      const pair = chars.length === 4 && !isLatin;
+      const cell = button(`cx-tl-cell${on ? ' is-now' : ''}${past ? ' is-past' : ''}${item.swap ? ' is-swap' : ''}${pair ? ' is-pair' : isLatin && chars.length > 3 ? ' is-latin' : chars.length > 2 ? ' is-long' : ''}`, () => openModal(item, { date: testing ? null : c.date }), pair ? [el('span', '', chars.slice(0, 2).join('')), el('span', '', chars.slice(2).join(''))] : label);
       cell.style.setProperty('--subject', subjectLook(name).color);
       cell.setAttribute('aria-label', `${WEEKDAY_LABELS[c.d]} ${t('dashboard.periodNumber', { number: p + 1 })} ${name}`);
       grid.append(cell);
@@ -135,6 +136,8 @@ function drawGrid(monday, now) {
   const offs = cols.filter(c => c.holiday);
   const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${c.holiday.zh}`))) : null;
   box.replaceChildren(...[periods ? grid : kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } }), foot].filter(Boolean));
+  // A long Latin name wraps by word; what still won't fit shrinks.
+  requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-tl-cell.is-latin')));
 }
 
 // 調課's section: the swaps still to come, then 新增調課.

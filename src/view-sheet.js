@@ -11,9 +11,11 @@ import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { holidayOn } from './holidays.js';
 import * as kitUI from '#kit/ui.mjs';
 import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
-import { subjectLook, subjectTile } from './subjects.js';
+import { ICON_CHOICES, iconKeyOf, iconSvg, subjectLook, subjectTile } from './subjects.js';
+import { saveData } from './data.js';
+import { pushSyncSnapshot } from './sync.js';
 import { dayRows, emptyDay } from './view-today.js';
-import { el, button, tile } from './ui.js';
+import { el, button, glyph, tile } from './ui.js';
 import { t } from './strings.js';
 
 let previousFocus = null;
@@ -92,7 +94,38 @@ export function openModal(shown, { date = null } = {}) {
   const color = subjectLook(info.n).color;
   stats.style.setProperty('--subject', color);
   occ.style.setProperty('--subject', color);
-  show(subjectTile(info.n, 'lg'), info.n, [info.t, c.loc].filter(Boolean).join(' · '), body);
+  const pic = button('cx-pick-lead', () => openIconPicker(info.n, () => openModal(shown, { date })), [subjectTile(info.n, 'lg'), el('span', 'cx-pick-badge')]);
+  pic.lastChild.innerHTML = glyph('pencil') || '';
+  pic.setAttribute('aria-label', t('sheet.pickIcon'));
+  show(pic, info.n, [info.t, c.loc].filter(Boolean).join(' · '), body);
+}
+
+// The subject's icon, picked from the set (or back to the one it gets by
+// itself). Saved with the timetable (applicationData.subjectIcons), so the
+// Pass carries it; `back` reopens the class.
+function openIconPicker(name, back) {
+  const color = subjectLook(name).color;
+  const now = iconKeyOf(name);
+  const choose = key => {
+    const picked = { ...(state.applicationData.subjectIcons || {}) };
+    if (key) picked[name] = key;
+    else delete picked[name];
+    state.applicationData.subjectIcons = picked;
+    saveData(state.applicationData);
+    pushSyncSnapshot();
+    state.lastListKey = '';
+    window.update?.();
+    back();
+  };
+  const grid = el('div', 'cx-icon-grid', ICON_CHOICES.map(key => {
+    const b = button(`cx-icon-pick${key === now ? ' is-on' : ''}`, () => choose(key));
+    b.innerHTML = iconSvg(key);
+    b.setAttribute('aria-label', key);
+    return b;
+  }));
+  grid.style.setProperty('--subject', color);
+  const reset = (state.applicationData.subjectIcons || {})[name] ? button('q-btn tinted block', () => choose(null), t('sheet.autoIcon')) : null;
+  show(subjectTile(name, 'lg'), name, t('sheet.pickIcon'), [grid, reset]);
 }
 
 // When the subject meets next (調課 and holidays applied): { day: 今天 /

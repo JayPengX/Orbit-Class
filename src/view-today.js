@@ -13,7 +13,7 @@ import { showOnboardingPrompt } from './onboarding.js';
 import { holidayOn } from './holidays.js';
 import { breakIcon, eventLook, subjectIcon, subjectLook, subjectTile } from './subjects.js';
 import { openModal } from './view-sheet.js';
-import { el, button, glyph, section } from './ui.js';
+import { el, button, glyph, nameSize, section } from './ui.js';
 import { t } from './strings.js';
 
 // ---- The hero ----
@@ -42,7 +42,10 @@ export function renderHero(hero, week = '') {
   put('glyph', hero.mode, v => (d['cx-glyph'].innerHTML = glyph(GLYPH[v] || 'clock')));
   put('kicker', hero.kicker, v => (d['cx-kicker'].textContent = v));
   put('span', hero.span, v => (d['cx-span'].textContent = v));
-  put('title', hero.title, v => (d['now-name'].textContent = v));
+  put('title', hero.title, v => {
+    d['now-name'].textContent = v;
+    d['now-name'].className = `cx-title${nameSize(v)}`;
+  });
   // The card is the subject's colour, its glyph large behind the words.
   put('icon', hero.subject ? `s:${hero.subject}` : `m:${hero.mode}`, () => {
     d['cx-icon'].innerHTML = hero.subject ? subjectIcon(hero.subject) : hero.mode === 'break' ? breakIcon() : glyph('moon');
@@ -70,7 +73,10 @@ export function renderHero(hero, week = '') {
   if (foot?.note) put('note', foot.note, v => (d['next-note'].textContent = v));
   else if (foot) {
     put('nextLabel', foot.label, v => (d['next-label'].textContent = v));
-    put('nextName', foot.name, v => (d['next-name'].textContent = v));
+    put('nextName', foot.name, v => {
+      d['next-name'].textContent = v;
+      d['next-name'].className = nameSize(v).trim();
+    });
     put('nextIcon', foot.subject || '', v => d['next-icon'].replaceChildren(...(v ? [subjectTile(v, 'sm', true)] : [])));
     put('nextTime', foot.time, v => (d['next-time'].textContent = v));
     put('nextSub', foot.sub, v => (d['next-sub'].textContent = v));
@@ -140,7 +146,7 @@ export function dayCards(rows, week, { date = null, from = 0 } = {}) {
     const pic = el('span', 'cx-cl-icon');
     pic.innerHTML = subjectIcon(info.n);
     const top = el('span', 'cx-cl-top', [pic, el('small', '', t('dashboard.periodNumber', { number: (c.p ?? i) + 1 }))]);
-    const name = el('strong', 'cx-cl-name', info.n);
+    const name = el('strong', `cx-cl-name${nameSize(info.n)}`, info.n);
     const card = button('cx-cl q-press', () => openModal(c, { date }), [top, el('b', 'cx-cl-time', c.s), name, el('small', 'cx-cl-sub', [c.loc || info.t || c.e].filter(Boolean)[0])]);
     card.style.setProperty('--subject', subjectLook(info.n).color);
     if (info.label) card.classList.add('is-split');
@@ -218,14 +224,14 @@ export function renderCountdowns(now = new Date()) {
   if (key === countdownsDrawn) return;
   countdownsDrawn = key;
   // Soonest first, the ones over last.
-  const order = e => (countdownState(e, today).kind === 'over' ? '1' : '0') + e.startDate;
-  const cards = [...events].sort((a, b) => order(a).localeCompare(order(b))).map(event => {
+  // In the order set in the editor (its drag handles), never re-sorted.
+  const cards = events.map(event => {
     const st = countdownState(event, today);
     const look = eventLook(event.name);
     const pic = el('span', 'cx-cl-icon');
     pic.innerHTML = look.icon;
     const big = st.kind === 'ahead' ? el('span', 'cx-cd-big', [el('b', '', String(st.days)), el('small', '', t('dashboard.countdownDayUnit'))]) : el('span', `cx-cd-big is-${st.kind}`, [el('em', '', t(`dashboard.${{ today: 'countdownToday', on: 'countdownInProgress', over: 'countdownEnded' }[st.kind]}`))]);
-    const card = button(`q-rail-card cx-cd is-${st.kind}`, editCountdowns, [el('span', 'cx-cd-top', [pic, el('small', '', formatCountdownEventDate(event, { withYear: dateFromKey(event.startDate) - today > 330 * MS_PER_DAY }))]), el('strong', 'cx-cd-name', event.name), big]);
+    const card = button(`q-rail-card cx-cd is-${st.kind}`, editCountdowns, [el('span', 'cx-cd-top', [pic, el('small', '', formatCountdownEventDate(event, { withYear: dateFromKey(event.startDate) - today > 330 * MS_PER_DAY }))]), el('strong', `cx-cd-name${nameSize(event.name)}`, event.name), big]);
     card.style.setProperty('--subject', look.color);
     if (st.kind === 'ahead') card.setAttribute('aria-label', t('dashboard.countdownAriaDays', { name: event.name, days: st.days }));
     return card;

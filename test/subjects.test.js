@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { eventLook, subjectLook, subjectTile } from '../src/subjects.js';
+import { eventLook, iconKeyOf, subjectLook, subjectTile } from '../src/subjects.js';
+import { state } from '../src/state.js';
 
 describe('every subject has its picture (an icon in its own colour)', () => {
   it('knows the subjects of a Taiwanese timetable, the narrower names first', () => {
@@ -12,10 +13,21 @@ describe('every subject has its picture (an icon in its own colour)', () => {
     expect(key('English Literature')).toBe('english');
   });
   it('a subject it does not know: a book, the same colour every time', () => {
-    const a = subjectLook('多元選修A');
+    const a = subjectLook('週末營隊A');
     expect(a.key).toBe('other');
-    expect(subjectLook('多元選修A').color).toBe(a.color);
+    expect(subjectLook('週末營隊A').color).toBe(a.color);
     expect(a.icon).toMatch(/^<svg/);
+  });
+  it('no two subjects of a timetable share an icon; a picked one wins', () => {
+    const before = state.applicationData;
+    state.applicationData = { teacherDB: { A: ['國文', '', ''], B: ['國文選讀', '', ''], C: ['週末營隊', '', ''], D: ['公民/國寫', '', ''] }, teacherOrder: ['A', 'B', 'C', 'D'] };
+    const keys = ['國文', '國文選讀', '週末營隊', '公民', '國寫'].map(iconKeyOf);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(keys[0]).toBe('book');
+    state.applicationData.subjectIcons = { 週末營隊: 'book' };
+    expect(iconKeyOf('週末營隊')).toBe('book');
+    expect(iconKeyOf('國文')).not.toBe('book');
+    state.applicationData = before;
   });
   it('drawn as a tile in the subject colour', () => {
     const tile = subjectTile('物理', 'sm');

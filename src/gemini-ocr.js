@@ -1602,6 +1602,7 @@ function activateOCRImporter() {
             // touches this setting, recognized classes or not.
             reverseWeek: current.reverseWeek,
             classSwaps: current.classSwaps,
+            subjectIcons: current.subjectIcons,
             proAccent: current.proAccent,
             proSecondary: current.proSecondary,
             styleSlots: current.styleSlots

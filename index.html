@@ -138,6 +138,14 @@
     <details class="editor-fold" id="editor-fold-schedule" data-no-back-button>
       <summary class="editor-fold-summary" data-i18n="editorCore.scheduleFoldLabel">課表</summary>
       <div class="editor-fold-body">
+        <div class="q-hero-card ed-ask" id="nl-edit-box">
+          <span class="q-hc-eyebrow"><span class="cx-glyph" data-glyph="spark"></span><span data-i18n="tools.aiEditSub">用一句話說要改什麼</span></span>
+          <div class="q-hc-pill ed-ask-pill">
+            <input id="nl-edit-input" type="text" maxlength="200" placeholder="例如：把我週二第三節改成物理" data-i18n-placeholder="nlEdit.inputPlaceholder" autocomplete="off" enterkeyhint="send">
+            <button type="button" id="nl-edit-submit" class="ed-ask-send" aria-label="送出" data-i18n-aria-label="common.submit"><span class="cx-glyph" data-glyph="send"></span></button>
+          </div>
+        </div>
+        <div id="nl-edit-status" class="cx-status" role="status"></div>
         <div id="ed-days" class="ed-days"></div>
         <div class="schedule-grid" id="schedule-grid"></div>
         <div id="ed-parts" class="q-rowcard ed-parts"></div>
@@ -182,19 +190,6 @@
             <button type="button" class="q-switch toggle-switch" id="toggle-prune-countdowns" onclick="togglePruneCountdowns()" aria-label="結束後自動刪除" data-i18n-aria-label="editorCore.pruneCountdownsLabel"></button>
           </div>
         </div>
-      </div>
-    </details>
-    <details class="editor-fold" id="editor-fold-ai">
-      <summary class="editor-fold-summary" data-i18n="nlEdit.headingLabel">AI 課表編輯</summary>
-      <div class="editor-fold-body">
-        <div class="q-hero-card ed-ask" id="nl-edit-box">
-          <span class="q-hc-eyebrow"><span class="cx-glyph" data-glyph="spark"></span><span data-i18n="tools.aiEditSub">用一句話說要改什麼</span></span>
-          <div class="q-hc-pill ed-ask-pill">
-            <input id="nl-edit-input" type="text" maxlength="200" placeholder="例如：把我週二第三節改成物理" data-i18n-placeholder="nlEdit.inputPlaceholder" autocomplete="off" enterkeyhint="send">
-            <button type="button" id="nl-edit-submit" class="ed-ask-send" aria-label="送出" data-i18n-aria-label="common.submit"><span class="cx-glyph" data-glyph="send"></span></button>
-          </div>
-        </div>
-        <div id="nl-edit-status" class="cx-status" role="status"></div>
       </div>
     </details>
   </div>

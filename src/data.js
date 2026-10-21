@@ -285,6 +285,11 @@ function sortPeriodsByTime({ bellTimes, weeklySchedule, classSwaps }) {
   };
 }
 // The swaps with a day still to come (today counts).
+// A subject's picked icon by its name: { 國文: 'feather' } (keys of src/subjects.js's icons).
+function normalizeSubjectIcons(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter(([name, key]) => String(name).trim() && /^[a-zA-Z]{2,20}$/.test(String(key))).map(([name, key]) => [String(name).trim(), String(key)]));
+}
 function swapsNotOver(swaps, today) {
   return (swaps || []).filter(s => s.a.date >= today || s.b.date >= today);
 }
@@ -303,6 +308,7 @@ function getDefaultData() {
     reverseWeek: REVERSE_WEEK_LOGIC_DEFAULT,
     pruneCountdowns: false,
     classSwaps: [],
+    subjectIcons: {},
     proAccent: DEFAULT_STYLE_PRIMARY,
     proSecondary: DEFAULT_STYLE_SECONDARY,
     styleSlots: normalizeStyleSlots([])
@@ -437,6 +443,7 @@ function loadData() {
         typeof parsed.reverseWeek === 'boolean' ? parsed.reverseWeek : REVERSE_WEEK_LOGIC_DEFAULT,
       pruneCountdowns: parsed.pruneCountdowns === true,
       classSwaps: normalizeClassSwaps(parsed.classSwaps),
+      subjectIcons: normalizeSubjectIcons(parsed.subjectIcons),
       proAccent: normalizeProAccent(parsed.proAccent),
       proSecondary: normalizeProSecondary(parsed.proSecondary),
       styleSlots: normalizeStyleSlots(parsed.styleSlots)
@@ -461,6 +468,7 @@ function saveData(d) {
   }
 }
 export {
+  normalizeSubjectIcons,
   countdownsNotOver,
   getCountdownEvents,
   ORBIT_APP_ID,

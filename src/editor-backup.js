@@ -23,6 +23,7 @@ import {
   normalizeCountdownEvent,
   normalizeCountdownEvents,
   normalizeClassSwaps,
+  normalizeSubjectIcons,
   remapClassSwaps,
   sanitizeBreakTimes,
   saveData,
@@ -128,6 +129,8 @@ function collectEditorFormState({ includeDraft = false } = {}) {
     pruneCountdowns,
     // (調課 isn't the editor's: kept as saved.)
     classSwaps: normalizeClassSwaps(state.applicationData.classSwaps),
+    // (Nor the picked icons: those are the class sheet's.)
+    subjectIcons: normalizeSubjectIcons(state.applicationData.subjectIcons),
     proAccent,
     proSecondary,
     styleSlots: normalizeStyleSlots(state.applicationData.styleSlots),
@@ -268,7 +271,8 @@ function encodeTransferPayloadV2(data) {
     styleSlotEntries,
     // (Appended: an older copy of the app reads the ten before it and ignores these.)
     data.pruneCountdowns ? 1 : 0,
-    (data.classSwaps || []).map(({ a, b }) => [a.date, a.p, b.date, b.p])
+    (data.classSwaps || []).map(({ a, b }) => [a.date, a.p, b.date, b.p]),
+    normalizeSubjectIcons(data.subjectIcons)
   ];
 }
 function decodeTransferPayloadV2(array) {
@@ -284,7 +288,8 @@ function decodeTransferPayloadV2(array) {
     proSecondary,
     styleSlotEntries,
     pruneCountdownsFlag,
-    swapEntries
+    swapEntries,
+    subjectIcons
   ] = array;
   const teacherDB = {},
     locationDB = {};
@@ -322,6 +327,7 @@ function decodeTransferPayloadV2(array) {
         Array.isArray(e) ? { a: { date: e[0], p: e[1] }, b: { date: e[2], p: e[3] } } : null
       )
     ),
+    subjectIcons: normalizeSubjectIcons(subjectIcons),
     proAccent,
     proSecondary,
     styleSlots,
@@ -462,6 +468,7 @@ function normalizeSettingsData(raw, { requireMarker = false } = {}) {
       typeof source.reverseWeek === 'boolean' ? source.reverseWeek : REVERSE_WEEK_LOGIC_DEFAULT,
     pruneCountdowns: source.pruneCountdowns === true,
     classSwaps: normalizeClassSwaps(sorted.classSwaps),
+    subjectIcons: normalizeSubjectIcons(source.subjectIcons),
     proAccent: normalizeProAccent(source.proAccent),
     proSecondary: normalizeProSecondary(source.proSecondary),
     styleSlots: normalizeStyleSlots(source.styleSlots)

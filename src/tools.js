@@ -1,10 +1,11 @@
 // ---- src/tools.js ----
-// 工具: changing the timetable. It leads with 我的課表 (its periods a week
-// and the school day's span, and 編輯課表), then a figure card straight into
+// 工具: changing the timetable. It leads with 我的課表 (the week in
+// miniature, opening the editor), then a figure card straight into
 // each part of the editor, then AI (a sentence, or a photo) and 分享 (the
 // share key and the Pass). Drawn when the tab opens, and again when the timetable
 // changes while it's on screen.
-import { pad2, parseTime } from './dates.js';
+import { getWeekType, processSplitName } from './schedule.js';
+import { subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getCountdownEvents } from './data.js';
 import { el, button, glyph, row, section, tile } from './ui.js';
@@ -17,29 +18,30 @@ function openPart(id) {
 // Opened, not typed into: no keyboard over the sheet until the field is tapped.
 const openTransfer = focus => window.openTransferSheet?.(focus);
 
-function figures() {
+// 我的課表: the week in miniature, a coloured block per class (its first
+// character), today's column lit; tapping it opens the editor on the week.
+function weekCard() {
   const schedule = state.runtimeSchedule || {};
-  let total = 0;
-  let first = Infinity;
-  let last = -Infinity;
-  for (const d of [1, 2, 3, 4, 5, 6])
-    for (const item of schedule[d] || []) {
-      total += 1;
-      first = Math.min(first, parseTime(item.s));
-      last = Math.max(last, parseTime(item.e));
+  const days = [1, 2, 3, 4, 5, ...((schedule[6] || []).length ? [6] : [])];
+  const periods = Math.max(0, ...days.flatMap(d => (schedule[d] || []).map(x => x.p + 1)));
+  const today = new Date().getDay();
+  const week = getWeekType(new Date());
+  const head = el('span', 'cx-mini-head', [el('span', 'cx-mini-title', t('tools.myTimetable')), el('span', 'cx-mini-edit', t('common.edit'))]);
+  if (!periods) return button('cx-mini q-press', () => openPart('editor-fold-schedule'), [head, el('strong', 'cx-mini-none', t('tools.noClasses'))]);
+  const grid = el('span', 'cx-mini-grid');
+  grid.style.setProperty('--days', String(days.length));
+  for (const d of days) grid.append(el('span', `cx-mini-day${d === today ? ' is-today' : ''}`, t(`tools.day${d}`)));
+  for (let p = 0; p < periods; p += 1)
+    for (const d of days) {
+      const item = (schedule[d] || []).find(x => x.p === p);
+      const name = item ? processSplitName(item, week).n || '' : '';
+      const cell = el('span', `cx-mini-cell${name ? '' : ' is-empty'}${d === today ? ' is-today' : ''}`, name ? [...name][0] : '');
+      if (name) cell.style.setProperty('--subject', subjectLook(name).color);
+      grid.append(cell);
     }
-  const clock = m => `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
-  return { total, span: total ? `${clock(first)}–${clock(last)}` : '' };
-}
-
-function hero() {
-  const { total, span } = figures();
-  const eyebrow = el('span', 'q-hc-eyebrow', [el('span', 'cx-glyph'), el('span', '', t('tools.myTimetable'))]);
-  eyebrow.firstChild.innerHTML = glyph('calendar');
-  const fig = (value, label) => el('span', 'cx-fig', [el('b', '', value), el('small', '', label)]);
-  const big = total ? el('div', 'cx-figs-row', [fig(String(total), t('tools.perWeek')), fig(span, t('tools.schoolDay'))]) : el('strong', 'q-hc-title', t('tools.noClasses'));
-  const edit = button('q-hc-btn', () => openPart('editor-fold-schedule'), t('sync.editTitle'));
-  return el('section', 'q-hero-card cx-tools-hero', [eyebrow, big, el('div', 'q-hc-row', [edit])]);
+  const card = button('cx-mini q-press', () => openPart('editor-fold-schedule'), [head, grid]);
+  card.setAttribute('aria-label', `${t('tools.myTimetable')} · ${t('sync.editTitle')}`);
+  return card;
 }
 
 let drawn = '';
@@ -75,9 +77,9 @@ function renderTools() {
     card.style.setProperty('--subject', color);
     return card;
   };
-  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), () => openPart('editor-fold-ai')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), () => openTransfer('photo'))]);
+  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
-  box.replaceChildren(hero(), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
+  box.replaceChildren(weekCard(), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).

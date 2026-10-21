@@ -301,8 +301,7 @@ function orderEditorFolds() {
     'editor-fold-countdown',
     'editor-fold-teachers',
     'editor-fold-bells',
-    'editor-fold-breaks',
-    'editor-fold-ai'
+    'editor-fold-breaks'
   ].forEach(id => {
     const section = document.getElementById(id);
     if (section) body.insertBefore(section, saveBtn);

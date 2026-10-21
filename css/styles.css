@@ -170,13 +170,18 @@ body.orbit-motion-paused * {
   min-width: 0;
 }
 .cx-title {
-  display: -webkit-box;
-  overflow: hidden;
   font: 700 26px/31px var(--q-font);
   letter-spacing: -0.015em;
+  text-wrap: balance;
   overflow-wrap: anywhere;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+}
+.cx-title.is-long {
+  font-size: 22px;
+  line-height: 27px;
+}
+.cx-title.is-xlong {
+  font-size: 19px;
+  line-height: 24px;
 }
 .cx-meta {
   display: flex;
@@ -243,10 +248,17 @@ body.orbit-motion-paused * {
   text-overflow: ellipsis;
 }
 .cx-foot-words b {
-  overflow: hidden;
   font: 600 16px/21px var(--q-font);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.cx-foot-words b.is-long {
+  font-size: 15px;
+  line-height: 19px;
+}
+.cx-foot-words b.is-xlong {
+  font-size: 13px;
+  line-height: 17px;
 }
 .cx-foot-end {
   flex: none;
@@ -397,11 +409,14 @@ body.orbit-motion-paused * {
   text-overflow: ellipsis;
 }
 .cx-cd-name {
-  overflow: hidden;
   margin-top: 4px;
   font: 600 15px/20px var(--q-font);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.cx-cd-name.is-xlong {
+  font-size: 13px;
+  line-height: 17px;
 }
 .cx-cd-big {
   display: flex;
@@ -516,6 +531,17 @@ body.orbit-motion-paused * {
   font-size: 12px;
   letter-spacing: -0.03em;
 }
+.cx-tl-cell.is-latin {
+  padding: 2px 3px;
+  font-size: 11px;
+  line-height: 13px;
+  letter-spacing: -0.01em;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
 .cx-tl-cell.is-pair {
   align-content: center;
   gap: 0;
@@ -576,32 +602,62 @@ body.orbit-motion-paused * {
 }
 
 /* ---- 4. 工具 ---- */
-.cx-tools-hero {
+.cx-mini {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--q-surface);
+  color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cx-mini-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 12px;
 }
-.cx-figs-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 24px;
-  min-width: 0;
+.cx-mini-title {
+  font: 700 20px/25px var(--q-font);
 }
-.cx-fig {
+.cx-mini-edit {
+  color: var(--q-accent);
+  font: 600 15px/20px var(--q-font);
+}
+.cx-mini-none {
+  color: var(--q-label-2);
+  font: 600 15px/20px var(--q-font);
+}
+.cx-mini-grid {
   display: grid;
-  gap: 2px;
-  min-width: 0;
+  grid-template-columns: repeat(var(--days), minmax(0, 1fr));
+  gap: 4px;
 }
-.cx-fig b {
-  font: 700 34px/38px var(--q-font-rounded);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
+.cx-mini-day {
+  padding-bottom: 2px;
+  color: var(--q-label-2);
+  font: 600 12px/16px var(--q-font);
+  text-align: center;
 }
-.cx-fig small {
-  color: rgba(255, 255, 255, 0.8);
-  font: 600 13px/18px var(--q-font);
+.cx-mini-day.is-today {
+  color: var(--q-accent);
 }
-.cx-fig + .cx-fig b {
-  font-size: 26px;
+.cx-mini-cell {
+  --subject: var(--q-accent);
+  display: grid;
+  place-items: center;
+  height: 22px;
+  border-radius: 7px;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--subject) 88%, #fff), var(--subject));
+  color: #fff;
+  font: 700 12px/1 var(--q-font);
+}
+.cx-mini-cell.is-empty {
+  background: var(--q-fill-3, rgba(120, 120, 128, 0.12));
 }
 
 /* ---- 5. Sheets: up from the foot, as the kit's, for the app's own panels ---- */
@@ -1886,11 +1942,16 @@ img.q-tile.tr-app {
     font-size: 23px;
     line-height: 28px;
   }
+  .cx-title.is-long {
+    font-size: 20px;
+    line-height: 25px;
+  }
+  .cx-title.is-xlong {
+    font-size: 18px;
+    line-height: 22px;
+  }
   .cx-timer .q-hc-big {
     font-size: 40px;
-  }
-  .cx-figs-row {
-    gap: 16px;
   }
   .cx-occ {
     gap: 4px;
@@ -2091,10 +2152,17 @@ img.q-tile.tr-app {
   letter-spacing: -0.01em;
 }
 .cx-cl-name {
-  overflow: hidden;
   font: 600 16px/21px var(--q-font);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.cx-cl-name.is-long {
+  font-size: 14px;
+  line-height: 18px;
+}
+.cx-cl-name.is-xlong {
+  font-size: 13px;
+  line-height: 16px;
 }
 .cx-cl-sub {
   overflow: hidden;
@@ -2263,4 +2331,54 @@ img.q-tile.tr-app {
 
 .cx-hero[hidden] {
   display: none;
+}
+
+/* The class sheet's icon, tapped to pick another. */
+.cx-pick-lead {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.cx-pick-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--q-surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  color: var(--q-label);
+}
+.cx-pick-badge svg {
+  width: 13px;
+  height: 13px;
+}
+.cx-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.cx-icon-pick {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--subject) 14%, transparent);
+  color: var(--subject);
+  cursor: pointer;
+}
+.cx-icon-pick svg {
+  width: 24px;
+  height: 24px;
+}
+.cx-icon-pick.is-on {
+  background: var(--subject);
+  color: #fff;
 }

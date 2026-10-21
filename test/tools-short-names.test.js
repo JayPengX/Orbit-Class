@@ -22,7 +22,7 @@ describe('課表 grid: every subject its own short name', () => {
     expect(out.get('英文聽講練習')).toBe('英聽');
     expect(new Set(out.values()).size).toBe(out.size);
   });
-  it('a Latin name by its first word', () => {
-    expect(shortNames(['Physics Lab']).get('Physics Lab')).toBe('Physic');
+  it('a Latin name whole (its cell wraps and shrinks it)', () => {
+    expect(shortNames(['Physics Lab']).get('Physics Lab')).toBe('Physics Lab');
   });
 });

@@ -2,13 +2,13 @@
 // The editor sheet's own look (its logic is editor-*.js): one page per
 // part, the timetable first. On it, a day picker shows one day's periods at
 // a time, each period by its number and start time beside its class picker,
-// then rows into the other parts (科目與教師, 節次時間, 特殊時段, 倒數, AI).
+// then rows into the other parts (科目與教師, 節次時間, 特殊時段, 倒數); the AI box sits above.
 // Each part's page has a ‹ 課表 back button in the head (editor-core.js
 // ensureEditorBackButtons) and its name as a large title.
 import * as kitUI from '#kit/ui.mjs';
 import { WEEKDAYS_DISPLAY_ORDER } from './constants.js';
 import { openEditorFold } from './editor-core.js';
-import { el, fillGlyphs, row, tile } from './ui.js';
+import { el, fillGlyphs, fitSelects, row, tile } from './ui.js';
 import { t } from './strings.js';
 
 const sheet = document.getElementById('editor-sheet');
@@ -34,7 +34,10 @@ sheet?.querySelectorAll('details.editor-fold').forEach(det => {
 let day = [1, 2, 3, 4, 5, 6].includes(new Date().getDay()) ? new Date().getDay() : 1;
 function showDay() {
   grid?.querySelectorAll('.schedule-day-row').forEach(r => r.classList.toggle('is-shown', Number(r.dataset.day) === day));
+  fitShown();
 }
+// A long subject's name stays whole in its period's box (it shrinks).
+const fitShown = () => grid && fitSelects(grid.querySelectorAll('.schedule-day-row.is-shown .period-select'));
 // Each day's periods by number and start time (the bell rows as they stand).
 function numberRows() {
   if (!grid) return;
@@ -53,6 +56,8 @@ function numberRows() {
 }
 if (grid) {
   new MutationObserver(numberRows).observe(grid, { childList: true });
+  grid.addEventListener('change', event => event.target.matches?.('.period-select') && fitSelects([event.target]));
+  if (typeof ResizeObserver === 'function') new ResizeObserver(fitShown).observe(grid);
   document.getElementById('bell-list')?.addEventListener('change', numberRows);
   const days = document.getElementById('ed-days');
   if (days) {
@@ -76,8 +81,7 @@ const PARTS = [
   ['editor-fold-teachers', 'book', 'var(--q-indigo)', 'editorTeachers.subjectsAndTeachersFoldLabel'],
   ['editor-fold-bells', 'clock', 'var(--q-orange)', 'editorBackup.sectionBellTimes'],
   ['editor-fold-breaks', 'cup', 'var(--q-teal)', 'editorSchedule.specialTimeFoldLabel'],
-  ['editor-fold-countdown', 'flag', 'var(--q-red)', 'editorBackup.sectionCountdownEvents'],
-  ['editor-fold-ai', 'spark', 'var(--q-accent)', 'nlEdit.headingLabel']
+  ['editor-fold-countdown', 'flag', 'var(--q-red)', 'editorBackup.sectionCountdownEvents']
 ];
 document.getElementById('ed-parts')?.replaceChildren(...PARTS.map(([id, icon, color, key]) => row({ icon: tile(icon, color, 'sm'), title: t(key), onClick: () => openEditorFold(id) })));
 
