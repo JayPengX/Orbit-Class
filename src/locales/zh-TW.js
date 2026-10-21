@@ -13,6 +13,12 @@ export default {
   'dashboard.seeYouTomorrow': '再見',
   'dashboard.seeYouMonday': '週一見',
   'dashboard.loading': '載入中…',
+  'nlEdit.swapWhich': '說哪一天的調課要取消',
+  'nlEdit.swapNoneThere': '那天沒有調課',
+  'nlEdit.swapNoPeriod': '沒有這一節',
+  'nlEdit.swapSame': '兩邊是同一節',
+  'nlEdit.swapPast': '那天已經過了',
+  'nlEdit.swapTaken': '其中一節已經調過課，先取消那筆',
   'nlEdit.notConfigured': 'AI 課表編輯功能尚未設定，請聯絡課表管理者。',
   'nlEdit.offline': '目前沒有網路連線，AI 課表編輯暫時無法使用。',
   'nlEdit.emptyInput': '請先輸入想修改的內容。',
@@ -427,5 +433,7 @@ export default {
   'swap.undo': '取消調課',
   'swap.undoTitle': '取消這次調課？',
   'swap.undone': '已取消調課',
-  'editorBackup.classSwapsChange': '調課：{before} 筆 -> {after} 筆'
+  'editorBackup.swapSide': '{date} 第{n}節',
+  'editorBackup.swapAdded': '調課 + {swap}',
+  'editorBackup.swapRemoved': '取消調課 {swap}',
 };

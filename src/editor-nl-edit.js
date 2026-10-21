@@ -46,6 +46,8 @@ import {
 } from './editor-core.js';
 import { proxyPath } from './proxy-config.js';
 import { parseLocalNlEdit } from './nl-edit-local.js';
+import { parseSwapEdit } from './nl-swap.js';
+import { normalizeClassSwaps } from './data.js';
 
 // Must match GEMINI_ALLOWED_MODELS in the shared-proxy repo's worker.js -
 // the Worker's /nl-edit path reuses the exact same vetted model list as
@@ -453,6 +455,19 @@ function showNlEditConfirm(current, next, { local = false, onApplied } = {}) {
 async function submitNlEdit(rawText, { status, onDone, onApplied } = {}) {
   const text = normalizeNlEditText(rawText);
   try {
+    // 調課 (a dated, one-time swap) first, from the words as typed: the
+    // clean-up above turns 明天 into a weekday. See nl-swap.js.
+    const swapEdit = text && parseSwapEdit(rawText, settingsDataForExport());
+    if (swapEdit?.error) {
+      status?.(swapEdit.error, true);
+      return;
+    }
+    if (swapEdit) {
+      const current = settingsDataForExport();
+      status?.(t('nlEdit.ready'));
+      showNlEditConfirm(current, { ...cloneSettingsData(current), classSwaps: normalizeClassSwaps(swapEdit.swaps) }, { local: true, onApplied });
+      return;
+    }
     if (!text) {
       status?.(t('nlEdit.emptyInput'), true);
       return;

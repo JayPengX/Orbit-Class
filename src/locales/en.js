@@ -14,6 +14,12 @@ export default {
   'dashboard.seeYouTomorrow': 'See you tomorrow',
   'dashboard.seeYouMonday': 'See you Monday',
   'dashboard.loading': 'Loading…',
+  'nlEdit.swapWhich': 'Say which day\'s swap to cancel',
+  'nlEdit.swapNoneThere': 'No swap on that day',
+  'nlEdit.swapNoPeriod': 'No such period',
+  'nlEdit.swapSame': 'Both sides are the same period',
+  'nlEdit.swapPast': 'That day has passed',
+  'nlEdit.swapTaken': 'One of those periods is already swapped; cancel that one first',
   'nlEdit.notConfigured':
     'AI schedule editing has not been set up yet. Please contact your schedule administrator.',
   'nlEdit.offline': 'You are currently offline, so AI schedule editing is temporarily unavailable.',
@@ -479,5 +485,7 @@ export default {
   'swap.undo': 'Undo swap',
   'swap.undoTitle': 'Undo this swap?',
   'swap.undone': 'Swap undone',
-  'editorBackup.classSwapsChange': 'Class swaps: {before} -> {after}'
+  'editorBackup.swapSide': '{date} P{n}',
+  'editorBackup.swapAdded': 'Swap + {swap}',
+  'editorBackup.swapRemoved': 'Swap cancelled: {swap}',
 };

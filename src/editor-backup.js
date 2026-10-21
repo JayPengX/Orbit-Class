@@ -706,9 +706,16 @@ function describeSettingsDiff(current, next, { isImport = false } = {}) {
         after: next.pruneCountdowns ? t('common.on') : t('common.off')
       })
     );
-  const swapCount = data => normalizeClassSwaps(data.classSwaps).length;
-  if (JSON.stringify(normalizeClassSwaps(current.classSwaps)) !== JSON.stringify(normalizeClassSwaps(next.classSwaps)))
-    lines.push(t('editorBackup.classSwapsChange', { before: swapCount(current), after: swapCount(next) }));
+  // 調課 one by one: each added (+) or cancelled (-), its two sides.
+  const side = ({ date, p }) => {
+    const [, m, d] = date.split('-').map(Number);
+    return t('editorBackup.swapSide', { date: `${m}/${d}`, n: p + 1 });
+  };
+  const swapText = ({ a, b }) => `${side(a)} ⇄ ${side(b)}`;
+  const beforeSwaps = normalizeClassSwaps(current.classSwaps).map(swapText);
+  const afterSwaps = normalizeClassSwaps(next.classSwaps).map(swapText);
+  afterSwaps.filter(x => !beforeSwaps.includes(x)).forEach(x => lines.push(t('editorBackup.swapAdded', { swap: x })));
+  beforeSwaps.filter(x => !afterSwaps.includes(x)).forEach(x => lines.push(t('editorBackup.swapRemoved', { swap: x })));
   const currentProAccent = normalizeProAccent(current.proAccent);
   const nextProAccent = normalizeProAccent(next.proAccent);
   const describeColorChange = (label, before, after) =>
