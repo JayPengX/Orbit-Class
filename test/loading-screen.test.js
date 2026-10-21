@@ -11,10 +11,10 @@ describe("the family's loading screen", () => {
   it("index.html has #loading first in the body, the kit's boot script right after it", () => {
     const html = read('index.html');
     const body = html.slice(html.indexOf('<body'));
-    expect(body).toMatch(/^<body[^>]*>\s*<div id="loading" data-title="Orbit Class" data-cache="orbit-cache-"><\/div>\s*<!-- kit:boot/);
+    expect(body).toMatch(/^<body[^>]*>\s*<div id="loading" data-title="Orbit Class"><\/div>\s*<!-- kit:boot/);
     expect(body).toContain("QUADRA_KIT.url('boot.js')");
-    // data-cache is the service worker's own cache prefix (boot.js drops it to mend a broken start).
-    expect(read('public/sw.js')).toContain("'orbit-cache-'");
+    // The family's service worker, with Class's own cache.
+    expect(read('public/sw.js')).toContain("importScripts('../Shared-Proxy/kit/sw.js')");
   });
   it('the app says it started and lifts the screen itself (never left up, never "didn\'t start")', () => {
     const js = read('src/bootstrap.js');
