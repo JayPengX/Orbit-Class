@@ -126,7 +126,7 @@ body.orbit-motion-paused * {
   outline: 2px solid var(--q-accent);
   outline-offset: 3px;
 }
-.cx-hero[data-mode='off'] {
+.cx-hero.is-still {
   cursor: default;
 }
 .cx-hero[data-mode='break'] {
@@ -565,13 +565,6 @@ body.orbit-motion-paused * {
   flex-wrap: wrap;
   gap: 6px;
   margin: 10px 2px 0;
-}
-.cx-tl-empty {
-  margin: 0;
-  padding: 24px 8px;
-  color: var(--q-label-2);
-  font: var(--q-t-subhead);
-  text-align: center;
 }
 /* 調課 to come: both sides on one row. */
 .cx-swap-sides {

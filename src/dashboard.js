@@ -146,8 +146,11 @@ function update() {
   }
 
   const hero = heroView(viewModel, { now, week, todaySchedule, nextDay, holiday });
-  // What a tap on the card opens: the class it shows.
-  heroTarget = viewModel.curIdx >= 0 ? todaySchedule[viewModel.curIdx] : hero.subject && viewModel.nxtIdx >= 0 ? todaySchedule[viewModel.nxtIdx] : null;
+  // What a tap on the card opens: the class it names, else the one along its
+  // foot (today's next, or the next school day's first); none, not a button.
+  const today = window.MANUALLY_TEST ? null : new Date();
+  heroTarget = viewModel.curIdx >= 0 ? { c: todaySchedule[viewModel.curIdx], date: today } : viewModel.nxtIdx >= 0 && viewModel.isSchoolDay && !viewModel.isDayFinished ? { c: todaySchedule[viewModel.nxtIdx], date: today } : nextDay?.first && hero.foot?.name ? { c: nextDay.first, date: window.MANUALLY_TEST ? null : nextDay.date } : null;
+  setHeroTappable(Boolean(heroTarget));
   renderHero(hero, week);
 
   // As the break before a class starts (five minutes before, after a long
@@ -249,7 +252,14 @@ window.openTestPanel = openTestPanel; // testsim-runtime.js's patchPanelOpeners(
 window.toggleTestPanel = toggleTestPanel;
 // The hero card opens the class it shows (as a row does).
 const hero = document.getElementById('cx-hero');
-const openHero = () => heroTarget && openModal(heroTarget, { date: window.MANUALLY_TEST ? null : new Date() });
+const openHero = () => heroTarget && openModal(heroTarget.c, { date: heroTarget.date });
+function setHeroTappable(on) {
+  if (!hero || hero.hasAttribute('role') === on) return;
+  if (on) hero.setAttribute('role', 'button');
+  else hero.removeAttribute('role');
+  hero.tabIndex = on ? 0 : -1;
+  hero.classList.toggle('is-still', !on);
+}
 hero?.addEventListener('click', openHero);
 hero?.addEventListener('keydown', event => (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), openHero()));
 window.update = update; // testsim-runtime.js monkey-patches this; every

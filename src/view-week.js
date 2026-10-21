@@ -12,6 +12,7 @@ import { swapsNotOver } from './data.js';
 import { dateKey, parseTime } from './dates.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { holidayOn } from './holidays.js';
+import { showOnboardingPrompt } from './onboarding.js';
 import { subjectLook } from './subjects.js';
 import { nameAt, openSwapSheet, slotText, undoSwap } from './swap.js';
 import { openDaySheet, openModal } from './view-sheet.js';
@@ -133,7 +134,7 @@ function drawGrid(monday, now) {
   // A holiday's column says which.
   const offs = cols.filter(c => c.holiday);
   const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${c.holiday.zh}`))) : null;
-  box.replaceChildren(...[periods ? grid : el('p', 'cx-tl-empty', t('tools.noClasses')), foot].filter(Boolean));
+  box.replaceChildren(...[periods ? grid : kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } }), foot].filter(Boolean));
 }
 
 // 調課's section: the swaps still to come, then 新增調課.
