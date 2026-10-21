@@ -81,16 +81,21 @@ export function subjectLook(name) {
 }
 
 // An event's picture for 倒數 (段考 a pen, 運動會 a trophy, a trip a plane…).
+// Its colour too: an exam red, a sports day orange, a trip sky, a ceremony violet.
 const EVENTS = [
-  ['pen', /考|測驗|exam|test|quiz/i],
-  ['trophy', /運動會|校慶|比賽|競賽|game|sports day|contest/i],
-  ['plane', /旅行|校外|畢旅|戶外|trip|travel|tour/i],
-  ['flag', /開學|結業|畢業|典禮|graduation|ceremony|term/i]
+  ['pen', '#e5484d', /考|測驗|exam|test|quiz/i],
+  ['trophy', '#f97316', /運動會|校慶|比賽|競賽|game|sports day|contest/i],
+  ['plane', '#0ea5e9', /旅行|校外|畢旅|戶外|trip|travel|tour/i],
+  ['flag', '#8b5cf6', /開學|結業|畢業|典禮|graduation|ceremony|term/i]
 ];
 export function eventLook(name) {
-  const hit = EVENTS.find(([, re]) => re.test(String(name || '')));
-  return svg(P[hit ? hit[0] : 'calendar']);
+  const hit = EVENTS.find(([, , re]) => re.test(String(name || '')));
+  return { icon: svg(P[hit ? hit[0] : 'calendar']), color: hit ? hit[1] : '#0284c7' };
 }
+
+// A subject's (or a break's) glyph alone, for a card that is its colour.
+export const subjectIcon = name => subjectLook(name).icon;
+export const breakIcon = () => svg(P.cup);
 
 // A kit tile (kitUI.tile) around a glyph's svg.
 function makeTile(html, color, size, glass) {

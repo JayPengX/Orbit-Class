@@ -85,7 +85,7 @@ describe('dashboard update() against the real app', () => {
     expect(text('now-name')).toBe('數學');
     expect(text('cx-kicker')).toBe('今天 · 第 1 節');
     expect(text('timer-val')).toBe('30:00');
-    expect(document.getElementById('cx-bar').hidden).toBe(true);
+    expect(document.getElementById('cx-ring-fill').style.strokeDasharray).toBe('0 100');
   });
 
   it('once the day is over, the next school day\'s first class along the foot', () => {

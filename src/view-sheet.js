@@ -11,7 +11,7 @@ import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { holidayOn } from './holidays.js';
 import * as kitUI from '#kit/ui.mjs';
 import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
-import { subjectTile } from './subjects.js';
+import { subjectLook, subjectTile } from './subjects.js';
 import { dayRows, emptyDay } from './view-today.js';
 import { el, button, tile } from './ui.js';
 import { t } from './strings.js';
@@ -89,6 +89,9 @@ export function openModal(shown, { date = null } = {}) {
   body.push(el('h3', 'cx-sheet-h', t('dashboard.occurrencesLabel')), occ);
   const swap = swapPart(shown, date);
   if (swap) body.push(swap);
+  const color = subjectLook(info.n).color;
+  stats.style.setProperty('--subject', color);
+  occ.style.setProperty('--subject', color);
   show(subjectTile(info.n, 'lg'), info.n, [info.t, c.loc].filter(Boolean).join(' · '), body);
 }
 

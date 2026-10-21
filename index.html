@@ -73,19 +73,19 @@
   <!-- 今天: the class now and next with the day as a strip, then the classes after, what to bring, the countdowns (src/view-today.js). -->
   <section id="panel-today" class="cx-panel" role="tabpanel">
     <section class="q-hero-card cx-hero dashboard" id="cx-hero" data-mode="off" role="button" tabindex="0">
+      <span class="cx-art" id="cx-art" aria-hidden="true"></span>
       <div class="cx-hero-top">
         <span class="q-hc-eyebrow"><span class="cx-glyph" id="cx-glyph"></span><span id="cx-kicker"></span></span>
         <span class="cx-span" id="cx-span"></span>
       </div>
       <div class="cx-hero-main">
-        <span class="cx-hero-icon" id="cx-icon"></span>
         <div class="cx-hero-words">
           <strong class="cx-title" id="now-name" data-i18n="dashboard.loading">載入中…</strong>
-          <span class="cx-meta" id="cx-meta"><span id="now-teacher"></span><span id="now-place"></span><span id="now-class-label"></span></span>
+          <span class="cx-meta" id="cx-meta"><span class="cx-pill" id="now-teacher"></span><span class="cx-pill" id="now-place"></span><span id="now-class-label"></span></span>
         </div>
+        <span class="cx-ring" aria-hidden="true"><svg viewBox="0 0 80 80"><circle class="cx-ring-track" cx="40" cy="40" r="36"/><circle class="cx-ring-fill" id="cx-ring-fill" cx="40" cy="40" r="36" pathLength="100"/></svg><span class="cx-hero-icon" id="cx-icon"></span></span>
       </div>
       <div class="cx-timer" id="timer-group"><b class="q-hc-big" id="timer-val"></b><span id="timer-label"></span></div>
-      <div class="cx-bar" id="cx-bar"><i id="cx-fill"></i></div>
       <div class="cx-foot" id="cx-foot">
         <span class="cx-foot-icon" id="next-icon"></span>
         <span class="cx-foot-words"><small id="next-label"></small><b id="next-name"></b></span>

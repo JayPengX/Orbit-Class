@@ -211,23 +211,6 @@ body.orbit-motion-paused * {
   font: 600 15px/1 var(--q-font);
   opacity: 0.85;
 }
-.cx-bar {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.24);
-}
-.cx-bar[hidden] {
-  display: none;
-}
-.cx-bar > i {
-  display: block;
-  height: 100%;
-  width: 0;
-  border-radius: inherit;
-  background: #fff;
-  transition: width 0.6s linear;
-}
 /* Its foot: what comes after, in a frosted strip. */
 .cx-foot {
   display: flex;
@@ -1945,5 +1928,372 @@ img.q-tile.tr-app {
 #debug-panel .q-ritem-title { white-space: normal; overflow-wrap: anywhere; }
 #debug-panel .sim-time { flex: none; }
 .cx-more[hidden] {
+  display: none;
+}
+
+/* ---- Round 5: the look of the best of the family ---- */
+/* The hero takes the subject's colour, its glyph large and faint behind the
+   words, a ring round the glyph for the time gone by. */
+.cx-hero {
+  isolation: isolate;
+}
+.cx-hero.has-subject {
+  --q-hc-a: color-mix(in srgb, var(--subject) 62%, #0b1020);
+  --q-hc-b: var(--subject);
+  --q-hc-glow: color-mix(in srgb, var(--subject) 45%, #ffffff);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .cx-hero.has-subject {
+    --q-hc-a: color-mix(in srgb, var(--subject) 38%, #05070d);
+    --q-hc-b: color-mix(in srgb, var(--subject) 74%, #05070d);
+    --q-hc-glow: color-mix(in srgb, var(--subject) 55%, transparent);
+  }
+}
+:root[data-theme='dark'] .cx-hero.has-subject {
+  --q-hc-a: color-mix(in srgb, var(--subject) 38%, #05070d);
+  --q-hc-b: color-mix(in srgb, var(--subject) 74%, #05070d);
+}
+.cx-art {
+  position: absolute;
+  z-index: -1;
+  right: -26px;
+  bottom: -30px;
+  width: 190px;
+  height: 190px;
+  color: #fff;
+  opacity: 0.12;
+  pointer-events: none;
+  transform: rotate(-12deg);
+}
+.cx-art svg {
+  width: 100%;
+  height: 100%;
+  stroke-width: 1.4;
+}
+.cx-hero-main {
+  justify-content: space-between;
+}
+.cx-ring {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+}
+.cx-ring > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.cx-ring > svg circle {
+  fill: none;
+  stroke-width: 6;
+}
+.cx-ring-track {
+  stroke: rgba(255, 255, 255, 0.22);
+}
+.cx-ring-fill {
+  stroke: #fff;
+  stroke-linecap: round;
+  stroke-dasharray: 0 100;
+  transition: stroke-dasharray 0.6s linear;
+}
+.cx-hero-icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.cx-hero-icon svg {
+  width: 26px;
+  height: 26px;
+}
+.cx-meta {
+  gap: 6px;
+}
+.cx-meta > #now-teacher:not(:empty) ~ #now-place:not(:empty)::before {
+  content: none;
+}
+.cx-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font: 600 13px/18px var(--q-font);
+  white-space: nowrap;
+}
+
+/* A day's classes: a rail of cards, each its subject's colour. */
+.cx-cls {
+  --q-rail-w: 128px;
+  grid-auto-columns: var(--q-rail-w);
+}
+.cx-cl {
+  --subject: var(--q-accent);
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  min-height: 148px;
+  padding: 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 70%, #0b1020));
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  scroll-snap-align: start;
+  cursor: pointer;
+  box-shadow: 0 12px 24px -16px var(--subject);
+}
+.cx-cl-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.cx-cl-top small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.85);
+  font: 600 12px/16px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-cl-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.cx-cl-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.cx-cl-time {
+  font: 700 22px/26px var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.cx-cl-name {
+  overflow: hidden;
+  font: 600 16px/21px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-cl-sub {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.8);
+  font: 500 12px/16px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-cl.is-break {
+  --subject: var(--q-gray, #8e8e93);
+  align-content: end;
+  gap: 4px;
+  width: 92px;
+  background: var(--q-fill-4);
+  color: var(--q-label-2);
+  box-shadow: none;
+  cursor: default;
+}
+.cx-cl.is-break .cx-cl-icon {
+  margin-bottom: auto;
+  background: var(--q-fill-3, rgba(120, 120, 128, 0.16));
+  color: var(--q-label-2);
+}
+.cx-cl.is-break .cx-cl-time {
+  font-size: 17px;
+  line-height: 21px;
+}
+.cx-cl.is-break .cx-cl-name {
+  font-size: 13px;
+  line-height: 17px;
+}
+.cx-cls > .cx-cl.is-break {
+  justify-self: start;
+}
+
+/* 倒數: each card the event's colour. */
+.cx-cd {
+  --subject: var(--q-accent);
+  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 68%, #0b1020));
+  color: #fff;
+  box-shadow: 0 12px 24px -16px var(--subject);
+}
+.cx-cd .cx-cd-top small,
+.cx-cd .cx-cd-big small {
+  color: rgba(255, 255, 255, 0.85);
+}
+.cx-cd .cx-cd-big em,
+.cx-cd.is-over .cx-cd-big em {
+  color: #fff;
+}
+.cx-cd.is-over {
+  opacity: 0.55;
+}
+
+/* 明天要帶: two to a row. */
+.cx-bring-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.cx-bring-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--q-surface);
+}
+.cx-bring-words {
+  display: grid;
+  min-width: 0;
+}
+.cx-bring-words b,
+.cx-bring-words small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-bring-words b {
+  font: 600 15px/20px var(--q-font);
+}
+.cx-bring-words small {
+  color: var(--q-label-2);
+  font: 13px/17px var(--q-font);
+}
+
+/* 課表: each class a block in its subject's colour, white type. */
+.cx-tl-cell {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--subject) 82%, #fff), var(--subject));
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.cx-tl-cell.is-now {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--subject) 82%, #fff), var(--subject));
+  box-shadow: 0 0 0 2.5px var(--q-surface), 0 0 0 5px var(--subject), 0 8px 16px -8px var(--subject);
+  transform: scale(1.04);
+  z-index: 1;
+}
+.cx-tl-cell.is-past {
+  opacity: 0.35;
+}
+.cx-tl-cell.is-swap {
+  box-shadow: inset 0 0 0 2px var(--q-orange);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .cx-tl-cell:not(.is-empty) {
+    background: linear-gradient(160deg, var(--subject), color-mix(in srgb, var(--subject) 70%, #05070d));
+  }
+}
+:root[data-theme='dark'] .cx-tl-cell:not(.is-empty) {
+  background: linear-gradient(160deg, var(--subject), color-mix(in srgb, var(--subject) 70%, #05070d));
+}
+
+/* 工具: the parts as figure cards, two to a row; the AI ways as two cards. */
+.cx-parts,
+.cx-ways {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.cx-part,
+.cx-way-card {
+  --subject: var(--q-accent);
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  padding: 14px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--q-surface);
+  color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cx-part .cx-cl-icon {
+  margin-bottom: 10px;
+  background: var(--subject);
+}
+.cx-part-n {
+  font: 700 30px/34px var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+}
+.cx-part-title {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: 600 13px/18px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-way-card {
+  min-height: 112px;
+  align-content: space-between;
+  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 68%, #0b1020));
+  color: #fff;
+  box-shadow: 0 12px 24px -16px var(--subject);
+}
+.cx-way-card strong {
+  font: 700 16px/21px var(--q-font);
+}
+
+/* A class's sheet: its figures on a band of its colour, the days it meets filled with it. */
+.cx-figs {
+  --subject: var(--q-accent);
+  gap: 0;
+  padding: 4px;
+  border-radius: 20px;
+  background: radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 68%, #0b1020));
+  box-shadow: 0 12px 24px -16px var(--subject);
+}
+.cx-figs .q-stat {
+  background: none;
+  color: #fff;
+}
+.cx-figs .q-stat small {
+  color: rgba(255, 255, 255, 0.82);
+}
+.cx-figs .q-stat strong {
+  color: #fff;
+  font: 700 28px/32px var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+}
+.cx-occ .occ-day:not(.is-off) {
+  background: var(--subject, var(--q-accent));
+}
+.cx-occ .occ-day:not(.is-off) :is(.occ-day-name, .occ-day-period, .occ-day-time) {
+  color: #fff;
+}
+.cx-occ .occ-day:not(.is-off) .occ-day-name,
+.cx-occ .occ-day:not(.is-off) .occ-day-time {
+  opacity: 0.85;
+}
+/* No time running (a day over): the ring is only the glyph's disc. */
+.cx-hero[data-mode='off'] .cx-ring > svg {
+  display: none;
+}
+
+.cx-hero[hidden] {
   display: none;
 }

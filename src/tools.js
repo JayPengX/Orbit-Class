@@ -1,8 +1,8 @@
 // ---- src/tools.js ----
 // 工具: changing the timetable. It leads with 我的課表 (its periods a week
-// and the school day's span, and 編輯課表), then rows straight into each
-// part of the editor, then AI (a sentence, or a photo) and 分享 (the share
-// key and the Pass). Drawn when the tab opens, and again when the timetable
+// and the school day's span, and 編輯課表), then a figure card straight into
+// each part of the editor, then AI (a sentence, or a photo) and 分享 (the
+// share key and the Pass). Drawn when the tab opens, and again when the timetable
 // changes while it's on screen.
 import { pad2, parseTime } from './dates.js';
 import { state } from './state.js';
@@ -42,7 +42,6 @@ function hero() {
   return el('section', 'q-hero-card cx-tools-hero', [eyebrow, big, el('div', 'q-hc-row', [edit])]);
 }
 
-const count = n => (n ? el('span', 'q-ritem-value', String(n)) : null);
 let drawn = '';
 function renderTools() {
   const box = document.getElementById('cx-tools');
@@ -54,16 +53,29 @@ function renderTools() {
   const key = `${JSON.stringify(state.runtimeSchedule)}|${subjects}|${breaks}|${events}|${t('tab.tools')}`;
   if (key === drawn && box.childElementCount) return;
   drawn = key;
-  const parts = el('div', 'q-rowcard', [
-    row({ icon: tile('book', 'var(--q-indigo)'), title: t('editorTeachers.subjectsAndTeachersFoldLabel'), end: count(subjects), onClick: () => openPart('editor-fold-teachers') }),
-    row({ icon: tile('clock', 'var(--q-orange)'), title: t('editorBackup.sectionBellTimes'), end: count((data.bellTimes || []).length), onClick: () => openPart('editor-fold-bells') }),
-    row({ icon: tile('cup', 'var(--q-teal)'), title: t('editorSchedule.specialTimeFoldLabel'), end: count(breaks), onClick: () => openPart('editor-fold-breaks') }),
-    row({ icon: tile('flag', 'var(--q-red)'), title: t('editorBackup.sectionCountdownEvents'), end: count(events), onClick: () => openPart('editor-fold-countdown') })
+  // The parts as four figure cards (each its colour, its count large), the
+  // two AI ways as two cards, the share key a row.
+  const figure = (icon, color, n, title, fold) => {
+    const pic = el('span', 'cx-cl-icon');
+    pic.innerHTML = glyph(icon);
+    const card = button('cx-part q-press', () => openPart(fold), [pic, el('b', 'cx-part-n', String(n)), el('span', 'cx-part-title', title)]);
+    card.style.setProperty('--subject', color);
+    return card;
+  };
+  const parts = el('div', 'cx-parts', [
+    figure('book', '#6366f1', subjects, t('editorTeachers.subjectsAndTeachersFoldLabel'), 'editor-fold-teachers'),
+    figure('clock', '#f97316', (data.bellTimes || []).length, t('editorBackup.sectionBellTimes'), 'editor-fold-bells'),
+    figure('cup', '#0d9488', breaks, t('editorSchedule.specialTimeFoldLabel'), 'editor-fold-breaks'),
+    figure('flag', '#e5484d', events, t('editorBackup.sectionCountdownEvents'), 'editor-fold-countdown')
   ]);
-  const ai = el('div', 'q-rowcard', [
-    row({ cls: 'cx-way is-ai', icon: tile('spark', 'var(--q-accent)'), title: t('tools.aiEditTitle'), sub: t('tools.aiEditSub'), onClick: () => openPart('editor-fold-ai') }),
-    row({ cls: 'cx-way is-photo', icon: tile('camera', 'var(--q-orange)'), title: t('tools.photoTitle'), sub: t('tools.photoSub'), onClick: () => openTransfer('photo') })
-  ]);
+  const way = (cls, icon, color, title, onClick) => {
+    const pic = el('span', 'cx-cl-icon');
+    pic.innerHTML = glyph(icon);
+    const card = button(`cx-way-card ${cls} q-press`, onClick, [pic, el('strong', '', title)]);
+    card.style.setProperty('--subject', color);
+    return card;
+  };
+  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), () => openPart('editor-fold-ai')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
   box.replaceChildren(hero(), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
 }

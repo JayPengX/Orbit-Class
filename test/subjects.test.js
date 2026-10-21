@@ -24,7 +24,7 @@ describe('every subject has its picture (an icon in its own colour)', () => {
     expect(tile.querySelector('svg')).not.toBeNull();
   });
   it("倒數's events: an exam a pen, sports day a trophy, anything else a calendar", () => {
-    expect(eventLook('第一次段考')).not.toBe(eventLook('校慶運動會'));
-    expect(eventLook('寒假')).toBe(eventLook('某天'));
+    expect(eventLook('第一次段考')).not.toEqual(eventLook('校慶運動會'));
+    expect(eventLook('寒假')).toEqual(eventLook('某天'));
   });
 });

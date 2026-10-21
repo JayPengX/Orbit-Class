@@ -5,7 +5,7 @@ import { seedLocalStorage } from './helpers/fixtureData.js';
 // 國慶日補假, Friday 2026-10-09: no classes that day, whatever the timetable
 // says. 今天 said so on its card but listed Friday's classes under it.
 let state;
-const names = () => [...document.querySelectorAll('#schedule-list .row .row-name')].map(n => n.textContent);
+const names = () => [...document.querySelectorAll('#schedule-list .cx-cl:not(.is-break) .cx-cl-name')].map(n => n.textContent);
 
 beforeAll(async () => {
   vi.useFakeTimers();
