@@ -8,6 +8,7 @@
 // or from the VM realm the fast pool runs test files in.
 import { Blob as NodeBlob } from 'node:buffer';
 import { CompressionStream, DecompressionStream } from 'node:stream/web';
+import { afterAll } from 'vitest';
 
 // The v2 backup format's gzip encode/decode pipeline (editor-backup.js).
 // A VM realm doesn't inherit these from the host the way the default pool's
@@ -50,3 +51,28 @@ if (typeof HTMLDialogElement !== 'undefined') {
     this.dispatchEvent(new Event('close'));
   };
 }
+
+// The kit watches the page (MutationObserver) and works a frame later
+// (requestAnimationFrame): left running past a file's end, both fire into a
+// torn-down jsdom and fail the run. Every observer and pending frame is
+// tracked here and stopped once the file's tests are done.
+const observers = new Set();
+const Observer = globalThis.MutationObserver;
+globalThis.MutationObserver = window.MutationObserver = class extends Observer {
+  constructor(cb) {
+    super(cb);
+    observers.add(this);
+  }
+};
+const frames = new Set();
+globalThis.requestAnimationFrame = window.requestAnimationFrame = cb => {
+  const id = setTimeout(() => (frames.delete(id), cb(performance.now())), 16);
+  frames.add(id);
+  return id;
+};
+globalThis.cancelAnimationFrame = window.cancelAnimationFrame = id => (frames.delete(id), clearTimeout(id));
+afterAll(() => {
+  for (const o of observers) o.disconnect();
+  for (const id of frames) clearTimeout(id);
+  frames.clear();
+});

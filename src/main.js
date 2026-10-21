@@ -19,5 +19,8 @@ import './shell.js';
 // sheets' controls and are the bundle's largest code: they load once the
 // page has, so starting the app doesn't wait to compile them.
 const loadAI = () => setTimeout(() => (import('./gemini-ocr.js'), import('./editor-nl-edit.js')), 0);
-if (document.readyState === 'complete') loadAI();
-else addEventListener('load', loadAI, { once: true });
+// (Not under the tests: each test imports the parts it needs.)
+if (import.meta.env?.MODE !== 'test') {
+  if (document.readyState === 'complete') loadAI();
+  else addEventListener('load', loadAI, { once: true });
+}
