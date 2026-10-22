@@ -120,6 +120,16 @@ export default defineConfig({
     // Tests run unconfigured (no proxy) unless one stubs VITE_PROXY_URL: the
     // real address is src/proxy-config.js's default.
     env: { VITE_PROXY_URL: '' },
+    // A file's leftover timers (jsdom's animation frames, a lazy import) can
+    // fire after its window and module runner are torn down. On a slow CI
+    // runner that threw dozens of these after every test had passed, and the
+    // run failed. Only those teardown races are let go; any other stray error
+    // still fails the run.
+    onUnhandledError(error) {
+      const text = `${error?.name || ''} ${error?.message || ''}`;
+      if (/Vite module runner has been closed|EnvironmentTeardownError|Closing rpc while/.test(text)) return false;
+      if (/reading '_location'/.test(text) && /jsdom/.test(error?.stack || '')) return false;
+    },
     // Nearly every file boots the whole app through loadApp(), so building
     // jsdom - not running assertions - dominated the suite. vmThreads builds
     // it once per worker instead of once per file and keeps the per-file
