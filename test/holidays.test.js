@@ -23,3 +23,20 @@ describe('Taiwan national holidays: no classes', () => {
     expect(hero.title).toBe('國慶日補假');
   });
 });
+
+describe('a typhoon day: 停課 at the school', () => {
+  it('only where the school is, whole day or from its hour', async () => {
+    const dayoff = await import('../.kit/dayoff.mjs');
+    const { typhoonOn, classesOffFrom } = await import('../src/holidays.js');
+    const fri = new Date(2026, 9, 23);
+    expect(holidayOn(fri)).toBe(null);
+    dayoff.setPlace('school', { county: '新竹縣', town: '竹東鎮' });
+    dayoff.keepDayOff({ county: '新竹縣', town: '竹東鎮' }, { '2026-10-23': { work: { off: true, from: null }, class: { off: true, from: null } } });
+    expect(holidayOn(fri)?.zh).toBe('颱風停課');
+    dayoff.keepDayOff({ county: '新竹縣', town: '竹東鎮' }, { '2026-10-23': { class: { off: true, from: '12:00' } } });
+    expect(holidayOn(fri)).toBe(null);
+    expect(classesOffFrom(fri)).toBe('12:00');
+    dayoff.keepDayOff({ county: '新竹縣', town: '竹東鎮' }, { '2026-10-23': { work: { off: true, from: null }, class: { off: false, from: null } } });
+    expect(typhoonOn(fri)).toBe(null);
+  });
+});

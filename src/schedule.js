@@ -3,7 +3,7 @@
 // plus the pure day/week-parity time helpers most other modules rely on.
 import { MS_PER_DAY, WEEKDAYS_INDEX_ORDER } from './constants.js';
 import { dateFromKey, dateKey } from './dates.js';
-import { holidayOn } from './holidays.js';
+import { classesOffFrom, holidayOn } from './holidays.js';
 import { state } from './state.js';
 import { t } from './strings.js';
 
@@ -107,9 +107,13 @@ function classesOnDate(date) {
   }
   return [...byPeriod.values()].sort((x, y) => x.p - y.p);
 }
-// A date's classes as they are held: none on a national holiday, 調課 applied.
+// A date's classes as they are held: none on a national holiday or a
+// typhoon day, those from a typhoon stop's hour on dropped, 調課 applied.
 function classesOn(date) {
-  return holidayOn(date) ? [] : classesOnDate(date);
+  if (holidayOn(date)) return [];
+  const from = classesOffFrom(date);
+  const rows = classesOnDate(date);
+  return from ? rows.filter(r => !r.s || r.s < from) : rows;
 }
 // The date a weekday's list shows: today's, or the coming one.
 function dateOfDay(day, now = new Date()) {
