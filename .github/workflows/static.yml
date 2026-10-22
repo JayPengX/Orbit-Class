@@ -48,8 +48,13 @@ jobs:
     if: needs.queue.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
+      # main as it is now, never the commit that started the run: GitHub can
+      # deliver a push late (hours, out of order), and an old tree deployed
+      # after a newer one would take the live app back.
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
