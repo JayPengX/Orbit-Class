@@ -32,6 +32,7 @@ import {
   notify,
   schedulePush
 } from '#kit/quadra.mjs';
+import { h } from '#kit/ui.mjs';
 
 const lang = detectLang();
 const q = quadraSession('orbit', { lang });
@@ -375,18 +376,7 @@ async function copyKey() {
 
 // ---- The panel (the transfer sheet's first section) -----------------------------------------
 
-function el(tag, props = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(props)) {
-    if (v == null || v === false) continue;
-    if (k === 'class') node.className = v;
-    else if (k === 'text') node.textContent = v;
-    else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
-    else node.setAttribute(k, v === true ? '' : v);
-  }
-  for (const child of [].concat(children)) if (child != null && child !== false) node.append(child);
-  return node;
-}
+const el = h;
 const btn = (text, onclick, primary = false, cls = '') =>
   el('button', {
     type: 'button',
