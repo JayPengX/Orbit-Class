@@ -1,5 +1,5 @@
 /* ==== Orbit Class: one stylesheet, by screen ====
-   The kit (quadra.css) draws the frame and every q- piece: the app bar's
+   The kit (orbit.css) draws the frame and every q- piece: the app bar's
    glass buttons, the tab bar, page heads, the hero card, tiles, row cards,
    rails, stats, segmented controls, switches, fields, buttons. This file is
    only what is Class's own, in the order the screens come:
@@ -1554,7 +1554,7 @@ body:is(.editor-open, .transfer-open) {
 }
 
 /* ---- 分享 and 拍照匯入: one sheet, opened for one of them ---- */
-#transfer-sheet[data-focus='photo'] :is(#quadra-box, #sync-status, #test-mode-fold) {
+#transfer-sheet[data-focus='photo'] :is(#orbit-box, #sync-status, #test-mode-fold) {
   display: none;
 }
 #transfer-sheet[data-focus='key'] #ocr-import-box {

@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { loadApp } from './helpers/loadApp.js';
 import { seedLocalStorage } from './helpers/fixtureData.js';
 
-// The Quadra Pass session is mocked: the calls Orbit Class makes are what's
+// The Orbit Pass session is mocked: the calls Orbit Class makes are what's
 // under test, not the Worker.
 const calls = [];
 const session = {
@@ -50,8 +50,8 @@ const session = {
     return 'TOKEN';
   }
 };
-vi.mock('#kit/quadra.mjs', () => ({
-  quadraSession: () => session,
+vi.mock('#kit/orbit.mjs', () => ({
+  orbitSession: () => session,
   storedAccount: () => 'account',
   schedulePush: () => {},
   accountSheet: () => {},
@@ -70,7 +70,7 @@ beforeAll(async () => {
   await sync.whenReady();
 });
 
-describe('Orbit Class on the Quadra Pass', () => {
+describe('Orbit Class on the Orbit Pass', () => {
   it('never merges another pass in', () => {
     expect(calls.some(c => c[0] === 'merge')).toBe(false);
   });
@@ -81,25 +81,25 @@ describe('Orbit Class on the Quadra Pass', () => {
   });
 
   it('makes a share key and shows it', async () => {
-    document.querySelector('#quadra-box .settings-transfer-btn.primary').click();
+    document.querySelector('#orbit-box .settings-transfer-btn.primary').click();
     await vi.waitFor(() =>
-      expect(document.querySelector('#quadra-box .sync-active-code')?.textContent).toBe('KEY23456')
+      expect(document.querySelector('#orbit-box .sync-active-code')?.textContent).toBe('KEY23456')
     );
   });
 
   it('a share key copies that schedule as this pass’s own; typing survives a refresh', async () => {
-    const input = document.getElementById('quadra-key');
+    const input = document.getElementById('orbit-key');
     input.value = 'KEY2';
     sync.renderSyncPanel();
-    expect(document.getElementById('quadra-key').value).toBe('KEY2');
-    document.getElementById('quadra-key').value = 'KEY23456';
-    document.querySelector('#quadra-box .qp-key-row .settings-transfer-btn').click();
+    expect(document.getElementById('orbit-key').value).toBe('KEY2');
+    document.getElementById('orbit-key').value = 'KEY23456';
+    document.querySelector('#orbit-box .qp-key-row .settings-transfer-btn').click();
     await vi.waitFor(() =>
       expect(calls.some(c => c[0] === 'op' && c[1] === 'share-redeem')).toBe(true)
     );
     // The copied schedule applied (the key box empties): the redeem has
     // finished, so nothing of it runs on after this file's page is gone.
-    await vi.waitFor(() => expect(document.getElementById('quadra-key').value).toBe(''), {
+    await vi.waitFor(() => expect(document.getElementById('orbit-key').value).toBe(''), {
       timeout: 5000
     });
     // The timetable it replaced is kept on the device.

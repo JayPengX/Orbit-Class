@@ -3,7 +3,7 @@
 // worker.js) behind the AI photo import (/gemini) and the AI schedule edits
 // (/nl-edit); each caller below appends its own path. It's public (every
 // visitor's browser calls it), so it's here, not a setting: VITE_PROXY_URL
-// overrides it only for a fork or a test. (Sync is the Quadra Pass's,
+// overrides it only for a fork or a test. (Sync is the Orbit Pass's,
 // through the shared kit: src/sync.js.)
 //
 // `?.` guards against import.meta.env itself being undefined (unbuilt source

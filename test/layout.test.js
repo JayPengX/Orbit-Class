@@ -108,7 +108,7 @@ describe('工具', () => {
     document.querySelector('#cx-tools .cx-way.is-key').click();
     expect(sheet.dataset.focus).toBe('key');
     expect(sheet.querySelector('.editor-title').textContent).toBe('分享金鑰');
-    expect(document.activeElement?.id).not.toBe('quadra-key');
+    expect(document.activeElement?.id).not.toBe('orbit-key');
     window.closeTransferSheet?.(true);
   });
 

@@ -1,5 +1,5 @@
 // ---- src/onboarding.js ----
-// The welcome card: a Quadra Pass with no schedule yet gets one card, once,
+// The welcome card: a Orbit Pass with no schedule yet gets one card, once,
 // with the three ways to get a schedule in - a photo read by AI, typing it
 // in, or a classmate's share key - and a "later". It's a modal <dialog> on
 // the top layer (nothing of the dashboard shows through or sits above it).
@@ -28,7 +28,7 @@ function markOnboardingSeen() {
 
 function focusShareKeyField() {
   window.openTransferSheet('key');
-  document.getElementById('quadra-key')?.focus();
+  document.getElementById('orbit-key')?.focus();
 }
 function focusAIImportSection() {
   window.openTransferSheet('photo');

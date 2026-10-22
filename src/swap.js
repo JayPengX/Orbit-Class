@@ -7,7 +7,7 @@
 // 課表's 新增調課, in one sheet: the period, then the one it swaps with;
 // undone from the class's sheet or 課表's list (src/view-week.js). Swaps whose days are over
 // leave the list at the next change.
-import * as kit from '#kit/quadra.mjs';
+import * as kit from '#kit/orbit.mjs';
 import { WEEKDAY_LABELS } from './constants.js';
 import { normalizeClassSwaps, saveData, swapsNotOver } from './data.js';
 import { holidayOn } from './holidays.js';

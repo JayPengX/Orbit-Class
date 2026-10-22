@@ -346,7 +346,7 @@ function sanitizeBreakTimes(bellTimes, breakTimes = []) {
   return validBreaks;
 }
 
-// This device's saved schedule is only a cache of the Quadra Pass's copy
+// This device's saved schedule is only a cache of the Orbit Pass's copy
 // (src/sync.js). One that can't be read is never erased: it's kept aside
 // (classFocusData.unreadable), and the edit-waiting marker is dropped so the
 // pass's copy is applied on opening instead of the default schedule going up

@@ -104,9 +104,9 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
-      // The shared kit (#kit/quadra.mjs) isn't bundled: the page loads it
+      // The shared kit (#kit/orbit.mjs) isn't bundled: the page loads it
       // from Shared-Proxy's Pages through its import map (index.html's
-      // kit:head, Shared-Proxy/kit/loader.html), like every Quadra app.
+      // kit:head, Shared-Proxy/kit/loader.html), like every Orbit app.
       external: id => id.startsWith('#kit/')
     }
   },

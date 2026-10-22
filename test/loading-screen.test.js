@@ -12,7 +12,7 @@ describe("the family's loading screen", () => {
     const html = read('index.html');
     const body = html.slice(html.indexOf('<body'));
     expect(body).toMatch(/^<body[^>]*>\s*<div id="loading" data-title="Orbit Class"><\/div>\s*<!-- kit:boot/);
-    expect(body).toContain("QUADRA_KIT.url('boot.js')");
+    expect(body).toContain("ORBIT_KIT.url('boot.js')");
     // The family's service worker, with Class's own cache.
     expect(read('public/sw.js')).toContain("importScripts('../Shared-Proxy/kit/sw.js')");
   });

@@ -41,11 +41,11 @@ function detectLocale() {
   return 'zh-TW';
 }
 
-// The family's choice (quadra.lang, set in any Quadra or Orbit app's
+// The family's choice (orbit.lang, set in any Orbit app's
 // settings and kept on the device) before the phone's language.
 function readFamilyLocale() {
   try {
-    const value = localStorage.getItem('quadra.lang');
+    const value = localStorage.getItem('orbit.lang');
     return value === 'en' ? 'en' : value === 'zh' ? 'zh-TW' : null;
   } catch {
     return null;

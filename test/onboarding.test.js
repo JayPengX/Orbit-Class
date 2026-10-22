@@ -60,7 +60,7 @@ describe('the welcome card', () => {
     choice('key').click();
     expect(card()).toBe(null);
     expect(document.getElementById('transfer-sheet').classList.contains('show')).toBe(true);
-    expect(document.activeElement).toBe(document.getElementById('quadra-key'));
+    expect(document.activeElement).toBe(document.getElementById('orbit-key'));
   });
 
   it('typing it in opens the editor', () => {

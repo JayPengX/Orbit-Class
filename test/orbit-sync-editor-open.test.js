@@ -3,7 +3,7 @@ import { loadApp } from './helpers/loadApp.js';
 import { seedLocalStorage } from './helpers/fixtureData.js';
 import { buildFixtureData } from './helpers/fixtureData.js';
 
-// The Quadra Pass session is mocked: the calls Orbit Class makes are what's
+// The Orbit Pass session is mocked: the calls Orbit Class makes are what's
 // under test, not the Worker.
 const calls = [];
 const session = {
@@ -54,8 +54,8 @@ const session = {
     return 'TOKEN';
   }
 };
-vi.mock('#kit/quadra.mjs', () => ({
-  quadraSession: () => session,
+vi.mock('#kit/orbit.mjs', () => ({
+  orbitSession: () => session,
   storedAccount: () => 'account',
   schedulePush: () => {},
   accountSheet: () => {},

@@ -4,7 +4,7 @@
 // isn't the one its address names (GitHub's CDN can answer a new address
 // with the old file for a while after a deploy).
 // Vite's files (assets/) carry their hash in their name: from the cache first.
-self.QUADRA_SW = {
+self.ORBIT_SW = {
   cache: 'orbit-cache-v2',
   prefix: 'orbit-cache-',
   title: 'Orbit Class',

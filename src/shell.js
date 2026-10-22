@@ -1,10 +1,10 @@
 // ---- src/shell.js ----
-// The family's frame, as every Quadra app has it: the kit's glass buttons
-// top-right (說明 and the Quadra Pass circle) and its tab bar, one question
+// The family's frame, as every Orbit app has it: the kit's glass buttons
+// top-right (說明 and the Orbit Pass circle) and its tab bar, one question
 // each: 今天 (the class now and next, src/view-today.js), 課表 (the week,
 // this one or the next, and 調課, src/view-week.js) and 工具 (the timetable's
 // parts, AI, sharing, src/tools.js).
-import * as kit from '#kit/quadra.mjs';
+import * as kit from '#kit/orbit.mjs';
 import * as kitUI from '#kit/ui.mjs';
 import { state } from './state.js';
 import { orbitSession } from './sync.js';

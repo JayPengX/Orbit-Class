@@ -1,7 +1,7 @@
 # Orbit Class
 
 The class now and what comes next, at a glance. Phone only, signed in
-with the Quadra Pass, which keeps the timetable.
+with the Orbit Pass, which keeps the timetable.
 
 Live: https://jaypengx.github.io/Orbit-Class/
 
@@ -54,7 +54,7 @@ Live: https://jaypengx.github.io/Orbit-Class/
 - One look: Class's own accent, light or dark with the device. The style
   panel was deleted (old saves' colours are read, never applied).
 - Phone only: a computer gets a QR code.
-- The language is the family's: one picked in any Quadra or Orbit app (`quadra.lang`) opens Class.
+- The language is the family's: one picked in any Orbit app (`orbit.lang`) opens Class.
 - The AI prompts and schemas live in the Worker. The client sends only
   files or the instruction, so the endpoint can't be used as a general AI.
 - The odd/even toggle is never changed by AI import.

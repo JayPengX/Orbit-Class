@@ -1,7 +1,7 @@
 // ---- src/ui.js ----
 // The few pieces every view here draws with: an element, a glyph (the kit's
 // icons), a kit tile and a section. Views write the kit's
-// class names (quadra.css: .q-tile, .q-rowcard, .q-ritem, .q-section…).
+// class names (orbit.css: .q-tile, .q-rowcard, .q-ritem, .q-section…).
 import * as kitUI from '#kit/ui.mjs';
 
 // A glyph by name: the kit's.

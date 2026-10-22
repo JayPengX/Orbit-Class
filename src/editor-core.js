@@ -212,7 +212,7 @@ function openEditor() {
 // activated advanced disclosure) time simulation, split out from the
 // schedule editor.
 // One sheet, opened for one thing: 'photo' (AI 匯入 alone) or 'key' (the
-// Quadra Pass and 分享金鑰 alone); its title says which.
+// Orbit Pass and 分享金鑰 alone); its title says which.
 const TRANSFER_TITLES = { photo: 'tools.photoTitle', key: 'tools.keyTitle' };
 function openTransferSheet(focus = 'key') {
   const editor = document.getElementById('editor-sheet');

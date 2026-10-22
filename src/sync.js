@@ -1,7 +1,7 @@
 // ---- src/sync.js ----
-// The schedule lives on the Quadra Pass, and only there: Orbit Class is
-// Quadra's related service, and signing in with a pass is required
-// (src/quadra.mjs, the shared kit, shows the sign-in). The pass's Orbit data
+// The schedule lives on the Orbit Pass, and only there: Orbit Class is
+// Orbit's related service, and signing in with a pass is required
+// (src/orbit.mjs, the shared kit, shows the sign-in). The pass's Orbit data
 // is the same compressed v2 backup string editor-backup.js produces, so every
 // device signed in with the pass gets the same schedule. The copy in this
 // device's storage is only a cache of the pass's: on opening, the pass's
@@ -25,17 +25,17 @@ import { setStatusText } from './editor-core.js';
 import { hasSavedSchedule } from './data.js';
 import { t } from './strings.js';
 import {
-  quadraSession,
+  orbitSession,
   accountSheet,
   errorText,
   detectLang,
   notify,
   schedulePush
-} from '#kit/quadra.mjs';
+} from '#kit/orbit.mjs';
 import { h } from '#kit/ui.mjs';
 
 const lang = detectLang();
-const q = quadraSession('orbit', { lang });
+const q = orbitSession('orbit', { lang });
 function isSyncConfigured() {
   return Boolean(q.pass);
 }
@@ -230,7 +230,7 @@ async function absorbInbox(inbox = []) {
   if (!inbox?.length || isEditorDirty()) return false;
   const newest = inbox[inbox.length - 1];
   if (localDirty) await keepAside();
-  const applied = await applyPayload(newest.payload, t('quadra.merged'));
+  const applied = await applyPayload(newest.payload, t('orbit.merged'));
   for (const item of inbox) await q.dropInbox(item.id).catch(() => {});
   lastPayload = null;
   if (applied) {
@@ -248,11 +248,11 @@ async function absorbInbox(inbox = []) {
 let started = false;
 let ready = null;
 const whenReady = () => ready || Promise.resolve();
-function startQuadra() {
-  ready ||= startQuadraOnce();
+function startOrbit() {
+  ready ||= startOrbitOnce();
   return ready;
 }
-async function startQuadraOnce() {
+async function startOrbitOnce() {
   started = true;
   const first = await q.start({ data: true });
   renderSyncPanel();
@@ -309,7 +309,7 @@ let loopStarted = false;
 function startSyncLoop() {
   if (loopStarted) return;
   loopStarted = true;
-  startQuadra();
+  startOrbit();
   for (const type of ['click', 'keydown', 'touchstart']) {
     document.addEventListener(
       type,
@@ -344,23 +344,23 @@ async function createShareKey() {
   }
 }
 async function redeemKey() {
-  const input = document.getElementById('quadra-key');
+  const input = document.getElementById('orbit-key');
   const key = String(input?.value || '').trim();
-  if (!key) return setSyncStatusUi(t('quadra.enterKey'), true);
+  if (!key) return setSyncStatusUi(t('orbit.enterKey'), true);
   try {
     const res = await q.op('share-redeem', { key });
-    if (res.own) return setSyncStatusUi(t('quadra.ownKey'), true);
+    if (res.own) return setSyncStatusUi(t('orbit.ownKey'), true);
     const next = normalizeSettingsData(await decodeTransferData(res.payload), {
       requireMarker: true
     });
     // The timetable it replaces is kept on the device (orbitSetAside), never gone.
     if (JSON.stringify(next) !== JSON.stringify(state.applicationData)) await keepAside();
     applyEditorSettingsData(next);
-    setSyncStatusUi(t('quadra.copied'));
+    setSyncStatusUi(t('orbit.copied'));
     if (input) input.value = '';
   } catch (error) {
     setSyncStatusUi(
-      error.code === 'ECO_SHARE_NOT_FOUND' ? t('quadra.keyNotFound') : failText(error),
+      error.code === 'ECO_SHARE_NOT_FOUND' ? t('orbit.keyNotFound') : failText(error),
       true
     );
   }
@@ -368,7 +368,7 @@ async function redeemKey() {
 async function copyKey() {
   try {
     await navigator.clipboard.writeText(shared?.key || '');
-    setSyncStatusUi(t('quadra.keyCopied'));
+    setSyncStatusUi(t('orbit.keyCopied'));
   } catch {
     // Clipboard blocked: the key is on screen to copy by hand.
   }
@@ -401,7 +401,7 @@ function keepTyped(box) {
 }
 
 function renderSyncPanel() {
-  const box = document.getElementById('quadra-box');
+  const box = document.getElementById('orbit-box');
   if (!box) return;
   const restore = keepTyped(box);
   const when = shared
@@ -420,21 +420,21 @@ function renderSyncPanel() {
       el('span', { class: 'q-ritem-text' }, [
         el('span', {
           class: 'q-ritem-title',
-          text: q.pass ? t('quadra.signedIn') : t('quadra.signedOut')
+          text: q.pass ? t('orbit.signedIn') : t('orbit.signedOut')
         }),
-        el('small', { text: t('quadra.hint') })
+        el('small', { text: t('orbit.hint') })
       ]),
       el('button', {
         type: 'button',
         class: 'q-btn small tinted',
-        text: t('quadra.account'),
+        text: t('orbit.account'),
         onclick: () => accountSheet(q)
       })
     ])
   ]);
   const key = shared
     ? el('div', { class: 'tr-keycard' }, [
-        el('small', { text: t('quadra.keyLabel', { time: when }) }),
+        el('small', { text: t('orbit.keyLabel', { time: when }) }),
         el('div', { class: 'tr-keycard-row' }, [
           el('strong', { class: 'sync-active-code', text: shared.key }),
           btn(t('common.copy'), copyKey, false, 'small')
@@ -444,32 +444,32 @@ function renderSyncPanel() {
   box.replaceChildren(
     ...[
       pass,
-      el('h3', { class: 'cx-sheet-h', text: t('quadra.shareTitle') }),
+      el('h3', { class: 'cx-sheet-h', text: t('orbit.shareTitle') }),
       key,
-      btn(t(shared ? 'quadra.newKey' : 'quadra.makeKey'), createShareKey, !shared, 'large block'),
-      el('p', { class: 'cx-foot-line', text: t('quadra.shareHint') }),
-      el('h3', { class: 'cx-sheet-h', text: t('quadra.receiveTitle') }),
+      btn(t(shared ? 'orbit.newKey' : 'orbit.makeKey'), createShareKey, !shared, 'large block'),
+      el('p', { class: 'cx-foot-line', text: t('orbit.shareHint') }),
+      el('h3', { class: 'cx-sheet-h', text: t('orbit.receiveTitle') }),
       el('div', { class: 'qp-key-row' }, [
         el('input', {
-          id: 'quadra-key',
+          id: 'orbit-key',
           class: 'q-field',
           type: 'text',
           autocapitalize: 'characters',
           autocomplete: 'off',
           spellcheck: 'false',
           maxlength: '9',
-          placeholder: t('quadra.keyPlaceholder')
+          placeholder: t('orbit.keyPlaceholder')
         }),
-        btn(t('quadra.copy'), redeemKey, true)
+        btn(t('orbit.copy'), redeemKey, true)
       ]),
-      el('p', { class: 'cx-foot-line', text: t('quadra.receiveHint') })
+      el('p', { class: 'cx-foot-line', text: t('orbit.receiveHint') })
     ].filter(Boolean)
   );
   restore();
 }
 
 function clearSyncInputFields() {
-  const input = document.getElementById('quadra-key');
+  const input = document.getElementById('orbit-key');
   if (input) input.value = '';
 }
 

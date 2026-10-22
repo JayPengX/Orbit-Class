@@ -3,7 +3,7 @@ import { loadApp } from './helpers/loadApp.js';
 import { seedLocalStorage } from './helpers/fixtureData.js';
 import { buildFixtureData } from './helpers/fixtureData.js';
 
-// The Quadra Pass session is mocked: the calls Orbit Class makes are what's
+// The Orbit Pass session is mocked: the calls Orbit Class makes are what's
 // under test, not the Worker.
 const calls = [];
 const session = {
@@ -51,8 +51,8 @@ const session = {
     return 'TOKEN';
   }
 };
-vi.mock('#kit/quadra.mjs', () => ({
-  quadraSession: () => session,
+vi.mock('#kit/orbit.mjs', () => ({
+  orbitSession: () => session,
   storedAccount: () => 'account',
   schedulePush: () => {},
   accountSheet: () => {},
@@ -63,8 +63,14 @@ vi.mock('#kit/quadra.mjs', () => ({
   topActions: () => {}
 }));
 
-// Data loss: a device left open with an older schedule must never save it
-// over a newer one another device put on the pass.
+// An edit made with no connection, the app closed before it went up: the
+// next opening finds it waiting on the device (orbit-class.sync.pending,
+// with the fingerprint of the pass's copy it was made on).
+const fingerprint = text => {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return `${(h >>> 0).toString(36)}:${text.length}`;
+};
 const withTeacher = name => {
   const d = buildFixtureData();
   d.teacherDB.A = ['數學', name, ''];
@@ -74,48 +80,21 @@ let sync;
 let backup;
 const writes = () => calls.filter(c => c[0] === 'write' && typeof c[1].payload === 'string');
 beforeAll(async () => {
-  seedLocalStorage();
   backup = await import('../src/editor-backup.js');
-  session.payload = await backup.encodeTransferData(withTeacher('第一版'));
+  session.payload = await backup.encodeTransferData(withTeacher('雲端版'));
+  seedLocalStorage({ teacherDB: withTeacher('離線的修改').teacherDB });
+  localStorage.setItem('orbit-class.sync.pending', fingerprint(session.payload));
   await loadApp();
   sync = await import('../src/sync.js');
   await sync.whenReady();
 });
 
-describe('never saving over a newer schedule', () => {
-  it('opens with the pass’s copy and uploads nothing', async () => {
+describe('an edit made offline, on the pass’s copy as it still is', () => {
+  it('goes up at the next opening, not overwritten by the older copy', async () => {
     const { state } = await import('../src/state.js');
-    expect(state.applicationData.teacherDB.A[1]).toBe('第一版');
-    expect(writes().length).toBe(0);
-  });
-
-  it('back on screen after another device saved: takes the newer copy, uploads nothing', async () => {
-    const { state } = await import('../src/state.js');
-    session.payload = await backup.encodeTransferData(withTeacher('第二版'));
-    await sync.syncTick();
-    expect(state.applicationData.teacherDB.A[1]).toBe('第二版');
-    expect(writes().length).toBe(0);
-  });
-
-  it('a change made on top of an older copy is set aside, the newer one kept', async () => {
-    const { state } = await import('../src/state.js');
-    const newer = await backup.encodeTransferData(withTeacher('第三版'));
-    session.payload = newer;
-    // A save on this (now stale) device.
-    backup.applyEditorSettingsData(withTeacher('舊裝置的修改'));
-    await sync.whenReady();
-    await vi.waitFor(() => expect(state.applicationData.teacherDB.A[1]).toBe('第三版'));
-    expect(session.payload).toBe(newer);
-    expect(writes().length).toBe(0);
-    expect(JSON.parse(localStorage.getItem('orbitSetAside')).length).toBe(1);
-  });
-
-  it('a change made on the newest copy goes up', async () => {
-    const { state } = await import('../src/state.js');
-    backup.applyEditorSettingsData(withTeacher('第四版'));
     await vi.waitFor(() => expect(writes().length).toBe(1));
-    const back = await backup.decodeTransferData(session.payload);
-    expect(back.teacherDB.A[1]).toBe('第四版');
-    expect(state.applicationData.teacherDB.A[1]).toBe('第四版');
+    expect((await backup.decodeTransferData(session.payload)).teacherDB.A[1]).toBe('離線的修改');
+    expect(state.applicationData.teacherDB.A[1]).toBe('離線的修改');
+    expect(localStorage.getItem('orbit-class.sync.pending')).toBe(null);
   });
 });
