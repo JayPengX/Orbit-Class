@@ -43,11 +43,17 @@ describe('a national holiday on 今天', () => {
     };
     expect(friday().every(c => c.classList.contains('is-empty'))).toBe(true);
     expect(document.querySelector('#cx-grid .cx-tl-offs').textContent).toContain('國慶日補假');
+    // Its head tapped: 今天's list on that day, no classes, the holiday named.
     document.querySelectorAll('#cx-grid .cx-tl-day')[4].click();
-    const empty = document.querySelector('#m-body .row.is-empty');
+    window.update();
+    expect(document.body.dataset.tab).toBe('today');
+    const empty = document.querySelector('#schedule-list .row.is-empty');
     expect(empty).not.toBe(null);
     expect(empty.textContent).toContain('國慶日補假');
-    window.closeModal();
+    expect(document.querySelector('#cx-days [aria-pressed="true"]')?.dataset.day).toBe('2026-10-09');
+    document.body.dataset.tab = 'week';
+    state.lastListKey = '';
+    window.update();
     // The week after: Friday's classes as usual.
     const other = [...document.querySelectorAll('#cx-week-switch button')].find(b => b.getAttribute('aria-selected') === 'false');
     other.click();

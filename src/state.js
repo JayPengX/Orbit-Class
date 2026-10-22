@@ -16,6 +16,8 @@
 export const state = {
   runtimeSchedule: {},
   viewDay: new Date().getDay() === 0 || new Date().getDay() === 6 ? 1 : new Date().getDay(),
+  // 今天's list: a day picked on its strip of days (a Date), or null for viewDay's next.
+  viewDate: null,
   // 課表's 單週 / 雙週 switch: '單' or '雙', or null for the coming school week.
   viewWeek: null,
   lastListKey: '',

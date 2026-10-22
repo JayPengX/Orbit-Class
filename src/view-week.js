@@ -3,7 +3,7 @@
 // each by its Monday's date). Each column a date (調課 and holidays applied,
 // that date's half of a split class), each row a period by its own number
 // and start time; the class on now filled, today's done ones faded. A tap on a class opens it for
-// that date (and its 調課), a tap on a day its classes in order. Then 調課:
+// that date (and its 調課), a tap on a day 今天's list on that day. Then 調課:
 // the swaps still to come, a tap to undo one, and 新增調課.
 import * as kitUI from '#kit/ui.mjs';
 import { WEEKDAY_LABELS } from './constants.js';
@@ -15,7 +15,7 @@ import { holidayOn } from './holidays.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { subjectLook } from './subjects.js';
 import { nameAt, openSwapSheet, slotText, undoSwap } from './swap.js';
-import { openDaySheet, openModal } from './view-sheet.js';
+import { openModal } from './view-sheet.js';
 import { el, button, fitText, row, section, tile } from './ui.js';
 import { t } from './strings.js';
 
@@ -105,7 +105,7 @@ function drawGrid(monday, now) {
   grid.append(el('span', 'cx-tl-corner'));
   for (const c of cols) {
     const isToday = dateKey(c.date) === dateKey(today);
-    const head = button(`cx-tl-day${isToday ? ' is-today' : ''}${c.holiday ? ' is-off' : ''}`, () => openDaySheet(c.date), [el('small', '', t(`tools.day${c.d}`)), el('b', '', String(c.date.getDate()))]);
+    const head = button(`cx-tl-day${isToday ? ' is-today' : ''}${c.holiday ? ' is-off' : ''}`, () => window.showDay?.(c.date), [el('small', '', t(`tools.day${c.d}`)), el('b', '', String(c.date.getDate()))]);
     head.setAttribute('aria-label', `${WEEKDAY_LABELS[c.d]} ${c.date.getMonth() + 1}/${c.date.getDate()}`);
     grid.append(head);
   }

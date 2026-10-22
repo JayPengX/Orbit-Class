@@ -8,14 +8,12 @@ import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
-import { holidayOn } from './holidays.js';
 import * as kitUI from '#kit/ui.mjs';
 import { openSwapSheet, slotText, swapOf, undoSwap } from './swap.js';
 import { ICON_CHOICES, iconKeyOf, iconSvg, subjectLook, subjectTile } from './subjects.js';
 import { saveData } from './data.js';
 import { pushSyncSnapshot } from './sync.js';
-import { dayRows, emptyDay } from './view-today.js';
-import { el, button, glyph, tile } from './ui.js';
+import { el, button, glyph } from './ui.js';
 import { t } from './strings.js';
 
 let previousFocus = null;
@@ -160,17 +158,6 @@ function swapPart(c, date) {
   }, swap ? t('swap.undo') : t('swap.button'));
   btn.id = 'm-swap-btn';
   return el('div', 'cx-swap-part', [swap ? el('p', 'cx-foot-line', t('swap.with', { slot: slotText(other) })) : null, btn]);
-}
-
-// A day from 課表: its classes in order (調課 and its week applied), or why it has none.
-export function openDaySheet(date) {
-  const week = getWeekType(date);
-  const holiday = holidayOn(date);
-  const rows = classesOn(date);
-  const items = rows.length ? dayRows(rows, week, { date }) : [emptyDay(holiday)];
-  const title = `${WEEKDAY_LABELS[date.getDay()]} ${date.getMonth() + 1}/${date.getDate()}`;
-  const sub = [week === '單' ? t('week.odd') : t('week.even'), rows.length ? t('dashboard.periodCount', { count: rows.length }) : ''].filter(Boolean).join(' · ');
-  show(tile('calendar', 'var(--q-accent)', 'lg'), title, sub, [el('div', 'q-rowcard cx-day', items)]);
 }
 
 window.closeModal = closeModal;

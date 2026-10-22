@@ -72,6 +72,7 @@ export default {
   'dashboard.breakThen': '{name} · 接著第 {n} 節',
   'dashboard.firstThen': '今天 · 第 {n} 節',
   'dashboard.untilBreakEnd': '後結束',
+  'dashboard.noneLater': '之後沒有課了',
   'dashboard.laterToday': '之後的課',
   'dashboard.stripLeft': '還有 {n} 節',
   'dashboard.stripNone': '今天的課上完了',

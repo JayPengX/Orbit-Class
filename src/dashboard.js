@@ -127,7 +127,7 @@ function update() {
   // leaves empty can hold a class moved there by 調課).
   const hasAnyClasses = Object.values(state.runtimeSchedule).some(rows => (rows || []).length > 0);
   const viewRows = window.MANUALLY_TEST ? state.runtimeSchedule[state.viewDay] : classesOnDate(dateOfDay(state.viewDay, now));
-  if (hasAnyClasses && !(viewRows || []).length) state.viewDay = getNextSchoolDay(state.viewDay);
+  if (hasAnyClasses && !state.viewDate && !(viewRows || []).length) state.viewDay = getNextSchoolDay(state.viewDay);
 
   // A national holiday: no classes today, whatever the timetable says (Test Mode's simulated days as they are).
   const holiday = window.MANUALLY_TEST ? null : holidayOn(now);
@@ -141,6 +141,7 @@ function update() {
   if (!dayDone && state.autoAdvancedAfterFinishedDay === curDay) state.autoAdvancedAfterFinishedDay = null;
   if (dayDone && state.viewDay === curDay && state.autoAdvancedAfterFinishedDay !== curDay) {
     state.viewDay = window.MANUALLY_TEST ? getNextSchoolDay(curDay) : (nextDay?.day ?? getNextSchoolDay(curDay));
+    state.viewDate = null;
     state.autoAdvancedAfterFinishedDay = curDay;
   }
 
@@ -170,7 +171,7 @@ function update() {
   // the day, the week chosen, the tab, the minute on 課表's grid).
   const tab = document.body.dataset.tab;
   const minute = tab === 'week' ? Math.floor(now.getTime() / 60_000) : '';
-  const listKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${now.toDateString()}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewWeek}-${tab}-${hero.through}-${minute}`;
+  const listKey = `${window.MANUALLY_TEST ? 'T' : 'R'}-${now.toDateString()}-${curDay}-${week}-${viewModel.curIdx}-${viewModel.nxtIdx}-${viewModel.activeBreakName}-${viewModel.isDayFinished}-${state.viewDay}-${state.viewDate?.toDateString() || ''}-${state.viewWeek}-${tab}-${hero.through}-${minute}`;
   if (state.lastListKey !== listKey) {
     state.lastListKey = listKey;
     if (tab === 'week') renderWeek(now);

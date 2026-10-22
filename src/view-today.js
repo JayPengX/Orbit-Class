@@ -7,7 +7,7 @@ import * as kitUI from '#kit/ui.mjs';
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { formatCountdownEventDate, getCountdownEvents } from './data.js';
-import { dateFromKey, parseTime } from './dates.js';
+import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { holidayOn } from './holidays.js';
@@ -102,38 +102,12 @@ function renderStrip(strip, week) {
   box.replaceChildren(el('span', 'cx-chips', chips), words);
 }
 
-// ---- A day's classes as rows (今天's list, and 課表's day sheet) ----
+// ---- A day's classes (今天's list) ----
 // The day's named break that sits wholly between two classes, if any.
 function breakBetween(end, start) {
   const from = parseTime(end);
   const to = parseTime(start);
   return (state.applicationData.breakTimes || []).find(b => b.name && b.start && b.end && parseTime(b.start) >= from && parseTime(b.end) <= to && parseTime(b.end) > parseTime(b.start));
-}
-// One class: its tile, name (a split week's or 調課's label beside it), teacher · room, and its times.
-function classRow(c, week, { date = null, cls = '' } = {}) {
-  const info = processSplitName(c, week);
-  const name = el('span', 'q-ritem-title row-name', info.n);
-  const title = el('span', 'cx-row-title', [name]);
-  if (info.label) title.insertAdjacentHTML('beforeend', info.label);
-  const sub = [info.t, c.loc].filter(Boolean).join(' · ');
-  const words = el('span', 'q-ritem-text', [title, sub ? el('small', '', sub) : null]);
-  const time = el('span', 'cx-time', [el('b', '', c.s), el('small', '', c.e)]);
-  const node = button(`q-ritem row${cls ? ` ${cls}` : ''}`, () => openModal(c, { date }), [subjectTile(info.n), words, time]);
-  return node;
-}
-// The rows of a day's classes from `from` on, a named break as a thin row between two.
-export function dayRows(rows, week, { date = null, from = 0 } = {}) {
-  const out = [];
-  rows.forEach((c, i) => {
-    if (i < from) return;
-    out.push(classRow(c, week, { date }));
-    const after = rows[i + 1];
-    const gap = after && breakBetween(c.e, after.s);
-    if (gap) out.push(el('div', 'q-ritem cx-gap', [el('span', '', gap.name), el('span', '', `${gap.start}–${gap.end}`)]));
-  });
-  while (out[0]?.classList.contains('cx-gap')) out.shift();
-  while (out.at(-1)?.classList.contains('cx-gap')) out.pop();
-  return out;
 }
 // A day's classes from `from` on as cards in a rail, each its subject's
 // colour: its glyph, period, name, time and room; a named break between two
@@ -164,10 +138,10 @@ export function dayCards(rows, week, { date = null, from = 0 } = {}) {
   return out;
 }
 // A day without classes: why (a holiday by name).
-export function emptyDay(holiday) {
+export function emptyDay(holiday, text = '') {
   const pic = el('span', 'q-tile soft cx-gray');
   pic.innerHTML = glyph('moon');
-  const words = el('span', 'q-ritem-text', [el('span', 'q-ritem-title row-name', holiday ? t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }) : t('dashboard.restOrStudy'))]);
+  const words = el('span', 'q-ritem-text', [el('span', 'q-ritem-title row-name', holiday ? t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }) : text || t('dashboard.restOrStudy'))]);
   return el('div', 'q-ritem row is-empty', [pic, words]);
 }
 
@@ -178,27 +152,69 @@ export function renderTodayList({ week, through, curDay, now }) {
   const sec = $('cx-list-sec');
   if (!list || !sec) return;
   const testing = window.MANUALLY_TEST;
-  const date = testing ? null : dateOfDay(state.viewDay, now);
+  // (A day picked that has since gone by: back to the coming one.)
+  if (state.viewDate && dateKey(state.viewDate) < dateKey(now)) state.viewDate = null;
+  const date = testing ? null : state.viewDate || dateOfDay(state.viewDay, now);
   const holiday = date ? holidayOn(date) : null;
   const rows = date ? classesOn(date) : state.runtimeSchedule[state.viewDay] || [];
   if (date) week = getWeekType(date);
   const isToday = state.viewDay === curDay && (!date || date.toDateString() === now.toDateString());
   // No timetable yet: one card that says so and adds it.
   const none = !Object.values(state.runtimeSchedule || {}).some(r => (r || []).length);
+  drawDays(none ? null : date, now);
   const items = none ? [] : dayCards(rows, week, { date, from: isToday ? through + 1 : 0 });
   if (none) items.push(kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } }));
   else if (!rows.length) items.push(emptyDay(holiday));
+  // Today's all on the card already: said so, the strip's day still under its head.
+  else if (!items.length) items.push(emptyDay(null, t('dashboard.noneLater')));
   const title = $('cx-list-title');
   if (title) {
-    const ahead1 = (state.viewDay - curDay + 7) % 7 === 1;
-    title.textContent = none ? t('tools.myTimetable') : isToday ? t('dashboard.laterToday') : t('dashboard.dayClasses', { day: ahead1 ? t('dashboard.tomorrow') : WEEKDAY_LABELS[state.viewDay] });
+    const ahead = date ? Math.round((new Date(date.getFullYear(), date.getMonth(), date.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / MS_PER_DAY) : (state.viewDay - curDay + 7) % 7;
+    const day = ahead === 1 ? t('dashboard.tomorrow') : ahead > 6 || ahead < 0 ? `${date.getMonth() + 1}/${date.getDate()} ${WEEKDAY_LABELS[state.viewDay]}` : WEEKDAY_LABELS[state.viewDay];
+    title.textContent = none ? t('tools.myTimetable') : isToday ? t('dashboard.laterToday') : t('dashboard.dayClasses', { day });
   }
   sec.querySelector('.cx-more')?.toggleAttribute('hidden', none);
   // The hero has nothing to count down until there is a timetable.
   $('cx-hero')?.toggleAttribute('hidden', none);
   sec.hidden = !items.length;
-  const body = none ? items : !rows.length ? [el('div', 'q-rowcard cx-day', items)] : [el('div', 'q-rail cx-cls', items)];
+  const body = none ? items : items[0]?.classList.contains('is-empty') ? [el('div', 'q-rowcard cx-day', items)] : [el('div', 'q-rail cx-cls', items)];
   list.replaceChildren(...(items.length ? body : []));
+}
+
+// The day 今天's list shows: the family's strip of days (the kit's, as every
+// app picks a day), today and the school days of the next two weeks (a
+// holiday among them, said so), 📅 for any day; a swipe across the page goes
+// a day either way (shell.js). Not in Test Mode (it walks weekdays, not dates).
+const daysRec = {};
+const DAYS_AHEAD = 14;
+export function schoolDays(now = new Date()) {
+  const sat = (state.runtimeSchedule?.[6] || []).length > 0;
+  const out = [];
+  for (let n = 0; n <= DAYS_AHEAD; n++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + n);
+    const wd = d.getDay();
+    if (n === 0 || (wd >= 1 && wd <= 5) || (wd === 6 && sat) || classesOn(d).length) out.push(dateKey(d));
+  }
+  return out;
+}
+export function pickDay(key) {
+  const date = dateFromKey(key);
+  if (!date) return;
+  state.viewDate = date;
+  state.viewDay = date.getDay();
+  state.lastListKey = '';
+  window.update?.();
+}
+function drawDays(date, now) {
+  const bar = $('cx-days');
+  if (!bar) return;
+  bar.hidden = !date;
+  if (!date) return;
+  const days = schoolDays(now);
+  const current = dateKey(date);
+  const later = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 180);
+  kitUI.dayStrip(daysRec, { days: days.includes(current) ? days : [...days, current].sort(), current, today: dateKey(now), follow: true, onPick: pickDay, clamp: v => v, bounds: { from: dateKey(now), to: dateKey(later) } });
+  if (daysRec.wrap.parentElement !== bar) bar.replaceChildren(daysRec.wrap);
 }
 
 // ---- 倒數: a rail of cards, each its days to go in large type ----

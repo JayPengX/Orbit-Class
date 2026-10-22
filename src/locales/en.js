@@ -93,6 +93,7 @@ export default {
   'dashboard.breakThen': '{name} · period {n} next',
   'dashboard.firstThen': 'Today · period {n}',
   'dashboard.untilBreakEnd': 'left',
+  'dashboard.noneLater': 'No more classes today',
   'dashboard.laterToday': 'After that',
   'dashboard.stripLeft': '{n} to go',
   'dashboard.stripNone': 'No more classes today',
