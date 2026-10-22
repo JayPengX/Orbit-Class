@@ -3,7 +3,7 @@
 // clock. Runs once every other module has finished defining its functions -
 // see main.js for why import order matters here.
 import { mainClockTick, syncTestPlayPauseUi } from './dashboard.js';
-import { loadData } from './data.js';
+import { hasSavedSchedule, loadData } from './data.js';
 import { applyStaticTranslations } from './i18n-dom.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { buildSchedule } from './schedule.js';
@@ -58,7 +58,7 @@ renderSyncPanel();
 if (!gated) startSyncLoop();
 // The family's loading screen (the kit's boot.js, drawn into #loading)
 // lifts once, onto the finished first screen: the pass's schedule in
-// (sync.js), or after 3 s the copy on this device, swapped in place if the
+// (sync.js), or soon after the copy on this device (LIFT_MS), swapped in place if the
 // pass's comes later. A gate (signing in, add to the home
 // screen, open on a phone) lifts it itself. __fxStarted tells boot.js the
 // app ran (no "didn't start" after 15 s). It lifts onto the whole first
@@ -66,6 +66,10 @@ if (!gated) startSyncLoop();
 // with no schedule yet) already up, so nothing arrives after it.
 window.__fxStarted = true;
 // (After 3 s without the pass, the welcome waits for it: the pass may yet bring a schedule.)
+// A schedule kept on this device opens on it after 0.6 s at most: the pass's
+// sign-in is a round trip (1-2 s on a phone's link) every opening, and its
+// copy, when another device changed it, is swapped in place.
+const LIFT_MS = hasSavedSchedule() ? 600 : 3000;
 // Under the loading screen the welcome opens already risen (no slide).
 const liftLoading = ready => {
   window.update();
@@ -74,7 +78,7 @@ const liftLoading = ready => {
 };
 if (!gated) {
   const ready = whenReady();
-  Promise.race([ready.then(() => true), new Promise(resolve => setTimeout(resolve, 3000, false))]).then(liftLoading, () => liftLoading(false));
+  Promise.race([ready.then(() => true), new Promise(resolve => setTimeout(resolve, LIFT_MS, false))]).then(liftLoading, () => liftLoading(false));
   ready.then(() => document.getElementById('loading')?.hidden && showOnboardingPrompt());
 }
 

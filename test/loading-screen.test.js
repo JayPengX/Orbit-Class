@@ -19,6 +19,6 @@ describe("the family's loading screen", () => {
   it('the app says it started and lifts the screen itself (never left up, never "didn\'t start")', () => {
     const js = read('src/bootstrap.js');
     expect(js).toContain('window.__fxStarted = true');
-    expect(js).toMatch(/Promise\.race\(\[ready\.then\(\(\) => true\), new Promise\(resolve => setTimeout\(resolve, \d+, false\)\)\]\)\.then\(liftLoading, \(\) => liftLoading\(false\)\)/);
+    expect(js).toMatch(/Promise\.race\(\[ready\.then\(\(\) => true\), new Promise\(resolve => setTimeout\(resolve, (?:\d+|LIFT_MS), false\)\)\]\)\.then\(liftLoading, \(\) => liftLoading\(false\)\)/);
   });
 });
