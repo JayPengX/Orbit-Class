@@ -21,12 +21,9 @@
 body {
   margin: 0;
 }
-/* The kit's column: a phone's width, 16 px in; on an iPad the screen's
-   width (up to 1240 px, 32/40 px in), rails bleeding to its edge. */
+/* A page: 16 px in, rails bleeding to the screen's edge. */
 .cx-panel {
-  --q-margin: var(--q-gutter, 16px);
-  max-width: var(--q-col, 640px);
-  margin: 0 auto;
+  --q-margin: 16px;
   padding: 0 var(--q-margin) calc(var(--q-nav, 0px) + 32px);
 }
 .cx-panel[hidden] {
@@ -100,8 +97,8 @@ body {
 .test-banner {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  left: var(--q-side, 0px);
+  right: var(--q-side, 0px);
   z-index: 70;
   display: none;
   padding: calc(var(--q-top, 0px) + 2px) 8px 4px;
@@ -689,7 +686,7 @@ body.orbit-motion-paused * {
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  width: min(520px, calc(100vw - 16px));
+  width: calc(var(--q-vw, 100vw) - 16px);
   max-height: min(calc(100dvh - var(--q-top, 0px) - 24px), 900px);
   margin: 0 auto;
   box-sizing: border-box;
@@ -802,12 +799,6 @@ body.orbit-motion-paused * {
 }
 body:is(.editor-open, .transfer-open) {
   overflow: hidden;
-}
-@media (min-width: 720px) {
-  .cx-sheet,
-  .assign-sheet {
-    bottom: 24px;
-  }
 }
 
 /* A class: its halves, its figures, its week, 調課. */
@@ -1820,7 +1811,7 @@ img.q-tile.tr-app {
   z-index: 1031;
   display: grid;
   gap: 8px;
-  width: min(320px, calc(100vw - 48px));
+  width: min(320px, calc(var(--q-vw, 100vw) - 48px));
   max-height: calc(100dvh - 64px);
   box-sizing: border-box;
   margin: 0 auto;
@@ -1970,13 +1961,11 @@ img.q-tile.tr-app {
 
 /* A phone: times and dates without the desktop picker's icon (iOS draws
    none; a tap opens its own wheel), so a whole time fits beside its pair. */
-@media (max-width: 600px) {
-  :is(.time-input, .countdown-date-range .editor-input)::-webkit-calendar-picker-indicator {
-    display: none;
-  }
-  :is(.time-input, .countdown-date-range .editor-input) {
-    text-align: center;
-  }
+:is(.time-input, .countdown-date-range .editor-input)::-webkit-calendar-picker-indicator {
+  display: none;
+}
+:is(.time-input, .countdown-date-range .editor-input) {
+  text-align: center;
 }
 /* The Pass row in the key sheet: its words wrap at 320 rather than cut. */
 .tr-pass .q-ritem-title { white-space: normal; overflow: visible; text-overflow: clip; }
@@ -2384,55 +2373,4 @@ img.q-tile.tr-app {
 .cx-icon-pick.is-on {
   background: var(--subject);
   color: #fff;
-}
-
-/* ---- iPad (700+): the day's classes as whole cards across, the four
-   parts in a row; from 1100 px 工具 goes two columns (the week beside the
-   rest) ---- */
-@media (min-width: 700px) {
-  .cx-cls {
-    --q-rail-n: 4;
-    grid-auto-columns: minmax(calc((100% - (var(--q-rail-n) - 1) * 12px) / var(--q-rail-n)), 1fr);
-  }
-  .cx-parts {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1100px) {
-  .cx-cls {
-    --q-rail-n: 6;
-  }
-  #cx-tools {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 28px;
-    align-items: start;
-  }
-  #cx-tools > .cx-mini {
-    grid-row: 1 / span 3;
-    align-self: stretch;
-    grid-template-rows: auto 1fr;
-    margin-top: 34px;
-  }
-  /* The week as tall as what sits beside it. */
-  #cx-tools > .cx-mini .cx-mini-grid {
-    grid-template-rows: auto;
-    grid-auto-rows: 1fr;
-    gap: 6px;
-  }
-  #cx-tools > .cx-mini .cx-mini-cell {
-    height: auto;
-    min-height: 22px;
-    border-radius: 10px;
-    font-size: 15px;
-  }
-  #cx-tools > :not(.cx-mini) {
-    grid-column: 2;
-  }
-  #cx-tools > .q-section:nth-child(2) {
-    margin-top: 0;
-  }
-  #cx-tools .cx-parts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
