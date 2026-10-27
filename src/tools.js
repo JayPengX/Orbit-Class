@@ -19,7 +19,7 @@ function openPart(id) {
 const openTransfer = focus => window.openTransferSheet?.(focus);
 
 // 我的課表: the week in miniature, a coloured block per class (its first
-// character), today's column lit; tapping it opens the editor on the week.
+// two characters), today's column lit; tapping it opens the editor on the week.
 function weekCard() {
   const schedule = state.runtimeSchedule || {};
   const days = [1, 2, 3, 4, 5, ...((schedule[6] || []).length ? [6] : [])];
@@ -35,7 +35,7 @@ function weekCard() {
     for (const d of days) {
       const item = (schedule[d] || []).find(x => x.p === p);
       const name = item ? processSplitName(item, week).n || '' : '';
-      const cell = el('span', `cx-mini-cell${name ? '' : ' is-empty'}${d === today ? ' is-today' : ''}`, name ? [...name][0] : '');
+      const cell = el('span', `cx-mini-cell${name ? '' : ' is-empty'}${d === today ? ' is-today' : ''}`, name ? [...name].slice(0, 2).join('') : '');
       if (name) cell.style.setProperty('--subject', subjectLook(name).color);
       grid.append(cell);
     }
@@ -55,7 +55,7 @@ function renderTools() {
   const key = `${JSON.stringify(state.runtimeSchedule)}|${subjects}|${breaks}|${events}|${t('tab.tools')}`;
   if (key === drawn && box.childElementCount) return;
   drawn = key;
-  // The parts as four figure cells (their count large), the
+  // The parts as four figure cards (each its colour, its count large), the
   // two AI ways as two cards, the share key a row.
   const figure = (icon, color, n, title, fold) => {
     const pic = el('span', 'cx-cl-icon');
@@ -77,7 +77,7 @@ function renderTools() {
     card.style.setProperty('--subject', color);
     return card;
   };
-  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', 'var(--q-accent)', t('tools.aiEditTitle'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', 'var(--q-accent)', t('tools.photoTitle'), () => openTransfer('photo'))]);
+  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
   box.replaceChildren(weekCard(), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
 }
