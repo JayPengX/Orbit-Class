@@ -134,7 +134,7 @@ function drawGrid(monday, now) {
   }
   // A holiday's column says which.
   const offs = cols.filter(c => c.holiday);
-  const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${c.holiday.zh}`))) : null;
+  const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${t('dashboard.holidayTitle', { zh: c.holiday.zh, en: c.holiday.en || c.holiday.zh })}`))) : null;
   box.replaceChildren(...[periods ? grid : kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } }), foot].filter(Boolean));
   // A long Latin name wraps by word; what still won't fit shrinks.
   requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-tl-cell.is-latin')));
