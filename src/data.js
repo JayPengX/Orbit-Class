@@ -11,7 +11,7 @@ import {
   isPlainObject
 } from './constants.js';
 import { state } from './state.js';
-import { t } from './strings.js';
+import { t, getLocale } from './strings.js';
 
 // App defaults and live simulator state.
 const REVERSE_WEEK_LOGIC_DEFAULT = false;
@@ -84,6 +84,16 @@ const DEFAULT_BREAK_LABELS = { 打掃時間: 'break.cleaning', 中午時間: 'br
 export function breakLabel(name) {
   const key = DEFAULT_BREAK_LABELS[String(name || '').trim()];
   return key ? t(key) : String(name || '').trim();
+}
+// Taiwan's big exams by their English names when the app is in English (116 學測 → GSAT
+// 2027: the ROC year plus 1911); any other name is the person's own, as typed.
+const EXAMS_EN = { 學測: 'GSAT', 統測: 'TVE exam', 會考: 'CAP', 分科測驗: 'AST', 分科: 'AST' };
+export function eventName(name) {
+  const text = String(name || '').trim();
+  if (getLocale() !== 'en') return text;
+  const m = /^(\d{3})\s*(學測|統測|會考|分科測驗|分科)$/.exec(text) || /^(學測|統測|會考|分科測驗|分科)$/.exec(text);
+  if (!m) return text;
+  return m.length === 3 ? `${EXAMS_EN[m[2]]} ${Number(m[1]) + 1911}` : EXAMS_EN[m[1]];
 }
 const DEFAULT_COUNTDOWN_EVENT = {
   name: '116 學測',

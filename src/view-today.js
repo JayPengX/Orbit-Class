@@ -6,7 +6,7 @@
 import * as kitUI from '#kit/ui.mjs';
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { breakLabel, formatCountdownEventDate, getCountdownEvents } from './data.js';
+import { breakLabel, eventName, formatCountdownEventDate, getCountdownEvents } from './data.js';
 import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { showOnboardingPrompt } from './onboarding.js';
@@ -240,9 +240,9 @@ export function renderCountdowns(now = new Date()) {
     const pic = el('span', 'cx-cl-icon');
     pic.innerHTML = look.icon;
     const big = st.kind === 'ahead' ? el('span', 'cx-cd-big', [el('b', '', String(st.days)), el('small', '', t('dashboard.countdownDayUnit'))]) : el('span', `cx-cd-big is-${st.kind}`, [el('em', '', t(`dashboard.${{ today: 'countdownToday', on: 'countdownInProgress', over: 'countdownEnded' }[st.kind]}`))]);
-    const card = button(`q-rail-card cx-cd is-${st.kind}`, editCountdowns, [el('span', 'cx-cd-top', [pic, el('small', '', formatCountdownEventDate(event, { withYear: dateFromKey(event.startDate) - today > 330 * MS_PER_DAY }))]), el('strong', `cx-cd-name${nameSize(event.name)}`, event.name), big]);
+    const card = button(`q-rail-card cx-cd is-${st.kind}`, editCountdowns, [el('span', 'cx-cd-top', [pic, el('small', '', formatCountdownEventDate(event, { withYear: dateFromKey(event.startDate) - today > 330 * MS_PER_DAY }))]), el('strong', `cx-cd-name${nameSize(eventName(event.name))}`, eventName(event.name)), big]);
     card.style.setProperty('--subject', look.color);
-    if (st.kind === 'ahead') card.setAttribute('aria-label', t('dashboard.countdownAriaDays', { name: event.name, days: st.days }));
+    if (st.kind === 'ahead') card.setAttribute('aria-label', t('dashboard.countdownAriaDays', { name: eventName(event.name), days: st.days }));
     return card;
   });
   // None yet: one card that adds the first.
