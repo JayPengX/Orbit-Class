@@ -16,9 +16,15 @@
 The class now and what comes next, at a glance. Part of **Orbit**, a family of phone apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [orbit.jaypengx.com](https://orbit.jaypengx.com/pass/).
 
 <p align="center">
-  <img src="docs/screenshots/class-1.webp" width="30%" alt="Now, next, and how long">
-  <img src="docs/screenshots/class-2.webp" width="30%" alt="Your whole week">
-  <img src="docs/screenshots/class-3.webp" width="30%" alt="Every class, one tap">
+  <img src="docs/screenshots/class-1.webp" width="30%" alt="Bring in your timetable">
+  <img src="docs/screenshots/class-2.webp" width="30%" alt="Snap it, AI reads it">
+  <img src="docs/screenshots/class-3.webp" width="30%" alt="Odd and even weeks">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/class-4.webp" width="30%" alt="Now, next, and time left">
+  <img src="docs/screenshots/class-5.webp" width="30%" alt="Swap a class in seconds">
+  <img src="docs/screenshots/class-6.webp" width="30%" alt="Count down to the big exam">
 </p>
 
 <p align="center">
