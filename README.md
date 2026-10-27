@@ -27,12 +27,6 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of p
   <img src="docs/screenshots/class-6.webp" width="30%" alt="Count down to the big exam">
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/class-4.webp" width="30%" alt="Count down to the big exam">
-  <img src="docs/screenshots/class-5.webp" width="30%" alt="Swap a class in seconds">
-  <img src="docs/screenshots/class-6.webp" width="30%" alt="Handy tools for school">
-</p>
-
 ## Features
 
 - **Today:** one card answers "what's left today": the class now with teacher, room and time left, the next one, and the day as a strip of coloured chips. After the last class it shows the next school day.
