@@ -8,7 +8,10 @@
 //
 // `?.` guards against import.meta.env itself being undefined (unbuilt source
 // served directly, bypassing Vite) - see gemini-ocr.js's matching note.
-const PROXY_DEFAULT = 'https://orbit-workers-proxy.pengzjay.workers.dev';
+import * as kit from '#kit/orbit.mjs';
+
+// (api.<domain> on the family's own domain: the kit's API, kit/domain.mjs.)
+const PROXY_DEFAULT = kit.API || 'https://orbit-workers-proxy.pengzjay.workers.dev';
 const PROXY_BASE_URL = (import.meta.env?.VITE_PROXY_URL ?? PROXY_DEFAULT).trim().replace(/\/+$/, '');
 
 export function proxyPath(path) {
