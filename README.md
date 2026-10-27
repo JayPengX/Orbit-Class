@@ -16,9 +16,9 @@
 The class now and what comes next, at a glance. Part of **Orbit**, a family of phone apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [jaypengx.com](https://jaypengx.com/).
 
 <p align="center">
-  <img src="docs/screenshots/class-1.webp" width="240" alt="Today">
-  <img src="docs/screenshots/class-2.webp" width="240" alt="The week">
-  <img src="docs/screenshots/class-3.webp" width="240" alt="Tools">
+  <img src="docs/screenshots/class-1.webp" width="30%" alt="Today">
+  <img src="docs/screenshots/class-2.webp" width="30%" alt="The week">
+  <img src="docs/screenshots/class-3.webp" width="30%" alt="Tools">
 </p>
 
 ## Features
