@@ -6,14 +6,14 @@
 
 <p align="center">
   <b>Today's classes at a glance.</b><br>
-  <a href="https://jaypengx.com/class/"><b>jaypengx.com/class</b></a>
+  <a href="https://orbit.jaypengx.com/class/"><b>orbit.jaypengx.com/class</b></a>
 </p>
 
 <p align="center">
   <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-ES_modules-F7DF1E?logo=javascript&logoColor=000"> <img alt="Vite" src="https://img.shields.io/badge/Vite-build-646CFF?logo=vite&logoColor=fff"> <img alt="PWA" src="https://img.shields.io/badge/PWA-works_offline-5A0FC8?logo=pwa&logoColor=fff"> <img alt="Cloudflare" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=fff"> <img alt="GitHub" src="https://img.shields.io/badge/GitHub-Pages-24292F?logo=github&logoColor=fff"> <img alt="Tests" src="https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=fff">
 </p>
 
-The class now and what comes next, at a glance. Part of **Orbit**, a family of phone apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [jaypengx.com](https://jaypengx.com/).
+The class now and what comes next, at a glance. Part of **Orbit**, a family of phone apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [orbit.jaypengx.com](https://orbit.jaypengx.com/pass/).
 
 <p align="center">
   <img src="docs/screenshots/class-1.webp" width="30%" alt="Today">
@@ -98,7 +98,7 @@ The time simulation panel (in the transfer sheet, under Advanced) sets any day a
 
 ## Deploying
 
-Push to `main`. GitHub Actions runs the tests, builds with Vite and publishes `dist/` to GitHub Pages; the site Worker serves it at its jaypengx.com address. There are no pull requests or release branches.
+Push to `main`. GitHub Actions runs the tests, builds with Vite and publishes `dist/` to GitHub Pages; the site Worker serves it at its orbit.jaypengx.com address. There are no pull requests or release branches.
 
 ## Part of Orbit
 

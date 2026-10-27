@@ -3,7 +3,7 @@
 The class now and what comes next, at a glance. Phone only, signed in
 with the Orbit Pass, which keeps the timetable.
 
-Live: https://jaypengx.com/class/
+Live: https://orbit.jaypengx.com/class/
 
 ## How it works
 
