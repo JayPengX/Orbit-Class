@@ -169,7 +169,7 @@ async function encodeSourceForUpload(source) {
 // closing mid-recognition (closing would abandon the in-progress import silently).
 
 // AI import always goes through this server-side proxy (build-time env var, see
-// README) - the proxy holds the real Gemini key (Secret Manager, never shipped to
+// MAP.md) - the proxy holds the real Gemini key (Secret Manager, never shipped to
 // the client) and forwards the request, so users never need a Gemini key of their
 // own. A fork built from source without the proxy deployed just leaves the feature
 // unavailable (see isGeminiProxyConfigured's callers) rather than asking for a key.
@@ -365,7 +365,7 @@ class AIVisionProcessor {
     // builds the full Gemini request itself from just {model, files}. That's
     // deliberate: it means the proxy can only ever be used to run this app's
     // own fixed, hardcoded prompt against submitted files, never as a
-    // generic pass-through for arbitrary prompts - see README's security
+    // generic pass-through for arbitrary prompts - see MAP.md's security
     // notes on the AI proxy.
     //
     // The "User location is not supported" 400 (see below) is keyed to

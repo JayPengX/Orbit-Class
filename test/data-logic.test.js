@@ -241,7 +241,7 @@ describe('v2 backup encode/decode round-trip', () => {
     const encoded = await encodeTransferData(original);
     // TRANSFER_MAGIC_V2 is a module-private const in src/editor-backup.js
     // (never exported - nothing outside that module needs it); its literal
-    // value is documented in README.md's backup-format section.
+    // value is documented in MAP.md's backup-format section.
     expect(encoded.startsWith('[ORBIT]')).toBe(true);
 
     const decoded = await decodeTransferData(encoded);
