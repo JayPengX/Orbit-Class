@@ -47,11 +47,6 @@ body {
 .q-tile.cx-gray {
   --t: var(--q-gray);
 }
-/* A tile on the hero: frosted white, the glyph white. */
-.q-tile.cx-glass {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.3);
-}
 .cx-foot-line {
   margin: 8px 4px 0;
   color: var(--q-label-2);
@@ -104,7 +99,7 @@ body {
   padding: calc(var(--q-top, 0px) + 2px) 8px 4px;
   background: var(--q-orange);
   color: #fff;
-  font: 700 12px/16px var(--q-font);
+  font: 600 12px/16px var(--q-font);
   text-align: center;
 }
 body.testing .test-banner {
@@ -116,72 +111,60 @@ body.orbit-motion-paused * {
 }
 
 /* ---- 2. 今天 ---- */
-/* The hero: the class now (or next, or the day's state). */
+/* The answer, open on the page (no card): what's on now and the time left
+   at the focal size; what comes next and the day as a strip under it. */
 .cx-hero {
-  gap: 12px;
-  padding: 16px 16px 14px;
+  display: grid;
+  gap: var(--q-s-1);
+  min-width: 0;
+  padding: var(--q-s-2) 4px var(--q-s-3);
   cursor: pointer;
 }
 .cx-hero:focus-visible {
   outline: 2px solid var(--q-accent);
   outline-offset: 3px;
+  border-radius: var(--q-r-cell);
 }
 .cx-hero.is-still {
   cursor: default;
 }
-.cx-hero[data-mode='break'] {
-  --q-hc-b: color-mix(in srgb, var(--q-accent) 80%, var(--q-teal));
+.cx-hero[hidden] {
+  display: none;
 }
 .cx-hero-top {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--q-s-2);
   min-width: 0;
+  color: var(--q-label-2);
+  font: var(--q-t-subhead);
 }
-.cx-hero-top .q-hc-eyebrow {
+.cx-kicker {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-#cx-kicker:empty {
-  display: none;
-}
-/* No words on the top line (a day over): no lone glyph above the moon tile. */
 .cx-hero-top:has(#cx-kicker:empty):has(#cx-span:empty) {
   display: none;
 }
 .cx-span {
   flex: none;
-  font: 600 13px/1 var(--q-font);
   font-variant-numeric: tabular-nums;
-  opacity: 0.85;
-}
-.cx-hero-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-.cx-hero-words {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
 }
 .cx-title {
-  font: 700 26px/31px var(--q-font);
-  letter-spacing: -0.015em;
+  font: var(--q-t-title3);
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
 .cx-title.is-long {
-  font-size: 22px;
-  line-height: 27px;
+  font-size: 18px;
+  line-height: 23px;
 }
 .cx-title.is-xlong {
-  font-size: 19px;
-  line-height: 24px;
+  font-size: 16px;
+  line-height: 21px;
 }
 .cx-meta {
   display: flex;
@@ -189,8 +172,15 @@ body.orbit-motion-paused * {
   align-items: center;
   gap: 2px 6px;
   min-width: 0;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--q-label-2);
   font: var(--q-t-subhead);
+}
+.cx-meta .week-label {
+  min-height: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
 }
 .cx-meta[hidden],
 .cx-meta > :empty {
@@ -199,33 +189,47 @@ body.orbit-motion-paused * {
 .cx-meta > #now-teacher:not(:empty) ~ #now-place:not(:empty)::before {
   content: '· ';
 }
-.cx-meta .week-label {
-  --t: #fff;
-  background: rgba(255, 255, 255, 0.2);
-}
 .cx-timer {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--q-s-2);
+  margin-top: var(--q-s-2);
 }
-.cx-timer .q-hc-big {
-  font-size: 44px;
-  line-height: 46px;
+.cx-timer-val {
+  font: var(--q-t-focal);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 #timer-label {
-  font: 600 15px/1 var(--q-font);
-  opacity: 0.85;
+  color: var(--q-label-2);
+  font: var(--q-t-subhead);
 }
-/* Its foot: what comes after, in a frosted strip. */
+.cx-bar {
+  height: 4px;
+  margin-top: var(--q-s-1);
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--q-fill-2);
+}
+.cx-bar[hidden] {
+  display: none;
+}
+.cx-bar > i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--q-accent);
+  transition: width 0.6s linear;
+}
+/* What comes after: a plain row. */
 .cx-foot {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 52px;
-  margin-top: 2px;
-  padding: 8px 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.14);
+  gap: var(--q-s-3);
+  min-height: 44px;
+  margin-top: var(--q-s-3);
 }
 .cx-foot[hidden] {
   display: none;
@@ -242,13 +246,13 @@ body.orbit-motion-paused * {
 .cx-foot-words small,
 .cx-foot-end small {
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.78);
-  font: 500 12px/16px var(--q-font);
+  color: var(--q-label-2);
+  font: var(--q-t-caption);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .cx-foot-words b {
-  font: 600 16px/21px var(--q-font);
+  font: 500 16px/21px var(--q-font);
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
@@ -273,13 +277,14 @@ body.orbit-motion-paused * {
   }
 }
 .cx-foot-end b {
-  font: 700 17px/21px var(--q-font-rounded);
+  font: 500 17px/21px var(--q-font-rounded);
   font-variant-numeric: tabular-nums;
 }
 .cx-foot-note {
   display: none;
   margin: 0;
-  font: 500 15px/20px var(--q-font);
+  color: var(--q-label-2);
+  font: var(--q-t-subhead);
 }
 .cx-foot[data-kind='note'] > :not(.cx-foot-note) {
   display: none;
@@ -289,12 +294,11 @@ body.orbit-motion-paused * {
 }
 
 /* The day as a strip: a chip per class in its colour, the done ones faded,
-   the one now ringed; how many are left and when school's out beside it. */
+   the one now ringed; how many are left and when school's out under it. */
 .cx-strip {
   display: grid;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  gap: var(--q-s-2);
+  margin-top: var(--q-s-2);
 }
 .cx-strip[hidden] {
   display: none;
@@ -303,44 +307,39 @@ body.orbit-motion-paused * {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
-  gap: 5px;
+  gap: 6px;
 }
 .cx-chip {
   display: grid;
   place-items: center;
   height: 30px;
   min-width: 0;
-  border-radius: 9px;
+  border-radius: var(--q-r-icon);
   background: var(--subject);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
   color: #fff;
-  font: 700 14px/1 var(--q-font);
+  font: 600 14px/1 var(--q-font);
   font-style: normal;
 }
 .cx-chip.is-done {
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: none;
-  color: rgba(255, 255, 255, 0.55);
+  background: var(--q-fill-3);
+  color: var(--q-label-3);
 }
 .cx-chip.is-now {
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
-  color: var(--subject);
-  transform: scale(1.08);
+  box-shadow: 0 0 0 2px var(--q-bg), 0 0 0 4px var(--subject);
 }
 .cx-strip-words {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--q-s-2);
   font-variant-numeric: tabular-nums;
 }
 .cx-strip-words b {
-  font: 600 15px/20px var(--q-font);
+  font: 500 15px/20px var(--q-font);
 }
 .cx-strip-words small {
-  color: rgba(255, 255, 255, 0.8);
-  font: 500 13px/18px var(--q-font);
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
   white-space: nowrap;
 }
 
@@ -425,7 +424,7 @@ body.orbit-motion-paused * {
   min-height: 36px;
 }
 .cx-cd-big b {
-  font: 700 32px/36px var(--q-font-rounded);
+  font: 600 32px/36px var(--q-font-rounded);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
@@ -436,7 +435,7 @@ body.orbit-motion-paused * {
 .cx-cd-big em {
   align-self: center;
   color: var(--q-accent);
-  font: 700 18px/24px var(--q-font);
+  font: 600 18px/24px var(--q-font);
   font-style: normal;
 }
 .cx-cd.is-over {
@@ -452,7 +451,7 @@ body.orbit-motion-paused * {
 }
 .cx-grid-card {
   padding: 12px 10px;
-  border-radius: 20px;
+  border-radius: var(--q-r-card);
   background: var(--q-surface);
 }
 .cx-tl-grid {
@@ -502,7 +501,7 @@ body.orbit-motion-paused * {
   min-height: var(--cx-cell-h);
 }
 .cx-tl-num {
-  font: 700 15px/18px var(--q-font-rounded);
+  font: 600 15px/18px var(--q-font-rounded);
 }
 .cx-tl-row small {
   color: var(--q-label-3);
@@ -518,7 +517,7 @@ body.orbit-motion-paused * {
   padding: 0 2px;
   overflow: hidden;
   border: 0;
-  border-radius: 11px;
+  border-radius: var(--q-r-cell);
   background: color-mix(in srgb, var(--subject) 18%, transparent);
   color: color-mix(in srgb, var(--subject) 70%, var(--q-label));
   font: 600 14px/17px var(--q-font);
@@ -554,7 +553,6 @@ body.orbit-motion-paused * {
 .cx-tl-cell.is-now {
   background: var(--subject);
   color: #fff;
-  box-shadow: 0 6px 14px -8px var(--subject);
 }
 .cx-tl-cell.is-past {
   opacity: 0.4;
@@ -608,7 +606,7 @@ body.orbit-motion-paused * {
   width: 100%;
   padding: 16px;
   border: 0;
-  border-radius: 22px;
+  border-radius: var(--q-r-card);
   background: var(--q-surface);
   color: var(--q-label);
   font: inherit;
@@ -622,7 +620,7 @@ body.orbit-motion-paused * {
   gap: 12px;
 }
 .cx-mini-title {
-  font: 700 20px/25px var(--q-font);
+  font: 600 20px/25px var(--q-font);
 }
 .cx-mini-edit {
   color: var(--q-accent);
@@ -652,9 +650,9 @@ body.orbit-motion-paused * {
   place-items: center;
   height: 22px;
   border-radius: 7px;
-  background: linear-gradient(150deg, color-mix(in srgb, var(--subject) 88%, #fff), var(--subject));
+  background: var(--subject);
   color: #fff;
-  font: 700 12px/1 var(--q-font);
+  font: 600 12px/1 var(--q-font);
 }
 .cx-mini-cell.is-empty {
   background: var(--q-fill-3, rgba(120, 120, 128, 0.12));
@@ -871,7 +869,7 @@ body:is(.editor-open, .transfer-open) {
   max-width: 100%;
   overflow: hidden;
   color: var(--q-accent);
-  font: 700 13px/18px var(--q-font);
+  font: 600 13px/18px var(--q-font);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -1131,7 +1129,7 @@ body:is(.editor-open, .transfer-open) {
   align-self: center;
 }
 .ed-nums b {
-  font: 700 17px/1 var(--q-font-rounded);
+  font: 600 17px/1 var(--q-font-rounded);
 }
 .ed-nums small {
   color: var(--q-label-2);
@@ -1261,7 +1259,7 @@ body:is(.editor-open, .transfer-open) {
   border-radius: 9px;
   background: hsl(var(--avatar-hue) 70% 52%);
   color: #fff;
-  font: 700 15px/1 var(--q-font);
+  font: 600 15px/1 var(--q-font);
 }
 .teacher-summary-text {
   flex: 1;
@@ -1410,7 +1408,7 @@ body:is(.editor-open, .transfer-open) {
   border-radius: 9px;
   background: var(--q-accent-wash);
   color: var(--q-accent);
-  font: 700 15px/1 var(--q-font-rounded);
+  font: 600 15px/1 var(--q-font-rounded);
 }
 .bell-row > .bell-inputs,
 .bell-row > .teacher-fields,
@@ -1500,7 +1498,7 @@ body:is(.editor-open, .transfer-open) {
   background: color-mix(in srgb, var(--q-green) 20%, transparent);
   box-shadow: inset 0 0 0 1.5px var(--q-green);
   color: var(--q-green);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* AI: one sentence, in a pill on the app's colour. */
@@ -1932,20 +1930,9 @@ img.q-tile.tr-app {
   .cx-tl-cell.is-pair {
     font-size: 11px;
   }
-  .cx-title {
-    font-size: 23px;
-    line-height: 28px;
-  }
-  .cx-title.is-long {
-    font-size: 20px;
-    line-height: 25px;
-  }
-  .cx-title.is-xlong {
-    font-size: 18px;
-    line-height: 22px;
-  }
-  .cx-timer .q-hc-big {
+  .cx-timer-val {
     font-size: 40px;
+    line-height: 46px;
   }
   .cx-occ {
     gap: 4px;
@@ -1984,143 +1971,41 @@ img.q-tile.tr-app {
   display: none;
 }
 
-/* ---- Round 5: the look of the best of the family ---- */
-/* The hero takes the subject's colour, its glyph large and faint behind the
-   words, a ring round the glyph for the time gone by. */
-.cx-hero {
-  isolation: isolate;
-}
-.cx-hero.has-subject {
-  --q-hc-a: color-mix(in srgb, var(--subject) 62%, #0b1020);
-  --q-hc-b: var(--subject);
-  --q-hc-glow: color-mix(in srgb, var(--subject) 45%, #ffffff);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .cx-hero.has-subject {
-    --q-hc-a: color-mix(in srgb, var(--subject) 38%, #05070d);
-    --q-hc-b: color-mix(in srgb, var(--subject) 74%, #05070d);
-    --q-hc-glow: color-mix(in srgb, var(--subject) 55%, transparent);
-  }
-}
-:root[data-theme='dark'] .cx-hero.has-subject {
-  --q-hc-a: color-mix(in srgb, var(--subject) 38%, #05070d);
-  --q-hc-b: color-mix(in srgb, var(--subject) 74%, #05070d);
-}
-.cx-art {
-  position: absolute;
-  z-index: -1;
-  right: -26px;
-  bottom: -30px;
-  width: 190px;
-  height: 190px;
-  color: #fff;
-  opacity: 0.12;
-  pointer-events: none;
-  transform: rotate(-12deg);
-}
-.cx-art svg {
-  width: 100%;
-  height: 100%;
-  stroke-width: 1.4;
-}
-.cx-hero-main {
-  justify-content: space-between;
-}
-.cx-ring {
-  position: relative;
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-}
-.cx-ring > svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-.cx-ring > svg circle {
-  fill: none;
-  stroke-width: 6;
-}
-.cx-ring-track {
-  stroke: rgba(255, 255, 255, 0.22);
-}
-.cx-ring-fill {
-  stroke: #fff;
-  stroke-linecap: round;
-  stroke-dasharray: 0 100;
-  transition: stroke-dasharray 0.6s linear;
-}
-.cx-hero-icon {
-  display: grid;
-  place-items: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-.cx-hero-icon svg {
-  width: 26px;
-  height: 26px;
-}
-.cx-meta {
-  gap: 6px;
-}
-.cx-meta > #now-teacher:not(:empty) ~ #now-place:not(:empty)::before {
-  content: none;
-}
-.cx-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  font: 600 13px/18px var(--q-font);
-  white-space: nowrap;
-}
-
-/* A day's classes: a rail of cards, each its subject's colour. */
+/* ---- Round 5: a day's classes and countdowns as plain cells ---- */
+/* A day's classes: a rail of white cells, the kind said by one colour tile. */
 .cx-cls {
   --q-rail-w: 128px;
   grid-auto-columns: var(--q-rail-w);
 }
 .cx-cl {
   --subject: var(--q-accent);
-  position: relative;
   display: grid;
   align-content: start;
   gap: 2px;
   min-width: 0;
   min-height: 148px;
-  padding: 12px;
+  padding: var(--q-s-3);
   overflow: hidden;
   border: 0;
-  border-radius: 20px;
-  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 70%, #0b1020));
-  color: #fff;
+  border-radius: var(--q-r-card);
+  background: var(--q-surface);
+  color: var(--q-label);
   font: inherit;
   text-align: left;
   scroll-snap-align: start;
   cursor: pointer;
-  box-shadow: 0 12px 24px -16px var(--subject);
 }
 .cx-cl-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: var(--q-s-3);
 }
 .cx-cl-top small {
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.85);
-  font: 600 12px/16px var(--q-font);
+  color: var(--q-label-2);
+  font: var(--q-t-caption);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -2130,8 +2015,8 @@ img.q-tile.tr-app {
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.22);
+  border-radius: var(--q-r-cell);
+  background: var(--subject);
   color: #fff;
 }
 .cx-cl-icon svg {
@@ -2139,12 +2024,11 @@ img.q-tile.tr-app {
   height: 20px;
 }
 .cx-cl-time {
-  font: 700 22px/26px var(--q-font-rounded);
+  font: 600 22px/26px var(--q-font-rounded);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 .cx-cl-name {
-  font: 600 16px/21px var(--q-font);
+  font: 500 16px/21px var(--q-font);
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
@@ -2158,29 +2042,29 @@ img.q-tile.tr-app {
 }
 .cx-cl-sub {
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.8);
-  font: 500 12px/16px var(--q-font);
+  color: var(--q-label-2);
+  font: var(--q-t-caption);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .cx-cl.is-break {
   --subject: var(--q-gray, #8e8e93);
   align-content: end;
-  gap: 4px;
+  gap: var(--q-s-1);
   width: 92px;
   background: var(--q-fill-4);
   color: var(--q-label-2);
-  box-shadow: none;
   cursor: default;
 }
 .cx-cl.is-break .cx-cl-icon {
   margin-bottom: auto;
-  background: var(--q-fill-3, rgba(120, 120, 128, 0.16));
+  background: var(--q-fill-3);
   color: var(--q-label-2);
 }
 .cx-cl.is-break .cx-cl-time {
   font-size: 17px;
   line-height: 21px;
+  font-weight: 500;
 }
 .cx-cl.is-break .cx-cl-name {
   font-size: 13px;
@@ -2190,58 +2074,55 @@ img.q-tile.tr-app {
   justify-self: start;
 }
 
-/* 倒數: each card the event's colour. */
+/* 倒數: a white cell each, the days to go large. */
 .cx-cd {
   --subject: var(--q-accent);
-  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 68%, #0b1020));
-  color: #fff;
-  box-shadow: 0 12px 24px -16px var(--subject);
-}
-.cx-cd .cx-cd-top small,
-.cx-cd .cx-cd-big small {
-  color: rgba(255, 255, 255, 0.85);
+  border-radius: var(--q-r-card);
+  background: var(--q-surface);
+  color: var(--q-label);
 }
 .cx-cd .cx-cd-big em,
 .cx-cd.is-over .cx-cd-big em {
-  color: #fff;
+  color: var(--q-accent);
 }
 .cx-cd.is-over {
-  opacity: 0.55;
+  opacity: 0.6;
+}
+.cx-cd.is-over .cx-cd-big em {
+  color: var(--q-label-2);
 }
 
-/* 課表: each class a block in its subject's colour, white type. */
+/* 課表: each class a flat block in its subject's colour, white type. */
 .cx-tl-cell {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--subject) 82%, #fff), var(--subject));
+  background: var(--subject);
   color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 .cx-tl-cell.is-now {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--subject) 82%, #fff), var(--subject));
-  box-shadow: 0 0 0 2.5px var(--q-surface), 0 0 0 5px var(--subject), 0 8px 16px -8px var(--subject);
-  transform: scale(1.04);
+  background: var(--subject);
+  box-shadow: 0 0 0 2px var(--q-surface), 0 0 0 4px var(--subject);
   z-index: 1;
 }
 .cx-tl-cell.is-past {
-  opacity: 0.35;
+  opacity: 0.4;
 }
 .cx-tl-cell.is-swap {
   box-shadow: inset 0 0 0 2px var(--q-orange);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .cx-tl-cell:not(.is-empty) {
-    background: linear-gradient(160deg, var(--subject), color-mix(in srgb, var(--subject) 70%, #05070d));
+    background: color-mix(in srgb, var(--subject) 78%, #05070d);
   }
 }
 :root[data-theme='dark'] .cx-tl-cell:not(.is-empty) {
-  background: linear-gradient(160deg, var(--subject), color-mix(in srgb, var(--subject) 70%, #05070d));
+  background: color-mix(in srgb, var(--subject) 78%, #05070d);
 }
 
-/* 工具: the parts as figure cards, two to a row; the AI ways as two cards. */
+/* 工具: the parts as white cells, two to a row; the AI ways as two cells. */
 .cx-parts,
 .cx-ways {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--q-s-3);
 }
 .cx-part,
 .cx-way-card {
@@ -2250,9 +2131,9 @@ img.q-tile.tr-app {
   align-content: start;
   gap: 2px;
   min-width: 0;
-  padding: 14px;
+  padding: var(--q-s-4);
   border: 0;
-  border-radius: 20px;
+  border-radius: var(--q-r-card);
   background: var(--q-surface);
   color: var(--q-label);
   font: inherit;
@@ -2260,50 +2141,48 @@ img.q-tile.tr-app {
   cursor: pointer;
 }
 .cx-part .cx-cl-icon {
-  margin-bottom: 10px;
-  background: var(--subject);
+  display: none;
+}
+.cx-way-card .cx-cl-icon {
+  margin-bottom: var(--q-s-3);
 }
 .cx-part-n {
-  font: 700 30px/34px var(--q-font-rounded);
+  font: var(--q-t-title2);
+  font-family: var(--q-font-rounded);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .cx-part-title {
   overflow: hidden;
   color: var(--q-label-2);
-  font: 600 13px/18px var(--q-font);
+  font: var(--q-t-footnote);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .cx-way-card {
   min-height: 112px;
   align-content: space-between;
-  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 68%, #0b1020));
-  color: #fff;
-  box-shadow: 0 12px 24px -16px var(--subject);
 }
 .cx-way-card strong {
-  font: 700 16px/21px var(--q-font);
+  font: 500 16px/21px var(--q-font);
 }
 
-/* A class's sheet: its figures on a band of its colour, the days it meets filled with it. */
+/* A class's sheet: its figures plain, the days it meets filled with its colour. */
 .cx-figs {
   --subject: var(--q-accent);
   gap: 0;
   padding: 4px;
-  border-radius: 20px;
-  background: radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--subject) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, var(--subject), color-mix(in srgb, var(--subject) 68%, #0b1020));
-  box-shadow: 0 12px 24px -16px var(--subject);
+  border-radius: var(--q-r-card);
+  background: var(--q-surface);
 }
 .cx-figs .q-stat {
   background: none;
-  color: #fff;
 }
 .cx-figs .q-stat small {
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--q-label-2);
 }
 .cx-figs .q-stat strong {
-  color: #fff;
-  font: 700 28px/32px var(--q-font-rounded);
+  font: 600 24px/28px var(--q-font-rounded);
   font-variant-numeric: tabular-nums;
 }
 .cx-occ .occ-day:not(.is-off) {
@@ -2315,14 +2194,6 @@ img.q-tile.tr-app {
 .cx-occ .occ-day:not(.is-off) .occ-day-name,
 .cx-occ .occ-day:not(.is-off) .occ-day-time {
   opacity: 0.85;
-}
-/* No time running (a day over): the ring is only the glyph's disc. */
-.cx-hero[data-mode='off'] .cx-ring > svg {
-  display: none;
-}
-
-.cx-hero[hidden] {
-  display: none;
 }
 
 /* The class sheet's icon, tapped to pick another. */

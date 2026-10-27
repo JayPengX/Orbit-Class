@@ -22,7 +22,7 @@ const $ = id => document.getElementById(id);
 function heroDom() {
   if (dom) return dom;
   dom = {};
-  for (const id of ['cx-hero', 'cx-kicker', 'cx-span', 'now-name', 'cx-meta', 'now-teacher', 'now-place', 'now-class-label', 'timer-group', 'timer-val', 'timer-label', 'cx-ring-fill', 'cx-art', 'cx-foot', 'next-label', 'next-name', 'next-time', 'next-sub', 'next-note', 'cx-icon', 'cx-glyph', 'next-icon']) dom[id] = $(id);
+  for (const id of ['cx-hero', 'cx-kicker', 'cx-span', 'now-name', 'cx-meta', 'now-teacher', 'now-place', 'now-class-label', 'timer-group', 'timer-val', 'timer-label', 'cx-bar-fill', 'cx-foot', 'next-label', 'next-name', 'next-time', 'next-sub', 'next-note', 'next-icon']) dom[id] = $(id);
   return dom;
 }
 // Last-drawn values: the card is asked every second, but only the time left
@@ -33,26 +33,16 @@ function put(key, value, write) {
   last[key] = value;
   write(value);
 }
-const GLYPH = { class: 'clock', break: 'bell', before: 'clock', off: 'moon' };
 
 export function renderHero(hero, week = '') {
   const d = heroDom();
   if (!d['cx-hero']) return;
   put('mode', hero.mode, v => (d['cx-hero'].dataset.mode = v));
-  put('glyph', hero.mode, v => (d['cx-glyph'].innerHTML = glyph(GLYPH[v] || 'clock')));
   put('kicker', hero.kicker, v => (d['cx-kicker'].textContent = v));
   put('span', hero.span, v => (d['cx-span'].textContent = v));
   put('title', hero.title, v => {
     d['now-name'].textContent = v;
     d['now-name'].className = `cx-title${nameSize(v)}`;
-  });
-  // The card is the subject's colour, its glyph large behind the words.
-  put('icon', hero.subject ? `s:${hero.subject}` : `m:${hero.mode}`, () => {
-    d['cx-icon'].innerHTML = hero.subject ? subjectIcon(hero.subject) : hero.mode === 'break' ? breakIcon() : glyph('moon');
-    d['cx-art'].innerHTML = d['cx-icon'].innerHTML;
-    d['cx-hero'].classList.toggle('has-subject', Boolean(hero.subject));
-    if (hero.subject) d['cx-hero'].style.setProperty('--subject', subjectLook(hero.subject).color);
-    else d['cx-hero'].style.removeProperty('--subject');
   });
   put('teacher', hero.teacher, v => (d['now-teacher'].textContent = v));
   put('place', hero.place, v => (d['now-place'].textContent = v));
@@ -63,8 +53,11 @@ export function renderHero(hero, week = '') {
     put('timerLabel', hero.timer.label, v => (d['timer-label'].textContent = v));
     put('timerVal', hero.timer.value, v => (d['timer-val'].textContent = v));
   }
-  // The ring round the glyph: the class (or the wait) gone by.
-  put('progress', hero.progress == null ? '' : hero.progress.toFixed(1), v => (d['cx-ring-fill'].style.strokeDasharray = v === '' ? '0 100' : `${v} 100`));
+  // The bar under the time: the class (or the wait) gone by.
+  put('progress', hero.progress == null ? '' : hero.progress.toFixed(1), v => {
+    d['cx-bar-fill'].style.width = v === '' ? '0%' : `${v}%`;
+    d['cx-bar-fill'].parentElement.hidden = v === '';
+  });
   const foot = hero.foot;
   put('foot', foot ? (foot.note ? 'note' : 'class') : 'none', v => {
     d['cx-foot'].hidden = v === 'none';
@@ -77,7 +70,7 @@ export function renderHero(hero, week = '') {
       d['next-name'].textContent = v;
       d['next-name'].className = nameSize(v).trim();
     });
-    put('nextIcon', foot.subject || '', v => d['next-icon'].replaceChildren(...(v ? [subjectTile(v, 'sm', true)] : [])));
+    put('nextIcon', foot.subject || '', v => d['next-icon'].replaceChildren(...(v ? [subjectTile(v, 'sm')] : [])));
     put('nextTime', foot.time, v => (d['next-time'].textContent = v));
     put('nextSub', foot.sub, v => (d['next-sub'].textContent = v));
   }
