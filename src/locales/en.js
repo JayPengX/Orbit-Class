@@ -93,6 +93,8 @@ export default {
   'dashboard.breakThen': '{name} · period {n} next',
   'dashboard.firstThen': 'Today · period {n}',
   'dashboard.untilBreakEnd': 'left',
+  'break.cleaning': 'Cleaning time',
+  'break.lunch': 'Lunch break',
   'dashboard.noneLater': 'No more classes today',
   'dashboard.laterToday': 'After that',
   'dashboard.stripLeft': '{n} to go',

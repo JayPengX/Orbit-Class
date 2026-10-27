@@ -6,7 +6,7 @@
 import * as kitUI from '#kit/ui.mjs';
 import { MS_PER_DAY, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { formatCountdownEventDate, getCountdownEvents } from './data.js';
+import { breakLabel, formatCountdownEventDate, getCountdownEvents } from './data.js';
 import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { showOnboardingPrompt } from './onboarding.js';
@@ -123,7 +123,7 @@ export function dayCards(rows, week, { date = null, from = 0 } = {}) {
     if (gap) {
       const cup = el('span', 'cx-cl-icon');
       cup.innerHTML = breakIcon();
-      out.push(el('div', 'cx-cl is-break', [cup, el('b', 'cx-cl-time', gap.start), el('strong', 'cx-cl-name', gap.name)]));
+      out.push(el('div', 'cx-cl is-break', [cup, el('b', 'cx-cl-time', gap.start), el('strong', 'cx-cl-name', breakLabel(gap.name))]));
     }
   });
   while (out[0]?.classList.contains('is-break')) out.shift();

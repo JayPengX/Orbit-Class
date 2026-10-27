@@ -8,6 +8,7 @@
 import { dateKey, pad2, parseTime } from './dates.js';
 import { processSplitName } from './schedule.js';
 import { t } from './strings.js';
+import { breakLabel } from './data.js';
 
 // Class/break countdowns used to always render as minutes:seconds, which
 // reads fine for a ~50-minute class but turns an overnight special time
@@ -21,7 +22,7 @@ function formatCountdown(diffSeconds) {
 }
 
 function decorateSpecialTimeName(name) {
-  return name ? name.trim() : '';
+  return breakLabel(name);
 }
 
 // A named break/special time (e.g. 18:00 -> 05:00 lights-out) recurs every
@@ -367,7 +368,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
       mode: 'break',
       kicker: '',
       span: `${brk.start}–${brk.end}`,
-      title: brk.name,
+      title: breakLabel(brk.name),
       ...none,
       timer: { value: vm.timerValue, label: t('dashboard.untilBreakEnd') },
       progress: vm.progressPercent,

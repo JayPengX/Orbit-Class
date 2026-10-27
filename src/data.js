@@ -78,6 +78,13 @@ const DEFAULT_BREAK_TIMES = [
     end: '13:00'
   }
 ];
+// The two breaks every timetable starts with are saved under their Chinese
+// names (they're how a saved break is matched); shown in the app's language.
+const DEFAULT_BREAK_LABELS = { 打掃時間: 'break.cleaning', 中午時間: 'break.lunch' };
+export function breakLabel(name) {
+  const key = DEFAULT_BREAK_LABELS[String(name || '').trim()];
+  return key ? t(key) : String(name || '').trim();
+}
 const DEFAULT_COUNTDOWN_EVENT = {
   name: '116 學測',
   startDate: '2027-01-22',
