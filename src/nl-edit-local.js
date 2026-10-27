@@ -13,7 +13,7 @@
 // diff every edit goes through, but the point is to never guess at all.
 //
 // Returns the same sparse-patch shape the AI returns (see
-// NL_EDIT_RESPONSE_SCHEMA in the shared-proxy repo's worker.js), so the
+// NL_EDIT_RESPONSE_SCHEMA in the Orbit-Core repo's worker.js), so the
 // result goes through the exact same applyNlEditResult/confirm path.
 
 const CHINESE_DIGITS = { 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };

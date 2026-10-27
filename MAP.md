@@ -104,4 +104,4 @@ Advanced) sets any day and time by hand.
 | The saved shape (`data.js`) | `normalize*`, the v2 transfer string, older copies opening |
 | 調課 (`classSwaps`) | `classesOnDate`, its notices, the transfer format |
 | Class times or the notice rule | `classStartingSoon`, `schedulePush`, holidays |
-| `/gemini`, `/nl-edit` | Shared-Proxy's `worker.js`; `normalizeAIOutput` reads old and new shapes |
+| `/gemini`, `/nl-edit` | Orbit-Core's `worker.js`; `normalizeAIOutput` reads old and new shapes |

@@ -1,5 +1,5 @@
 // ---- src/proxy-config.js ----
-// Base URL of the family's one Cloudflare Worker (JayPengX/Shared-Proxy's
+// Base URL of the family's one Cloudflare Worker (JayPengX/Orbit-Core's
 // worker.js) behind the AI photo import (/gemini) and the AI schedule edits
 // (/nl-edit); each caller below appends its own path. It's public (every
 // visitor's browser calls it), so it's here, not a setting: VITE_PROXY_URL

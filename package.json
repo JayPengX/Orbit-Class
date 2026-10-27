@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint .",
-    "pretest": "test -e .kit || ln -s ../Shared-Proxy/kit .kit"
+    "pretest": "test -e .kit || ln -s ../Orbit-Core/kit .kit"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

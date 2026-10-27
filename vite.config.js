@@ -74,7 +74,7 @@ function preloadKit() {
     name: 'preload-kit',
     apply: 'build',
     async transformIndexHtml(html) {
-      const kitDir = ['.kit/', '../Shared-Proxy/kit/'].find(d => existsSync(`${d}preload.mjs`));
+      const kitDir = ['.kit/', '../Orbit-Core/kit/'].find(d => existsSync(`${d}preload.mjs`));
       if (!kitDir) return html;
       const { kitPreloads } = await import(pathToFileURL(`${kitDir}preload.mjs`).href);
       const links = await kitPreloads(['src/main.js'], kitDir);
@@ -105,8 +105,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       // The shared kit (#kit/orbit.mjs) isn't bundled: the page loads it
-      // from Shared-Proxy's Pages through its import map (index.html's
-      // kit:head, Shared-Proxy/kit/loader.html), like every Orbit app.
+      // from Orbit-Core's Pages through its import map (index.html's
+      // kit:head, Orbit-Core/kit/loader.html), like every Orbit app.
       external: id => id.startsWith('#kit/')
     }
   },

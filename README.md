@@ -38,7 +38,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of p
 | --- | --- |
 | App | Plain JavaScript (ES modules), HTML and CSS, bundled by Vite; no framework |
 | Platform | Installable web app with a service worker; opens offline on the kept timetable |
-| Shared | Look, Orbit Pass (which keeps the timetable) and notices from the kit in [Shared-Proxy](https://github.com/JayPengX/Shared-Proxy) |
+| Shared | Look, Orbit Pass (which keeps the timetable) and notices from the kit in [Orbit-Core](https://github.com/JayPengX/Orbit-Core) |
 | AI | Gemini through the Orbit proxy (`/gemini`, `/nl-edit`); the prompts and schemas live in the Worker, so the endpoint can't be used as a general AI |
 | Tests | Vitest with jsdom, ESLint |
 
@@ -71,10 +71,10 @@ MAP.md                  how it works
 
 ## Getting started
 
-The app loads the shared kit from a sibling folder, so clone this repo next to [Shared-Proxy](https://github.com/JayPengX/Shared-Proxy):
+The app loads the shared kit from a sibling folder, so clone this repo next to [Orbit-Core](https://github.com/JayPengX/Orbit-Core):
 
 ```bash
-git clone https://github.com/JayPengX/Shared-Proxy.git
+git clone https://github.com/JayPengX/Orbit-Core.git
 git clone https://github.com/JayPengX/Orbit-Class.git
 cd Orbit-Class
 npm install
@@ -83,7 +83,7 @@ npm install
 | Command | What |
 | --- | --- |
 | `npm run dev` | Serve it locally with Vite |
-| `npm test` | Vitest (links `../Shared-Proxy/kit` as `.kit` first) |
+| `npm test` | Vitest (links `../Orbit-Core/kit` as `.kit` first) |
 | `npm run lint` | ESLint |
 | `npm run build` | Build `dist/` |
 | `npm run preview` | Serve the built `dist/` |
@@ -91,7 +91,7 @@ npm install
 See it on a phone-sized screen, signed in with a made-up wallet (after `npm run build`; needs Playwright):
 
 ```bash
-node ../Shared-Proxy/tools/preview.mjs orbit --live --width 375
+node ../Orbit-Core/tools/preview.mjs orbit --live --width 375
 ```
 
 The time simulation panel (in the transfer sheet, under Advanced) sets any day and time by hand.
@@ -113,6 +113,6 @@ Push to `main`. GitHub Actions runs the tests, builds with Vite and publishes `d
 | [Orbit Beats](https://github.com/JayPengX/Orbit-Beats) | Endless music and your own beats |
 | [Orbit Law](https://github.com/JayPengX/Orbit-Law) | Laws, rulings and bills, linked |
 | [Orbit Money](https://github.com/JayPengX/Orbit-Money) | Your own books |
-| [Shared-Proxy](https://github.com/JayPengX/Shared-Proxy) | The kit, the Orbit Pass and the Workers behind them all |
+| [Orbit-Core](https://github.com/JayPengX/Orbit-Core) | The kit, the Orbit Pass and the Workers behind them all |
 
 How it was all built, in pictures and numbers: [jaypengx.com/showcase](https://jaypengx.com/showcase/).

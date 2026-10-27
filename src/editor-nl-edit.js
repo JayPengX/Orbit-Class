@@ -5,7 +5,7 @@
 // confirm - never silently. Same server-owns-the-prompt discipline as
 // src/gemini-ocr.js's AI photo import: this module only ever sends
 // {model, text, context} to the proxy; the Worker's /nl-edit path (see
-// the shared-proxy repo's worker.js) owns the actual prompt and
+// the Orbit-Core repo's worker.js) owns the actual prompt and
 // response_schema, so the deployed proxy URL can never be used to run an
 // arbitrary free-form prompt.
 //
@@ -51,7 +51,7 @@ import { dateKey } from './dates.js';
 import { ICON_CHOICES } from './subjects.js';
 import { normalizeClassSwaps } from './data.js';
 
-// Must match GEMINI_ALLOWED_MODELS in the shared-proxy repo's worker.js -
+// Must match GEMINI_ALLOWED_MODELS in the Orbit-Core repo's worker.js -
 // the Worker's /nl-edit path reuses the exact same vetted model list as
 // /gemini. Unlike photo import, the stronger model goes first here: an
 // instruction is a few words, so the request is small either way, and the

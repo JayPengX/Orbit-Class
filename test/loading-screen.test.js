@@ -14,7 +14,7 @@ describe("the family's loading screen", () => {
     expect(body).toMatch(/^<body[^>]*>\s*<div id="loading" data-title="Orbit Class"><\/div>\s*<!-- kit:boot/);
     expect(body).toContain("ORBIT_KIT.url('boot.js')");
     // The family's service worker, with Class's own cache.
-    expect(read('public/sw.js')).toContain("importScripts('../Shared-Proxy/kit/sw.js')");
+    expect(read('public/sw.js')).toContain("importScripts('../Orbit-Core/kit/sw.js')");
   });
   it('the app says it started and lifts the screen itself (never left up, never "didn\'t start")', () => {
     const js = read('src/bootstrap.js');
