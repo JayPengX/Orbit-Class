@@ -11,7 +11,7 @@ import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { holidayOn } from './holidays.js';
-import { breakIcon, eventLook, subjectIcon, subjectLook, subjectTile } from './subjects.js';
+import { breakIcon, eventLook, shortNames, subjectIcon, subjectLook, subjectTile } from './subjects.js';
 import { openModal } from './view-sheet.js';
 import { el, button, glyph, nameSize, section } from './ui.js';
 import { t } from './strings.js';
@@ -85,15 +85,17 @@ export function renderHero(hero, week = '') {
 }
 
 // The day at a glance, under the card's words: a chip per class in its
-// colour (the first character of its name), the ones done faded, the one now
+// colour (its two-character short name), the ones done faded, the one now
 // ringed; then how many are left, the week (單 / 雙) and when school's out.
 function renderStrip(strip, week) {
   const box = $('cx-strip');
   if (!box) return;
   box.hidden = !strip;
   if (!strip) return box.replaceChildren();
+  // Each by a two-character short name (國語文 → 國語, 空間資訊科技 → 空間), never two alike.
+  const short = shortNames(strip.chips.map(c => c.name), 2);
   const chips = strip.chips.map(c => {
-    const chip = el('i', `cx-chip is-${c.state}`, [...c.name][0] || '·');
+    const chip = el('i', `cx-chip is-${c.state}`, short.get(c.name) || '·');
     chip.style.setProperty('--subject', subjectLook(c.name).color);
     chip.title = `${c.start} ${c.name}`;
     return chip;

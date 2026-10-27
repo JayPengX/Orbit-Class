@@ -9,14 +9,15 @@ Live: https://orbit.jaypengx.com/class/
 
 - **Tabs, one question each:**
   - **今天:** one card answers "what's left today": the class now (teacher,
-    room, time left), the next, and the day as a strip of coloured chips
+    room, time left), the next, and the day as a strip of coloured chips by
+    two-character short name
     (done faded, now ringed) with how many are left and when school's out.
     Below it the family's strip of days (today and the school days of the
     next two weeks, 📅 for any day, a swipe for the next) over that day's
     classes (today's: the ones after the card), and the countdowns. After
     the last class it shows the next school day.
   - **課表:** the week as a grid, this one or the next (單週 / 雙週), a day's head opening 今天 on that day; and 調課.
-  - **工具:** the week as a grid with 編輯課表; AI 課表編輯 and 拍照匯入;
+  - **工具:** the week as a grid (課表's short names) with 編輯課表; AI 課表編輯 and 拍照匯入;
     分享金鑰.
 - **Every second** the whole state is recomputed from the clock: weekday,
   odd/even week, current period or break, next period. Only changed

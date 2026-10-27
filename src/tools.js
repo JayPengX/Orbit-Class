@@ -5,10 +5,10 @@
 // share key and the Pass). Drawn when the tab opens, and again when the timetable
 // changes while it's on screen.
 import { getWeekType, processSplitName } from './schedule.js';
-import { subjectLook } from './subjects.js';
+import { shortNames, subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getCountdownEvents } from './data.js';
-import { el, button, glyph, row, section, tile } from './ui.js';
+import { el, button, fitText, glyph, row, section, tile } from './ui.js';
 import { t } from './strings.js';
 
 function openPart(id) {
@@ -18,8 +18,8 @@ function openPart(id) {
 // Opened, not typed into: no keyboard over the sheet until the field is tapped.
 const openTransfer = focus => window.openTransferSheet?.(focus);
 
-// 我的課表: the week in miniature, a coloured block per class (its first
-// two characters), today's column lit; tapping it opens the editor on the week.
+// 我的課表: the week in miniature, a coloured block per class with the
+// 課表 tab's short name (國語文, 民主; four characters on two lines), today's column lit; tapping it opens the editor on the week.
 function weekCard() {
   const schedule = state.runtimeSchedule || {};
   const days = [1, 2, 3, 4, 5, ...((schedule[6] || []).length ? [6] : [])];
@@ -31,15 +31,21 @@ function weekCard() {
   const grid = el('span', 'cx-mini-grid');
   grid.style.setProperty('--days', String(days.length));
   for (const d of days) grid.append(el('span', `cx-mini-day${d === today ? ' is-today' : ''}`, t(`tools.day${d}`)));
+  const short = shortNames(days.flatMap(d => (schedule[d] || []).map(x => processSplitName(x, week).n || '')));
   for (let p = 0; p < periods; p += 1)
     for (const d of days) {
       const item = (schedule[d] || []).find(x => x.p === p);
       const name = item ? processSplitName(item, week).n || '' : '';
-      const cell = el('span', `cx-mini-cell${name ? '' : ' is-empty'}${d === today ? ' is-today' : ''}`, name ? [...name].slice(0, 2).join('') : '');
+      const chars = [...(short.get(name) || name)];
+      const latin = /^[ -~]+$/.test(name);
+      const pair = chars.length === 4 && !latin;
+      const size = pair ? ' is-pair' : latin && chars.length > 3 ? ' is-latin' : chars.length > 2 ? ' is-long' : '';
+      const cell = el('span', `cx-mini-cell${name ? size : ' is-empty'}${d === today ? ' is-today' : ''}`, pair ? [el('span', '', chars.slice(0, 2).join('')), el('span', '', chars.slice(2).join(''))] : chars.join(''));
       if (name) cell.style.setProperty('--subject', subjectLook(name).color);
       grid.append(cell);
     }
   const card = button('cx-mini q-press', () => openPart('editor-fold-schedule'), [head, grid]);
+  requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-mini-cell.is-latin')));
   card.setAttribute('aria-label', `${t('tools.myTimetable')} · ${t('sync.editTitle')}`);
   return card;
 }

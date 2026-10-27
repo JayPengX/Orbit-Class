@@ -25,4 +25,13 @@ describe('課表 grid: every subject its own short name', () => {
   it('a Latin name whole (its cell wraps and shrinks it)', () => {
     expect(shortNames(['Physics Lab']).get('Physics Lab')).toBe('Physics Lab');
   });
+  it('two characters for 今天\'s chips, still never two alike', () => {
+    const out = shortNames(['國語文', '空間資訊科技', '美術', '英文閱讀', '英文寫作', 'Physics Lab'], 2);
+    expect(out.get('國語文')).toBe('國語');
+    expect(out.get('空間資訊科技')).toBe('空間');
+    expect(out.get('美術')).toBe('美術');
+    expect(out.get('英文閱讀')).toBe('英閱');
+    expect(out.get('英文寫作')).toBe('英寫');
+    expect(out.get('Physics Lab')).toBe('Phy');
+  });
 });

@@ -268,6 +268,9 @@ body.orbit-motion-paused * {
   max-width: 45%;
 }
 @media (max-width: 360px) {
+  .cx-chip {
+    font-size: 12px;
+  }
   .cx-foot-end small {
     display: none;
   }
@@ -314,8 +317,11 @@ body.orbit-motion-paused * {
   background: var(--subject);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
   color: #fff;
-  font: 700 14px/1 var(--q-font);
+  font: 700 13px/1 var(--q-font);
   font-style: normal;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .cx-chip.is-done {
   background: rgba(255, 255, 255, 0.16);
@@ -663,6 +669,25 @@ body.orbit-motion-paused * {
   font: 700 13px/1 var(--q-font);
   white-space: nowrap;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+.cx-mini-cell.is-long {
+  font-size: 12px;
+  letter-spacing: -0.03em;
+}
+.cx-mini-cell.is-pair {
+  align-content: center;
+  font-size: 11.5px;
+  line-height: 13px;
+}
+.cx-mini-cell.is-pair > span {
+  display: block;
+}
+.cx-mini-cell.is-latin {
+  padding: 2px 3px;
+  font-size: 11px;
+  line-height: 12px;
+  text-align: center;
+  white-space: normal;
 }
 .cx-mini-cell.is-today:not(.is-empty) {
   outline: 2px solid color-mix(in srgb, var(--subject) 45%, transparent);
@@ -2177,9 +2202,14 @@ img.q-tile.tr-app {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+/* A break: quieter and narrower, its cup at the top as a class card's icon,
+   the time and name at the foot (a column: margin-bottom: auto on the cup
+   does nothing in a grid). */
 .cx-cl.is-break {
   --subject: var(--q-gray, #8e8e93);
-  align-content: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
   width: 92px;
   background: var(--q-fill-4);

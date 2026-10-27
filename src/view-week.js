@@ -13,7 +13,9 @@ import { dateKey, parseTime } from './dates.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { holidayOn } from './holidays.js';
 import { showOnboardingPrompt } from './onboarding.js';
-import { subjectLook } from './subjects.js';
+import { shortNames, subjectLook } from './subjects.js';
+
+export { shortNames };
 import { nameAt, openSwapSheet, slotText, undoSwap } from './swap.js';
 import { openModal } from './view-sheet.js';
 import { el, button, fitText, row, section, tile } from './ui.js';
@@ -21,31 +23,6 @@ import { t } from './strings.js';
 
 const $ = id => document.getElementById(id);
 const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-
-// The grid's short names, one per subject and never two alike: a name of up
-// to four characters whole (自主學習), a longer one by its first two
-// (民主政治與法律 → 民主), and where two would read the same, its first
-// character and the first one that tells it apart (社會經濟補給站 beside
-// 社會 → 社經; 英文閱讀 and 英文寫作 → 英閱, 英寫). A name in Latin letters
-// whole: its cell wraps it by word and shrinks it to fit (never cut).
-const FULL = 4;
-export function shortNames(names) {
-  const list = [...new Set(names.filter(Boolean))];
-  const chars = name => [...name];
-  const latin = name => /^[ -~]+$/.test(name);
-  const base = name => (latin(name) ? name : chars(name).length <= FULL ? name : chars(name).slice(0, 2).join(''));
-  const first = new Map(list.map(name => [name, base(name)]));
-  const out = new Map(first);
-  for (const name of list) {
-    if (chars(name).length <= FULL || latin(name)) continue;
-    const rivals = list.filter(other => other !== name && first.get(other) === first.get(name));
-    if (!rivals.length) continue;
-    const mine = chars(name);
-    const at = mine.findIndex((ch, i) => i > 0 && rivals.every(other => chars(other)[i] !== ch));
-    if (at > 0) out.set(name, mine[0] + mine[at]);
-  }
-  return out;
-}
 
 const hasSaturday = () => (state.runtimeSchedule?.[6] || []).length > 0;
 // The school week shown first: this one, or from the weekend on the next.

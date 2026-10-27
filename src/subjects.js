@@ -202,3 +202,28 @@ export function stateTile(mode, size = '', glass = false) {
   if (mode === 'free') node.classList.add('soft', 'cx-gray');
   return node;
 }
+
+// A timetable's short names, one per subject and never two alike: a name of
+// up to `full` characters whole (four: 自主學習), a longer one by its first two
+// (民主政治與法律 → 民主), and where two would read the same, its first
+// character and the first one that tells it apart (社會經濟補給站 beside
+// 社會 → 社經; 英文閱讀 and 英文寫作 → 英閱, 英寫). A name in Latin letters
+// whole (its cell wraps it by word and shrinks it to fit, never cut), or
+// with `full` under four its first word's first three letters (Physics → Phy).
+export function shortNames(names, full = 4) {
+  const list = [...new Set(names.filter(Boolean))];
+  const chars = name => [...name];
+  const latin = name => /^[ -~]+$/.test(name);
+  const base = name => (latin(name) ? (full < 4 ? name.trim().split(/\s+/)[0].slice(0, 3) : name) : chars(name).length <= full ? name : chars(name).slice(0, 2).join(''));
+  const first = new Map(list.map(name => [name, base(name)]));
+  const out = new Map(first);
+  for (const name of list) {
+    if (chars(name).length <= full || latin(name)) continue;
+    const rivals = list.filter(other => other !== name && first.get(other) === first.get(name));
+    if (!rivals.length) continue;
+    const mine = chars(name);
+    const at = mine.findIndex((ch, i) => i > 0 && rivals.every(other => chars(other)[i] !== ch));
+    if (at > 0) out.set(name, mine[0] + mine[at]);
+  }
+  return out;
+}
