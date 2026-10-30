@@ -10,6 +10,7 @@ import { state } from './state.js';
 import { getCountdownEvents } from './data.js';
 import { el, button, fitText, glyph, row, section, tile } from './ui.js';
 import { t } from './strings.js';
+import { clock, currentLeg, flightNo, focusLeft, loadFocus } from './flight-store.js';
 
 function openPart(id) {
   window.openEditor?.();
@@ -50,6 +51,22 @@ function weekCard() {
   return card;
 }
 
+// 專注飛行 (src/flight.js, loaded on the tap): a card on the night sky; while a
+// focus runs, its flight and the time left, kept current every second.
+const openFlight = () => import('./flight.js').then(m => m.openFlight());
+function flightLine(now = Date.now()) {
+  const f = loadFocus();
+  if (!f) return t('flight.toolsSub');
+  return f.done ? flightNo(currentLeg(f).no) : `${flightNo(currentLeg(f).no)} · ${t('flight.left', { t: clock(focusLeft(f, now)) })}`;
+}
+function flightCard() {
+  const pic = el('span', 'cx-cl-icon');
+  pic.innerHTML = PLANE_GLYPH;
+  const card = button('cx-fly-card q-press', openFlight, [pic, el('span', 'cx-fly-text', [el('strong', '', t('flight.title')), el('small', 'cx-fly-line', flightLine())])]);
+  return card;
+}
+const PLANE_GLYPH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.8c.9 0 1.5 1 1.5 2.2v5.1l7.7 4.6v2.1l-7.7-2.4v4.7l2.3 1.8v1.7L12 20.6l-3.8 1v-1.7l2.3-1.8v-4.7l-7.7 2.4v-2.1l7.7-4.6V4c0-1.2.6-2.2 1.5-2.2z"/></svg>';
+
 let drawn = '';
 function renderTools() {
   const box = document.getElementById('cx-tools');
@@ -85,12 +102,15 @@ function renderTools() {
   };
   const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
-  box.replaceChildren(weekCard(), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
+  box.replaceChildren(weekCard(), section(t('flight.section'), flightCard()), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).
 setInterval(() => {
-  if (document.body.dataset.tab === 'tools' && !document.hidden) renderTools();
+  if (document.body.dataset.tab !== 'tools' || document.hidden) return;
+  renderTools();
+  const line = document.querySelector('#cx-tools .cx-fly-line');
+  if (line) line.textContent = flightLine();
 }, 1000);
 
 export { renderTools };

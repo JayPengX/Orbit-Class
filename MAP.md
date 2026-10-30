@@ -18,8 +18,18 @@ Live: https://orbit.jaypengx.com/class/
     classes (today's: the ones after the card), and the countdowns. After
     the last class it shows the next school day.
   - **課表:** the week as a grid, this one or the next (單週 / 雙週), a day's head opening 今天 on that day; and 調課.
-  - **工具:** the week as a grid (課表's short names) with 編輯課表; AI 課表編輯 and 拍照匯入;
+  - **工具:** the week as a grid (課表's short names) with 編輯課表; 專注飛行; AI 課表編輯 and 拍照匯入;
     分享金鑰.
+- **專注飛行** (a trial, Jay 2026-10-30): a focus timer that follows a real plane.
+  Pick 25/50/90 minutes or type 10–180; the proxy's `/flight` (Orbit-Core
+  `flight.js`) offers three planes in the air now that land in about that
+  time. The screen is the plane on a satellite map (Esri imagery, Leaflet,
+  loaded only here), gliding every frame from its last fix (kit
+  `flight.mjs`), the camera riding along, clouds drifting under it; the time
+  left large. Landing early hands over to another plane for the rest; the end
+  is a notice through the Worker. Kept on the phone only (`class.flight.v1`).
+  All of it is `src/flight*.js`, the `flight.*` strings and the `.cx-fl`/
+  `.cx-fly` CSS: removing it is deleting those and the 工具 card.
 - **Every second** the whole state is recomputed from the clock: weekday,
   odd/even week, current period or break, next period. Only changed
   fields are written to the page.
@@ -72,6 +82,7 @@ Live: https://orbit.jaypengx.com/class/
 | `gemini-ocr.js` | Photo import |
 | `swap.js`, `tools.js`, `sync.js` | 調課; the 工具 tab; the Pass |
 | `state.js`, `constants.js`, `strings.js` | Shared state; shared constants; text |
+| `flight.js`, `flight-plan.js`, `flight-store.js` | 專注飛行: the sheet and the flying screen; its rules (tested); what's kept |
 | `dates.js` | Date keys and times (`dateKey`, `parseTime`, `timeToMinutes`): the one copy |
 
 Gotchas:

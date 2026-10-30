@@ -2418,3 +2418,629 @@ img.q-tile.tr-app {
   background: var(--subject);
   color: #fff;
 }
+
+/* 工具's 專注飛行 card: a night sky in Class's colour, a plane crossing it. */
+.cx-fly-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 76px;
+  padding: 14px 16px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  background: radial-gradient(90% 140% at 100% 0%, color-mix(in srgb, var(--q-accent) 55%, #fff) 0%, transparent 55%), linear-gradient(150deg, color-mix(in srgb, var(--q-accent) 80%, #0b1020), #0b1020);
+  box-shadow: 0 12px 24px -16px var(--q-accent);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cx-fly-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(1px 1px at 20% 30%, #fff8, transparent), radial-gradient(1px 1px at 70% 70%, #fff6, transparent), radial-gradient(1.5px 1.5px at 85% 25%, #fff9, transparent), radial-gradient(1px 1px at 45% 85%, #fff5, transparent);
+  pointer-events: none;
+}
+.cx-fly-card .cx-cl-icon svg {
+  transform: rotate(45deg);
+  fill: currentColor;
+  stroke: none;
+}
+.cx-fly-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.cx-fly-text strong {
+  font: 700 17px/22px var(--q-font);
+}
+.cx-fly-line {
+  color: rgba(255, 255, 255, 0.78);
+  font: 500 13px/18px var(--q-font);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 專注飛行's sheet: how long, then three flights. */
+.cx-fl-how {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.cx-fl-custom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--q-label-2);
+  font: 400 15px/20px var(--q-font);
+}
+.cx-fl-custom[hidden] {
+  display: none;
+}
+.cx-fl-custom-input {
+  width: 96px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--q-fill-3);
+  color: var(--q-label);
+  font: 600 17px/1 var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+}
+.cx-fl-picks .q-ritem {
+  width: 100%;
+}
+.cx-fl-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 6px;
+}
+.cx-fl-arrow {
+  color: var(--q-label-3);
+}
+.cx-fl-in {
+  color: var(--q-accent);
+  font: 600 15px/1 var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cx-fl-logo {
+  --s: 40px;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--s);
+  height: var(--s);
+  overflow: hidden;
+  border-radius: 28%;
+  background: #fff;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+}
+.cx-fl-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.cx-fl-logo.is-mark {
+  background: var(--q-accent);
+  color: #fff;
+}
+.cx-fl-logo.is-mark svg {
+  width: 58%;
+  height: 58%;
+  transform: rotate(45deg);
+  fill: currentColor;
+}
+.cx-fl-skel {
+  pointer-events: none;
+}
+.cx-fl-skel-logo {
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+.cx-fl-skel-text {
+  display: grid;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+}
+.cx-fl-skel-text .q-skel {
+  width: 75%;
+  height: 14px;
+}
+.cx-fl-skel-text .q-skel + .q-skel {
+  width: 45%;
+  height: 12px;
+}
+
+/* 專注飛行's screen: the map full bleed, clouds drifting past, the plane
+   over them, the time left on a glass card at the foot. */
+body.cx-flying {
+  overflow: hidden;
+}
+.cx-fl {
+  --hdg: 0deg;
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  overflow: hidden;
+  background: #dfe6ee;
+  animation: cx-fl-in 0.5s var(--q-ease, ease) both;
+}
+@keyframes cx-fl-in {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+.cx-fl-map {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: inherit;
+}
+.cx-fl-tiles {
+  filter: saturate(1.1) contrast(1.05);
+}
+.cx-fl-map .leaflet-control-attribution {
+  margin: calc(max(12px, env(safe-area-inset-top)) + 52px) 8px 0 0;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  color: rgba(0, 0, 0, 0.55);
+  font: 9px/16px var(--q-font);
+}
+.cx-fl-map .leaflet-control-attribution a {
+  color: inherit;
+}
+.cx-fl-ahead {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-dasharray: 2 8;
+  stroke-linecap: round;
+  opacity: 0.85;
+  animation: cx-fl-dash 1.2s linear infinite;
+}
+@keyframes cx-fl-dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+.cx-fl-flown {
+  fill: none;
+  stroke: var(--q-accent);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+.cx-fl-glow {
+  fill: none;
+  stroke: color-mix(in srgb, var(--q-accent) 55%, #fff);
+  stroke-width: 10;
+  stroke-linecap: round;
+  opacity: 0.35;
+  filter: blur(3px);
+}
+.cx-fl-port i {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  border: 2.5px solid #fff;
+  border-radius: 50%;
+  background: var(--q-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.cx-fl-port.is-from i {
+  background: var(--q-label-3);
+}
+.cx-fl-port.is-to i::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border: 2px solid var(--q-accent);
+  border-radius: 50%;
+  animation: cx-fl-pulse 2s ease-out infinite;
+}
+@keyframes cx-fl-pulse {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.cx-fl-port b {
+  position: absolute;
+  left: 12px;
+  top: -10px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  font: 700 12px/18px var(--q-font-rounded);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Clouds: soft white drifts sliding the way the plane flies (rotated by its
+   heading), so it feels like it's moving even when the map barely is. */
+.cx-fl-sky {
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  transform: rotate(var(--hdg));
+  transition: transform 1.5s linear;
+}
+.cx-fl-sky i {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(closest-side, rgba(255, 255, 255, 0.55), transparent), radial-gradient(closest-side, rgba(255, 255, 255, 0.4), transparent), radial-gradient(closest-side, rgba(255, 255, 255, 0.45), transparent);
+  background-repeat: repeat;
+  background-size: 340px 520px, 460px 700px, 260px 380px;
+  background-position: 30px 0, 180px 120px, 90px 260px;
+  opacity: 0.55;
+  animation: cx-fl-drift 26s linear infinite;
+  filter: blur(6px);
+}
+.cx-fl-sky i:nth-child(2) {
+  opacity: 0.35;
+  background-size: 520px 760px, 300px 460px, 420px 600px;
+  animation-duration: 40s;
+}
+.cx-fl-sky i:nth-child(3) {
+  opacity: 0.25;
+  background-size: 700px 900px, 560px 820px, 380px 540px;
+  animation-duration: 64s;
+}
+@keyframes cx-fl-drift {
+  from {
+    transform: translateY(-900px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.cx-fl.is-landed .cx-fl-sky {
+  opacity: 0;
+  transition: opacity 3s;
+}
+
+/* The plane: banked by its heading, a shadow on the ground below (further
+   at altitude), a slow float. */
+.cx-fl-plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+.cx-fl-plane[hidden] {
+  display: none;
+}
+.cx-fl-plane span {
+  position: absolute;
+  left: -24px;
+  top: -24px;
+  width: 48px;
+  height: 48px;
+}
+.cx-fl-plane svg {
+  width: 100%;
+  height: 100%;
+}
+.cx-fl-body {
+  color: var(--q-accent);
+  transform: rotate(var(--hdg));
+  filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+}
+.cx-fl-body svg {
+  fill: currentColor;
+  animation: cx-fl-float 4s ease-in-out infinite;
+}
+@keyframes cx-fl-float {
+  50% {
+    transform: scale(1.05) translateY(-1px);
+  }
+}
+.cx-fl-shadow {
+  color: rgba(0, 0, 0, 0.28);
+  transform: translate(14px, 22px) rotate(var(--hdg)) scale(0.82);
+  filter: blur(2.5px);
+}
+.cx-fl-shadow svg {
+  fill: currentColor;
+}
+.cx-fl-plane.is-down .cx-fl-shadow {
+  transform: translate(1px, 2px) rotate(var(--hdg)) scale(0.98);
+  transition: transform 3s;
+}
+.cx-fl-plane.is-stale .cx-fl-body {
+  opacity: 0.8;
+}
+
+.cx-fl-top {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: 16px;
+  left: 16px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.cx-fl-top > * {
+  pointer-events: auto;
+}
+.cx-fl-recenter[hidden] {
+  display: none;
+}
+
+.cx-fl-card {
+  position: absolute;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 2;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--q-glass-strong);
+  color: var(--q-label);
+  animation: cx-fl-up 0.6s 0.15s var(--q-spring-smooth, ease) both;
+}
+@keyframes cx-fl-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+.cx-fl-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.cx-fl-id {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.cx-fl-id strong {
+  font: 600 16px/21px var(--q-font);
+}
+.cx-fl-id small {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: 400 13px/18px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-fl-stale[hidden] {
+  display: none;
+}
+.cx-fl-clock-label {
+  margin-bottom: -12px;
+  color: var(--q-label-2);
+  font: 600 13px/18px var(--q-font);
+  text-align: center;
+}
+.cx-fl-clock {
+  font: 700 64px/1 var(--q-font-rounded);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.cx-fl-route-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.cx-fl-end {
+  display: grid;
+  min-width: 0;
+  max-width: 96px;
+}
+.cx-fl-end.is-to {
+  text-align: right;
+}
+.cx-fl-end strong {
+  font: 700 17px/22px var(--q-font-rounded);
+  letter-spacing: 0.04em;
+}
+.cx-fl-end small {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: 400 12px/16px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-fl-bar {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--q-fill-3);
+}
+.cx-fl-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--q-accent);
+  transition: width 1s linear;
+}
+.cx-fl-bar b {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  color: var(--q-accent);
+  transition: left 1s linear;
+}
+.cx-fl-bar b svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  transform: rotate(90deg);
+}
+.cx-fl-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--q-sep);
+}
+.cx-fl-stat {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+.cx-fl-stat > small {
+  color: var(--q-label-2);
+  font: 400 12px/16px var(--q-font);
+}
+.cx-fl-stat span {
+  white-space: nowrap;
+}
+.cx-fl-stat b {
+  font: 600 17px/22px var(--q-font-rounded);
+  font-variant-numeric: tabular-nums;
+}
+.cx-fl-stat span small {
+  color: var(--q-label-2);
+  font: 400 12px/1 var(--q-font);
+}
+
+/* The end: the trip as one line, where it landed, how long you focused. */
+.cx-fl-done {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding-top: 4px;
+  text-align: center;
+}
+.cx-fl-done h2 {
+  margin: 8px 0 0;
+  font: 700 28px/34px var(--q-font);
+}
+.cx-fl-done-sub,
+.cx-fl-still {
+  margin: 0;
+  color: var(--q-label-2);
+  font: 400 15px/20px var(--q-font);
+}
+.cx-fl-trip {
+  display: grid;
+  grid-template-columns: auto 120px auto;
+  align-items: center;
+  gap: 10px;
+  font: 700 15px/1 var(--q-font-rounded);
+  letter-spacing: 0.04em;
+}
+.cx-fl-trip-line {
+  position: relative;
+  height: 2px;
+  background: var(--q-accent);
+  border-radius: 1px;
+}
+.cx-fl-trip-line i {
+  position: absolute;
+  top: -9px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  color: var(--q-accent);
+  animation: cx-fl-arrive 1.2s var(--q-spring-smooth, ease) both;
+}
+.cx-fl-trip-line i svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  transform: rotate(90deg);
+}
+@keyframes cx-fl-arrive {
+  from {
+    right: 100%;
+  }
+}
+.cx-fl-actions {
+  display: grid;
+  gap: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .cx-fl {
+    background: #0b0d12;
+  }
+  :root:not([data-theme='light']) .cx-fl-sky i {
+    opacity: 0.18;
+  }
+  :root:not([data-theme='light']) .cx-fl-tiles {
+    filter: brightness(0.55) saturate(0.8) hue-rotate(-10deg);
+  }
+  :root:not([data-theme='light']) .cx-fl-port b {
+    background: rgba(28, 28, 32, 0.9);
+    color: #fff;
+  }
+  :root:not([data-theme='light']) .cx-fl-map .leaflet-control-attribution {
+    background: rgba(0, 0, 0, 0.45);
+    color: rgba(255, 255, 255, 0.55);
+  }
+  :root:not([data-theme='light']) .cx-fl-body {
+    color: #fff;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--q-accent) 80%, transparent)) drop-shadow(0 0 2px var(--q-accent));
+  }
+  :root:not([data-theme='light']) .cx-fl-shadow {
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme='dark'] .cx-fl {
+  background: #0b0d12;
+}
+:root[data-theme='dark'] .cx-fl-sky i {
+  opacity: 0.18;
+}
+:root[data-theme='dark'] .cx-fl-tiles {
+  filter: brightness(0.55) saturate(0.8) hue-rotate(-10deg);
+}
+:root[data-theme='dark'] .cx-fl-port b {
+  background: rgba(28, 28, 32, 0.9);
+  color: #fff;
+}
+:root[data-theme='dark'] .cx-fl-map .leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.55);
+}
+:root[data-theme='dark'] .cx-fl-body {
+  color: #fff;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--q-accent) 80%, transparent)) drop-shadow(0 0 2px var(--q-accent));
+}
+:root[data-theme='dark'] .cx-fl-shadow {
+  color: rgba(0, 0, 0, 0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-fl-sky i,
+  .cx-fl-body svg,
+  .cx-fl-ahead,
+  .cx-fl-port.is-to i::after {
+    animation: none;
+  }
+}

@@ -492,23 +492,34 @@ function notifyClassSoon({ tag, name, meta, lead }) {
 
 // The week's classes, each as the break before it starts, for notices while the app
 // is closed (the Worker sends them: see the kit's schedulePush).
+// (The Worker keeps one list an app: 專注飛行's landing, src/flight.js, rides along with the classes.)
+let bookedClasses = null;
+let focusNotice = null;
 function scheduleClassNotices(classes) {
-  schedulePush(
-    q,
-    classes.map(c => ({
+  bookedClasses = classes;
+  schedulePush(q, [
+    ...classes.map(c => ({
       at: c.at,
       title: soonTitle(c.name),
       body: soonBody(c.meta, c.lead),
       tag: c.tag,
       kind: 'class'
-    }))
-  );
+    })),
+    ...(focusNotice ? [focusNotice] : [])
+  ]);
+}
+// { at, title, body, tag } or null; the classes as last booked go with it
+// (none booked yet: the dashboard's first booking takes it).
+function setFocusNotice(item) {
+  focusNotice = item;
+  if (bookedClasses) scheduleClassNotices(bookedClasses);
 }
 
 export {
   q as orbitSession,
   notifyClassSoon,
   scheduleClassNotices,
+  setFocusNotice,
   clearSyncInputFields,
   isSyncConfigured,
   pullSyncSnapshot,

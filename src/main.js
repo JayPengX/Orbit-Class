@@ -20,6 +20,15 @@ import './shell.js';
 // page has, so starting the app doesn't wait to compile them.
 const loadAI = () => setTimeout(() => (import('./gemini-ocr.js'), import('./editor-nl-edit.js')), 0);
 // (Not under the tests: each test imports the parts it needs.)
+// 專注飛行 running when the app opened (closed mid-flight): straight back to it.
+import { STORE_KEY } from './flight-store.js';
+if (import.meta.env?.MODE !== 'test' && (() => {
+  try {
+    return localStorage.getItem(STORE_KEY);
+  } catch {
+    return null;
+  }
+})()) import('./flight.js').then(m => m.resumeFlight());
 if (import.meta.env?.MODE !== 'test') {
   if (document.readyState === 'complete') loadAI();
   else addEventListener('load', loadAI, { once: true });
