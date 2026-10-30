@@ -107,6 +107,7 @@ function prunePastCountdowns(now = new Date()) {
 }
 
 let heroTarget = null;
+let heroDay = null; // today's classes and date, for the strip's chips
 function update() {
   if (!window.MANUALLY_TEST) prunePastCountdowns();
   const now = new Date();
@@ -150,6 +151,7 @@ function update() {
   // foot (today's next, or the next school day's first); none, not a button.
   const today = window.MANUALLY_TEST ? null : new Date();
   heroTarget = viewModel.curIdx >= 0 ? { c: todaySchedule[viewModel.curIdx], date: today } : viewModel.nxtIdx >= 0 && viewModel.isSchoolDay && !viewModel.isDayFinished ? { c: todaySchedule[viewModel.nxtIdx], date: today } : nextDay?.first && hero.foot?.name ? { c: nextDay.first, date: window.MANUALLY_TEST ? null : nextDay.date } : null;
+  heroDay = { rows: todaySchedule || [], date: today };
   setHeroTappable(Boolean(heroTarget));
   renderHero(hero, week);
 
@@ -250,9 +252,15 @@ window.openTestPanel = openTestPanel; // testsim-runtime.js's patchPanelOpeners(
 // callers go through window.openTestPanel() rather than the bare function) - it
 // needs the real function bound here first, or it wraps undefined.
 window.toggleTestPanel = toggleTestPanel;
-// The hero card opens the class it shows (as a row does).
+// The hero card opens the class it shows (as a row does); a chip on its
+// strip, that chip's own class.
 const hero = document.getElementById('cx-hero');
-const openHero = () => heroTarget && openModal(heroTarget.c, { date: heroTarget.date });
+const openHero = event => {
+  const chip = event?.target?.closest?.('.cx-chip');
+  const c = chip && heroDay?.rows[Number(chip.dataset.i)];
+  if (c) return openModal(c, { date: heroDay.date });
+  if (heroTarget) openModal(heroTarget.c, { date: heroTarget.date });
+};
 function setHeroTappable(on) {
   if (!hero || hero.hasAttribute('role') === on) return;
   if (on) hero.setAttribute('role', 'button');

@@ -10,8 +10,9 @@ Live: https://orbit.jaypengx.com/class/
 - **Tabs, one question each:**
   - **今天:** one card answers "what's left today": the class now (teacher,
     room, time left), the next, and the day as a strip of coloured chips by
-    two-character short name
-    (done faded, now ringed) with how many are left and when school's out.
+    two-character short name (an English one by its words' capitals,
+    Advanced English → AE; done faded, now ringed; a tap opens that chip's
+    own class, not the card's) with how many are left and when school's out.
     Below it the family's strip of days (today and the school days of the
     next two weeks, 📅 for any day, a swipe for the next) over that day's
     classes (today's: the ones after the card), and the countdowns. After

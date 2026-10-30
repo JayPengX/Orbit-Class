@@ -209,15 +209,20 @@ export function stateTile(mode, size = '', glass = false) {
 // character and the first one that tells it apart (社會經濟補給站 beside
 // 社會 → 社經; 英文閱讀 and 英文寫作 → 英閱, 英寫). A name in Latin letters
 // whole (its cell wraps it by word and shrinks it to fit, never cut), or
-// with `full` under four its first word's first three letters (Physics → Phy).
+// with `full` under four by its words' capitals (Advanced English → AE; one
+// word by its first three letters, Physics → Phy), its first word's first
+// three letters where two would read the same.
 export function shortNames(names, full = 4) {
   const list = [...new Set(names.filter(Boolean))];
   const chars = name => [...name];
   const latin = name => /^[ -~]+$/.test(name);
-  const base = name => (latin(name) ? (full < 4 ? name.trim().split(/\s+/)[0].slice(0, 3) : name) : chars(name).length <= full ? name : chars(name).slice(0, 2).join(''));
+  const words = name => name.trim().split(/\s+/);
+  const initials = name => (words(name).length > 1 ? words(name).map(w => w[0].toUpperCase()).join('').slice(0, 3) : words(name)[0].slice(0, 3));
+  const base = name => (latin(name) ? (full < 4 ? initials(name) : name) : chars(name).length <= full ? name : chars(name).slice(0, 2).join(''));
   const first = new Map(list.map(name => [name, base(name)]));
   const out = new Map(first);
   for (const name of list) {
+    if (latin(name) && full < 4 && list.some(other => other !== name && first.get(other) === first.get(name))) out.set(name, words(name)[0].slice(0, 3));
     if (chars(name).length <= full || latin(name)) continue;
     const rivals = list.filter(other => other !== name && first.get(other) === first.get(name));
     if (!rivals.length) continue;

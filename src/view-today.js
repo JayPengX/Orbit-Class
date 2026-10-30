@@ -86,7 +86,7 @@ export function renderHero(hero, week = '') {
 
 // The day at a glance, under the card's words: a chip per class in its
 // colour (its two-character short name), the ones done faded, the one now
-// ringed; then how many are left, the week (單 / 雙) and when school's out.
+// ringed, each opening its own class; then how many are left, the week (單 / 雙) and when school's out.
 function renderStrip(strip, week) {
   const box = $('cx-strip');
   if (!box) return;
@@ -94,8 +94,10 @@ function renderStrip(strip, week) {
   if (!strip) return box.replaceChildren();
   // Each by a two-character short name (國語文 → 國語, 空間資訊科技 → 空間), never two alike.
   const short = shortNames(strip.chips.map(c => c.name), 2);
-  const chips = strip.chips.map(c => {
+  const chips = strip.chips.map((c, i) => {
     const chip = el('i', `cx-chip is-${c.state}`, short.get(c.name) || '·');
+    chip.dataset.i = String(i);
+    chip.setAttribute('aria-label', `${c.start} ${c.name}`);
     chip.style.setProperty('--subject', subjectLook(c.name).color);
     chip.title = `${c.start} ${c.name}`;
     return chip;
