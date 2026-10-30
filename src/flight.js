@@ -10,7 +10,7 @@ import * as kitUI from '#kit/ui.mjs';
 import * as kit from '#kit/orbit.mjs';
 import { bearing, gcLine, lonNear, distKm } from '#kit/flight.mjs';
 import { proxyPath } from './proxy-config.js';
-import { sessionUrl, setFocusNotice } from './sync.js';
+import { orbitSession, setFocusNotice } from './sync.js';
 import { getLocale, t } from './strings.js';
 import { el, button } from './ui.js';
 import {
@@ -56,7 +56,9 @@ let focus = loadFocus();
 // 15 (the proxy answers in 9 at most), else a failure the sheet can retry.
 const within = (ms, promise) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('flight timeout')), ms))]);
 async function getJson(query) {
-  const url = await within(6000, sessionUrl(`${proxyPath('/flight')}?${query}`));
+  // (A public read: the session kept on the phone does, as Weather's and Transit's; a new one only when there's none.)
+  const token = await within(6000, orbitSession.ensureToken({ read: true })).catch(() => orbitSession.token || '');
+  const url = `${proxyPath('/flight')}?${query}${token ? `&qt=${encodeURIComponent(token)}` : ''}`;
   const stop = new AbortController();
   const timer = setTimeout(() => stop.abort(), 15_000);
   try {
