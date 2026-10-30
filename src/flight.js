@@ -8,7 +8,7 @@
 // flight-plan.js's; the map is Leaflet on Esri's satellite tiles, loaded only here.
 import * as kitUI from '#kit/ui.mjs';
 import * as kit from '#kit/orbit.mjs';
-import { bearing, gcLine, lonNear, distKm } from '#kit/flight.mjs';
+import { bearing, gcLine, lonNear, distKm, choose } from '#kit/flight.mjs';
 import { proxyPath } from './proxy-config.js';
 import { orbitSession, setFocusNotice } from './sync.js';
 import { getLocale, t } from './strings.js';
@@ -37,7 +37,6 @@ import { loadFocus } from './flight-store.js';
 
 const zh = () => getLocale() !== 'en';
 const POLL_MS = 15_000;
-const PICKS_MS = 45_000;
 const MIN_KEY = 'class.flight.min';
 
 // ---- Kept on the phone ----
@@ -69,14 +68,47 @@ async function getJson(query) {
     clearTimeout(timer);
   }
 }
-const picksKept = new Map();
-async function picks(minutes) {
-  const kept = picksKept.get(minutes);
-  if (kept && Date.now() - kept.at < PICKS_MS) return kept.flights;
-  const { flights } = await getJson(`min=${minutes}`);
-  if (!Array.isArray(flights)) throw new Error('flight shape');
-  picksKept.set(minutes, { at: Date.now(), flights });
-  return flights;
+// Every plane in the air with a route (the proxy's pool), kept on the phone:
+// the sheet opens on the one kept (ten minutes; a newer one fetched behind it
+// after two) and picks from it itself, so switching 25/50/90 is instant.
+const POOL_KEY = 'class.flight.pool.v1';
+const POOL_FRESH_MS = 600_000;
+let poolKept = (() => {
+  try {
+    const p = JSON.parse(localStorage.getItem(POOL_KEY) || 'null');
+    return p && Number.isFinite(p.at) && Array.isArray(p.flights) ? p : null;
+  } catch {
+    return null;
+  }
+})();
+let poolAsk = null;
+function pool({ fresh = false } = {}) {
+  if (!fresh && poolKept && Date.now() - poolKept.at < POOL_FRESH_MS) {
+    // (Older than two minutes: a newer one fetched behind, for the next look.)
+    if (Date.now() - poolKept.at > 120_000) ask().catch(() => {});
+    return Promise.resolve(poolKept.flights);
+  }
+  return ask();
+}
+function ask() {
+  poolAsk ||= getJson('pool=1')
+    .then(({ flights }) => {
+      if (!Array.isArray(flights)) throw new Error('flight shape');
+      poolKept = { at: Date.now(), flights };
+      try {
+        localStorage.setItem(POOL_KEY, JSON.stringify(poolKept));
+      } catch {
+        // (A full store: kept in memory for this run.)
+      }
+      return flights;
+    })
+    .finally(() => (poolAsk = null));
+  return poolAsk;
+}
+const picks = async (minutes, opts) => choose(await pool(opts), minutes, Date.now());
+// A finger on 工具's card: the planes and the map's code start coming before the tap ends.
+export function warmFlights() {
+  pool().catch(() => {});
 }
 
 // ---- Pictures and names ----
@@ -125,20 +157,20 @@ export function openFlight() {
   const customRow = el('label', 'cx-fl-custom', [input, el('span', '', t('flight.customLabel'))]);
   customRow.hidden = !custom;
   let ask = 0;
-  const show = async () => {
+  const show = async (opts = {}) => {
     const n = minutes;
     const mine = ++ask;
     list.replaceChildren(...[0, 1, 2].map(() => el('div', 'q-ritem cx-fl-skel', [el('span', 'q-skel cx-fl-skel-logo'), el('span', 'cx-fl-skel-text', [el('span', 'q-skel'), el('span', 'q-skel')])])));
     let flights;
     try {
-      flights = await picks(n);
+      flights = await picks(n, opts);
     } catch {
       if (mine === ask) list.replaceChildren(kitUI.empty({ icon: 'map', title: t('flight.failed'), body: t('flight.failedBody'), action: { label: t('flight.retry'), onClick: show } }));
       return;
     }
     if (mine !== ask) return;
     if (!flights.length) {
-      list.replaceChildren(kitUI.empty({ icon: 'clock', title: t('flight.none', { n }), body: t('flight.noneBody'), action: { label: t('flight.retry'), onClick: () => (picksKept.delete(n), show()) } }));
+      list.replaceChildren(kitUI.empty({ icon: 'clock', title: t('flight.none', { n }), body: t('flight.noneBody'), action: { label: t('flight.retry'), onClick: () => show({ fresh: true }) } }));
       return;
     }
     const now = Date.now();
@@ -198,6 +230,8 @@ export function openFlight() {
     }
   });
   show();
+  // (The map's code while a plane is picked: the screen opens on it at once.)
+  setTimeout(() => loadLeaflet().catch(() => (leaflet = null)), 300);
 }
 
 function start(flight, minutes) {
@@ -303,7 +337,7 @@ async function handOff() {
   const leg = currentLeg(focus);
   try {
     const left = Math.round(focusLeft(focus, Date.now()) / 60_000);
-    const flights = await getJson(`min=${Math.max(MIN_MIN, Math.min(MAX_MIN, left))}`).then(x => x.flights || []);
+    const flights = await picks(Math.max(MIN_MIN, Math.min(MAX_MIN, left)));
     const next = flights.find(f => f.hex !== leg.hex);
     if (!next || !focus || focus.done) return;
     focus.legs.push(legOf(next));
@@ -336,9 +370,9 @@ function finishUp() {
 const TILES = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 const FOLLOW_ZOOM = 8;
 let leaflet = null;
+const loadLeaflet = () => (leaflet ||= Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')]).then(([m]) => m.default || m));
 async function mapOf(s) {
-  leaflet ||= Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')]).then(([m]) => m.default || m);
-  const L = await leaflet;
+  const L = await loadLeaflet();
   if (screen !== s) return;
   const map = L.map(s.mapBox, { zoomControl: false, attributionControl: true, minZoom: 2, maxZoom: 11, zoomSnap: 0, fadeAnimation: true, inertia: true });
   map.attributionControl.setPrefix(false).setPosition('topright');

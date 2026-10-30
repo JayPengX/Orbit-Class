@@ -57,5 +57,7 @@ describe('專注飛行', () => {
     expect(airlineName(flight.airline, false)).toBe('EVA Air');
     expect(cityName(NRT, true)).toBe('東京成田');
     expect(cityName({ iata: 'XYZ', city: 'Somewhere' }, true)).toBe('Somewhere');
+    expect(cityName({ iata: 'TLS', city: 'Toulouse/Blagnac' }, true)).toBe('Toulouse');
+    expect(cityName({ iata: 'ZZZ', city: 'Shanghai (Pudong)' }, false)).toBe('Shanghai');
   });
 });

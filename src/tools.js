@@ -63,6 +63,7 @@ function flightCard() {
   const pic = el('span', 'cx-cl-icon');
   pic.innerHTML = PLANE_GLYPH;
   const card = button('cx-fly-card q-press', openFlight, [pic, el('span', 'cx-fly-text', [el('strong', '', t('flight.title')), el('small', 'cx-fly-line', flightLine())])]);
+  card.addEventListener('pointerdown', () => import('./flight.js').then(m => m.warmFlights()), { once: true });
   return card;
 }
 const PLANE_GLYPH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.8c.9 0 1.5 1 1.5 2.2v5.1l7.7 4.6v2.1l-7.7-2.4v4.7l2.3 1.8v1.7L12 20.6l-3.8 1v-1.7l2.3-1.8v-4.7l-7.7 2.4v-2.1l7.7-4.6V4c0-1.2.6-2.2 1.5-2.2z"/></svg>';

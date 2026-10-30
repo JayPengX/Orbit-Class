@@ -77,7 +77,9 @@ const CITIES_ZH = {
   BNE: '布里斯本', AKL: '奧克蘭', GUM: '關島', HNL: '檀香山'
 };
 export const airlineName = (airline, zh) => (zh && AIRLINES_ZH[airline?.icao]) || airline?.name || '';
-export const cityName = (place, zh) => (zh && CITIES_ZH[place?.iata]) || place?.city || place?.iata || '';
+// (A source's city plain: "Toulouse/Blagnac" → Toulouse, "Shanghai (Pudong)" → Shanghai.)
+const plainCity = c => String(c || '').split('/')[0].replace(/\s*\(.*?\)\s*/g, ' ').trim();
+export const cityName = (place, zh) => (zh && CITIES_ZH[place?.iata]) || plainCity(place?.city) || place?.iata || '';
 // (Whether a name is the source's English, for lang="en" on a Chinese page.)
 export const hasZhAirline = airline => Boolean(AIRLINES_ZH[airline?.icao]);
 export const hasZhCity = place => Boolean(CITIES_ZH[place?.iata]);
