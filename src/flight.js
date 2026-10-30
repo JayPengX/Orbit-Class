@@ -52,10 +52,20 @@ function save(focus) {
 let focus = loadFocus();
 
 // ---- The proxy ----
+// Never left waiting: the Pass's session within 6 s and the answer within
+// 15 (the proxy answers in 9 at most), else a failure the sheet can retry.
+const within = (ms, promise) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('flight timeout')), ms))]);
 async function getJson(query) {
-  const res = await fetch(await sessionUrl(`${proxyPath('/flight')}?${query}`), { cache: 'no-store' });
-  if (!res.ok) throw new Error(`flight ${res.status}`);
-  return res.json();
+  const url = await within(6000, sessionUrl(`${proxyPath('/flight')}?${query}`));
+  const stop = new AbortController();
+  const timer = setTimeout(() => stop.abort(), 15_000);
+  try {
+    const res = await fetch(url, { cache: 'no-store', signal: stop.signal });
+    if (!res.ok) throw new Error(`flight ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 const picksKept = new Map();
 async function picks(minutes) {
