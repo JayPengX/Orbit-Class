@@ -5,6 +5,7 @@
 // and start time; the class on now filled, today's done ones faded. A tap on a class opens it for
 // that date (and its 調課), a tap on a day 今天's list on that day. Then 調課:
 // the swaps still to come, a tap to undo one, and 新增調課.
+import * as kit from '#kit/orbit.mjs';
 import * as kitUI from '#kit/ui.mjs';
 import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
@@ -43,7 +44,7 @@ let seg = null;
 function drawSwitch(both, shown) {
   const box = $('cx-week-switch');
   if (!box) return;
-  const items = both.map(({ monday, week }) => ({ id: week, label: `${week === '單' ? t('week.odd') : t('week.even')} ${monday.getMonth() + 1}/${monday.getDate()}` }));
+  const items = both.map(w => ({ id: w.week, label: weekName(w) }));
   const key = JSON.stringify(items);
   if (key !== switchKey || !box.childElementCount) {
     switchKey = key;
@@ -61,8 +62,6 @@ function drawSwitch(both, shown) {
 }
 
 function drawGrid(monday, now) {
-  const box = $('cx-grid');
-  if (!box) return;
   const testing = window.MANUALLY_TEST;
   const days = [1, 2, 3, 4, 5, ...(hasSaturday() ? [6] : [])];
   const cols = days.map(d => {
@@ -112,10 +111,13 @@ function drawGrid(monday, now) {
   // A holiday's column says which.
   const offs = cols.filter(c => c.holiday);
   const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${t('dashboard.holidayTitle', { zh: c.holiday.zh, en: c.holiday.en || c.holiday.zh })}`))) : null;
-  box.replaceChildren(...[periods ? grid : kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } }), foot].filter(Boolean));
+  if (!periods) return null;
   // A long Latin name wraps by word; what still won't fit shrinks.
   requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-tl-cell.is-latin')));
+  return [grid, foot].filter(Boolean);
 }
+const weekName = ({ monday, week }) => `${week === '單' ? t('week.odd') : t('week.even')} ${monday.getMonth() + 1}/${monday.getDate()}`;
+const noTimetable = () => kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } });
 
 // 調課's section: the swaps still to come, then 新增調課.
 let swapsDrawn = '';
@@ -137,7 +139,17 @@ function drawSwaps() {
 
 export function renderWeek(now = new Date()) {
   const { both, shown } = weeks(now);
-  drawSwitch(both, shown);
-  drawGrid(shown.monday, now);
+  const box = $('cx-grid');
+  // A wide screen has room for both weeks side by side, each under its name: no switch.
+  const both2 = Boolean(kit.screenFit?.().wide);
+  $('cx-week-switch').hidden = both2;
+  if (!both2) drawSwitch(both, shown);
+  if (box) {
+    box.classList.toggle('is-both', both2);
+    const grids = (both2 ? both : [shown]).map(w => ({ w, parts: drawGrid(w.monday, now) }));
+    if (grids.every(g => !g.parts)) box.replaceChildren(noTimetable());
+    else if (!both2) box.replaceChildren(...grids[0].parts);
+    else box.replaceChildren(...grids.map(({ w, parts }) => el('section', 'cx-week-one', [el('h3', 'q-list-head', weekName(w)), el('div', 'cx-grid-card', parts || [])])));
+  }
   drawSwaps();
 }

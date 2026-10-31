@@ -97,8 +97,8 @@ body {
 .test-banner {
   position: fixed;
   top: 0;
-  left: var(--q-side, 0px);
-  right: var(--q-side, 0px);
+  left: 0;
+  right: 0;
   z-index: 70;
   display: none;
   padding: calc(var(--q-top, 0px) + 2px) 8px 4px;
@@ -724,7 +724,7 @@ body.orbit-motion-paused * {
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  width: calc(var(--q-vw, 100vw) - 16px);
+  width: var(--q-sheet-w);
   max-height: min(calc(100dvh - var(--q-top, 0px) - 24px), 900px);
   margin: 0 auto;
   box-sizing: border-box;
@@ -1290,16 +1290,19 @@ body:is(.editor-open, .transfer-open) {
   user-select: none;
 }
 .teacher-avatar {
-  --avatar-hue: 210;
+  --subject: var(--q-accent);
   flex: none;
   display: grid;
   place-items: center;
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: hsl(var(--avatar-hue) 70% 52%);
+  background: var(--subject);
   color: #fff;
-  font: 700 15px/1 var(--q-font);
+}
+.teacher-avatar svg {
+  width: 18px;
+  height: 18px;
 }
 .teacher-summary-text {
   flex: 1;
@@ -2805,6 +2808,17 @@ body.cx-flying {
   color: var(--q-label);
   animation: cx-fl-up 0.6s 0.15s var(--q-spring-smooth, ease) both;
 }
+/* Beside the map, not over it, where the screen is wide or short: the card
+   at the left, the plane in the open part (flight.js openPart). */
+:root:is(.q-wide, .q-tabrail) .cx-fl-card {
+  right: auto;
+  left: max(12px, env(safe-area-inset-left));
+  width: min(380px, 46vw);
+}
+:root:is(.q-wide, .q-tabrail) .cx-fl-top {
+  left: max(16px, env(safe-area-inset-left));
+  right: max(16px, env(safe-area-inset-right));
+}
 @keyframes cx-fl-up {
   from {
     transform: translateY(24px);
@@ -3042,5 +3056,156 @@ body.cx-flying {
   .cx-fl-ahead,
   .cx-fl-port.is-to i::after {
     animation: none;
+  }
+}
+
+/* ---- 7. Every screen, either way up (docs/DESIGN.md §10) ----
+   A wide page (html.q-wide: 640 px and more) lays the tabs out in columns of
+   a phone's width, in the phone's order: 今天's card across the top, the
+   day's classes beside the countdowns under it; 課表's two weeks side by
+   side (調課 beside them on a computer); 工具's week beside its tools. */
+:root.q-wide {
+  --q-page-max: 1180px;
+}
+/* 今天's card across the top: what's on and the time left on the left,
+   what's next and the day's strip on the right. */
+:root.q-wide .cx-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: 'top top' 'main foot' 'timer strip';
+  align-items: center;
+  gap: 12px 32px;
+  padding: 18px 20px 16px;
+}
+:root.q-wide .cx-hero-top { grid-area: top; }
+:root.q-wide .cx-hero-main { grid-area: main; }
+:root.q-wide .cx-timer { grid-area: timer; }
+:root.q-wide .cx-foot { grid-area: foot; margin: 0; }
+:root.q-wide .cx-strip { grid-area: strip; padding-top: 0; border-top: 0; }
+/* (No strip, a day over: what's next runs down the right.) */
+:root.q-wide .cx-hero:has(.cx-strip[hidden]) .cx-foot { grid-row: 2 / span 2; }
+:root.q-wide .cx-art {
+  right: auto;
+  left: 38%;
+}
+/* Cards that ran in a sideways row on a phone are a grid on a wide page. */
+:root.q-wide :is(.cx-cls, .cx-cds).q-rail {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(auto-fill, minmax(var(--q-rail-w), 1fr));
+  margin: 0;
+  padding: 2px 0 0;
+  overflow: visible;
+}
+:root.q-wide .cx-cls > .cx-cl.is-break {
+  width: auto;
+  justify-self: stretch;
+}
+/* The strip of days across both columns (more days show); the day's classes
+   under it on the left, the countdowns on the right, their heads level. */
+:root.q-wide .cx-today-day {
+  display: contents;
+}
+:root.q-wide .cx-today-cols > * > .q-day-bar {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+:root.q-wide #cx-list-sec {
+  grid-column: 1;
+}
+:root.q-wide #cx-countdowns {
+  grid-column: 2;
+}
+:root.q-wide .cx-hero-main {
+  justify-content: flex-start;
+  gap: 24px;
+}
+/* 課表: both weeks, each a card under its name. */
+#cx-grid.is-both {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--q-s-5, 24px);
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+.cx-week-one > .q-list-head {
+  margin: 0 4px 8px;
+}
+:root.q-w3 #panel-week:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  column-gap: var(--q-s-5, 24px);
+  align-items: start;
+}
+:root.q-w3 #panel-week > :not(#cx-grid, #cx-swaps) {
+  grid-column: 1 / -1;
+}
+:root.q-w3 #cx-swaps {
+  margin-top: 0;
+}
+:root.q-w3 #cx-swaps > .q-section-head {
+  margin-top: 0;
+}
+/* 工具: the week beside the rest; its first section's head level with the week's top. */
+:root.q-wide .cx-tools-b > .q-section:first-child {
+  margin-top: 0;
+}
+:root.q-wide .cx-tools-a {
+  position: sticky;
+  top: calc(var(--q-top, 0px) + 8px);
+}
+
+/* A phone on its side (short): the card no taller than it must be. */
+@media (max-height: 520px) {
+  :root.q-wide .cx-hero {
+    gap: 8px 24px;
+    padding: 14px 16px 12px;
+  }
+  :root.q-wide .cx-ring {
+    width: 56px;
+    height: 56px;
+  }
+  :root.q-wide .cx-hero-icon {
+    width: 40px;
+    height: 40px;
+  }
+  :root.q-wide .cx-timer .q-hc-big {
+    font-size: 38px;
+    line-height: 40px;
+  }
+}
+
+/* Sheets on a tablet or a computer: a card in the middle of the screen,
+   every corner round (the kit's .q-float), rising in place. */
+:root.q-float :is(.cx-sheet, .assign-sheet) {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%) scale(0.96);
+  opacity: 0;
+  transition: transform 0.3s var(--q-ease), opacity 0.2s ease, visibility 0s linear 0.3s;
+}
+:root.q-float :is(.cx-sheet, .assign-sheet).show {
+  transform: translateY(-50%);
+  opacity: 1;
+  transition: transform 0.3s var(--q-ease), opacity 0.2s ease;
+}
+:root.q-float .cx-sheet.is-tall {
+  width: var(--q-sheet-full-w);
+  height: min(calc(100dvh - 48px), 900px);
+}
+:root.q-float :is(.cx-sheet, .assign-sheet) > .test-panel-handle {
+  display: none;
+}
+/* The welcome on a phone on its side: whole, no scrolling for a few px. */
+@media (max-height: 520px) {
+  .orbit-welcome-sheet .orbit-welcome-lede {
+    margin: 0 20px 8px;
+  }
+  .orbit-welcome-sheet .orbit-welcome-choices {
+    margin-bottom: 4px;
+  }
+  .orbit-welcome-sheet .orbit-welcome-choice {
+    min-height: 0;
+    padding-block: 6px;
   }
 }

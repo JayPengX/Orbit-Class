@@ -16,7 +16,7 @@ import {
   setEditorConfirmContent,
   showEditorConfirmSheet
 } from './editor-core.js';
-import { subjectHue } from './schedule.js';
+import { subjectLook } from './subjects.js';
 import { t } from './strings.js';
 
 // refreshPeriodSelectOptions rebuilds every schedule-grid <select>'s full
@@ -106,15 +106,14 @@ function makeTeacherCard(key, subject, teacher, location, options = {}) {
   return div;
 }
 
-// Updates a teacher card's colored initial avatar from its current subject text.
+// A teacher card's tile: its subject's own picture on its colour (as 今天's
+// cards and the class sheet show it), never a letter.
 function updateTeacherCardAvatar(card) {
   const avatar = card.querySelector('.teacher-avatar');
   if (!avatar) return;
-  const subject = (card.querySelector('.tc-subject')?.value || '').trim();
-  const initial = subject ? [...subject][0] : '?';
-  const hue = subjectHue(subject);
-  avatar.textContent = initial;
-  avatar.style.setProperty('--avatar-hue', String(hue));
+  const look = subjectLook((card.querySelector('.tc-subject')?.value || '').trim());
+  avatar.innerHTML = look.icon;
+  avatar.style.setProperty('--subject', look.color);
 }
 
 // Updates a collapsed teacher card's one-line summary from its current

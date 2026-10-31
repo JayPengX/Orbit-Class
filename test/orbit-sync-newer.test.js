@@ -60,7 +60,8 @@ vi.mock('#kit/orbit.mjs', () => ({
   detectLang: () => 'zh',
   notify: () => {},
   tabBar: () => ({ select() {} }),
-  topActions: () => {}
+  topActions: () => {},
+  onScreen: () => {}
 }));
 
 // Data loss: a device left open with an older schedule must never save it

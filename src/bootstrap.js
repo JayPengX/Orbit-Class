@@ -9,28 +9,13 @@ import { showOnboardingPrompt } from './onboarding.js';
 import { buildSchedule } from './schedule.js';
 import { state } from './state.js';
 import { renderSyncPanel, startSyncLoop, whenReady } from './sync.js';
-import qrcode from 'qrcode-generator';
-import { APPS, SITE, detectLang, phoneOnlyGate, installGate, storedAccount, keepOffline } from '#kit/orbit.mjs';
+import { detectLang, installGate, storedAccount, keepOffline } from '#kit/orbit.mjs';
 
-// Orbit Class is a phone app: on a computer the page says where to open it
-// (a QR code of its address) and nothing else starts. Only in the built
-// site, so `vite dev` and the tests still run on a computer.
-function qrSvg(text) {
-  const qr = qrcode(0, 'M');
-  qr.addData(text);
-  qr.make();
-  return qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
-}
-const phoneOnly = Boolean(
-  import.meta.env?.PROD &&
-  phoneOnlyGate('orbit', { lang: detectLang(), qr: qrSvg(`${SITE}${APPS.orbit.path}`) })
-);
-
-// And like every other app, on a phone it runs from the home screen only:
+// Like every other app, on a phone it runs from the home screen only:
 // opened in Safari, the kit's screen says how to add it (and nothing else
-// starts).
-const installing = Boolean(!phoneOnly && import.meta.env?.PROD && installGate('orbit', detectLang()));
-const gated = phoneOnly || installing;
+// starts). A computer or a tablet gets the app itself, laid out for its
+// screen. Only in the built site, so `vite dev` and the tests still run.
+const gated = Boolean(import.meta.env?.PROD && installGate('orbit', detectLang()));
 
 // Like every Orbit app, nothing shows until this device is signed in: the
 // dashboard stays hidden (the kit's q-signing-in) while the sign-in screen

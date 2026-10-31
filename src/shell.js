@@ -40,6 +40,14 @@ function show(id) {
   else window.update?.();
 }
 
+// The screen turned or resized: what's drawn for its width (課表's one week
+// or both, 工具's columns) drawn again.
+kit.onScreen?.(() => {
+  state.lastListKey = '';
+  if (document.body.dataset.tab === 'tools') renderTools(true);
+  else window.update?.();
+});
+
 const nav = kit.tabBar({ tabs: TABS.map(x => ({ ...x, label: t(`tab.${x.id}`) })), onSelect: (id, { again }) => !again && show(id), hash: id => `#${id}` });
 kit.topActions(orbitSession);
 // Every tab but the first opens on the kit's large title (今天 has none).

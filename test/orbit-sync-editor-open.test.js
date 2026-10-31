@@ -63,7 +63,8 @@ vi.mock('#kit/orbit.mjs', () => ({
   detectLang: () => 'zh',
   notify: () => {},
   tabBar: () => ({ select() {} }),
-  topActions: () => {}
+  topActions: () => {},
+  onScreen: () => {}
 }));
 
 // The editor open with changes not saved when a newer copy arrives: the

@@ -1,6 +1,6 @@
 # Orbit Class: the map
 
-The class now and what comes next, at a glance. Phone only, signed in
+The class now and what comes next, at a glance. Any screen, signed in
 with the Orbit Pass, which keeps the timetable.
 
 Live: https://orbit.jaypengx.com/class/
@@ -17,7 +17,7 @@ Live: https://orbit.jaypengx.com/class/
     next two weeks, 📅 for any day, a swipe for the next) over that day's
     classes (today's: the ones after the card), and the countdowns. After
     the last class it shows the next school day.
-  - **課表:** the week as a grid, this one or the next (單週 / 雙週), a day's head opening 今天 on that day; and 調課.
+  - **課表:** the week as a grid, this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
   - **工具:** the week as a grid (課表's short names) with 編輯課表; 專注飛行; AI 課表編輯 and 拍照匯入;
     分享金鑰.
 - **專注飛行** (a trial, Jay 2026-10-30): a focus timer that follows a real plane.
@@ -65,7 +65,11 @@ Live: https://orbit.jaypengx.com/class/
 
 - One look: Class's own accent, light or dark with the device. The style
   panel was deleted (old saves' colours are read, never applied).
-- Phone only: a computer gets a QR code.
+- Every screen, either way up (Jay 2026-10-31): a phone upright or on its side, a
+  tablet, a computer. On a wide page (`html.q-wide`) 今天's card runs across the
+  top with the day's classes beside the countdowns, 課表 shows both weeks side
+  by side (調課 beside them on a computer), 工具 the week beside its tools; the
+  app's own sheets are centred cards on a tablet or computer (`styles.css` §7).
 - The language is the family's: one picked in any Orbit app (`orbit.lang`) opens Class.
 - The AI prompts and schemas live in the Worker. The client sends only
   files or the instruction, so the endpoint can't be used as a general AI.

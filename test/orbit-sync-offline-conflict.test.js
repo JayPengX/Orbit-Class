@@ -60,7 +60,8 @@ vi.mock('#kit/orbit.mjs', () => ({
   detectLang: () => 'zh',
   notify: () => {},
   tabBar: () => ({ select() {} }),
-  topActions: () => {}
+  topActions: () => {},
+  onScreen: () => {}
 }));
 
 // An edit made with no connection, the app closed before it went up: the

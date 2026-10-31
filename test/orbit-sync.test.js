@@ -59,7 +59,8 @@ vi.mock('#kit/orbit.mjs', () => ({
   detectLang: () => 'zh',
   notify: () => {},
   tabBar: () => ({ select() {} }),
-  topActions: () => {}
+  topActions: () => {},
+  onScreen: () => {}
 }));
 
 let sync;

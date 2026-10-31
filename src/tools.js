@@ -69,7 +69,7 @@ function flightCard() {
 const PLANE_GLYPH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.8c.9 0 1.5 1 1.5 2.2v5.1l7.7 4.6v2.1l-7.7-2.4v4.7l2.3 1.8v1.7L12 20.6l-3.8 1v-1.7l2.3-1.8v-4.7l-7.7 2.4v-2.1l7.7-4.6V4c0-1.2.6-2.2 1.5-2.2z"/></svg>';
 
 let drawn = '';
-function renderTools() {
+function renderTools(again = false) {
   const box = document.getElementById('cx-tools');
   if (!box) return;
   const data = state.applicationData || {};
@@ -77,7 +77,7 @@ function renderTools() {
   const breaks = (data.breakTimes || []).length;
   const events = getCountdownEvents().length;
   const key = `${JSON.stringify(state.runtimeSchedule)}|${subjects}|${breaks}|${events}|${t('tab.tools')}`;
-  if (key === drawn && box.childElementCount) return;
+  if (!again && key === drawn && box.childElementCount) return;
   drawn = key;
   // The parts as four figure cards (each its colour, its count large), the
   // two AI ways as two cards, the share key a row.
@@ -103,7 +103,9 @@ function renderTools() {
   };
   const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
-  box.replaceChildren(weekCard(), section(t('flight.section'), flightCard()), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share));
+  // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
+  box.classList.add('q-cols');
+  box.replaceChildren(el('div', 'cx-tools-a', [weekCard()]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share)]));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).

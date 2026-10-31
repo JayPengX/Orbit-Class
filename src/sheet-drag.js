@@ -28,8 +28,11 @@ export function bindSheetDragToDismiss(panelId, closeFn) {
   // restyle centred it that way) shoved the sheet off to the right as it
   // came down. Read from the sheet itself when a drag begins, not assumed
   // by its class.
+  // (A centred card on a tablet or a computer is lifted by translateY(-50%):
+  // its drag starts from there too.)
   let baseX = 0;
-  const translate = y => `translate(${baseX}px,${y}px)`;
+  let baseY = 0;
+  const translate = y => `translate(${baseX}px,${baseY + y}px)`;
   const threshold = 90;
   const settle = open => {
     panel.style.transition = open
@@ -47,7 +50,9 @@ export function bindSheetDragToDismiss(panelId, closeFn) {
   const begin = () => {
     panel.style.transform = '';
     const open = getComputedStyle(panel).transform;
-    baseX = open && open !== 'none' && typeof DOMMatrixReadOnly === 'function' ? new DOMMatrixReadOnly(open).m41 : 0;
+    const m = open && open !== 'none' && typeof DOMMatrixReadOnly === 'function' ? new DOMMatrixReadOnly(open) : null;
+    baseX = m ? m.m41 : 0;
+    baseY = (m && m.m42) || 0;
     panel.style.transition = 'none';
     handle?.classList.add('is-dragging');
   };

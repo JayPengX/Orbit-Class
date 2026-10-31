@@ -405,18 +405,27 @@ function setLeg(leg) {
   // The whole route, then in to the plane.
   s.mode = 'intro';
   s.recenter.hidden = true;
-  s.map.fitBounds(L.latLngBounds(route), { paddingTopLeft: [32, topEdge() + 24], paddingBottomRight: [32, cardRoom() + 24], animate: false });
+  const o = openPart();
+  s.map.fitBounds(L.latLngBounds(route), { paddingTopLeft: [o.l + 32, Math.max(o.t, topEdge()) + 24], paddingBottomRight: [innerWidth - o.r + 32, innerHeight - o.b + 24], animate: false });
   clearTimeout(s.introTimer);
   s.introTimer = setTimeout(() => flyIn(), 1600);
 }
+// The map's open part, between the top bar and the card: over the card on a
+// phone upright, beside it where the card stands at the left (a phone on its
+// side, a tablet, a computer).
 const topEdge = () => screen?.root.querySelector('.cx-fl-top')?.getBoundingClientRect().bottom || 60;
-const cardRoom = () => (screen ? innerHeight - screen.card.getBoundingClientRect().top : 240);
+function openPart() {
+  const box = screen?.card.getBoundingClientRect();
+  if (box && box.right < innerWidth * 0.6) return { l: box.right, t: 0, r: innerWidth, b: innerHeight };
+  return { l: 0, t: topEdge(), r: innerWidth, b: box ? box.top : innerHeight - 240 };
+}
 // Where the camera looks so the plane sits a little above the middle of the map's open part.
 function cameraFor(at, zoom) {
   const s = screen;
-  const mid = (topEdge() + (innerHeight - cardRoom())) / 2;
-  const dy = innerHeight / 2 - mid + 20;
-  const pt = s.map.project(at, zoom).add([0, dy]);
+  const o = openPart();
+  const dx = innerWidth / 2 - (o.l + o.r) / 2;
+  const dy = innerHeight / 2 - (o.t + o.b) / 2 + 20;
+  const pt = s.map.project(at, zoom).add([dx, dy]);
   return s.map.unproject(pt, zoom);
 }
 function flyIn() {

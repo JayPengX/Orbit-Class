@@ -76,3 +76,8 @@ afterAll(() => {
   for (const id of frames) clearTimeout(id);
   frames.clear();
 });
+
+// A phone's screen (jsdom's own is 1024×768, a computer's): the tests read
+// the phone layout; the wide one is CSS and screenshots (tools/shots.mjs).
+Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true, writable: true });
+Object.defineProperty(window, 'innerHeight', { value: 844, configurable: true, writable: true });
