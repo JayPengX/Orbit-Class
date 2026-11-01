@@ -23,7 +23,9 @@ Live: https://orbit.jaypengx.com/class/
 - **專注飛行** (a trial, Jay 2026-10-30): a focus timer that follows a real plane.
   Pick 25/50/90 minutes or type 10–180; the proxy's `/flight` (Orbit-Core
   `flight.js`) offers three planes in the air now that land in about that
-  time. The screen is the plane on a satellite map (Esri imagery, Leaflet,
+  time. The planes in the air are kept on the phone (10 minutes, refreshed
+  behind) and picked there, so 25/50/90 switch at once; up to 6 flights, whole
+  short flights first, never none. The screen is the plane on a satellite map (Esri imagery, Leaflet,
   loaded only here), gliding every frame from its last fix (kit
   `flight.mjs`), the camera riding along, clouds drifting under it; the time
   left large. Landing early hands over to another plane for the rest; the end
