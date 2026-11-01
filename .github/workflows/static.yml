@@ -1,5 +1,5 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+# Simple workflow for deploying static content to Cloudflare (Orbit-Core deploy/cf-site.mjs)
+name: Deploy to Cloudflare
 
 on:
   # Runs on pushes targeting the default branch
@@ -9,12 +9,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# What the run may do: read the code, and the earlier runs (the queue).
 permissions:
   contents: read
   actions: read
-  pages: write
-  id-token: write
 
 jobs:
   # One deploy at a time, without cancelling any (a cancelled run mails its
@@ -47,8 +45,6 @@ jobs:
     needs: queue
     if: needs.queue.outputs.go == 'true'
     runs-on: ubuntu-latest
-    env:
-      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       # main as it is now, never the commit that started the run: GitHub can
       # deliver a push late (hours, out of order), and an old tree deployed
@@ -77,35 +73,9 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
       # The site on Cloudflare, at its address on the family's domain
       # (Orbit-Core deploy/cf-site.mjs): what phones are served.
       - name: Publish to Cloudflare
-        if: ${{ env.HAS_CF == 'true' }}
         run: node .shared/deploy/cf-site.mjs Orbit-Class dist
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'dist'
-
-  deploy:
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url || steps.again.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
-        # A clash with another deploy or a hiccup at GitHub: tried once more.
-        continue-on-error: true
-      - if: steps.deployment.outcome == 'failure'
-        run: sleep 60
-      - name: Deploy to GitHub Pages (again)
-        id: again
-        if: steps.deployment.outcome == 'failure'
-        uses: actions/deploy-pages@v5
