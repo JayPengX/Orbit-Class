@@ -111,7 +111,7 @@ npm run lint
 ```
 
 `npm run dev` serves it locally (Vite). A push to `main` tests, builds and
-deploys to Pages. The time simulation panel (in the transfer sheet, under
+deploys to Cloudflare. The time simulation panel (in the transfer sheet, under
 Advanced) sets any day and time by hand.
 
 ## If you change…
