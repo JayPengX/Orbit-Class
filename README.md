@@ -13,7 +13,7 @@
   <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-ES_modules-F7DF1E?logo=javascript&logoColor=000"> <img alt="Vite" src="https://img.shields.io/badge/Vite-build-646CFF?logo=vite&logoColor=fff"> <img alt="PWA" src="https://img.shields.io/badge/PWA-works_offline-5A0FC8?logo=pwa&logoColor=fff"> <img alt="Cloudflare" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=fff"> <img alt="Tests" src="https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=fff">
 </p>
 
-The class now and what comes next, at a glance. Part of **Orbit**, a family of phone apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [orbit.jaypengx.com](https://orbit.jaypengx.com/pass/).
+The class now and what comes next, at a glance. Part of **Orbit**, a family of apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [orbit.jaypengx.com](https://orbit.jaypengx.com/pass/).
 
 <p align="center">
   <img src="docs/screenshots/class-1.webp" width="30%" alt="Your whole week">
@@ -23,7 +23,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of p
 
 <p align="center">
   <img src="docs/screenshots/class-4.webp" width="30%" alt="Count down to the big exam">
-  <img src="docs/screenshots/class-5.webp" width="30%" alt="Bring in your timetable">
+  <img src="docs/screenshots/class-5.webp" width="30%" alt="Focus on a real flight">
   <img src="docs/screenshots/class-6.webp" width="30%" alt="Snap it, AI reads it">
 </p>
 
@@ -34,9 +34,11 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of p
 - **調課:** swap two periods on any two dates, even across weeks, and undo it.
 - **Countdowns** to exams and events, removed by themselves once over if you like.
 - **A notice five minutes before each class**, sent by the server so it arrives with the app closed; none on Taiwan's holidays.
+- **專注飛行 (focus flight):** a focus timer that follows a real plane in the air. Pick 25, 50 or 90 minutes (or 10 to 180) and one of up to six flights that land about when your time is up; the screen is that plane gliding over a live satellite map, with clouds below and the time left, and a notice when it lands.
 - **AI photo import:** up to six photos, screenshots, HEIC or PDF read together as one timetable, checked locally and applied only once you confirm.
 - **AI edit:** describe a change in a sentence and confirm it as a diff.
 - **Share key:** an 8-character key gives a classmate their own copy for 24 hours.
+- **Every screen, either way up:** on a tablet, a computer or a phone on its side 今天's card runs across the top with the day's classes beside the countdowns, 課表 shows both weeks side by side, and 專注飛行's card sits beside the map.
 
 ## Tech stack
 
@@ -44,7 +46,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of p
 | --- | --- |
 | App | Plain JavaScript (ES modules), HTML and CSS, bundled by Vite; no framework |
 | Platform | Installable web app with a service worker; opens offline on the kept timetable |
-| Shared | Look, Orbit Pass (which keeps the timetable) and notices from the kit in [Orbit-Core](https://github.com/JayPengX/Orbit-Core) |
+| Shared | Look, Orbit Pass (which keeps the timetable), notices and the planes in the air (proxy `/flight`) from the kit in [Orbit-Core](https://github.com/JayPengX/Orbit-Core) |
 | AI | Gemini through the Orbit proxy (`/gemini`, `/nl-edit`); the prompts and schemas live in the Worker, so the endpoint can't be used as a general AI |
 | Tests | Vitest with jsdom, ESLint |
 
@@ -69,6 +71,7 @@ src/
 ├── editor-*.js                   the editor, backups, AI editing
 ├── gemini-ocr.js                 photo import
 ├── swap.js, tools.js, sync.js    調課, the tools tab, the Pass
+├── flight*.js                    專注飛行, the focus timer on a real plane
 └── state.js, constants.js, strings.js, dates.js
 public/                 icons, manifest, service worker
 test/                   Vitest
