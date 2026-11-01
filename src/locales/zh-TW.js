@@ -144,7 +144,7 @@ export default {
   'onboarding.welcomeMessage':
     '加入課表，隨時知道現在上什麼。',
   'onboarding.photoTitle': '拍照匯入',
-  'onboarding.photoHint': '拍照或截圖，AI 自動填好',
+  'onboarding.photoHint': '拍照或截圖，AI 填好',
   'onboarding.manualTitle': '自己輸入',
   'onboarding.manualHint': '逐節填入',
   'onboarding.keyTitle': '用同學的分享金鑰',
