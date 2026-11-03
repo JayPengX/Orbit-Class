@@ -271,6 +271,14 @@ body.orbit-motion-paused * {
   .cx-chip {
     font-size: 12px;
   }
+  /* The top line (打掃時間 · 接著第 2 節 · 09:10–10:00) whole on a 320 phone. */
+  .cx-hero-top .q-hc-eyebrow {
+    gap: 4px;
+    font-size: 14px;
+  }
+  .cx-span {
+    font-size: 12px;
+  }
   .cx-foot-end small {
     display: none;
   }
