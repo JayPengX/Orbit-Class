@@ -70,6 +70,17 @@ describe('dashboard update() against the real app', () => {
     expect(text('next-time')).toBe('10:10');
   });
 
+  it('a tap on the foot opens the class it names (接著), not the card\'s', () => {
+    setSimTime(9, 0); // card: 公民 (period 2); foot: 接著 英文
+    window.update();
+    document.getElementById('next-name').click();
+    const sheets = document.querySelectorAll('.cx-kit-sheet');
+    const sheet = sheets[sheets.length - 1];
+    expect(sheet?.textContent || '').toContain('林老師'); // 英文's teacher
+    expect(sheet?.textContent || '').not.toContain('陳老師'); // not the card's 公民
+    sheet.remove();
+  });
+
   it('shows "放學時間" once the last period of the day ends, and auto-advances the viewed day', () => {
     setSimTime(11, 1); // just after period 2 (10:10-11:00) ends
     window.update();

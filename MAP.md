@@ -12,7 +12,8 @@ Live: https://orbit.jaypengx.com/class/
     room, time left), the next, and the day as a strip of coloured chips by
     two-character short name (an English one by its words' capitals,
     Advanced English → AE; done faded, now ringed; a tap opens that chip's
-    own class, not the card's) with how many are left and when school's out.
+    own class, not the card's; the foot, 接著 / 下一節 / 明天, the class it names)
+    with how many are left and when school's out.
     Below it the family's strip of days (today and the school days of the
     next two weeks, 📅 for any day, a swipe for the next) over that day's
     classes (today's: the ones after the card), and the countdowns. After

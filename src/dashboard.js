@@ -108,6 +108,7 @@ function prunePastCountdowns(now = new Date()) {
 
 let heroTarget = null;
 let heroDay = null; // today's classes and date, for the strip's chips
+let footTarget = null; // the class along the card's foot
 function update() {
   if (!window.MANUALLY_TEST) prunePastCountdowns();
   const now = new Date();
@@ -152,6 +153,8 @@ function update() {
   const today = window.MANUALLY_TEST ? null : new Date();
   heroTarget = viewModel.curIdx >= 0 ? { c: todaySchedule[viewModel.curIdx], date: today } : viewModel.nxtIdx >= 0 && viewModel.isSchoolDay && !viewModel.isDayFinished ? { c: todaySchedule[viewModel.nxtIdx], date: today } : nextDay?.first && hero.foot?.name ? { c: nextDay.first, date: window.MANUALLY_TEST ? null : nextDay.date } : null;
   heroDay = { rows: todaySchedule || [], date: today };
+  // The foot (接著 / 下一節 / 明天) opens the class it names, not the card's.
+  footTarget = hero.footAt === 'next' && nextDay?.first ? { c: nextDay.first, date: window.MANUALLY_TEST ? null : nextDay.date } : Number.isInteger(hero.footAt) && todaySchedule?.[hero.footAt] ? { c: todaySchedule[hero.footAt], date: today } : null;
   setHeroTappable(Boolean(heroTarget));
   renderHero(hero, week);
 
@@ -253,12 +256,13 @@ window.openTestPanel = openTestPanel; // testsim-runtime.js's patchPanelOpeners(
 // needs the real function bound here first, or it wraps undefined.
 window.toggleTestPanel = toggleTestPanel;
 // The hero card opens the class it shows (as a row does); a chip on its
-// strip, that chip's own class.
+// strip, that chip's own class; its foot, the class the foot names.
 const hero = document.getElementById('cx-hero');
 const openHero = event => {
   const chip = event?.target?.closest?.('.cx-chip');
   const c = chip && heroDay?.rows[Number(chip.dataset.i)];
   if (c) return openModal(c, { date: heroDay.date });
+  if (footTarget && event?.target?.closest?.('#cx-foot')) return openModal(footTarget.c, { date: footTarget.date });
   if (heroTarget) openModal(heroTarget.c, { date: heroTarget.date });
 };
 function setHeroTappable(on) {

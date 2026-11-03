@@ -302,8 +302,10 @@ export function classStartingSoon({ now, week, todaySchedule }) {
 // ends long before the next class) is the card itself, with the time until
 // it ends. Otherwise the day's state, and the next school day's first class
 // along the foot (`nextDay`: { label, first, week }).
-// Returns { mode, kicker, span, title, teacher, place, label, timer, progress, foot, through, strip },
-// foot either { label, name, time, sub } or { note }, timer { value, label },
+// Returns { mode, kicker, span, title, teacher, place, label, timer, progress, foot, footAt, through, strip },
+// foot either { label, name, time, sub } or { note }, footAt the class the
+// foot names (an index into today's, 'next' for the next school day's first,
+// null: none), timer { value, label },
 // through the last of today's classes the card names (-1: none), strip the
 // day's classes as chips while it has any to go ({ left, end, chips }).
 export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday = null }) {
@@ -320,6 +322,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
   const last = today[today.length - 1];
   const lastNote = () => ({ note: t('dashboard.lastPeriodNote', { time: last.e }) });
   const dayFoot = () => (nextDay?.first ? footFor(nextDay.first, nextDay.week, nextDay.label) : null);
+  const dayAt = () => (nextDay?.first ? 'next' : null);
   const none = { teacher: '', place: '', label: '' };
   // The day as a strip, one chip per class (done, now, to come), and how many are left.
   const strip = vm.isSchoolDay && !vm.isDayFinished && !holiday
@@ -336,6 +339,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
       timer: { value: vm.timerValue, label: t('dashboard.untilEnd') },
       progress: vm.progressPercent,
       foot: vm.nxtIdx >= 0 ? footFor(today[vm.nxtIdx], week, t('dashboard.nextPeriod')) : lastNote(),
+      footAt: vm.nxtIdx >= 0 ? vm.nxtIdx : null,
       through: vm.nxtIdx >= 0 ? vm.nxtIdx : vm.curIdx,
       strip
     };
@@ -359,6 +363,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
       timer: { value: formatCountdown(Math.max(0, startSec - secs)), label: t('dashboard.untilStart') },
       progress: from != null && startSec > from ? Math.min(100, Math.max(0, ((secs - from) / (startSec - from)) * 100)) : null,
       foot: today[vm.nxtIdx + 1] ? footFor(today[vm.nxtIdx + 1], week, t('dashboard.thenLabel')) : lastNote(),
+      footAt: today[vm.nxtIdx + 1] ? vm.nxtIdx + 1 : null,
       through: today[vm.nxtIdx + 1] ? vm.nxtIdx + 1 : vm.nxtIdx,
       strip
     };
@@ -373,11 +378,12 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
       timer: { value: vm.timerValue, label: t('dashboard.untilBreakEnd') },
       progress: vm.progressPercent,
       foot: next ? footFor(next, week, t('dashboard.nextPeriod')) : dayFoot(),
+      footAt: next ? vm.nxtIdx : dayAt(),
       through: next ? vm.nxtIdx : -1,
       strip
     };
   }
   // A national holiday: its name, and the next school day's first class.
-  if (holiday) return { mode: 'off', kicker: t('dashboard.holidayKicker'), span: '', title: t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }), ...none, timer: null, progress: null, foot: dayFoot(), through: -1, strip: null };
-  return { mode: 'off', kicker: '', span: '', title: vm.statusText, ...none, timer: null, progress: null, foot: dayFoot(), through: -1, strip };
+  if (holiday) return { mode: 'off', kicker: t('dashboard.holidayKicker'), span: '', title: t('dashboard.holidayTitle', { zh: holiday.zh, en: holiday.en || holiday.zh }), ...none, timer: null, progress: null, foot: dayFoot(), footAt: dayAt(), through: -1, strip: null };
+  return { mode: 'off', kicker: '', span: '', title: vm.statusText, ...none, timer: null, progress: null, foot: dayFoot(), footAt: dayAt(), through: -1, strip };
 }

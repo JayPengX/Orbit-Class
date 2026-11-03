@@ -285,6 +285,13 @@ describe('heroView: the card says one thing', () => {
     expect(h).toMatchObject({ mode: 'class', kicker: '第 1 節 · 上課中', span: '08:00–08:50', title: '數學', teacher: '王老師', place: '101' });
     expect(h.timer).toEqual({ value: '30:00', label: '後下課' });
     expect(h.foot).toEqual({ label: '下一節', name: '國文', subject: '國文', time: '09:10', sub: '李老師 · 102' });
+    expect(h.footAt).toBe(1);
+  });
+  it('footAt names the class along the foot, so a tap on 接著 opens that one', () => {
+    expect(hero(at(9, 5)).footAt).toBe(2); // break: card 國文, foot 接著 英文
+    expect(hero(at(10, 5)).footAt).toBeNull(); // the last class: a note, nothing to open
+    expect(hero(at(12, 0), { nextDay: { label: '明天', first: todaySchedule[0], week: '雙' } }).footAt).toBe('next');
+    expect(hero(at(12, 0)).footAt).toBeNull();
   });
   it('on a break: the class coming is the card, the break on its top line, the class after along the foot', () => {
     const h = hero(at(10, 5, 7));
