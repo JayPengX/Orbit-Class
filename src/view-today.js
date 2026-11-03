@@ -77,12 +77,6 @@ function breakBand(name, span) {
   node.style.setProperty('--band', isNight(name, span) ? 'var(--q-indigo)' : 'var(--q-gray)');
   return node;
 }
-function breakBar(span, progress) {
-  const [from, to] = String(span || '').split(/[–-]/);
-  const bar = el('div', 'nv-bar', [el('i', 'nv-bar-fill')]);
-  bar.style.setProperty('--done', `${Math.max(0, Math.min(100, progress || 0)).toFixed(2)}%`);
-  return el('div', 'nv-span-bar', [el('small', '', from || ''), bar, el('small', '', to || '')]);
-}
 
 // The class as a band in its subject's colour (the kit's .q-band): its glyph,
 // its name, the teacher (and 單週 / 調課); the room large on the right.
@@ -130,9 +124,12 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   const lineKey = hero.strip ? rows.map(c => `${c.s}${parseTime(c.e) * 60 <= secs ? 1 : 0}${parseTime(c.s) * 60 <= secs ? 1 : 0}`).join() : '';
   const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label].join('|');
+  // How far through it is: the band itself fills, its colour lit up to now.
+  const done = Number.isFinite(hero.progress) ? `${Math.max(0, Math.min(100, hero.progress)).toFixed(2)}%` : '';
   if (key === drawn) {
-    // (Ticking: only the figure, each second, in place.)
+    // (Ticking: only the figure, each second, and the band's fill, in place.)
     if (toSecond) $('timer-val')?.replaceChildren(...bigTime(total, hero.timer.label, true).childNodes);
+    if (done) box.querySelector('.nv-band.is-now')?.style.setProperty('--done', done);
     return;
   }
   drawn = key;
@@ -153,8 +150,14 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
       : rest
         ? breakBand(hero.title, hero.span)
         : withId(el('strong', 'nv-title', hero.title), 'now-name');
+  if (done && main.classList.contains('nv-band') && !ahead) {
+    main.classList.add('is-now');
+    main.style.setProperty('--done', done);
+  }
+  // The time left, and beside it the clock it ends at (下課 11:00, 結束 05:30).
   const big = hero.timer ? bigTime(total, hero.timer.label, toSecond) : null;
-  const bar = rest && hero.span ? breakBar(hero.span, hero.progress) : null;
+  const until = String(hero.span || '').split(/[–-]/)[1]?.trim();
+  const time = big ? el('div', 'nv-time', [big, until && (hero.subject || rest) ? el('span', 'nv-until', [el('small', '', hero.subject ? L('下課', 'Ends') : L('結束', 'Ends')), el('b', 'num', until)]) : null]) : null;
 
   // The line, and under it how many are left, when school's out, the next school day's first class.
   const line = hero.strip && rows.length ? dayLine(rows, week, now, curIdx, date) : null;
@@ -168,10 +171,18 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
   let foot = null;
   if (!ahead && f?.note) foot = el('p', 'nv-foot-note', f.note);
   else if (!ahead && f) {
-    foot = button('nv-foot q-press', null, [withId(el('small', 'nv-foot-label', f.label), 'next-label'), el('span', 'nv-foot-dot'), withId(el('strong', 'nv-foot-name', f.name), 'next-name'), withId(el('span', 'nv-foot-end', [f.time, parts.length ? ` · ${parts.at(-1)}` : ''].join('')), 'next-time')]);
-    if (f.subject) foot.style.setProperty('--subject', subjectLook(f.subject).color);
+    // The class after as a small card of its own, in its subject's colour as the one above:
+    // its glyph; when (接著 10:10, 明天 08:00) over its name; the teacher on the right.
+    const pic = el('span', 'q-band-mark');
+    pic.innerHTML = f.subject ? subjectIcon(f.subject) : breakIcon();
+    foot = button('nv-foot q-band q-press', null, [
+      pic,
+      el('span', 'q-band-text', [el('small', '', [withId(el('span', 'nv-foot-label', f.label), 'next-label'), ' ', withId(el('span', 'num', f.time), 'next-time')]), withId(el('b', 'nv-foot-name', f.name), 'next-name')]),
+      parts.length ? el('span', 'q-band-end nv-foot-end', parts.at(-1)) : null
+    ]);
+    foot.style.setProperty('--band', f.subject ? subjectLook(f.subject).color : 'var(--q-gray)');
   }
-  box.replaceChildren(...[top, main, big, bar, line, end, foot].filter(Boolean));
+  box.replaceChildren(...[top, main, time, line, end, foot].filter(Boolean));
 }
 
 // ---- A day's classes (今天's list) ----

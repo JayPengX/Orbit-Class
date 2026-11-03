@@ -250,12 +250,21 @@ function bookNotice() {
 let screen = null;
 async function openFocus() {
   if (screen || !focus) return;
+  hideMini();
+  if (focus.mini) {
+    focus.mini = false;
+    save(focus);
+  }
   const root = el('div', 'cx-fl');
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-label', t('flight.title'));
   const mapBox = el('div', 'cx-fl-map');
   const end = button('q-btn glass small cx-fl-endbtn', endEarly, t('flight.end'));
+  // 縮小: the flight keeps going as a pill above the tabs; a tap brings it back.
+  const shrink = button('q-icon-btn q-glass cx-fl-shrink', minimize);
+  shrink.innerHTML = kitUI.icons.chevron;
+  shrink.setAttribute('aria-label', t('flight.minimize'));
   const recenter = button('q-icon-btn q-glass cx-fl-recenter', follow);
   recenter.innerHTML = kitUI.icons.target;
   recenter.setAttribute('aria-label', t('flight.recenter'));
@@ -267,7 +276,7 @@ async function openFocus() {
   const planeEl = el('div', 'cx-fl-plane');
   planeEl.innerHTML = `<span class="cx-fl-shadow">${PLANE}</span><span class="cx-fl-body">${PLANE}</span>`;
   planeEl.hidden = true;
-  root.append(mapBox, sky, planeEl, el('div', 'cx-fl-top', [end, recenter]), card);
+  root.append(mapBox, sky, planeEl, el('div', 'cx-fl-top', [shrink, el('div', 'cx-fl-top-r', [recenter, end])]), card);
   document.body.append(root);
   document.body.classList.add('cx-flying');
   screen = { root, mapBox, card, recenter, planeEl, map: null, layers: null, mode: 'intro', legHex: '', drawn: '', timer: 0, poller: 0, handing: 0, watching: false, lock: null };
@@ -359,6 +368,64 @@ function finishUp() {
   save(null);
   bookNotice();
   closeFocus();
+  hideMini();
+}
+
+// ---- 縮小: the pill while it flies on behind the app ----
+// The kit's accessory above the tab bar: the plane, the time left and where
+// it's going, and a thin line of the trip so far. Kept minimised when the app
+// is opened again. Time's up shows on it; a tap opens the flight's end.
+let mini = null;
+function minimize() {
+  if (!focus) return;
+  focus.mini = true;
+  save(focus);
+  closeFocus();
+  showMini();
+  kitUI.tick?.();
+}
+function showMini() {
+  if (!focus || mini) return;
+  const icon = el('span', 'cx-fl-mini-icon');
+  icon.innerHTML = PLANE;
+  const time = el('strong', 'cx-fl-mini-time num');
+  const line = el('small', 'cx-fl-mini-line');
+  const bar = el('span', 'cx-fl-mini-bar', [el('i')]);
+  const up = el('span', 'cx-fl-mini-up');
+  up.innerHTML = kitUI.icons.chevron;
+  const root = button('q-accessory cx-fl-mini', () => openFocus(), [icon, el('span', 'cx-fl-mini-words', [time, line]), up, bar]);
+  root.setAttribute('aria-label', t('flight.title'));
+  document.body.append(root);
+  document.body.classList.add('cx-fl-mini-on');
+  mini = { root, time, line, bar: bar.querySelector('i'), timer: setInterval(drawMini, 1000) };
+  drawMini();
+}
+function hideMini() {
+  if (!mini) return;
+  clearInterval(mini.timer);
+  mini.root.remove();
+  document.body.classList.remove('cx-fl-mini-on');
+  mini = null;
+}
+function drawMini() {
+  if (!mini || !focus) return hideMini();
+  const now = Date.now();
+  const left = focusLeft(focus, now);
+  const leg = currentLeg(focus);
+  const up = left <= 0;
+  if (up && !focus.done) {
+    focus.done = true;
+    focus.doneAt = focus.end;
+    save(focus);
+    bookNotice();
+  }
+  mini.root.classList.toggle('is-up', up);
+  mini.time.textContent = up ? t('flight.timeUp') : clock(left);
+  const to = cityName(leg.to, zh()) || leg.to.iata || '';
+  const line = up ? t('flight.tapToSee') : `${flightNo(leg.no)} → ${to}`;
+  if (mini.line.textContent !== line) mini.line.textContent = line;
+  const done = Math.min(1, Math.max(0, (now - focus.start) / (focus.end - focus.start)));
+  mini.bar.style.width = `${(done * 100).toFixed(2)}%`;
 }
 
 // ---- The map: alive, more film than chart ----
@@ -556,5 +623,6 @@ function endCard(leg, p) {
 export function resumeFlight() {
   if (!focus) return;
   bookNotice();
-  openFocus();
+  if (focus.mini) showMini();
+  else openFocus();
 }

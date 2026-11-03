@@ -78,45 +78,67 @@ function drawGrid(monday, now) {
   const short = shortNames(cols.flatMap(c => c.rows.map(x => processSplitName(x, c.week).n || '')));
   const grid = el('div', 'cx-tl-grid');
   grid.style.setProperty('--days', String(days.length));
-  grid.append(el('span', 'cx-tl-corner'));
-  for (const c of cols) {
-    const isToday = dateKey(c.date) === dateKey(today);
+  // Every piece placed by row and column: a class held over periods back to back is one block, and
+  // today's column a plate behind its classes. Rows: the heads, then each period (a long break, lunch, a line of its own).
+  const at = (node, row, col, span = 1) => ((node.style.gridRow = `${row} / span ${span}`), (node.style.gridColumn = String(col)), node);
+  const rowOf = [];
+  let r = 2;
+  for (let p = 0; p < periods; p += 1) {
+    rowOf[p] = r;
+    r += bellGap(bells, p) && p < periods - 1 ? 2 : 1;
+  }
+  const todayCol = cols.findIndex(c => dateKey(c.date) === dateKey(today));
+  if (todayCol >= 0) grid.append(at(el('span', 'cx-tl-col'), 1, todayCol + 2, r - 1));
+  grid.append(at(el('span', 'cx-tl-corner'), 1, 1));
+  cols.forEach((c, ci) => {
+    const isToday = ci === todayCol;
     const head = button(`cx-tl-day${isToday ? ' is-today' : ''}${c.holiday ? ' is-off' : ''}`, () => window.showDay?.(c.date), [el('small', '', t(`tools.day${c.d}`)), el('b', '', String(c.date.getDate()))]);
     head.setAttribute('aria-label', `${WEEKDAY_LABELS[c.d]} ${c.date.getMonth() + 1}/${c.date.getDate()}`);
-    grid.append(head);
-  }
+    grid.append(at(head, 1, ci + 2));
+  });
+  // A cell's state: now (the class on), done today, swapped.
+  const nameOf = (c, item) => (item ? processSplitName(item, c.week).n || '' : '');
   for (let p = 0; p < periods; p += 1) {
-    grid.append(el('span', 'cx-tl-row', [el('b', 'cx-tl-num', String(p + 1)), el('small', '', bells[p]?.[0] || '')]));
-    for (const c of cols) {
+    grid.append(at(el('span', 'cx-tl-row', [el('b', 'cx-tl-num', String(p + 1)), el('small', '', bells[p]?.[0] || '')]), rowOf[p], 1));
+    cols.forEach((c, ci) => {
       const item = c.rows.find(x => x.p === p);
-      if (!item) {
-        grid.append(el('span', `cx-tl-cell is-empty${c.holiday ? ' is-off' : ''}`));
-        continue;
-      }
-      const name = processSplitName(item, c.week).n || '';
+      if (!item) return void grid.append(at(el('span', `cx-tl-cell is-empty${c.holiday ? ' is-off' : ''}`), rowOf[p], ci + 2));
+      const name = nameOf(c, item);
       const label = short.get(name) || name;
-      const isToday = dateKey(c.date) === dateKey(today);
+      const isToday = ci === todayCol;
       const on = isToday && nowMin >= parseTime(item.s) && nowMin < parseTime(item.e);
       const past = isToday && nowMin >= parseTime(item.e);
-      // Four characters (自主學習) on two lines of two, so a narrow column keeps them whole.
-      const chars = [...label];
+      // The same class the period before, back to back (not across lunch, not a swap): this one is part of that block.
+      const before = c.rows.find(x => x.p === p - 1);
+      const held = before && !before.swap && !item.swap && nameOf(c, before) === name && rowOf[p] === rowOf[p - 1] + 1;
+      let span = 1;
+      while (!item.swap && rowOf[p + span] === rowOf[p + span - 1] + 1 && (x => x && !x.swap && nameOf(c, x) === name)(c.rows.find(x => x.p === p + span))) span += 1;
       const isLatin = /^[ -~]+$/.test(label);
-      const pair = chars.length === 4 && !isLatin;
-      const cell = button(`cx-tl-cell${on ? ' is-now' : ''}${past ? ' is-past' : ''}${item.swap ? ' is-swap' : ''}${pair ? ' is-pair' : isLatin && chars.length > 3 ? ' is-latin' : chars.length > 2 ? ' is-long' : ''}`, () => openModal(item, { date: testing ? null : c.date }), pair ? [el('span', '', chars.slice(0, 2).join('')), el('span', '', chars.slice(2).join(''))] : label);
+      const size = isLatin && label.length > 3 ? ' is-latin' : [...label].length > 3 ? ' is-four' : [...label].length > 2 ? ' is-long' : '';
+      const block = held ? '' : span > 1 ? ' is-block' : '';
+      const cell = button(`cx-tl-cell${on ? ' is-now' : ''}${past ? ' is-past' : ''}${item.swap ? ' is-swap' : ''}${size}${block}${held ? ' is-held' : ''}`, () => openModal(item, { date: testing ? null : c.date }), label);
       cell.style.setProperty('--subject', subjectLook(name).color);
       cell.setAttribute('aria-label', `${WEEKDAY_LABELS[c.d]} ${t('dashboard.periodNumber', { number: p + 1 })} ${name}`);
-      grid.append(cell);
-    }
+      // (The block's later periods stay in the grid, hidden, so every period keeps its cell.)
+      if (held) cell.hidden = true;
+      // The block is "now" while any of its periods is.
+      if (!held && span > 1 && isToday) {
+        const last = c.rows.find(x => x.p === p + span - 1);
+        if (nowMin >= parseTime(item.s) && nowMin < parseTime(last.e)) cell.classList.add('is-now');
+        cell.classList.toggle('is-past', nowMin >= parseTime(last.e));
+      }
+      grid.append(at(cell, rowOf[p], ci + 2, held ? 1 : rowOf[p + span - 1] - rowOf[p] + 1));
+    });
     // A long break after this period (lunch): a quiet line across the week, named when the timetable names it.
-    const gap = bellGap(bells, p);
-    if (gap) grid.append(el('span', 'cx-tl-gap', gap.name ? [el('small', '', `${gap.start} ${gap.name}`)] : null));
+    const gap = p < periods - 1 && bellGap(bells, p);
+    if (gap) grid.append(Object.assign(at(el('span', 'cx-tl-gap', gap.name ? [el('small', '', `${gap.start} ${gap.name}`)] : null), rowOf[p] + 1, 1), { style: `grid-row: ${rowOf[p] + 1}; grid-column: 1 / -1` }));
   }
   // A holiday's column says which.
   const offs = cols.filter(c => c.holiday);
   const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${t('dashboard.holidayTitle', { zh: c.holiday.zh, en: c.holiday.en || c.holiday.zh })}`))) : null;
   if (!periods) return null;
   // A long Latin name wraps by word; what still won't fit shrinks.
-  requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-tl-cell.is-latin')));
+  requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-tl-cell:is(.is-latin, .is-four, .is-long):not([hidden])'), 10));
   return [grid, foot].filter(Boolean);
 }
 // The break of 30 minutes or more between period p and the next, by the bells (and its name from 特殊時段).

@@ -33,14 +33,25 @@ import {
   schedulePush
 } from '#kit/orbit.mjs';
 import { h } from '#kit/ui.mjs';
+import { glyph } from './ui.js';
 
 const lang = detectLang();
 const q = orbitSession('orbit', { lang });
 function isSyncConfigured() {
   return Boolean(q.pass);
 }
+// One quiet line under the share cards; an error is a red-tinted banner, and
+// it goes away once a later check reads and writes fine (a dropped connection
+// used to leave 同步上傳失敗 on the sheet for good).
 function setSyncStatusUi(message, isError) {
   setStatusText('sync-status', message, isError);
+  const box = document.getElementById('sync-status');
+  if (!box) return;
+  box.style.color = '';
+  box.classList.toggle('is-error', Boolean(isError && message));
+}
+function clearSyncError() {
+  if (document.getElementById('sync-status')?.classList.contains('is-error')) setSyncStatusUi('');
 }
 const failText = error => errorText(error, lang) || error?.message || String(error);
 
@@ -299,10 +310,15 @@ async function syncTick() {
   // Newer copies first; then this device's own edit, if one hasn't gone up.
   const pulled = await pullSyncSnapshot();
   if (!pulled.ok) setSyncStatusUi(pulled.error, true);
+  let pushedOk = true;
   if (localDirty) {
     const pushed = await pushSyncSnapshot({ mine: false });
-    if (pushed && !pushed.ok) setSyncStatusUi(pushed.error, true);
+    if (pushed && !pushed.ok) {
+      pushedOk = false;
+      setSyncStatusUi(pushed.error, true);
+    }
   }
+  if (pulled.ok && pushedOk) clearSyncError();
   return Boolean(pulled.applied);
 }
 let loopStarted = false;
@@ -426,12 +442,18 @@ function renderSyncPanel() {
       ]),
       el('button', {
         type: 'button',
-        class: 'q-btn small tinted',
+        class: 'q-btn small tr-plain',
         text: t('orbit.account'),
         onclick: () => accountSheet(q)
       })
     ])
   ]);
+  // The two ways, each a card of its own: a glyph and what it does, then its one action under it.
+  const head = (icon, color, title, sub) =>
+    el('div', { class: 'tr-card-head' }, [
+      el('span', { class: 'q-tile sm', style: `--t:${color}`, html: glyph(icon) }),
+      el('span', { class: 'tr-card-words' }, [el('strong', { text: title }), el('small', { text: sub })])
+    ]);
   const key = shared
     ? el('div', { class: 'tr-keycard' }, [
         el('small', { text: t('orbit.keyLabel', { time: when }) }),
@@ -441,30 +463,26 @@ function renderSyncPanel() {
         ])
       ])
     : null;
-  box.replaceChildren(
-    ...[
-      pass,
-      el('h3', { class: 'cx-sheet-h', text: t('orbit.shareTitle') }),
-      key,
-      btn(t(shared ? 'orbit.newKey' : 'orbit.makeKey'), createShareKey, !shared, 'large block'),
-      el('p', { class: 'cx-foot-line', text: t('orbit.shareHint') }),
-      el('h3', { class: 'cx-sheet-h', text: t('orbit.receiveTitle') }),
-      el('div', { class: 'qp-key-row' }, [
-        el('input', {
-          id: 'orbit-key',
-          class: 'q-field',
-          type: 'text',
-          autocapitalize: 'characters',
-          autocomplete: 'off',
-          spellcheck: 'false',
-          maxlength: '9',
-          placeholder: t('orbit.keyPlaceholder')
-        }),
-        btn(t('orbit.copy'), redeemKey)
-      ]),
-      el('p', { class: 'cx-foot-line', text: t('orbit.receiveHint') })
-    ].filter(Boolean)
-  );
+  const give = el('div', { class: 'tr-card' }, [
+    head('share', 'var(--q-green)', t('orbit.shareTitle'), t('orbit.shareSub')),
+    key,
+    btn(t(shared ? 'orbit.newKey' : 'orbit.makeKey'), createShareKey, false, 'block tr-go')
+  ].filter(Boolean));
+  const take = el('div', { class: 'tr-card' }, [
+    head('key', 'var(--q-orange)', t('orbit.receiveTitle'), t('orbit.receiveSub')),
+    el('input', {
+      id: 'orbit-key',
+      class: 'q-field tr-key-field',
+      type: 'text',
+      autocapitalize: 'characters',
+      autocomplete: 'off',
+      spellcheck: 'false',
+      maxlength: '9',
+      placeholder: t('orbit.keyPlaceholder')
+    }),
+    btn(t('orbit.copy'), redeemKey, false, 'block tr-go')
+  ]);
+  box.replaceChildren(pass, give, take);
   restore();
 }
 

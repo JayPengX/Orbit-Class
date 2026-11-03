@@ -453,15 +453,13 @@ export default {
   'orbit.signedOut': 'Not signed in to a Orbit Pass',
   'orbit.account': 'Account',
   'orbit.shareTitle': 'Share with a classmate',
-  'orbit.shareHint':
-    'Make a share key (valid 24 hours) for a classmate: they get their own copy of your schedule; only you can change yours.',
+  'orbit.shareSub': 'Valid for 24 hours; they get their own copy',
+  'orbit.receiveSub': 'Replaces your current schedule',
   'orbit.makeKey': 'Make a share key',
   'orbit.newKey': 'Make another',
   'orbit.keyLabel': 'Share key (valid until {time})',
   'orbit.keyCopied': 'Share key copied.',
   'orbit.receiveTitle': 'Got a share key?',
-  'orbit.receiveHint':
-    'Enter a classmate’s key to copy their schedule as your own (it replaces your current one).',
   'orbit.keyPlaceholder': '8-character key',
   'orbit.copy': 'Copy this schedule',
   'orbit.enterKey': 'Enter a share key first.',
@@ -524,6 +522,8 @@ export default {
   'flight.handoff': '{no} landed in {city} · now on {next}',
   'flight.notice': 'Focus done',
   'flight.recenter': 'Back to the plane',
+  'flight.minimize': 'Minimise',
+  'flight.tapToSee': 'Tap to see how it went',
   'flight.left': '{t} left',
   'flight.fromCity': 'from ',
 };

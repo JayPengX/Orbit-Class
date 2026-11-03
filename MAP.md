@@ -10,14 +10,16 @@ Live: https://orbit.jaypengx.com/class/
 - **Tabs, one question each:**
   - **今天:** one graphite card answers "what's left today", led by the
     class: the one on now (or the next) as a band in its subject's colour
-    (glyph, name, teacher, the room large on the right), the time left
-    large (to the second within the hour of a class: 39 分 54 秒後下課, the
+    (glyph, name, teacher, the room large on the right) that fills as it
+    goes (its colour lit up to now, a shade darker for what's left: no bar of
+    its own), the time left large with the clock it ends at on the right (to the second within the hour of a class: 39 分 54 秒後下課, the
     figure patched in place each second), then the day as one line of dots, each its subject's
     colour with its two-character short name (an English one by its words'
     capitals, Advanced English → AE; done faded, now ringed in the app's
     colour; lunch a longer dashed gap; a tap opens that dot's own class),
     how many are left, when school's out and the next school day's first
-    class; the foot (接著 / 下一節) opens the class it names. Once school's
+    class; the foot (接著 / 下一節 / 明天) is a small band of its own in that
+    class's colour (glyph, when over its name, the teacher) and opens it. Once school's
     out the band is the next school day's first class; a break that is the
     card itself (bedtime) is a band of its own (the moon in indigo, its hours
     under its name), the time left in minutes and a bar from its start to its
@@ -32,7 +34,8 @@ Live: https://orbit.jaypengx.com/class/
     class it shows the next school day. A class's sheet (`view-sheet.js`):
     its pencil opens the icon picker as a sheet over it, so closing the
     picker leaves the class open.
-  - **課表:** the week as a grid, this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
+  - **課表:** the week as a grid (cells solid in a soft shade of their subject's colour, back-to-back periods of one
+    class one block, today's column on a plate, names on one line shrunk to fit, a free period a quiet dot, now ringed), this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
     Each class a cell washed in its subject's colour with a bar of it on its left, the class on now on its full colour ringed in the app's, today's done ones faded, a break of 30 minutes or more a dashed line across the week (named from 特殊時段, `bellGap`).
   - **工具:** the week as a grid (課表's cells, short names) with 編輯課表; 專注飛行 (a graphite card, a flight's arc drawn on it); the editor's four parts as one card of four figures; AI 課表編輯 and 拍照匯入 as two cards;
     分享金鑰.
@@ -42,7 +45,10 @@ Live: https://orbit.jaypengx.com/class/
   `flight.js`) offers three planes in the air now that land in about that
   time. The planes in the air are kept on the phone (10 minutes, refreshed
   behind) and picked there, so 25/50/90 switch at once; up to 6 flights, whole
-  short flights first, never none. The screen is the plane on a satellite map (Esri imagery, Leaflet,
+  short flights first, never none. 縮小 (top left) folds it into the kit's
+  `.q-accessory` pill above the tabs (the plane, the time left, the flight and
+  where to, the trip as a hairline; kept folded on reopening, `focus.mini`);
+  a tap opens it again. The screen is the plane on a satellite map (Esri imagery, Leaflet,
   loaded only here), gliding every frame from its last fix (kit
   `flight.mjs`), the camera riding along, clouds drifting under it; the time
   left large. Landing early hands over to another plane for the rest; the end
@@ -76,7 +82,9 @@ Live: https://orbit.jaypengx.com/class/
   (`orbitSetAside`), never lost. With the editor open and unsaved, a newer
   copy (or the inbox) waits (`DEFERRED`) instead of being skipped;
   redeeming a share key sets the local copy aside first. 分享金鑰: an 8-character key (24 h) gives
-  another pass its own copy.
+  another pass its own copy; the sheet is the Pass row and two graphite cards (分享給同學, 收到分享金鑰), each a
+  glyph, one line and one full-width action. A failed sync shows as a quiet banner and clears on the next good check.
+  時間模擬 has no way in from the app any more (its code, `testsim-runtime.js`, stays for the tests).
 - **Offline:** opens on the kept timetable; the AI features say they need
   the network.
 

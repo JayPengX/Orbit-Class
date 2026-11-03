@@ -82,7 +82,7 @@ describe('Orbit Class on the Orbit Pass', () => {
   });
 
   it('makes a share key and shows it', async () => {
-    document.querySelector('#orbit-box .settings-transfer-btn.primary').click();
+    document.querySelector('#orbit-box .tr-card .tr-go').click();
     await vi.waitFor(() =>
       expect(document.querySelector('#orbit-box .sync-active-code')?.textContent).toBe('KEY23456')
     );
@@ -94,7 +94,7 @@ describe('Orbit Class on the Orbit Pass', () => {
     sync.renderSyncPanel();
     expect(document.getElementById('orbit-key').value).toBe('KEY2');
     document.getElementById('orbit-key').value = 'KEY23456';
-    document.querySelector('#orbit-box .qp-key-row .settings-transfer-btn').click();
+    document.querySelector('#orbit-box #orbit-key ~ .tr-go').click();
     await vi.waitFor(() =>
       expect(calls.some(c => c[0] === 'op' && c[1] === 'share-redeem')).toBe(true)
     );

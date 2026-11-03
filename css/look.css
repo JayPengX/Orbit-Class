@@ -93,6 +93,42 @@ html[data-look='native'] .nv-title {
   letter-spacing: -0.015em;
 }
 
+/* The one now: the band fills as it goes, its colour lit up to now and a
+   shade darker for what's left, a fine line where now is (no bar of its own). */
+html[data-look='native'][data-look='native'] .q-band.nv-band.is-now {
+  background:
+    linear-gradient(90deg, transparent calc(var(--done, 0%) - 1px), rgba(255, 255, 255, 0.55) calc(var(--done, 0%) - 1px), rgba(255, 255, 255, 0.55) var(--done, 0%), rgba(0, 0, 0, 0.26) var(--done, 0%)),
+    linear-gradient(100deg, color-mix(in srgb, var(--band, var(--q-gray)) 92%, var(--nv-deep)) 0%, color-mix(in srgb, var(--band, var(--q-gray)) 70%, var(--nv-deep)) 100%);
+}
+/* The time left on the left, the clock it ends at on the right. */
+html[data-look='native'] .nv-time {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 0;
+}
+html[data-look='native'] .nv-time .nv-big {
+  padding: 0;
+  min-width: 0;
+}
+html[data-look='native'] .nv-until {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  gap: 2px;
+  padding-bottom: 4px;
+}
+html[data-look='native'] .nv-until small {
+  color: var(--q-label-2);
+  font: 500 13px/16px var(--q-font);
+}
+html[data-look='native'] .nv-until b {
+  color: var(--q-label);
+  font: 400 22px/24px var(--nv-display);
+  font-variant-numeric: tabular-nums;
+}
+
 /* The minutes: large and light, the words after them small. */
 html[data-look='native'] .nv-big {
   display: flex;
@@ -101,7 +137,7 @@ html[data-look='native'] .nv-big {
   padding: 0 4px;
 }
 html[data-look='native'] .nv-big b {
-  font: 300 60px/60px var(--nv-display);
+  font: 300 52px/52px var(--nv-display);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;
 }
@@ -112,37 +148,15 @@ html[data-look='native'] .nv-big .nv-unit {
   font: 500 17px/1 var(--q-font);
 }
 
-/* A break that is the card (bedtime): how far through it, a bar from its start to its end. */
-html[data-look='native'] .nv-span-bar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 2px 4px 0;
-  color: var(--q-label-2);
-  font: 500 13px/16px var(--q-font);
-  font-variant-numeric: tabular-nums;
-}
-html[data-look='native'] .nv-bar {
-  position: relative;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: var(--q-fill-2, rgba(120, 120, 128, 0.32));
-}
-html[data-look='native'] .nv-bar-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--done, 0%);
-  border-radius: inherit;
-  background: var(--q-accent);
-}
 
 /* (A narrow phone: the figures a size down, so 10 小時 34 分後結束 stays one line.) */
 @media (max-width: 359px) {
   html[data-look='native'] .nv-big b {
-    font-size: 50px;
-    line-height: 52px;
+    font-size: 42px;
+    line-height: 44px;
+  }
+  html[data-look='native'] .nv-until b {
+    font-size: 19px;
   }
   html[data-look='native'] .nv-big .nv-unit {
     font-size: 15px;
@@ -229,43 +243,30 @@ html[data-look='native'] .nv-end b {
   font-weight: 600;
 }
 
-/* ---- The foot: the class after (or tomorrow's first), one row ---- */
-html[data-look='native'] .nv-foot {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  margin: 0 -2px;
-  padding: 12px 6px 2px;
+/* ---- The foot: the class after (or tomorrow's first), a small card in its
+   subject's colour as the one above: the kit's band at its own size ---- */
+html[data-look='native'][data-look='native'] .nv-foot {
+  width: 100%;
+  margin: 2px 0 0;
   border: 0;
-  border-top: 0.5px solid var(--q-sep);
-  background: none;
-  color: var(--q-label);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
+html[data-look='native'] .nv-foot .q-band-text small {
+  font-variant-numeric: tabular-nums;
+}
 html[data-look='native'] .nv-foot-label {
-  color: var(--q-label-2);
-  font: 500 14px/18px var(--q-font);
+  font-weight: 600;
+  color: #ffffff;
 }
-html[data-look='native'] .nv-foot-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--subject, var(--q-gray));
-}
-html[data-look='native'] .nv-foot-name {
+html[data-look='native'][data-look='native'] .nv-foot-end {
+  max-width: 40%;
   overflow: hidden;
-  font: 600 17px/22px var(--q-font);
+  color: rgba(255, 255, 255, 0.86);
+  font: 500 15px/20px var(--q-font);
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-html[data-look='native'] .nv-foot-end {
-  color: var(--q-label-2);
-  font: 400 15px/20px var(--q-font);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 html[data-look='native'] .nv-foot-note {
   margin: 0;
@@ -466,11 +467,13 @@ html[data-look='native'] .cx-cd.is-over {
   opacity: 0.55;
 }
 
-/* ---- 課表: the week as a grid on graphite. Each class a cell washed in
-   its subject's colour with a bar of it on its left; the class on now on
-   its full colour, ringed in the app's; a long break a dashed line across. ---- */
+/* ---- 課表: the week on graphite. Each class a soft block of its subject's
+   colour, its name white and whole on one line; a class held over periods
+   back to back one tall block; today's column a plate behind its classes;
+   the class on now on its full colour, ringed in the app's; a free period
+   nothing at all; a long break a dashed line across. ---- */
 html[data-look='native'] :is(#cx-grid:not(.is-both), .cx-grid-card) {
-  padding: 12px 10px 10px 6px;
+  padding: 10px 10px 12px 4px;
   border-radius: var(--q-r-card);
   background: var(--nv-card);
   box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
@@ -481,11 +484,30 @@ html[data-look='native'] #cx-grid:has(> .q-empty) {
   box-shadow: none;
 }
 html[data-look='native'] .cx-tl-grid {
+  --cx-cell-h: 48px;
+  position: relative;
   grid-template-columns: 38px repeat(var(--days, 5), minmax(0, 1fr));
-  gap: 5px 4px;
+  grid-auto-rows: auto;
+  gap: 4px;
+}
+html[data-look='native'] .cx-tl-col {
+  z-index: 0;
+  margin: -2px -2px -4px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--q-accent) 9%, transparent);
+  pointer-events: none;
+}
+html[data-look='native'] :is(.cx-tl-day, .cx-tl-row, .cx-tl-cell, .cx-tl-gap) {
+  position: relative;
+  z-index: 1;
+}
+html[data-look='native'] .cx-tl-day {
+  padding: 4px 0 6px;
 }
 html[data-look='native'] .cx-tl-day b {
-  font: 400 18px/1 var(--nv-display);
+  width: 32px;
+  height: 32px;
+  font: 400 19px/1 var(--nv-display);
 }
 html[data-look='native'] .cx-tl-day.is-today b {
   background: var(--q-accent);
@@ -493,46 +515,83 @@ html[data-look='native'] .cx-tl-day.is-today b {
   font-weight: 500;
 }
 html[data-look='native'] .cx-tl-num {
-  font: 400 17px/20px var(--nv-display);
+  font: 400 18px/20px var(--nv-display);
 }
 html[data-look='native'] .cx-tl-row small {
+  color: var(--q-label-3);
   font: 400 10px/12px var(--nv-display);
 }
-html[data-look='native'][data-look='native'] .cx-tl-cell:not(.is-empty) {
-  background: color-mix(in srgb, var(--subject) 16%, transparent);
-  box-shadow: inset 3px 0 0 var(--subject);
-  color: var(--q-label);
-  font-weight: 600;
+html[data-look='native'][data-look='native'] .cx-tl-cell {
+  min-height: var(--cx-cell-h);
+  padding: 0 3px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--subject) 34%, var(--nv-deep));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font: 600 15px/18px var(--q-font);
+  letter-spacing: 0;
+  white-space: nowrap;
   text-shadow: none;
+  opacity: 1;
   transform: none;
 }
+html[data-look='native'] .cx-tl-cell[hidden] {
+  display: none;
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-long {
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-four {
+  font-size: 13px;
+  letter-spacing: -0.03em;
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-latin {
+  padding: 2px 4px;
+  font: 600 11px/13px var(--q-font);
+  white-space: normal;
+}
+/* (A class held over periods: one tall block, its name a size up.) */
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-block {
+  font-size: 16px;
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-block.is-four {
+  padding: 0 6px;
+  font-size: 14px;
+  line-height: 18px;
+  white-space: normal;
+  text-wrap: balance;
+}
 html[data-look='native'][data-look='native'] .cx-tl-cell.is-now {
-  z-index: 1;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--subject) 92%, var(--nv-deep)), color-mix(in srgb, var(--subject) 68%, var(--nv-deep)));
+  z-index: 2;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--subject) 95%, #ffffff), color-mix(in srgb, var(--subject) 78%, var(--nv-deep)));
   box-shadow: none;
-  color: #ffffff;
   outline: 2px solid var(--q-accent);
   outline-offset: 2px;
 }
-html[data-look='native'][data-look='native'] .cx-tl-cell.is-past {
-  opacity: 0.4;
-}
 html[data-look='native'][data-look='native'] .cx-tl-cell.is-swap:not(.is-now) {
-  box-shadow: inset 3px 0 0 var(--subject), inset 0 0 0 1.5px var(--q-orange);
+  box-shadow: inset 0 0 0 1.5px var(--q-orange);
 }
 html[data-look='native'][data-look='native'] .cx-tl-cell.is-empty {
   background: none;
-  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
-}
-html[data-look='native'][data-look='native'] .cx-tl-cell.is-empty.is-off {
   box-shadow: none;
+  cursor: default;
+}
+html[data-look='native'] .cx-tl-cell.is-empty::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--q-fill-2, rgba(120, 120, 128, 0.32));
+}
+html[data-look='native'] .cx-tl-cell.is-empty.is-off::after {
+  display: none;
 }
 html[data-look='native'] .cx-tl-gap {
-  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 14px;
+  min-height: 18px;
   padding-left: 42px;
 }
 html[data-look='native'] .cx-tl-gap::after {
@@ -545,6 +604,35 @@ html[data-look='native'] .cx-tl-gap small {
   font: 500 11px/14px var(--q-font);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+/* (Light: the blocks a pale wash of their colour, the names in a deep shade of it.) */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark'])[data-look='native'] .cx-tl-cell:not(.is-empty, .is-now) {
+    background: color-mix(in srgb, var(--subject) 15%, #ffffff);
+    box-shadow: none;
+    color: color-mix(in srgb, var(--subject) 62%, #000000);
+  }
+}
+:root[data-theme='light'][data-look='native'] .cx-tl-cell:not(.is-empty, .is-now) {
+  background: color-mix(in srgb, var(--subject) 15%, #ffffff);
+  box-shadow: none;
+  color: color-mix(in srgb, var(--subject) 62%, #000000);
+}
+@media (max-width: 359px) {
+  html[data-look='native'][data-look='native'] .cx-tl-cell {
+    font-size: 13px;
+  }
+  html[data-look='native'][data-look='native'] .cx-tl-cell.is-long {
+    font-size: 12px;
+  }
+  html[data-look='native'][data-look='native'] .cx-tl-cell.is-four {
+    font-size: 11px;
+    letter-spacing: -0.04em;
+  }
+  html[data-look='native'] .cx-tl-grid {
+    grid-template-columns: 30px repeat(var(--days, 5), minmax(0, 1fr));
+    gap: 3px;
+  }
 }
 
 /* ---- 工具 ---- */
@@ -778,7 +866,7 @@ html[data-look='native'].q-wide .nv-now {
   grid-auto-flow: dense;
   gap: 12px 32px;
 }
-html[data-look='native'].q-wide .nv-now > :is(.nv-top, .q-band, .nv-title, .nv-big) {
+html[data-look='native'].q-wide .nv-now > :is(.nv-top, .nv-band, .nv-title, .nv-time) {
   grid-column: 1;
 }
 html[data-look='native'].q-wide .nv-now > :is(.nv-line, .nv-end) {
@@ -787,12 +875,6 @@ html[data-look='native'].q-wide .nv-now > :is(.nv-line, .nv-end) {
 html[data-look='native'].q-wide .nv-now > .nv-line {
   grid-row: 1 / span 2;
   align-self: end;
-}
-/* (Bedtime: its bar on the right, level with the band and the time.) */
-html[data-look='native'].q-wide .nv-now > .nv-span-bar {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
 }
 html[data-look='native'].q-wide .nv-now > .nv-end {
   align-self: start;
@@ -972,4 +1054,181 @@ html[data-look='native'] .cx-way-card small {
     padding: 0 4px;
     font-size: 14px;
   }
+}
+
+/* ---- 分享金鑰: the Pass, then two cards (share, receive), each a head and one action ---- */
+#transfer-sheet .tr-key {
+  display: grid;
+  gap: 12px;
+}
+#transfer-sheet .tr-key > .q-rowcard:first-child {
+  margin: 0;
+}
+.tr-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--q-r-card);
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+}
+.tr-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.tr-card-head .q-tile {
+  flex: none;
+}
+.tr-card-words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.tr-card-words strong {
+  color: var(--q-label);
+  font: 600 var(--q-t-headline);
+}
+.tr-card-words small {
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+}
+/* The one action of a card: a full-width graphite button, white words, never accent text. */
+#transfer-sheet .q-btn.tr-go,
+#transfer-sheet .q-btn.tr-plain {
+  border: 0;
+  background: var(--q-fill-2);
+  color: var(--q-label);
+  font-weight: 600;
+  box-shadow: none;
+}
+#transfer-sheet .q-btn.tr-go {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+}
+#transfer-sheet .q-btn.tr-plain {
+  flex: none;
+}
+.q-field.tr-key-field {
+  width: 100%;
+  min-height: 52px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  background: var(--q-fill-3);
+  text-align: center;
+  font: 600 20px/1.2 var(--q-font-mono, ui-monospace, monospace);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.q-field.tr-key-field::placeholder {
+  font: var(--q-t-body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--q-label-3);
+}
+#transfer-sheet .tr-keycard {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--q-fill-3);
+}
+#transfer-sheet .sync-active-code {
+  color: var(--q-label);
+  font-weight: 600;
+}
+/* A failed check: a quiet banner, not a line of red type. */
+#sync-status.is-error {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--q-red) 14%, transparent);
+  color: var(--q-label);
+}
+
+/* ---- 專注飛行: 縮小 at the top left, 回到飛機 and 結束 at the right ---- */
+.cx-fl-top-r {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cx-fl-shrink svg {
+  transform: rotate(90deg);
+}
+/* Minimised: the kit's accessory above the tabs, the plane in the app's colour,
+   the time left in figures, where it's going under it, the trip as a hairline. */
+.q-accessory.cx-fl-mini {
+  position: fixed;
+  overflow: hidden;
+  padding-right: 14px;
+}
+.cx-fl-mini-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--q-accent);
+  color: #fff;
+}
+.cx-fl-mini-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  transform: rotate(45deg);
+}
+.cx-fl-mini-words {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.cx-fl-mini-time {
+  font: 600 20px/24px var(--nv-display, inherit);
+  font-variant-numeric: tabular-nums;
+}
+.cx-fl-mini-line {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cx-fl-mini-up {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--q-label-3);
+}
+.cx-fl-mini-up svg {
+  width: 16px;
+  height: 16px;
+  transform: rotate(-90deg);
+}
+.cx-fl-mini-bar {
+  position: absolute;
+  right: 22px;
+  bottom: 0;
+  left: 22px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--q-fill-2);
+}
+.cx-fl-mini-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--q-accent);
+}
+.cx-fl-mini.is-up .cx-fl-mini-time {
+  color: var(--q-accent);
+}
+/* Room under the page for the pill, so the last row never sits beneath it. */
+body.cx-fl-mini-on main::after {
+  content: '';
+  display: block;
+  height: 72px;
 }
