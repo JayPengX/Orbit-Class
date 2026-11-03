@@ -97,7 +97,7 @@ html[data-look='native'] .nv-title {
    shade darker for what's left, a fine line where now is (no bar of its own). */
 html[data-look='native'][data-look='native'] .q-band.nv-band.is-now {
   background:
-    linear-gradient(90deg, transparent calc(var(--done, 0%) - 1px), rgba(255, 255, 255, 0.55) calc(var(--done, 0%) - 1px), rgba(255, 255, 255, 0.55) var(--done, 0%), rgba(0, 0, 0, 0.26) var(--done, 0%)),
+    linear-gradient(90deg, transparent var(--done, 0%), rgba(0, 0, 0, 0.24) var(--done, 0%)),
     linear-gradient(100deg, color-mix(in srgb, var(--band, var(--q-gray)) 92%, var(--nv-deep)) 0%, color-mix(in srgb, var(--band, var(--q-gray)) 70%, var(--nv-deep)) 100%);
 }
 /* The time left on the left, the clock it ends at on the right. */
