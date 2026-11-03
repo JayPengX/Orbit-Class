@@ -2152,6 +2152,34 @@ body.cx-flying {
 .cx-fl-recenter[hidden] {
   display: none;
 }
+/* 結束 and the recenter button: one height, one line, solid over the map (Jay 2026-11-03:
+   "glassy 3D and not even placed at a even place"): 44 tall, the same inset from each edge,
+   the card's own graphite with a soft shadow, no glass rim. */
+.cx-fl-top > .cx-fl-endbtn,
+.cx-fl-top > .cx-fl-recenter {
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  border: 0;
+  background: var(--nv-card, var(--q-surface));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 0 0 0.5px var(--nv-edge, rgba(255, 255, 255, 0.08)), 0 4px 14px rgba(0, 0, 0, 0.28);
+  color: var(--q-label);
+}
+.cx-fl-top > .cx-fl-endbtn {
+  padding: 0 18px;
+  border-radius: 22px;
+  font: 600 16px/1 var(--q-font);
+}
+.cx-fl-top > .cx-fl-recenter {
+  width: 44px;
+  border-radius: 50%;
+}
+.cx-fl-top > .cx-fl-recenter svg {
+  width: 22px;
+  height: 22px;
+}
 
 .cx-fl-card {
   position: absolute;
