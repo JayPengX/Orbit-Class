@@ -107,8 +107,46 @@ html[data-look='native'] .nv-big b {
 }
 html[data-look='native'] .nv-big .nv-unit {
   margin-right: 4px;
+  white-space: nowrap;
   color: var(--q-label-2);
   font: 500 17px/1 var(--q-font);
+}
+
+/* A break that is the card (bedtime): how far through it, a bar from its start to its end. */
+html[data-look='native'] .nv-span-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px 0;
+  color: var(--q-label-2);
+  font: 500 13px/16px var(--q-font);
+  font-variant-numeric: tabular-nums;
+}
+html[data-look='native'] .nv-bar {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--q-fill-2, rgba(120, 120, 128, 0.32));
+}
+html[data-look='native'] .nv-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--done, 0%);
+  border-radius: inherit;
+  background: var(--q-accent);
+}
+
+/* (A narrow phone: the figures a size down, so 10 小時 34 分後結束 stays one line.) */
+@media (max-width: 359px) {
+  html[data-look='native'] .nv-big b {
+    font-size: 50px;
+    line-height: 52px;
+  }
+  html[data-look='native'] .nv-big .nv-unit {
+    font-size: 15px;
+  }
 }
 
 /* ---- The day as one line ---- */
@@ -297,6 +335,13 @@ html[data-look='native'][data-look='native'] .cx-cl .cx-cl-sub {
   color: var(--q-label-2);
   font: 400 13px/17px var(--q-font);
 }
+/* (Today picked once it's over: every class done, faded.) */
+html[data-look='native'][data-look='native'] .cx-cls .cx-cl.is-over :is(.cx-cl-time, .cx-cl-name, .cx-cl-sub) {
+  color: var(--q-label-3);
+}
+html[data-look='native'][data-look='native'] .cx-cl.is-over .cx-cl-icon {
+  opacity: 0.5;
+}
 html[data-look='native'][data-look='native'] .cx-cls > .cx-cl.is-break {
   display: grid;
   justify-self: stretch;
@@ -372,6 +417,12 @@ html[data-look='native'].q-wide .nv-now > :is(.nv-line, .nv-end) {
 html[data-look='native'].q-wide .nv-now > .nv-line {
   grid-row: 1 / span 2;
   align-self: end;
+}
+/* (Bedtime: its bar on the right, level with the band and the time.) */
+html[data-look='native'].q-wide .nv-now > .nv-span-bar {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
 }
 html[data-look='native'].q-wide .nv-now > .nv-end {
   align-self: start;

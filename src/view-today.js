@@ -11,7 +11,7 @@ import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { holidayOn } from './holidays.js';
-import { breakIcon, eventLook, shortNames, subjectIcon, subjectLook } from './subjects.js';
+import { breakIcon, eventLook, moonIcon, shortNames, subjectIcon, subjectLook } from './subjects.js';
 import { openModal } from './view-sheet.js';
 import { el, button, glyph, nameSize, section } from './ui.js';
 import { getLocale, t } from './strings.js';
@@ -28,23 +28,60 @@ const L = (zh, en) => (getLocale() === 'en' ? en : zh);
 const plain = html => String(html || '').replace(/<[^>]*>/g, '').trim();
 const withId = (node, id) => ((node.id = id), node);
 
-// "39:54" or "1:02:03" → whole minutes, rounded up (a class 39:54 from its end is 40 minutes).
-export function minutesOf(value) {
+// "39:54" or "1:02:03" → seconds.
+export function secondsOf(value) {
   const parts = String(value || '')
     .split(':')
     .map(Number);
   if (!value || parts.some(n => !Number.isFinite(n))) return null;
-  return Math.ceil(parts.reduce((s, n) => s * 60 + n, 0) / 60);
+  return parts.reduce((s, n) => s * 60 + n, 0);
 }
-// The big figure: 40 分鐘後下課 / 1 小時 5 分後上課 (the numbers large, the words small after them).
-function bigMinutes(mins, label) {
-  if (mins == null) return null;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
+// "39:54" or "1:02:03" → whole minutes, rounded up (a class 39:54 from its end is 40 minutes).
+export function minutesOf(value) {
+  const secs = secondsOf(value);
+  return secs == null ? null : Math.ceil(secs / 60);
+}
+// The big figure: 40 分鐘後下課 / 1 小時 5 分後上課 (the numbers large, the
+// words small after them). Within the hour of a class starting or ending
+// (Jay 2026-11-03: in class, to the second): 39 分 54 秒後下課, ticking.
+function bigTime(secs, label, toSecond) {
+  if (secs == null) return null;
   const unit = s => el('small', 'nv-unit', s);
   const tail = getLocale() === 'en' ? ` ${label}` : label;
-  const parts = h ? [el('b', '', String(h)), unit(L('小時', 'h')), m ? el('b', '', String(m)) : null, unit(m ? L('分', 'm') + tail : tail)] : [el('b', '', String(m)), unit(L('分鐘', 'min') + tail)];
+  const num = (n, pad) => el('b', '', pad ? String(n).padStart(2, '0') : String(n));
+  let parts;
+  if (toSecond) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    parts = m ? [num(m), unit(L('分', 'm')), num(s, true), unit(L('秒', 's') + tail)] : [num(s), unit(L('秒', 's') + tail)];
+  } else {
+    const mins = Math.ceil(secs / 60);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    parts = h ? [num(h), unit(L('小時', 'h')), m ? num(m) : null, unit(m ? L('分', 'm') + tail : tail)] : [num(m), unit(L('分鐘', 'min') + tail)];
+  }
   return withId(el('div', 'nv-big', parts), 'timer-val');
+}
+
+// A break that is the card itself (bedtime, one long before the next class):
+// a band of its own, the moon for the night (or the cup), its hours under its
+// name; under the time left, how far through it is as a bar from start to end.
+const isNight = (name, span) => /睡|寢|就寢|熄燈|晚安|sleep|bed|night|lights/i.test(name) || (() => {
+  const [a, b] = String(span || '').split(/[–-]/).map(parseTime);
+  return Number.isFinite(a) && Number.isFinite(b) && b < a;
+})();
+function breakBand(name, span) {
+  const pic = el('span', 'q-band-mark');
+  pic.innerHTML = isNight(name, span) ? moonIcon() : breakIcon();
+  const node = el('div', 'q-band nv-band is-rest', [pic, el('span', 'q-band-text', [withId(el('b', '', name), 'now-name'), span ? withId(el('small', '', span), 'cx-span') : null])]);
+  node.style.setProperty('--band', isNight(name, span) ? 'var(--q-indigo)' : 'var(--q-gray)');
+  return node;
+}
+function breakBar(span, progress) {
+  const [from, to] = String(span || '').split(/[–-]/);
+  const bar = el('div', 'nv-bar', [el('i', 'nv-bar-fill')]);
+  bar.style.setProperty('--done', `${Math.max(0, Math.min(100, progress || 0)).toFixed(2)}%`);
+  return el('div', 'nv-span-bar', [el('small', '', from || ''), bar, el('small', '', to || '')]);
 }
 
 // The class as a band in its subject's colour (the kit's .q-band): its glyph,
@@ -85,12 +122,19 @@ let drawn = '';
 export function renderHero(hero, { today = [], week = '', nextDay = null, now = new Date(), curIdx = -1, date = null } = {}) {
   const box = $('nv-now');
   if (!box) return;
-  const mins = hero.timer ? minutesOf(hero.timer.value) : null;
+  const total = hero.timer ? secondsOf(hero.timer.value) : null;
+  const mins = total == null ? null : Math.ceil(total / 60);
+  // To the second within the hour of a class's start or end; a break of its own (bedtime) in minutes.
+  const toSecond = total != null && Boolean(hero.subject) && total < 3600;
   const rows = today || [];
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   const lineKey = hero.strip ? rows.map(c => `${c.s}${parseTime(c.e) * 60 <= secs ? 1 : 0}${parseTime(c.s) * 60 <= secs ? 1 : 0}`).join() : '';
-  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, mins, curIdx, lineKey, JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label].join('|');
-  if (key === drawn) return;
+  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label].join('|');
+  if (key === drawn) {
+    // (Ticking: only the figure, each second, in place.)
+    if (toSecond) $('timer-val')?.replaceChildren(...bigTime(total, hero.timer.label, true).childNodes);
+    return;
+  }
   drawn = key;
 
   const f = hero.foot;
@@ -98,14 +142,19 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
   // coming, its band; the day's state and when on the top line, no foot.
   const ahead = hero.mode === 'off' && f && !f.note && f.subject;
   const kicker = ahead ? hero.title : hero.kicker || (hero.mode === 'off' ? L('今天', 'Today') : '');
-  const top = el('div', 'nv-top', [el('span', 'nv-kicker', [hero.mode === 'class' ? el('i', 'nv-live') : null, withId(el('span', '', kicker), 'cx-kicker')]), withId(el('span', 'nv-span', ahead ? `${f.label} ${f.time}` : hero.span || ''), 'cx-span')]);
+  // A break that is the card (bedtime): its own band, no top line (it had only the hours, alone on the right).
+  const rest = hero.mode === 'break' && !hero.subject;
+  const top = rest ? null : el('div', 'nv-top', [el('span', 'nv-kicker', [hero.mode === 'class' ? el('i', 'nv-live') : null, withId(el('span', '', kicker), 'cx-kicker')]), withId(el('span', 'nv-span', ahead ? `${f.label} ${f.time}` : hero.span || ''), 'cx-span')]);
   const parts = f?.sub ? f.sub.split(' · ') : [];
   const main = ahead
     ? band(f.name, parts.length > 1 ? parts[0] : '', parts.at(-1) || '')
     : hero.subject
       ? band(hero.title, [hero.teacher, plain(hero.label)].filter(Boolean).join(' · '), hero.place)
-      : withId(el('strong', 'nv-title', hero.title), 'now-name');
-  const big = hero.timer ? bigMinutes(mins, hero.timer.label) : null;
+      : rest
+        ? breakBand(hero.title, hero.span)
+        : withId(el('strong', 'nv-title', hero.title), 'now-name');
+  const big = hero.timer ? bigTime(total, hero.timer.label, toSecond) : null;
+  const bar = rest && hero.span ? breakBar(hero.span, hero.progress) : null;
 
   // The line, and under it how many are left, when school's out, the next school day's first class.
   const line = hero.strip && rows.length ? dayLine(rows, week, now, curIdx, date) : null;
@@ -122,7 +171,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
     foot = button('nv-foot q-press', null, [withId(el('small', 'nv-foot-label', f.label), 'next-label'), el('span', 'nv-foot-dot'), withId(el('strong', 'nv-foot-name', f.name), 'next-name'), withId(el('span', 'nv-foot-end', [f.time, parts.length ? ` · ${parts.at(-1)}` : ''].join('')), 'next-time')]);
     if (f.subject) foot.style.setProperty('--subject', subjectLook(f.subject).color);
   }
-  box.replaceChildren(...[top, main, big, line, end, foot].filter(Boolean));
+  box.replaceChildren(...[top, main, big, bar, line, end, foot].filter(Boolean));
 }
 
 // ---- A day's classes (今天's list) ----
@@ -135,7 +184,7 @@ function breakBetween(end, start) {
 // A day's classes from `from` on as cards in a rail, each its subject's
 // colour: its glyph, period, name, time and room; a named break between two
 // as a slim card of its own.
-export function dayCards(rows, week, { date = null, from = 0 } = {}) {
+export function dayCards(rows, week, { date = null, from = 0, over = false } = {}) {
   const out = [];
   rows.forEach((c, i) => {
     if (i < from) return;
@@ -147,13 +196,14 @@ export function dayCards(rows, week, { date = null, from = 0 } = {}) {
     const card = button('cx-cl q-press', () => openModal(c, { date }), [top, el('b', 'cx-cl-time', c.s), name, el('small', 'cx-cl-sub', [c.loc || info.t || c.e].filter(Boolean)[0])]);
     card.style.setProperty('--subject', subjectLook(info.n).color);
     if (info.label) card.classList.add('is-split');
+    if (over) card.classList.add('is-over');
     out.push(card);
     const after = rows[i + 1];
     const gap = after && breakBetween(c.e, after.s);
     if (gap) {
       const cup = el('span', 'cx-cl-icon');
       cup.innerHTML = breakIcon();
-      out.push(el('div', 'cx-cl is-break', [cup, el('b', 'cx-cl-time', gap.start), el('strong', 'cx-cl-name', breakLabel(gap.name))]));
+      out.push(el('div', `cx-cl is-break${over ? ' is-over' : ''}`, [cup, el('b', 'cx-cl-time', gap.start), el('strong', 'cx-cl-name', breakLabel(gap.name))]));
     }
   });
   while (out[0]?.classList.contains('is-break')) out.shift();
@@ -182,10 +232,13 @@ export function renderTodayList({ week, through, curDay, now }) {
   const rows = date ? classesOn(date) : state.runtimeSchedule[state.viewDay] || [];
   if (date) week = getWeekType(date);
   const isToday = state.viewDay === curDay && (!date || date.toDateString() === now.toDateString());
+  // Today picked once it's over: its classes, all done (faded), under 今天的課, never 之後的課.
+  const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const over = isToday && rows.length > 0 && rows.every(c => parseTime(c.e) * 60 <= secs);
   // No timetable yet: one card that says so and adds it.
   const none = !Object.values(state.runtimeSchedule || {}).some(r => (r || []).length);
   drawDays(none ? null : date, now);
-  const items = none ? [] : dayCards(rows, week, { date, from: isToday ? through + 1 : 0 });
+  const items = none ? [] : dayCards(rows, week, { date, from: isToday && !over ? through + 1 : 0, over });
   if (none) items.push(kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } }));
   else if (!rows.length) items.push(emptyDay(holiday));
   // Today's all on the card already: said so, the strip's day still under its head.
@@ -194,7 +247,7 @@ export function renderTodayList({ week, through, curDay, now }) {
   if (title) {
     const ahead = date ? Math.round((new Date(date.getFullYear(), date.getMonth(), date.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / MS_PER_DAY) : (state.viewDay - curDay + 7) % 7;
     const day = ahead === 1 ? t('dashboard.tomorrow') : ahead > 6 || ahead < 0 ? `${date.getMonth() + 1}/${date.getDate()} ${WEEKDAY_LABELS[state.viewDay]}` : WEEKDAY_LABELS[state.viewDay];
-    title.textContent = none ? t('tools.myTimetable') : isToday ? t('dashboard.laterToday') : t('dashboard.dayClasses', { day });
+    title.textContent = none ? t('tools.myTimetable') : over ? t('dashboard.dayClasses', { day: t('dashboard.today') }) : isToday ? t('dashboard.laterToday') : t('dashboard.dayClasses', { day });
   }
   sec.querySelector('.cx-more')?.toggleAttribute('hidden', none);
   // The hero has nothing to count down until there is a timetable.

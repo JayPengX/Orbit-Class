@@ -92,7 +92,9 @@ export function openModal(shown, { date = null } = {}) {
   const color = subjectLook(info.n).color;
   stats.style.setProperty('--subject', color);
   occ.style.setProperty('--subject', color);
-  const pic = button('cx-pick-lead', () => openIconPicker(info.n, () => openModal(shown, { date })), [subjectTile(info.n, 'lg'), el('span', 'cx-pick-badge')]);
+  // (The picker opens over this sheet: closed, this one's still there; a
+  // pick swaps the tile here in place.)
+  const pic = button('cx-pick-lead', () => openIconPicker(info.n, () => pic.firstChild.replaceWith(subjectTile(info.n, 'lg'))), [subjectTile(info.n, 'lg'), el('span', 'cx-pick-badge')]);
   pic.lastChild.innerHTML = glyph('pencil') || '';
   pic.setAttribute('aria-label', t('sheet.pickIcon'));
   show(pic, info.n, [info.t, c.loc].filter(Boolean).join(' · '), body);
@@ -100,20 +102,23 @@ export function openModal(shown, { date = null } = {}) {
 
 // The subject's icon, picked from the set (or back to the one it gets by
 // itself). Saved with the timetable (applicationData.subjectIcons), so the
-// Pass carries it; `back` reopens the class.
-function openIconPicker(name, back) {
+// Pass carries it. A sheet of its own over the class's: closing it (✕, a
+// swipe) leaves the class open; a pick closes it and `picked` redraws the
+// class's tile.
+function openIconPicker(name, picked) {
   const color = subjectLook(name).color;
   const now = iconKeyOf(name);
   const choose = key => {
-    const picked = { ...(state.applicationData.subjectIcons || {}) };
-    if (key) picked[name] = key;
-    else delete picked[name];
-    state.applicationData.subjectIcons = picked;
+    const icons = { ...(state.applicationData.subjectIcons || {}) };
+    if (key) icons[name] = key;
+    else delete icons[name];
+    state.applicationData.subjectIcons = icons;
     saveData(state.applicationData);
     pushSyncSnapshot();
     state.lastListKey = '';
     window.update?.();
-    back();
+    picker.close();
+    picked();
   };
   const grid = el('div', 'cx-icon-grid', ICON_CHOICES.map(key => {
     const b = button(`cx-icon-pick${key === now ? ' is-on' : ''}`, () => choose(key));
@@ -123,7 +128,7 @@ function openIconPicker(name, back) {
   }));
   grid.style.setProperty('--subject', color);
   const reset = (state.applicationData.subjectIcons || {})[name] ? button('q-btn tinted block', () => choose(null), t('sheet.autoIcon')) : null;
-  show(subjectTile(name, 'lg'), name, t('sheet.pickIcon'), [grid, reset]);
+  const picker = kitUI.sheet({ title: name, lead: subjectTile(name, 'lg'), body: [el('p', 'cx-sheet-sub', t('sheet.pickIcon')), el('div', 'cx-sheet-body', [grid, reset])], cls: 'cx-kit-sheet', closeLabel: t('common.close') });
 }
 
 // When the subject meets next (調課 and holidays applied): { day: 今天 /

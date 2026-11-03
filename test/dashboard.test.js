@@ -67,7 +67,7 @@ describe('dashboard update() against the real app', () => {
     const band = card.querySelector('.q-band');
     expect(band.style.getPropertyValue('--band')).not.toBe('');
     expect(card.style.getPropertyValue('--subject')).toBe('');
-    expect(text('timer-val')).toBe('30分鐘後下課');
+    expect(text('timer-val')).toBe('30分00秒後下課');
     expect(card.querySelector('.nv-live')).not.toBeNull();
   });
 
@@ -95,7 +95,7 @@ describe('dashboard update() against the real app', () => {
     window.update();
     expect(text('now-name')).toBe('公民');
     expect(text('cx-kicker')).toBe('打掃時間 · 接著第 2 節');
-    expect(text('timer-val')).toBe('10分鐘後上課');
+    expect(text('timer-val')).toBe('10分00秒後上課');
     // The foot: the class after it, one row.
     expect(text('next-label')).toBe('接著');
     expect(text('next-name')).toBe('英文');
@@ -113,6 +113,23 @@ describe('dashboard update() against the real app', () => {
     sheet.remove();
   });
 
+  // Jay 2026-11-03: closing the icon picker (the class sheet's pencil) closed the class too.
+  it('the icon picker opens over the class sheet; closing it leaves the class open', () => {
+    setSimTime(9, 0);
+    window.update();
+    document.getElementById('next-name').click();
+    const sheet = [...document.querySelectorAll('.cx-kit-sheet')].at(-1);
+    sheet.querySelector('.cx-pick-lead').click();
+    const sheets = [...document.querySelectorAll('.cx-kit-sheet')];
+    const picker = sheets.at(-1);
+    expect(picker).not.toBe(sheet);
+    expect(picker.querySelector('.cx-icon-grid')).not.toBeNull();
+    picker.querySelector('[data-q-close]').click();
+    expect(sheet.isConnected).toBe(true);
+    expect(sheet.open).toBe(true);
+    document.querySelectorAll('.cx-kit-sheet').forEach(d => d.remove());
+  });
+
   it('once the day is over: 放學時間 on the top line, the next school day\'s first class as the band, the viewed day moved on', () => {
     setSimTime(11, 1); // just after period 2 (10:10-11:00) ends
     window.update();
@@ -125,12 +142,32 @@ describe('dashboard update() against the real app', () => {
     expect(state.viewDay).toBe(3);
   });
 
+  // Jay 2026-11-03: today picked again once it's over listed its classes as
+  // 之後的課, as if still to come.
+  it('today picked once it is over: 今天的課, every class done, never 之後的課', () => {
+    setSimTime(11, 1);
+    window.update();
+    state.viewDay = 1; // 今天 tapped again (Test Mode walks weekdays)
+    state.lastListKey = '';
+    window.update();
+    expect(text('cx-list-title')).not.toBe('之後的課');
+    const cards = [...document.querySelectorAll('#schedule-list .cx-cl:not(.is-break)')];
+    expect(cards.length).toBeGreaterThan(0);
+    expect(cards.every(c => c.classList.contains('is-over'))).toBe(true);
+  });
+
+  it('within the hour of a class, the time to the second', () => {
+    window.TEST_TIME_SEC = 9 * 3600 + 30 * 60 + 15; // period 1 ends 10:00
+    window.update();
+    expect(text('timer-val')).toBe('29分45秒後下課');
+  });
+
   it('before the first period, the first class and the time until it', () => {
     setSimTime(7, 30);
     window.update();
     expect(text('now-name')).toBe('數學');
     expect(text('cx-kicker')).toBe('今天 · 第 1 節');
-    expect(text('timer-val')).toBe('30分鐘後上課');
+    expect(text('timer-val')).toBe('30分00秒後上課');
   });
 
   it('redirects an empty Saturday/Sunday viewDay to Monday instead of showing "這天沒有課"', () => {

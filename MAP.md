@@ -10,18 +10,25 @@ Live: https://orbit.jaypengx.com/class/
 - **Tabs, one question each:**
   - **今天:** one graphite card answers "what's left today", led by the
     class: the one on now (or the next) as a band in its subject's colour
-    (glyph, name, teacher, the room large on the right), the minutes left
-    large (40 分鐘後下課), then the day as one line of dots, each its subject's
+    (glyph, name, teacher, the room large on the right), the time left
+    large (to the second within the hour of a class: 39 分 54 秒後下課, the
+    figure patched in place each second), then the day as one line of dots, each its subject's
     colour with its two-character short name (an English one by its words'
     capitals, Advanced English → AE; done faded, now ringed in the app's
     colour; lunch a longer dashed gap; a tap opens that dot's own class),
     how many are left, when school's out and the next school day's first
     class; the foot (接著 / 下一節) opens the class it names. Once school's
-    out the band is the next school day's first class (`view-today.js renderHero`, `css/look.css`).
+    out the band is the next school day's first class; a break that is the
+    card itself (bedtime) is a band of its own (the moon in indigo, its hours
+    under its name), the time left in minutes and a bar from its start to its
+    end (`view-today.js renderHero`, `css/look.css`).
     Below it the family's strip of days (today and the school days of the
     next two weeks, 📅 for any day, a swipe for the next) over that day's
-    classes (today's: the ones after the card), and the countdowns. After
-    the last class it shows the next school day.
+    classes (today's: the ones after the card; today picked again once it's
+    over: 今天的課, every class faded), and the countdowns. After the last
+    class it shows the next school day. A class's sheet (`view-sheet.js`):
+    its pencil opens the icon picker as a sheet over it, so closing the
+    picker leaves the class open.
   - **課表:** the week as a grid, this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
   - **工具:** the week as a grid (課表's short names) with 編輯課表; 專注飛行; AI 課表編輯 and 拍照匯入;
     分享金鑰.

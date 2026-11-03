@@ -183,6 +183,7 @@ export function eventLook(name) {
 // A subject's (or a break's) glyph alone, for a card that is its colour.
 export const subjectIcon = name => subjectLook(name).icon;
 export const breakIcon = () => svg(P.cup);
+export const moonIcon = () => svg(P.moon);
 
 // A kit tile (kitUI.tile) around a glyph's svg.
 function makeTile(html, color, size, glass) {
