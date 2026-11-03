@@ -16,16 +16,33 @@
 The class now and what comes next, at a glance. Part of **Orbit**, a family of apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [orbit.jaypengx.com](https://orbit.jaypengx.com/pass/).
 
 <p align="center">
-  <img src="docs/screenshots/class-1.webp" width="30%" alt="Your whole week">
-  <img src="docs/screenshots/class-2.webp" width="30%" alt="Now, next, and time left">
-  <img src="docs/screenshots/class-3.webp" width="30%" alt="Swap a class in seconds">
+  <img src="docs/screenshots/class-1.webp" width="30%" alt="Now, next, and time left">
+  <img src="docs/screenshots/class-2.webp" width="30%" alt="Your whole week">
+  <img src="docs/screenshots/class-3.webp" width="30%" alt="Every class, in detail">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/class-4.webp" width="30%" alt="Count down to the big exam">
+  <img src="docs/screenshots/class-4.webp" width="30%" alt="Swap a class in seconds">
   <img src="docs/screenshots/class-5.webp" width="30%" alt="Focus on a real flight">
   <img src="docs/screenshots/class-6.webp" width="30%" alt="Snap it, AI reads it">
 </p>
+
+<details>
+<summary>中文畫面</summary>
+
+<p align="center">
+  <img src="docs/screenshots/class-1.zh.webp" width="30%" alt="現在、下一節與剩餘時間">
+  <img src="docs/screenshots/class-2.zh.webp" width="30%" alt="整週課表一眼看">
+  <img src="docs/screenshots/class-3.zh.webp" width="30%" alt="每一節課的細節">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/class-4.zh.webp" width="30%" alt="調課幾秒完成">
+  <img src="docs/screenshots/class-5.zh.webp" width="30%" alt="跟著真的飛機專注">
+  <img src="docs/screenshots/class-6.zh.webp" width="30%" alt="拍下課表，AI 幫你讀">
+</p>
+
+</details>
 
 ## Features
 
