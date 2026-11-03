@@ -460,7 +460,7 @@ function renderSyncPanel() {
           maxlength: '9',
           placeholder: t('orbit.keyPlaceholder')
         }),
-        btn(t('orbit.copy'), redeemKey, true)
+        btn(t('orbit.copy'), redeemKey)
       ]),
       el('p', { class: 'cx-foot-line', text: t('orbit.receiveHint') })
     ].filter(Boolean)

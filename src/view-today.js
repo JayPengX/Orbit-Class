@@ -191,9 +191,12 @@ export function dayCards(rows, week, { date = null, from = 0, over = false } = {
     const info = processSplitName(c, week);
     const pic = el('span', 'cx-cl-icon');
     pic.innerHTML = subjectIcon(info.n);
-    const top = el('span', 'cx-cl-top', [pic, el('small', '', t('dashboard.periodNumber', { number: (c.p ?? i) + 1 }))]);
-    const name = el('strong', `cx-cl-name${nameSize(info.n)}`, info.n);
-    const card = button('cx-cl q-press', () => openModal(c, { date }), [top, el('b', 'cx-cl-time', c.s), name, el('small', 'cx-cl-sub', [c.loc || info.t || c.e].filter(Boolean)[0])]);
+    // A timeline: the start over the end on the left, the class as a block washed in its subject's colour.
+    const when = el('span', 'cx-cl-when', [el('b', 'cx-cl-time', c.s), el('small', 'cx-cl-till', c.e)]);
+    const sub = [info.t, c.loc].filter(Boolean).join(' · ');
+    const words = el('span', 'cx-cl-words', [el('strong', `cx-cl-name${nameSize(info.n)}`, info.n), sub ? el('small', 'cx-cl-sub', sub) : null]);
+    const card = button('cx-cl q-press', () => openModal(c, { date }), [when, el('span', 'cx-cl-block', [pic, words])]);
+    card.setAttribute('aria-label', `${t('dashboard.periodNumber', { number: (c.p ?? i) + 1 })} ${c.s}–${c.e} ${info.n}${sub ? ` ${sub}` : ''}`);
     card.style.setProperty('--subject', subjectLook(info.n).color);
     if (info.label) card.classList.add('is-split');
     if (over) card.classList.add('is-over');
@@ -203,7 +206,7 @@ export function dayCards(rows, week, { date = null, from = 0, over = false } = {
     if (gap) {
       const cup = el('span', 'cx-cl-icon');
       cup.innerHTML = breakIcon();
-      out.push(el('div', `cx-cl is-break${over ? ' is-over' : ''}`, [cup, el('b', 'cx-cl-time', gap.start), el('strong', 'cx-cl-name', breakLabel(gap.name))]));
+      out.push(el('div', `cx-cl is-break${over ? ' is-over' : ''}`, [el('b', 'cx-cl-time', gap.start), el('span', 'cx-cl-gap', [cup, el('strong', 'cx-cl-name', breakLabel(gap.name))])]));
     }
   });
   while (out[0]?.classList.contains('is-break')) out.shift();

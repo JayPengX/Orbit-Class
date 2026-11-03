@@ -275,113 +275,457 @@ html[data-look='native'] .nv-foot-note {
   font: 400 15px/20px var(--q-font);
 }
 
-/* ---- The day's classes: rows on graphite, each a dot of its subject ---- */
+/* ---- Shared: a glyph tinted in its colour (the kit's .q-tile wash) ---- */
+html[data-look='native'] .cx-cl-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--subject, var(--q-accent)) var(--nv-wash), transparent);
+  color: color-mix(in srgb, var(--subject, var(--q-accent)) var(--nv-glyph-a), var(--nv-glyph));
+}
+html[data-look='native'] .cx-cl-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---- The day's classes: a timeline. The start over the end on the left,
+   each class a block washed in its subject's colour with a bar of it at its
+   edge, a long break a quiet line between them. ---- */
 html[data-look='native'][data-look='native'] .cx-cls.q-rail.q-rail {
   display: grid;
   grid-auto-flow: row;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0;
+  gap: 6px;
   margin: 0;
-  padding: 0;
+  padding: 8px 8px 8px 4px;
   overflow: visible;
   border-radius: var(--q-r-card);
   background: var(--nv-card);
   box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
 }
-html[data-look='native'][data-look='native'] .cx-cl {
-  grid-template-columns: 52px minmax(0, 1fr) auto;
-  grid-template-areas: 'time name icon' 'time sub icon';
-  align-items: center;
-  gap: 0 12px;
-  min-height: 0;
-  padding: 11px 14px;
-  border-radius: 0;
+html[data-look='native'] .cx-cl {
+  --subject: var(--q-accent);
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   background: none;
-  box-shadow: none;
   color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-html[data-look='native'][data-look='native'] .cx-cl + .cx-cl {
-  box-shadow: inset 0 0.5px 0 var(--q-sep);
-}
-html[data-look='native'] .cx-cl .cx-cl-top {
-  display: contents;
-}
-html[data-look='native'] .cx-cl .cx-cl-top small {
-  display: none;
-}
-html[data-look='native'][data-look='native'] .cx-cl .cx-cl-icon {
-  grid-area: icon;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--subject) 20%, transparent);
-  color: color-mix(in srgb, var(--subject) 80%, var(--q-label));
-}
-html[data-look='native'] .cx-cl .cx-cl-icon svg {
-  width: 17px;
-  height: 17px;
-}
-html[data-look='native'][data-look='native'] .cx-cl .cx-cl-time {
-  grid-area: time;
-  font: 400 17px/22px var(--nv-display);
+html[data-look='native'] .cx-cl-when {
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  gap: 1px;
+  padding-right: 4px;
   font-variant-numeric: tabular-nums;
 }
-html[data-look='native'][data-look='native'] .cx-cl .cx-cl-name {
-  grid-area: name;
-  font: 500 17px/22px var(--q-font);
+html[data-look='native'] .cx-cl-when .cx-cl-time {
+  font: 400 17px/21px var(--nv-display);
+  letter-spacing: -0.01em;
 }
-html[data-look='native'][data-look='native'] .cx-cl .cx-cl-sub {
-  grid-area: sub;
-  color: var(--q-label-2);
-  font: 400 13px/17px var(--q-font);
-}
-/* (Today picked once it's over: every class done, faded.) */
-html[data-look='native'][data-look='native'] .cx-cls .cx-cl.is-over :is(.cx-cl-time, .cx-cl-name, .cx-cl-sub) {
+html[data-look='native'] .cx-cl-till {
   color: var(--q-label-3);
+  font: 400 12px/15px var(--nv-display);
 }
-html[data-look='native'][data-look='native'] .cx-cl.is-over .cx-cl-icon {
-  opacity: 0.5;
+html[data-look='native'] .cx-cl-block {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 8px 12px 8px 16px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--subject) 13%, transparent);
 }
-html[data-look='native'][data-look='native'] .cx-cls > .cx-cl.is-break {
+html[data-look='native'] .cx-cl-block::before {
+  content: '';
+  position: absolute;
+  inset: 8px auto 8px 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--subject);
+}
+html[data-look='native'] .cx-cl-block .cx-cl-icon {
+  order: 2;
+  margin-left: auto;
+  background: color-mix(in srgb, var(--subject) 20%, transparent);
+}
+html[data-look='native'] .cx-cl-words {
   display: grid;
-  justify-self: stretch;
-  width: auto;
-  padding-block: 7px;
-  color: var(--q-label-2);
+  gap: 1px;
+  min-width: 0;
 }
-html[data-look='native'][data-look='native'] .cx-cl.is-break :is(.cx-cl-time, .cx-cl-name) {
-  color: var(--q-label-2);
+html[data-look='native'] .cx-cl-name {
+  font: 600 17px/22px var(--q-font);
+  overflow-wrap: anywhere;
+}
+html[data-look='native'] .cx-cl-name.is-long {
+  font-size: 15px;
+  line-height: 20px;
+}
+html[data-look='native'] .cx-cl-name.is-xlong {
   font-size: 14px;
   line-height: 18px;
 }
-html[data-look='native'][data-look='native'] .cx-cl.is-break .cx-cl-icon {
+html[data-look='native'] .cx-cl-sub {
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: 400 13px/17px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* (Today picked once it's over: every class done, faded.) */
+html[data-look='native'] .cx-cl.is-over {
+  opacity: 0.45;
+}
+/* A named break (lunch): its time, then a dashed line with its cup and name. */
+html[data-look='native'] .cx-cl.is-break {
+  align-items: center;
+  min-height: 28px;
+  color: var(--q-label-2);
+  cursor: default;
+}
+html[data-look='native'] .cx-cl.is-break .cx-cl-time {
+  justify-self: end;
+  padding-right: 4px;
+  color: var(--q-label-3);
+  font: 400 13px/16px var(--nv-display);
+  font-variant-numeric: tabular-nums;
+}
+html[data-look='native'] .cx-cl-gap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 6px;
+}
+html[data-look='native'] .cx-cl-gap::after {
+  content: '';
+  flex: 1;
+  min-width: 16px;
+  border-top: 1px dashed var(--q-sep-opaque, var(--q-sep));
+}
+html[data-look='native'] .cx-cl-gap .cx-cl-icon {
+  width: 22px;
+  height: 22px;
   background: none;
   color: var(--q-label-3);
 }
+html[data-look='native'] .cx-cl-gap .cx-cl-icon svg {
+  width: 15px;
+  height: 15px;
+}
+html[data-look='native'] .cx-cl-gap .cx-cl-name {
+  color: var(--q-label-2);
+  font: 500 13px/16px var(--q-font);
+  white-space: nowrap;
+}
 
-/* ---- 倒數: graphite cards, the event's colour on its glyph and its days ---- */
+/* ---- 倒數: graphite cards, the event's colour on its glyph, a bar at the top and its days ---- */
 html[data-look='native'][data-look='native'] .cx-cd {
+  --subject: var(--q-accent);
+  position: relative;
+  overflow: hidden;
   background: var(--nv-card);
   color: var(--q-label);
   box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
 }
-html[data-look='native'][data-look='native'] .cx-cd .cx-cl-icon {
-  background: color-mix(in srgb, var(--subject) 20%, transparent);
-  color: color-mix(in srgb, var(--subject) 80%, var(--q-label));
+html[data-look='native'] .cx-cd::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--subject);
 }
 html[data-look='native'][data-look='native'] .cx-cd :is(.cx-cd-top small, .cx-cd-big small) {
   color: var(--q-label-2);
 }
 html[data-look='native'][data-look='native'] .cx-cd .cx-cd-big b {
-  color: color-mix(in srgb, var(--subject) 70%, var(--q-label));
-  font: 300 36px/38px var(--nv-display);
+  color: color-mix(in srgb, var(--subject) 75%, var(--q-label));
+  font: 300 40px/42px var(--nv-display);
+  letter-spacing: -0.03em;
 }
 html[data-look='native'][data-look='native'] .cx-cd .cx-cd-big em {
   color: var(--q-label);
 }
+html[data-look='native'] .cx-cd.is-over {
+  opacity: 0.55;
+}
 
-/* ---- The class sheet: its figures on graphite, the count in its subject's colour ---- */
+/* ---- 課表: the week as a grid on graphite. Each class a cell washed in
+   its subject's colour with a bar of it on its left; the class on now on
+   its full colour, ringed in the app's; a long break a dashed line across. ---- */
+html[data-look='native'] :is(#cx-grid:not(.is-both), .cx-grid-card) {
+  padding: 12px 10px 10px 6px;
+  border-radius: var(--q-r-card);
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+}
+html[data-look='native'] #cx-grid:has(> .q-empty) {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+html[data-look='native'] .cx-tl-grid {
+  grid-template-columns: 38px repeat(var(--days, 5), minmax(0, 1fr));
+  gap: 5px 4px;
+}
+html[data-look='native'] .cx-tl-day b {
+  font: 400 18px/1 var(--nv-display);
+}
+html[data-look='native'] .cx-tl-day.is-today b {
+  background: var(--q-accent);
+  color: #ffffff;
+  font-weight: 500;
+}
+html[data-look='native'] .cx-tl-num {
+  font: 400 17px/20px var(--nv-display);
+}
+html[data-look='native'] .cx-tl-row small {
+  font: 400 10px/12px var(--nv-display);
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell:not(.is-empty) {
+  background: color-mix(in srgb, var(--subject) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--subject);
+  color: var(--q-label);
+  font-weight: 600;
+  text-shadow: none;
+  transform: none;
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-now {
+  z-index: 1;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--subject) 92%, var(--nv-deep)), color-mix(in srgb, var(--subject) 68%, var(--nv-deep)));
+  box-shadow: none;
+  color: #ffffff;
+  outline: 2px solid var(--q-accent);
+  outline-offset: 2px;
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-past {
+  opacity: 0.4;
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-swap:not(.is-now) {
+  box-shadow: inset 3px 0 0 var(--subject), inset 0 0 0 1.5px var(--q-orange);
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-empty {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
+}
+html[data-look='native'][data-look='native'] .cx-tl-cell.is-empty.is-off {
+  box-shadow: none;
+}
+html[data-look='native'] .cx-tl-gap {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 14px;
+  padding-left: 42px;
+}
+html[data-look='native'] .cx-tl-gap::after {
+  content: '';
+  flex: 1;
+  border-top: 1px dashed var(--q-sep-opaque, var(--q-sep));
+}
+html[data-look='native'] .cx-tl-gap small {
+  color: var(--q-label-3);
+  font: 500 11px/14px var(--q-font);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- 工具 ---- */
+/* 我的課表: the week in miniature, the same cells as 課表. */
+html[data-look='native'][data-look='native'] .cx-mini {
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+}
+html[data-look='native'] .cx-mini-title {
+  font: 600 21px/26px var(--q-font);
+  letter-spacing: -0.015em;
+}
+html[data-look='native'] .cx-mini-grid {
+  gap: 5px;
+}
+html[data-look='native'][data-look='native'] .cx-mini-cell:not(.is-empty) {
+  background: color-mix(in srgb, var(--subject) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--subject);
+  color: var(--q-label);
+  font-weight: 600;
+  text-shadow: none;
+  outline: 0;
+}
+html[data-look='native'][data-look='native'] .cx-mini-cell.is-empty {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
+}
+html[data-look='native'] .cx-mini-day.is-today {
+  color: var(--q-accent);
+}
+/* 專注飛行: a graphite card, the plane tinted in the app's colour, a flight's arc on the right. */
+html[data-look='native'] .cx-fly-card {
+  --subject: var(--q-accent);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 76px;
+  padding: 14px 16px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--q-r-card);
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+  color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+html[data-look='native'] .cx-fly-card > .cx-cl-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+html[data-look='native'] .cx-fly-card > .cx-cl-icon svg {
+  width: 22px;
+  height: 22px;
+  transform: rotate(45deg);
+}
+html[data-look='native'] .cx-fly-text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+html[data-look='native'] .cx-fly-text strong {
+  font: 600 17px/22px var(--q-font);
+}
+html[data-look='native'] .cx-fly-line {
+  color: var(--q-label-2);
+  font: 400 13px/18px var(--q-font);
+  font-variant-numeric: tabular-nums;
+}
+html[data-look='native'] .cx-fly-arc {
+  flex: none;
+  width: 72px;
+  color: color-mix(in srgb, var(--q-accent) 70%, var(--q-label-3));
+}
+html[data-look='native'] .cx-fly-arc svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 359px) {
+  html[data-look='native'] .cx-fly-arc {
+    display: none;
+  }
+}
+/* The parts: one card of four figures, two to a row, a hairline between. */
+html[data-look='native'] .cx-parts.q-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--q-r-card);
+}
+html[data-look='native'] .cx-part {
+  --subject: var(--q-accent);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'icon n' 'icon title';
+  align-items: center;
+  gap: 0 12px;
+  min-width: 0;
+  padding: 14px 14px;
+  border: 0;
+  background: none;
+  color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+html[data-look='native'] .cx-part:nth-child(even) {
+  box-shadow: inset 0.5px 0 0 var(--q-sep);
+}
+html[data-look='native'] .cx-part:nth-child(n + 3) {
+  box-shadow: inset 0 0.5px 0 var(--q-sep);
+}
+html[data-look='native'] .cx-part:nth-child(4) {
+  box-shadow: inset 0.5px 0.5px 0 var(--q-sep);
+}
+html[data-look='native'] .cx-part .cx-cl-icon {
+  grid-area: icon;
+  width: 36px;
+  height: 36px;
+}
+html[data-look='native'] .cx-part-n {
+  grid-area: n;
+  font: 300 28px/30px var(--nv-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+html[data-look='native'] .cx-part-title {
+  grid-area: title;
+  overflow: hidden;
+  color: var(--q-label-2);
+  font: 500 13px/17px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* AI's two ways: graphite cards, each its glyph tinted, its name and what it does. */
+html[data-look='native'] .cx-ways {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+html[data-look='native'] .cx-way-card {
+  --subject: var(--q-accent);
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  min-height: 118px;
+  padding: 14px;
+  border: 0;
+  border-radius: var(--q-r-card);
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+  color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+html[data-look='native'] .cx-way-card .cx-cl-icon {
+  margin-bottom: 12px;
+}
+html[data-look='native'] .cx-way-card strong {
+  font: 600 16px/21px var(--q-font);
+}
+html[data-look='native'] .cx-way-card small {
+  color: var(--q-label-2);
+  font: 400 13px/17px var(--q-font);
+}
+
+/* ---- The class sheet: its figures on graphite, the days it meets washed in its colour ---- */
 html[data-look='native'][data-look='native'] .cx-figs {
+  --subject: var(--q-accent);
+  gap: 0;
   padding: 4px;
   border-radius: 20px;
   background: var(--nv-card);
@@ -397,9 +741,35 @@ html[data-look='native'][data-look='native'] .cx-figs .q-stat small {
 html[data-look='native'][data-look='native'] .cx-figs .q-stat strong {
   color: var(--q-label);
   font: 300 30px/34px var(--nv-display);
+  font-variant-numeric: tabular-nums;
 }
 html[data-look='native'][data-look='native'] .cx-figs #m-count {
   color: color-mix(in srgb, var(--subject) 75%, var(--q-label));
+}
+html[data-look='native'] .cx-half {
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge);
+}
+html[data-look='native'] .occ-day {
+  position: relative;
+  overflow: hidden;
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge);
+}
+html[data-look='native'] .cx-occ .occ-day:not(.is-off) {
+  background: color-mix(in srgb, var(--subject, var(--q-accent)) 16%, transparent);
+  box-shadow: inset 0 3px 0 var(--subject, var(--q-accent));
+}
+html[data-look='native'] .cx-occ .occ-day:not(.is-off) .occ-day-period {
+  color: var(--q-label);
+  font-weight: 600;
+}
+html[data-look='native'] .cx-occ .occ-day:not(.is-off) :is(.occ-day-name, .occ-day-time) {
+  color: var(--q-label-2);
+}
+html[data-look='native'] .occ-day.is-off {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
 }
 
 /* ---- Wide: the class on the left, the line and what's next on the right ---- */
@@ -430,4 +800,176 @@ html[data-look='native'].q-wide .nv-now > .nv-end {
 }
 html[data-look='native'].q-wide .nv-now > :is(.nv-foot, .nv-foot-note) {
   grid-column: 1 / -1;
+}
+
+/* ---- The editor (編輯課表): graphite pages, each period a box washed in
+   its class's colour, the parts' glyphs tinted, adding a row a quiet line
+   in the app's colour; no glass anywhere. ---- */
+html[data-look='native'] :is(.cx-sheet, .assign-sheet) {
+  --q-surface: var(--nv-card);
+}
+html[data-look='native'] .editor-back-btn {
+  min-height: 34px;
+  padding: 0 12px 0 10px;
+  background: var(--q-fill-3, rgba(120, 120, 128, 0.16));
+  box-shadow: none;
+  color: var(--q-label);
+  font: 500 15px/1 var(--q-font);
+}
+html[data-look='native'] .editor-back-btn::before {
+  border-color: var(--q-label-2);
+}
+html[data-look='native'] .editor-fold-summary {
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge);
+}
+html[data-look='native'] .editor-sheet.is-layered .editor-fold.active > .editor-fold-summary {
+  background: none;
+  box-shadow: none;
+  font: 600 28px/34px var(--q-font);
+  letter-spacing: -0.02em;
+}
+html[data-look='native'] :is(.schedule-grid, .bell-list, .teacher-list, .countdown-editor-list) {
+  border-radius: var(--q-r-card);
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+}
+html[data-look='native'] #schedule-grid {
+  padding: 10px 10px 10px 8px;
+}
+html[data-look='native'] #schedule-grid .schedule-day-row {
+  grid-template-columns: 58px minmax(0, 1fr);
+}
+html[data-look='native'] .ed-nums,
+html[data-look='native'] #schedule-grid .schedule-periods {
+  grid-auto-rows: 48px;
+}
+html[data-look='native'] .ed-nums > span {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  padding-right: 6px;
+}
+html[data-look='native'] .ed-nums b {
+  font: 400 20px/22px var(--nv-display);
+}
+html[data-look='native'] .ed-nums small {
+  color: var(--q-label-3);
+  font: 400 11px/13px var(--nv-display);
+}
+html[data-look='native'][data-look='native'] #schedule-grid .period-select {
+  min-height: 48px;
+  padding-left: 16px;
+  border-radius: 14px;
+  background-color: color-mix(in srgb, var(--subject, var(--q-gray)) 14%, transparent);
+  box-shadow: inset 3px 0 0 var(--subject, transparent);
+  font-weight: 600;
+}
+html[data-look='native'][data-look='native'] #schedule-grid .period-select.is-free {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
+  color: var(--q-label-3);
+  font-weight: 400;
+}
+html[data-look='native'][data-look='native'] #schedule-grid .period-select:focus {
+  box-shadow: inset 3px 0 0 var(--subject, transparent), 0 0 0 2px color-mix(in srgb, var(--q-accent) 55%, transparent);
+}
+/* (The AI box: one line on graphite, the send in the app's colour.) */
+html[data-look='native'] .ed-ask .q-hc-eyebrow {
+  color: var(--q-label-2);
+}
+html[data-look='native'] .ed-ask .q-hc-eyebrow .cx-glyph {
+  color: var(--q-accent);
+}
+/* (Subjects: the glyph tinted, never a filled square.) */
+html[data-look='native'] .teacher-avatar {
+  background: color-mix(in srgb, var(--subject) var(--nv-wash), transparent);
+  color: color-mix(in srgb, var(--subject) var(--nv-glyph-a), var(--nv-glyph));
+}
+/* (A period's number as the timetable's: light figures, no badge.) */
+html[data-look='native'] .bell-num {
+  width: 26px;
+  background: none;
+  color: var(--q-label);
+  font: 400 20px/1 var(--nv-display);
+}
+/* (Remove: a quiet grey minus, red only while pressed.) */
+html[data-look='native'] .delete-btn {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  background: var(--q-fill-3, rgba(120, 120, 128, 0.16));
+  color: var(--q-label-2);
+  font-size: 0;
+}
+html[data-look='native'] .delete-btn::before {
+  content: '';
+  position: absolute;
+  top: calc(50% - 1px);
+  left: calc(50% - 6px);
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+html[data-look='native'] .delete-btn:is(:active, [data-q-press]) {
+  background: color-mix(in srgb, var(--q-red) 16%, transparent);
+  color: var(--q-red);
+}
+/* (新增…: a line on graphite in the app's colour, a plus before it.) */
+html[data-look='native'] .q-btn.ed-add {
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 16px;
+  border-radius: var(--q-r-card);
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), var(--nv-lift);
+  color: var(--q-accent);
+  font: 500 16px/1 var(--q-font);
+}
+html[data-look='native'] .q-btn.ed-add::before {
+  content: '+';
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--q-accent) var(--nv-wash), transparent);
+  font: 500 19px/1 var(--q-font);
+}
+/* (排課: a teacher's periods, chosen ones washed in green, taken ones ringed.) */
+html[data-look='native'] .assign-box {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
+}
+html[data-look='native'] .assign-box.occupied {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--q-label) 22%, transparent);
+  color: var(--q-label-2);
+}
+html[data-look='native'] .assign-box.assigned {
+  background: color-mix(in srgb, var(--q-green) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--q-green);
+  color: var(--q-label);
+}
+
+/* (Both weeks side by side: each its own card, no plate around the pair.) */
+html[data-look='native'][data-look='native'] #cx-grid.is-both {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+html[data-look='native'] .cx-way-card small {
+  text-wrap: balance;
+}
+/* (A narrow phone: a period's times a size down, so 08:10 AM stays whole.) */
+@media (max-width: 359px) {
+  html[data-look='native'] .bell-row {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+  html[data-look='native'] .bell-inputs .time-input {
+    padding: 0 4px;
+    font-size: 14px;
+  }
 }

@@ -62,10 +62,15 @@ function flightLine(now = Date.now()) {
 function flightCard() {
   const pic = el('span', 'cx-cl-icon');
   pic.innerHTML = PLANE_GLYPH;
-  const card = button('cx-fly-card q-press', openFlight, [pic, el('span', 'cx-fly-text', [el('strong', '', t('flight.title')), el('small', 'cx-fly-line', flightLine())])]);
+  // A flight's arc drawn on the card's right: where it took off, the plane on its way, where it lands.
+  const arc = el('span', 'cx-fly-arc');
+  arc.setAttribute('aria-hidden', 'true');
+  arc.innerHTML = FLIGHT_ARC;
+  const card = button('cx-fly-card q-press', openFlight, [pic, el('span', 'cx-fly-text', [el('strong', '', t('flight.title')), el('small', 'cx-fly-line', flightLine())]), arc]);
   card.addEventListener('pointerdown', () => import('./flight.js').then(m => m.warmFlights()), { once: true });
   return card;
 }
+const FLIGHT_ARC = '<svg viewBox="0 0 120 48"><path d="M6 42 C 34 4, 86 4, 114 42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><circle cx="6" cy="42" r="3" fill="currentColor"/><circle cx="114" cy="42" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M60 8.5c.6 0 1 .6 1 1.4v3.3l5 3v1.4l-5-1.6v3l1.5 1.2v1.1L60 20.6l-2.5.7v-1.1L59 19v-3l-5 1.6v-1.4l5-3V9.9c0-.8.4-1.4 1-1.4z" transform="rotate(90 60 14.5)" fill="currentColor" class="cx-fly-plane"/></svg>';
 const PLANE_GLYPH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.8c.9 0 1.5 1 1.5 2.2v5.1l7.7 4.6v2.1l-7.7-2.4v4.7l2.3 1.8v1.7L12 20.6l-3.8 1v-1.7l2.3-1.8v-4.7l-7.7 2.4v-2.1l7.7-4.6V4c0-1.2.6-2.2 1.5-2.2z"/></svg>';
 
 let drawn = '';
@@ -88,20 +93,20 @@ function renderTools(again = false) {
     card.style.setProperty('--subject', color);
     return card;
   };
-  const parts = el('div', 'cx-parts', [
+  const parts = el('div', 'cx-parts q-card', [
     figure('book', '#6366f1', subjects, t('editorTeachers.subjectsAndTeachersFoldLabel'), 'editor-fold-teachers'),
     figure('clock', '#f97316', (data.bellTimes || []).length, t('editorBackup.sectionBellTimes'), 'editor-fold-bells'),
     figure('cup', '#0d9488', breaks, t('editorSchedule.specialTimeFoldLabel'), 'editor-fold-breaks'),
     figure('flag', '#e5484d', events, t('editorBackup.sectionCountdownEvents'), 'editor-fold-countdown')
   ]);
-  const way = (cls, icon, color, title, onClick) => {
+  const way = (cls, icon, color, title, sub, onClick) => {
     const pic = el('span', 'cx-cl-icon');
     pic.innerHTML = glyph(icon);
-    const card = button(`cx-way-card ${cls} q-press`, onClick, [pic, el('strong', '', title)]);
+    const card = button(`cx-way-card ${cls} q-press`, onClick, [pic, el('strong', '', title), el('small', '', sub)]);
     card.style.setProperty('--subject', color);
     return card;
   };
-  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), () => openTransfer('photo'))]);
+  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
   // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
   box.classList.add('q-cols');

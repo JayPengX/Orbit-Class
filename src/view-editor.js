@@ -10,6 +10,7 @@ import { WEEKDAYS_DISPLAY_ORDER } from './constants.js';
 import { openEditorFold } from './editor-core.js';
 import { el, fillGlyphs, fitSelects, row, tile } from './ui.js';
 import { t } from './strings.js';
+import { subjectLook } from './subjects.js';
 
 const sheet = document.getElementById('editor-sheet');
 const grid = document.getElementById('schedule-grid');
@@ -36,8 +37,22 @@ function showDay() {
   grid?.querySelectorAll('.schedule-day-row').forEach(r => r.classList.toggle('is-shown', Number(r.dataset.day) === day));
   fitShown();
 }
+// Each period's box washed in its class's colour (a free period plain), as 課表's cells.
+function tint(selects) {
+  for (const sel of selects) {
+    const name = String(sel.value || '').split(/[／/]/)[0].trim();
+    sel.classList.toggle('is-free', !name);
+    if (name) sel.style.setProperty('--subject', subjectLook(name).color);
+    else sel.style.removeProperty('--subject');
+  }
+}
 // A long subject's name stays whole in its period's box (it shrinks).
-const fitShown = () => grid && fitSelects(grid.querySelectorAll('.schedule-day-row.is-shown .period-select'));
+const fitShown = () => {
+  if (!grid) return;
+  const shown = grid.querySelectorAll('.schedule-day-row.is-shown .period-select');
+  tint(shown);
+  fitSelects(shown);
+};
 // Each day's periods by number and start time (the bell rows as they stand).
 function numberRows() {
   if (!grid) return;
@@ -56,7 +71,7 @@ function numberRows() {
 }
 if (grid) {
   new MutationObserver(numberRows).observe(grid, { childList: true });
-  grid.addEventListener('change', event => event.target.matches?.('.period-select') && fitSelects([event.target]));
+  grid.addEventListener('change', event => event.target.matches?.('.period-select') && (tint([event.target]), fitSelects([event.target])));
   if (typeof ResizeObserver === 'function') new ResizeObserver(fitShown).observe(grid);
   document.getElementById('bell-list')?.addEventListener('change', numberRows);
   const days = document.getElementById('ed-days');

@@ -24,14 +24,19 @@ Live: https://orbit.jaypengx.com/class/
     end (`view-today.js renderHero`, `css/look.css`).
     Below it the family's strip of days (today and the school days of the
     next two weeks, 📅 for any day, a swipe for the next) over that day's
-    classes (today's: the ones after the card; today picked again once it's
+    classes as a timeline (`dayCards`: the start over the end on the left,
+    each class a block washed in its subject's colour with a bar of it at its
+    edge, teacher · room under its name; a named break a dashed line with its
+    cup; today's: the ones after the card; today picked again once it's
     over: 今天的課, every class faded), and the countdowns. After the last
     class it shows the next school day. A class's sheet (`view-sheet.js`):
     its pencil opens the icon picker as a sheet over it, so closing the
     picker leaves the class open.
   - **課表:** the week as a grid, this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
-  - **工具:** the week as a grid (課表's short names) with 編輯課表; 專注飛行; AI 課表編輯 and 拍照匯入;
+    Each class a cell washed in its subject's colour with a bar of it on its left, the class on now on its full colour ringed in the app's, today's done ones faded, a break of 30 minutes or more a dashed line across the week (named from 特殊時段, `bellGap`).
+  - **工具:** the week as a grid (課表's cells, short names) with 編輯課表; 專注飛行 (a graphite card, a flight's arc drawn on it); the editor's four parts as one card of four figures; AI 課表編輯 and 拍照匯入 as two cards;
     分享金鑰.
+  - **編輯課表** (`view-editor.js`): graphite pages; each period's box washed in its class's colour (`tint`), a free one an outline; numbers in light figures; 新增… a line in the app's colour; remove a grey minus. No glass anywhere.
 - **專注飛行** (a trial, Jay 2026-10-30): a focus timer that follows a real plane.
   Pick 25/50/90 minutes or type 10–180; the proxy's `/flight` (Orbit-Core
   `flight.js`) offers three planes in the air now that land in about that

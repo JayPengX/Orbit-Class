@@ -9,7 +9,7 @@ import * as kit from '#kit/orbit.mjs';
 import * as kitUI from '#kit/ui.mjs';
 import { WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
-import { swapsNotOver } from './data.js';
+import { breakLabel, swapsNotOver } from './data.js';
 import { dateKey, parseTime } from './dates.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
 import { holidayOn } from './holidays.js';
@@ -107,6 +107,9 @@ function drawGrid(monday, now) {
       cell.setAttribute('aria-label', `${WEEKDAY_LABELS[c.d]} ${t('dashboard.periodNumber', { number: p + 1 })} ${name}`);
       grid.append(cell);
     }
+    // A long break after this period (lunch): a quiet line across the week, named when the timetable names it.
+    const gap = bellGap(bells, p);
+    if (gap) grid.append(el('span', 'cx-tl-gap', gap.name ? [el('small', '', `${gap.start} ${gap.name}`)] : null));
   }
   // A holiday's column says which.
   const offs = cols.filter(c => c.holiday);
@@ -115,6 +118,14 @@ function drawGrid(monday, now) {
   // A long Latin name wraps by word; what still won't fit shrinks.
   requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-tl-cell.is-latin')));
   return [grid, foot].filter(Boolean);
+}
+// The break of 30 minutes or more between period p and the next, by the bells (and its name from 特殊時段).
+function bellGap(bells, p) {
+  const end = bells[p]?.[1];
+  const next = bells[p + 1]?.[0];
+  if (!end || !next || parseTime(next) - parseTime(end) < 30) return null;
+  const named = (state.applicationData.breakTimes || []).find(b => b.name && b.start && parseTime(b.start) >= parseTime(end) && parseTime(b.start) < parseTime(next));
+  return { start: named?.start || end, name: named ? breakLabel(named.name) : '' };
 }
 const weekName = ({ monday, week }) => `${week === '單' ? t('week.odd') : t('week.even')} ${monday.getMonth() + 1}/${monday.getDate()}`;
 const noTimetable = () => kitUI.empty({ icon: 'calendar', title: t('dashboard.noTimetable'), body: t('dashboard.noTimetableBody'), action: { label: t('dashboard.addTimetable'), onTap: () => showOnboardingPrompt({ force: true }) } });
