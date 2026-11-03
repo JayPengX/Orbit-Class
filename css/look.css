@@ -340,6 +340,7 @@ html[data-look='native'] .cx-cl-till {
   color: var(--q-label-3);
   font: 400 12px/15px var(--nv-display);
 }
+/* A class: a soft solid block in its subject's colour, as 課表's cells (no bar at its edge). */
 html[data-look='native'] .cx-cl-block {
   position: relative;
   display: flex;
@@ -347,23 +348,53 @@ html[data-look='native'] .cx-cl-block {
   gap: 12px;
   min-width: 0;
   min-height: 56px;
-  padding: 8px 12px 8px 16px;
+  padding: 8px 10px 8px 14px;
   overflow: hidden;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--subject) 13%, transparent);
-}
-html[data-look='native'] .cx-cl-block::before {
-  content: '';
-  position: absolute;
-  inset: 8px auto 8px 6px;
-  width: 3px;
-  border-radius: 2px;
-  background: var(--subject);
+  background: color-mix(in srgb, var(--subject) 34%, var(--nv-deep));
+  color: #ffffff;
 }
 html[data-look='native'] .cx-cl-block .cx-cl-icon {
   order: 2;
   margin-left: auto;
-  background: color-mix(in srgb, var(--subject) 20%, transparent);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+html[data-look='native'] .cx-cl-block .cx-cl-icon svg {
+  color: #ffffff;
+}
+html[data-look='native'][data-look='native'] .cx-cl-block .cx-cl-sub {
+  color: rgba(255, 255, 255, 0.72);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark'])[data-look='native'] .cx-cl-block {
+    background: color-mix(in srgb, var(--subject) 15%, #ffffff);
+    color: color-mix(in srgb, var(--subject) 62%, #000000);
+  }
+  :root:not([data-theme='dark'])[data-look='native'] .cx-cl-block :is(.cx-cl-sub, .cx-cl-icon, .cx-cl-icon svg) {
+    color: color-mix(in srgb, var(--subject) 50%, #3c3c43);
+  }
+  :root:not([data-theme='dark'])[data-look='native'] .cx-cl-block .cx-cl-icon {
+    background: color-mix(in srgb, var(--subject) 14%, transparent);
+  }
+}
+:root[data-theme='light'][data-look='native'] .cx-cl-block {
+  background: color-mix(in srgb, var(--subject) 15%, #ffffff);
+  color: color-mix(in srgb, var(--subject) 62%, #000000);
+}
+:root[data-theme='light'][data-look='native'] .cx-cl-block :is(.cx-cl-sub, .cx-cl-icon, .cx-cl-icon svg) {
+  color: color-mix(in srgb, var(--subject) 50%, #3c3c43);
+}
+:root[data-theme='light'][data-look='native'] .cx-cl-block .cx-cl-icon {
+  background: color-mix(in srgb, var(--subject) 14%, transparent);
+}
+/* (The day row sits close to the card above and the list below it.) */
+html[data-look='native'] #cx-days {
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+html[data-look='native'] #cx-days + #cx-list-sec {
+  margin-top: 8px;
 }
 html[data-look='native'] .cx-cl-words {
   display: grid;
@@ -649,19 +680,46 @@ html[data-look='native'] .cx-mini-grid {
   gap: 5px;
 }
 html[data-look='native'][data-look='native'] .cx-mini-cell:not(.is-empty) {
-  background: color-mix(in srgb, var(--subject) 16%, transparent);
-  box-shadow: inset 3px 0 0 var(--subject);
-  color: var(--q-label);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--subject) 34%, var(--nv-deep));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  color: #ffffff;
   font-weight: 600;
   text-shadow: none;
   outline: 0;
 }
 html[data-look='native'][data-look='native'] .cx-mini-cell.is-empty {
+  display: grid;
+  place-items: center;
   background: none;
-  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
+  box-shadow: none;
+}
+html[data-look='native'] .cx-mini-cell.is-empty::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--q-fill-2, rgba(120, 120, 128, 0.32));
 }
 html[data-look='native'] .cx-mini-day.is-today {
   color: var(--q-accent);
+  font-weight: 700;
+}
+html[data-look='native'][data-look='native'] .cx-mini-edit {
+  color: var(--q-label-2);
+  font-weight: 500;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark'])[data-look='native'] .cx-mini-cell:not(.is-empty) {
+    background: color-mix(in srgb, var(--subject) 15%, #ffffff);
+    box-shadow: none;
+    color: color-mix(in srgb, var(--subject) 62%, #000000);
+  }
+}
+:root[data-theme='light'][data-look='native'] .cx-mini-cell:not(.is-empty) {
+  background: color-mix(in srgb, var(--subject) 15%, #ffffff);
+  box-shadow: none;
+  color: color-mix(in srgb, var(--subject) 62%, #000000);
 }
 /* 專注飛行: a graphite card, the plane tinted in the app's colour, a flight's arc on the right. */
 html[data-look='native'] .cx-fly-card {
@@ -887,16 +945,21 @@ html[data-look='native'].q-wide .nv-now > :is(.nv-foot, .nv-foot-note) {
 /* ---- The editor (編輯課表): graphite pages, each period a box washed in
    its class's colour, the parts' glyphs tinted, adding a row a quiet line
    in the app's colour; no glass anywhere. ---- */
+/* Inside a sheet a card is a step lighter than the sheet (the sheet's own
+   cell colour), never the page's graphite: on the sheet that read as no card
+   at all, only its rim showing (Jay 2026-11-03, "almost transparent"). */
 html[data-look='native'] :is(.cx-sheet, .assign-sheet) {
+  --nv-card: var(--q-sheet-cell, var(--q-grouped-2));
+  --nv-lift: none;
   --q-surface: var(--nv-card);
 }
-html[data-look='native'] .editor-back-btn {
-  min-height: 34px;
-  padding: 0 12px 0 10px;
-  background: var(--q-fill-3, rgba(120, 120, 128, 0.16));
+html[data-look='native'][data-look='native'] .editor-back-btn {
+  min-height: 36px;
+  padding: 0 8px 0 4px;
+  background: none;
   box-shadow: none;
   color: var(--q-label);
-  font: 500 15px/1 var(--q-font);
+  font: 500 17px/1 var(--q-font);
 }
 html[data-look='native'] .editor-back-btn::before {
   border-color: var(--q-label-2);
@@ -914,7 +977,55 @@ html[data-look='native'] .editor-sheet.is-layered .editor-fold.active > .editor-
 html[data-look='native'] :is(.schedule-grid, .bell-list, .teacher-list, .countdown-editor-list) {
   border-radius: var(--q-r-card);
   background: var(--nv-card);
-  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+  box-shadow: none;
+}
+html[data-look='native'] .editor-sheet :is(.q-rowcard, .q-list, .editor-fold-summary) {
+  background: var(--nv-card);
+  box-shadow: none;
+}
+/* (Fields on a card: a step darker than it, so they read as fields.) */
+html[data-look='native'] .editor-sheet :is(.editor-input, .time-input, .order-position) {
+  background: var(--q-fill-3, rgba(120, 120, 128, 0.16));
+}
+/* (A time: one line, its figures in the middle of the field; iOS put them at the top.) */
+html[data-look='native'][data-look='native'] .editor-sheet .time-input {
+  display: block;
+  height: 44px;
+  min-height: 44px;
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: 44px;
+  text-align: center;
+  font: 400 17px/44px var(--nv-display);
+  font-variant-numeric: tabular-nums;
+}
+html[data-look='native'] .editor-sheet .time-input::-webkit-date-and-time-value {
+  margin: 0;
+  line-height: 44px;
+  text-align: center;
+}
+html[data-look='native'] .editor-sheet .break-name {
+  min-height: 44px;
+  font-weight: 600;
+}
+/* (A subject's row: the reorder grip quiet, the open toggle a plain chevron.) */
+html[data-look='native'] .teacher-drag-handle {
+  color: var(--q-label-4, var(--q-label-3));
+  font-size: 14px;
+}
+html[data-look='native'][data-look='native'] .teacher-card-toggle {
+  background: none;
+  color: var(--q-label-3);
+  font-size: 0;
+}
+html[data-look='native'] .teacher-card-toggle::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
 }
 html[data-look='native'] #schedule-grid {
   padding: 10px 10px 10px 8px;
@@ -943,18 +1054,28 @@ html[data-look='native'][data-look='native'] #schedule-grid .period-select {
   min-height: 48px;
   padding-left: 16px;
   border-radius: 14px;
-  background-color: color-mix(in srgb, var(--subject, var(--q-gray)) 14%, transparent);
-  box-shadow: inset 3px 0 0 var(--subject, transparent);
+  background-color: color-mix(in srgb, var(--subject, var(--q-gray)) 34%, var(--nv-deep));
+  box-shadow: none;
+  color: #ffffff;
   font-weight: 600;
 }
 html[data-look='native'][data-look='native'] #schedule-grid .period-select.is-free {
-  background-color: transparent;
-  box-shadow: inset 0 0 0 1px var(--q-fill-3, rgba(120, 120, 128, 0.16));
+  background-color: var(--q-fill-3, rgba(120, 120, 128, 0.16));
   color: var(--q-label-3);
   font-weight: 400;
 }
 html[data-look='native'][data-look='native'] #schedule-grid .period-select:focus {
-  box-shadow: inset 3px 0 0 var(--subject, transparent), 0 0 0 2px color-mix(in srgb, var(--q-accent) 55%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--q-accent) 55%, transparent);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark'])[data-look='native'] #schedule-grid .period-select:not(.is-free) {
+    background-color: color-mix(in srgb, var(--subject, var(--q-gray)) 15%, #ffffff);
+    color: color-mix(in srgb, var(--subject, var(--q-gray)) 62%, #000000);
+  }
+}
+:root[data-theme='light'][data-look='native'] #schedule-grid .period-select:not(.is-free) {
+  background-color: color-mix(in srgb, var(--subject, var(--q-gray)) 15%, #ffffff);
+  color: color-mix(in srgb, var(--subject, var(--q-gray)) 62%, #000000);
 }
 /* (The AI box: one line on graphite, the send in the app's colour.) */
 html[data-look='native'] .ed-ask .q-hc-eyebrow {
@@ -1006,7 +1127,7 @@ html[data-look='native'] .q-btn.ed-add {
   padding: 0 16px;
   border-radius: var(--q-r-card);
   background: var(--nv-card);
-  box-shadow: inset 0 0 0 0.5px var(--nv-edge), var(--nv-lift);
+  box-shadow: none;
   color: var(--q-accent);
   font: 500 16px/1 var(--q-font);
 }
