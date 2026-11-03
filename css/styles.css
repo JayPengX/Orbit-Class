@@ -1003,15 +1003,7 @@ body:is(.editor-open, .transfer-open) {
 .toggle-row {
   min-height: 52px;
 }
-.q-switch.on {
-  background: var(--q-green);
-}
-.q-switch.on::after {
-  transform: translateX(22px);
-}
-.q-switch.on:is(:active, [data-q-press])::after {
-  transform: translateX(16px);
-}
+/* (Its switches are the kit's .q-switch; .on is the kit's too.) */
 
 /* A part's rows: a summary that opens to its fields (subjects, countdowns). */
 .teacher-card {
