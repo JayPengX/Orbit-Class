@@ -1,0 +1,382 @@
+/* ==== Orbit's own look for Class (docs/DESIGN.md §11; index.html says
+   data-look="native", linked after styles.css) ====
+   今天's card is the kit's graphite; the class it names is a band in its
+   subject's colour, the day's periods one line of dots each its subject's,
+   the period now ringed in the app's colour (the one thing live). The rules
+   say html[data-look] twice where the kit's own (loaded after) would win. */
+
+/* ---- The card ---- */
+html[data-look='native'][data-look='native'] #cx-hero {
+  display: block;
+  padding: 14px 14px 12px;
+  background: var(--nv-card);
+  color: var(--q-label);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+}
+html[data-look='native'] #cx-hero {
+  cursor: pointer;
+}
+html[data-look='native'] #cx-hero.is-still {
+  cursor: default;
+}
+html[data-look='native'] #cx-hero:focus-visible {
+  outline: 2px solid var(--q-accent);
+  outline-offset: 3px;
+}
+/* (No timetable yet: no card, the list's one card says so.) */
+html[data-look='native'][data-look='native'] #cx-hero[hidden] {
+  display: none;
+}
+html[data-look='native'] .nv-now {
+  display: grid;
+  gap: 12px;
+}
+html[data-look='native'] .nv-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+  color: var(--q-label-2);
+  font: 500 15px/20px var(--q-font);
+}
+html[data-look='native'] .nv-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+html[data-look='native'] .nv-span {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+/* (Live: a lit dot in the app's colour.) */
+html[data-look='native'] .nv-live {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--q-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--q-accent) 24%, transparent);
+}
+
+/* The class: the kit's band (.q-band), a size up for the card's lead. */
+html[data-look='native'] .q-band.nv-band {
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 16px;
+}
+html[data-look='native'] .q-band.nv-band .q-band-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+html[data-look='native'] .q-band.nv-band .q-band-mark svg {
+  width: 24px;
+  height: 24px;
+}
+html[data-look='native'] .q-band.nv-band .q-band-text b {
+  font: 600 24px/29px var(--q-font);
+  letter-spacing: -0.015em;
+}
+html[data-look='native'] .q-band.nv-band .q-band-text small {
+  font: 500 14px/19px var(--q-font);
+}
+html[data-look='native'] .q-band.nv-band .q-band-end {
+  max-width: 9em;
+  overflow-wrap: anywhere;
+  font: 600 20px/24px var(--q-font);
+}
+html[data-look='native'] .nv-title {
+  padding: 0 4px;
+  font: 600 26px/32px var(--q-font);
+  letter-spacing: -0.015em;
+}
+
+/* The minutes: large and light, the words after them small. */
+html[data-look='native'] .nv-big {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 0 4px;
+}
+html[data-look='native'] .nv-big b {
+  font: 300 60px/60px var(--nv-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+html[data-look='native'] .nv-big .nv-unit {
+  margin-right: 4px;
+  color: var(--q-label-2);
+  font: 500 17px/1 var(--q-font);
+}
+
+/* ---- The day as one line ---- */
+html[data-look='native'] .nv-line {
+  display: flex;
+  align-items: flex-start;
+  padding: 6px 0 0;
+}
+html[data-look='native'] .nv-seg {
+  flex: 1 1 4px;
+  min-width: 4px;
+  height: 2px;
+  margin-top: 8px;
+  border-radius: 1px;
+  background: var(--q-fill-2, rgba(120, 120, 128, 0.32));
+}
+html[data-look='native'] .nv-seg.is-done {
+  background: color-mix(in srgb, var(--q-label) 40%, transparent);
+}
+/* (Lunch, or any long break: the gap twice as long, dashed.) */
+html[data-look='native'] .nv-seg.is-long {
+  flex-grow: 2.4;
+  background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 8px);
+  color: var(--q-fill-1, rgba(120, 120, 128, 0.5));
+}
+html[data-look='native'] .nv-seg.is-long.is-done {
+  color: color-mix(in srgb, var(--q-label) 40%, transparent);
+}
+html[data-look='native'] .nv-stop {
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: 6px;
+  width: 30px;
+  margin: 0 -4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--q-label);
+  font: inherit;
+  cursor: pointer;
+}
+html[data-look='native'] .nv-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--subject);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.2);
+}
+html[data-look='native'] .nv-stop small {
+  font: 500 12px/14px var(--q-font);
+  white-space: nowrap;
+}
+html[data-look='native'] .nv-stop.is-done .nv-dot {
+  opacity: 0.35;
+  transform: scale(0.72);
+}
+html[data-look='native'] .nv-stop.is-done small {
+  color: var(--q-label-3);
+}
+html[data-look='native'] .nv-stop.is-ahead small {
+  color: var(--q-label-2);
+}
+/* (Now: the dot ringed in the app's colour, its name bold.) */
+html[data-look='native'] .nv-stop.is-now .nv-dot {
+  outline: 2.5px solid var(--q-accent);
+  outline-offset: 2.5px;
+}
+html[data-look='native'] .nv-stop.is-now small {
+  font-weight: 700;
+}
+html[data-look='native'] .nv-end {
+  margin: 0;
+  padding: 0 4px;
+  color: var(--q-label-2);
+  font: 400 14px/20px var(--q-font);
+}
+html[data-look='native'] .nv-end b {
+  color: var(--q-label);
+  font-weight: 600;
+}
+
+/* ---- The foot: the class after (or tomorrow's first), one row ---- */
+html[data-look='native'] .nv-foot {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 0 -2px;
+  padding: 12px 6px 2px;
+  border: 0;
+  border-top: 0.5px solid var(--q-sep);
+  background: none;
+  color: var(--q-label);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+html[data-look='native'] .nv-foot-label {
+  color: var(--q-label-2);
+  font: 500 14px/18px var(--q-font);
+}
+html[data-look='native'] .nv-foot-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--subject, var(--q-gray));
+}
+html[data-look='native'] .nv-foot-name {
+  overflow: hidden;
+  font: 600 17px/22px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+html[data-look='native'] .nv-foot-end {
+  color: var(--q-label-2);
+  font: 400 15px/20px var(--q-font);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+html[data-look='native'] .nv-foot-note {
+  margin: 0;
+  padding: 12px 4px 2px;
+  border-top: 0.5px solid var(--q-sep);
+  color: var(--q-label-2);
+  font: 400 15px/20px var(--q-font);
+}
+
+/* ---- The day's classes: rows on graphite, each a dot of its subject ---- */
+html[data-look='native'][data-look='native'] .cx-cls.q-rail.q-rail {
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border-radius: var(--q-r-card);
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+}
+html[data-look='native'][data-look='native'] .cx-cl {
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-areas: 'time name icon' 'time sub icon';
+  align-items: center;
+  gap: 0 12px;
+  min-height: 0;
+  padding: 11px 14px;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--q-label);
+}
+html[data-look='native'][data-look='native'] .cx-cl + .cx-cl {
+  box-shadow: inset 0 0.5px 0 var(--q-sep);
+}
+html[data-look='native'] .cx-cl .cx-cl-top {
+  display: contents;
+}
+html[data-look='native'] .cx-cl .cx-cl-top small {
+  display: none;
+}
+html[data-look='native'][data-look='native'] .cx-cl .cx-cl-icon {
+  grid-area: icon;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--subject) 20%, transparent);
+  color: color-mix(in srgb, var(--subject) 80%, var(--q-label));
+}
+html[data-look='native'] .cx-cl .cx-cl-icon svg {
+  width: 17px;
+  height: 17px;
+}
+html[data-look='native'][data-look='native'] .cx-cl .cx-cl-time {
+  grid-area: time;
+  font: 400 17px/22px var(--nv-display);
+  font-variant-numeric: tabular-nums;
+}
+html[data-look='native'][data-look='native'] .cx-cl .cx-cl-name {
+  grid-area: name;
+  font: 500 17px/22px var(--q-font);
+}
+html[data-look='native'][data-look='native'] .cx-cl .cx-cl-sub {
+  grid-area: sub;
+  color: var(--q-label-2);
+  font: 400 13px/17px var(--q-font);
+}
+html[data-look='native'][data-look='native'] .cx-cls > .cx-cl.is-break {
+  display: grid;
+  justify-self: stretch;
+  width: auto;
+  padding-block: 7px;
+  color: var(--q-label-2);
+}
+html[data-look='native'][data-look='native'] .cx-cl.is-break :is(.cx-cl-time, .cx-cl-name) {
+  color: var(--q-label-2);
+  font-size: 14px;
+  line-height: 18px;
+}
+html[data-look='native'][data-look='native'] .cx-cl.is-break .cx-cl-icon {
+  background: none;
+  color: var(--q-label-3);
+}
+
+/* ---- 倒數: graphite cards, the event's colour on its glyph and its days ---- */
+html[data-look='native'][data-look='native'] .cx-cd {
+  background: var(--nv-card);
+  color: var(--q-label);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--nv-lift);
+}
+html[data-look='native'][data-look='native'] .cx-cd .cx-cl-icon {
+  background: color-mix(in srgb, var(--subject) 20%, transparent);
+  color: color-mix(in srgb, var(--subject) 80%, var(--q-label));
+}
+html[data-look='native'][data-look='native'] .cx-cd :is(.cx-cd-top small, .cx-cd-big small) {
+  color: var(--q-label-2);
+}
+html[data-look='native'][data-look='native'] .cx-cd .cx-cd-big b {
+  color: color-mix(in srgb, var(--subject) 70%, var(--q-label));
+  font: 300 36px/38px var(--nv-display);
+}
+html[data-look='native'][data-look='native'] .cx-cd .cx-cd-big em {
+  color: var(--q-label);
+}
+
+/* ---- The class sheet: its figures on graphite, the count in its subject's colour ---- */
+html[data-look='native'][data-look='native'] .cx-figs {
+  padding: 4px;
+  border-radius: 20px;
+  background: var(--nv-card);
+  box-shadow: inset 0 0 0 0.5px var(--nv-edge), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+html[data-look='native'][data-look='native'] .cx-figs .q-stat {
+  background: none;
+  color: var(--q-label);
+}
+html[data-look='native'][data-look='native'] .cx-figs .q-stat small {
+  color: var(--q-label-2);
+}
+html[data-look='native'][data-look='native'] .cx-figs .q-stat strong {
+  color: var(--q-label);
+  font: 300 30px/34px var(--nv-display);
+}
+html[data-look='native'][data-look='native'] .cx-figs #m-count {
+  color: color-mix(in srgb, var(--subject) 75%, var(--q-label));
+}
+
+/* ---- Wide: the class on the left, the line and what's next on the right ---- */
+html[data-look='native'].q-wide .nv-now {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-auto-flow: dense;
+  gap: 12px 32px;
+}
+html[data-look='native'].q-wide .nv-now > :is(.nv-top, .q-band, .nv-title, .nv-big) {
+  grid-column: 1;
+}
+html[data-look='native'].q-wide .nv-now > :is(.nv-line, .nv-end) {
+  grid-column: 2;
+}
+html[data-look='native'].q-wide .nv-now > .nv-line {
+  grid-row: 1 / span 2;
+  align-self: end;
+}
+html[data-look='native'].q-wide .nv-now > .nv-end {
+  align-self: start;
+  padding-top: 8px;
+}
+html[data-look='native'].q-wide .nv-now > :is(.nv-foot, .nv-foot-note) {
+  grid-column: 1 / -1;
+}

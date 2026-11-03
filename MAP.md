@@ -8,12 +8,16 @@ Live: https://orbit.jaypengx.com/class/
 ## How it works
 
 - **Tabs, one question each:**
-  - **今天:** one card answers "what's left today": the class now (teacher,
-    room, time left), the next, and the day as a strip of coloured chips by
-    two-character short name (an English one by its words' capitals,
-    Advanced English → AE; done faded, now ringed; a tap opens that chip's
-    own class, not the card's; the foot, 接著 / 下一節 / 明天, the class it names)
-    with how many are left and when school's out.
+  - **今天:** one graphite card answers "what's left today", led by the
+    class: the one on now (or the next) as a band in its subject's colour
+    (glyph, name, teacher, the room large on the right), the minutes left
+    large (40 分鐘後下課), then the day as one line of dots, each its subject's
+    colour with its two-character short name (an English one by its words'
+    capitals, Advanced English → AE; done faded, now ringed in the app's
+    colour; lunch a longer dashed gap; a tap opens that dot's own class),
+    how many are left, when school's out and the next school day's first
+    class; the foot (接著 / 下一節) opens the class it names. Once school's
+    out the band is the next school day's first class (`view-today.js renderHero`, `css/look.css`).
     Below it the family's strip of days (today and the school days of the
     next two weeks, 📅 for any day, a swipe for the next) over that day's
     classes (today's: the ones after the card), and the countdowns. After
@@ -66,11 +70,15 @@ Live: https://orbit.jaypengx.com/class/
 
 ## Decisions in force
 
-- One look: Class's own accent, light or dark with the device. The style
-  panel was deleted (old saves' colours are read, never applied).
+- One look: Orbit's own (Orbit-Core `docs/DESIGN.md` §11; `index.html` says
+  `data-look="native"`, `css/look.css` after `styles.css`): graphite cards,
+  colour only on what it names (a subject's band, its dot, the class sheet's
+  count), Class's accent only for now and the main action; light or dark with
+  the device. The style panel was deleted (old saves' colours are read, never applied).
+  `test/look.test.js` and `test/dashboard.test.js` hold it.
 - Every screen, either way up (Jay 2026-10-31): a phone upright or on its side, a
   tablet, a computer. On a wide page (`html.q-wide`) 今天's card runs across the
-  top with the day's classes beside the countdowns, 課表 shows both weeks side
+  top (the class on the left, the day's line on the right) with the day's classes beside the countdowns, 課表 shows both weeks side
   by side (調課 beside them on a computer), 工具 the week beside its tools; the
   app's own sheets are centred cards on a tablet or computer (`styles.css` §7).
 - The language is the family's: one picked in any Orbit app (`orbit.lang`) opens Class.

@@ -42,8 +42,7 @@ describe('an active break after the school day ends stays visible', () => {
     window.update();
 
     expect(document.getElementById('now-name').textContent).toBe('sleep');
-    expect(document.getElementById('timer-group').style.display).toBe('flex');
-    expect(document.getElementById('timer-val').textContent).toBe('9:00:00');
+    expect(document.getElementById('timer-val').textContent).toBe('9小時後結束');
 
     const dashboard = document.querySelector('.dashboard');
     expect(dashboard.classList.contains('v3-15-day-finished')).toBe(false);
@@ -56,7 +55,6 @@ describe('an active break after the school day ends stays visible', () => {
     // The foot: the next school day's first class (Wednesday's, in the fixture).
     expect(document.getElementById('next-label').textContent).toBe('週三');
     expect(document.getElementById('next-name').textContent).toBe('數學');
-    expect(document.getElementById('timer-label').textContent).toBe('後結束');
   });
 
   it('still hides the timer UI once the break itself has ended', () => {
@@ -65,8 +63,8 @@ describe('an active break after the school day ends stays visible', () => {
     setSimTime(13, 30);
     window.update();
 
-    expect(document.getElementById('now-name').textContent).toBe('放學時間');
-    expect(document.getElementById('timer-group').style.display).toBe('none');
+    expect(document.getElementById('cx-kicker').textContent).toBe('放學時間');
+    expect(document.getElementById('timer-val')).toBeNull();
     expect(document.querySelector('.dashboard').classList.contains('orbit-no-school-day')).toBe(
       true
     );

@@ -26,7 +26,7 @@ describe('a national holiday on 今天', () => {
     state.autoAdvancedAfterFinishedDay = null;
     state.lastListKey = '';
     window.update();
-    expect(document.getElementById('now-name').textContent).toBe('國慶日補假');
+    expect(document.getElementById('cx-kicker').textContent).toBe('國慶日補假');
     expect(state.viewDay).toBe(1);
     expect(names()).toEqual(['數學', '公民', '英文'].map((n, i) => (i === 1 ? expect.stringMatching(/國文|公民/) : n)));
     expect(document.getElementById('cx-list-title').textContent).toContain('週一');

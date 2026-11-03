@@ -45,7 +45,7 @@ describe('dashboard update() against the real app', () => {
     setSimTime(9, 30); // inside period 1 (09:10-10:00), the split B class
     window.update();
     expect(text('now-name')).toBe('公民'); // '雙' week -> second half of "國文/公民"
-    expect(text('now-teacher')).toBe('陳老師');
+    expect(text('now-teacher')).toContain('陳老師');
     expect(text('now-place')).toBe('102');
   });
 
@@ -57,17 +57,49 @@ describe('dashboard update() against the real app', () => {
     expect(text('now-place')).toBe('101');
   });
 
+  // The card's rule (docs/DESIGN.md §11): it leads with the class, the
+  // minutes and the room; the class is a band in its subject's colour on the
+  // graphite card, never the card filled with it.
+  it('in class: the band in the subject\'s colour, the room, the minutes left, live', () => {
+    setSimTime(8, 20); // 30 minutes before 08:50
+    window.update();
+    const card = document.getElementById('cx-hero');
+    const band = card.querySelector('.q-band');
+    expect(band.style.getPropertyValue('--band')).not.toBe('');
+    expect(card.style.getPropertyValue('--subject')).toBe('');
+    expect(text('timer-val')).toBe('30分鐘後下課');
+    expect(card.querySelector('.nv-live')).not.toBeNull();
+  });
+
+  it('the day as one line: a dot per class, the one now ringed, the ones done faded', () => {
+    setSimTime(9, 30);
+    window.update();
+    const stops = [...document.querySelectorAll('#cx-hero .nv-line .nv-stop')];
+    expect(stops).toHaveLength(3);
+    expect(stops.map(s => s.className.match(/is-(\w+)/)[1])).toEqual(['done', 'now', 'ahead']);
+    expect(document.querySelector('#cx-hero .nv-end').textContent).toContain('11:00');
+  });
+
+  it('a dot opens its own class, not the card\'s', () => {
+    setSimTime(9, 30); // card: 公民
+    window.update();
+    document.querySelectorAll('#cx-hero .nv-stop')[2].click(); // 英文
+    const sheets = document.querySelectorAll('.cx-kit-sheet');
+    const sheet = sheets[sheets.length - 1];
+    expect(sheet?.textContent || '').toContain('林老師');
+    sheet.remove();
+  });
+
   it('on a break, the class coming is the card, the break named on its top line', () => {
     setSimTime(9, 0); // inside 打掃時間 (08:50-09:10), period 2 (09:10) next
     window.update();
     expect(text('now-name')).toBe('公民');
     expect(text('cx-kicker')).toBe('打掃時間 · 接著第 2 節');
-    expect(text('timer-val')).toBe('10:00');
-    expect(text('timer-label')).toBe('後上課');
-    // The foot: the class after it, on its own two lines.
+    expect(text('timer-val')).toBe('10分鐘後上課');
+    // The foot: the class after it, one row.
     expect(text('next-label')).toBe('接著');
     expect(text('next-name')).toBe('英文');
-    expect(text('next-time')).toBe('10:10');
+    expect(text('next-time')).toContain('10:10');
   });
 
   it('a tap on the foot opens the class it names (接著), not the card\'s', () => {
@@ -81,12 +113,15 @@ describe('dashboard update() against the real app', () => {
     sheet.remove();
   });
 
-  it('shows "放學時間" once the last period of the day ends, and auto-advances the viewed day', () => {
+  it('once the day is over: 放學時間 on the top line, the next school day\'s first class as the band, the viewed day moved on', () => {
     setSimTime(11, 1); // just after period 2 (10:10-11:00) ends
     window.update();
-    expect(text('now-name')).toBe('放學時間');
+    expect(text('cx-kicker')).toBe('放學時間');
     // Wednesday (day 3) is the next day with any classes in the fixture;
     // Tuesday (day 2) has none.
+    expect(text('cx-span')).toBe('週三 08:00');
+    expect(text('now-name')).toBe('數學');
+    expect(document.getElementById('timer-val')).toBeNull();
     expect(state.viewDay).toBe(3);
   });
 
@@ -95,15 +130,7 @@ describe('dashboard update() against the real app', () => {
     window.update();
     expect(text('now-name')).toBe('數學');
     expect(text('cx-kicker')).toBe('今天 · 第 1 節');
-    expect(text('timer-val')).toBe('30:00');
-    expect(document.getElementById('cx-ring-fill').style.strokeDasharray).toBe('0 100');
-  });
-
-  it('once the day is over, the next school day\'s first class along the foot', () => {
-    setSimTime(11, 1);
-    window.update();
-    expect(document.getElementById('timer-group').style.display).toBe('none');
-    expect(text('next-label')).toBe('週三');
+    expect(text('timer-val')).toBe('30分鐘後上課');
   });
 
   it('redirects an empty Saturday/Sunday viewDay to Monday instead of showing "這天沒有課"', () => {

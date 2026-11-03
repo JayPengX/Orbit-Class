@@ -1,6 +1,6 @@
 // ---- src/view-today.js ----
-// 今天: the hero (the class now, or the one coming, or a day over, from
-// schedule-calc.js heroView, with the day as a strip of chips), the classes
+// 今天: the card (the class now, or the one coming, or a day over, from
+// schedule-calc.js heroView, with the day as one line of dots), the classes
 // after it, and the countdowns. dashboard.js's update() asks every second;
 // each part is written only when what it shows changed.
 import * as kitUI from '#kit/ui.mjs';
@@ -11,99 +11,118 @@ import { dateFromKey, dateKey, parseTime } from './dates.js';
 import { classesOn, dateOfDay, getWeekType, processSplitName } from './schedule.js';
 import { showOnboardingPrompt } from './onboarding.js';
 import { holidayOn } from './holidays.js';
-import { breakIcon, eventLook, shortNames, subjectIcon, subjectLook, subjectTile } from './subjects.js';
+import { breakIcon, eventLook, shortNames, subjectIcon, subjectLook } from './subjects.js';
 import { openModal } from './view-sheet.js';
 import { el, button, glyph, nameSize, section } from './ui.js';
-import { t } from './strings.js';
+import { getLocale, t } from './strings.js';
 
-// ---- The hero ----
-let dom = null;
+// ---- The card ----
+// Orbit's own look (docs/DESIGN.md §11): the card is the kit's graphite and
+// leads with the class: the one on now (minutes left) or the next (minutes
+// to it), its room; the day's periods as one line with now lit; when school's
+// out and the next school day's first class. The class is a band in its
+// subject's colour (colour is what it names), the line's dots each their
+// subject's, the period now ringed in the app's colour (the one thing live).
 const $ = id => document.getElementById(id);
-function heroDom() {
-  if (dom) return dom;
-  dom = {};
-  for (const id of ['cx-hero', 'cx-kicker', 'cx-span', 'now-name', 'cx-meta', 'now-teacher', 'now-place', 'now-class-label', 'timer-group', 'timer-val', 'timer-label', 'cx-ring-fill', 'cx-art', 'cx-foot', 'next-label', 'next-name', 'next-time', 'next-sub', 'next-note', 'cx-icon', 'cx-glyph', 'next-icon']) dom[id] = $(id);
-  return dom;
-}
-// Last-drawn values: the card is asked every second, but only the time left
-// and the ring change that often.
-const last = {};
-function put(key, value, write) {
-  if (last[key] === value) return;
-  last[key] = value;
-  write(value);
-}
-const GLYPH = { class: 'clock', break: 'bell', before: 'clock', off: 'moon' };
+const L = (zh, en) => (getLocale() === 'en' ? en : zh);
+const plain = html => String(html || '').replace(/<[^>]*>/g, '').trim();
+const withId = (node, id) => ((node.id = id), node);
 
-export function renderHero(hero, week = '') {
-  const d = heroDom();
-  if (!d['cx-hero']) return;
-  put('mode', hero.mode, v => (d['cx-hero'].dataset.mode = v));
-  put('glyph', hero.mode, v => (d['cx-glyph'].innerHTML = glyph(GLYPH[v] || 'clock')));
-  put('kicker', hero.kicker, v => (d['cx-kicker'].textContent = v));
-  put('span', hero.span, v => (d['cx-span'].textContent = v));
-  put('title', hero.title, v => {
-    d['now-name'].textContent = v;
-    d['now-name'].className = `cx-title${nameSize(v)}`;
-  });
-  // The card is the subject's colour, its glyph large behind the words.
-  put('icon', hero.subject ? `s:${hero.subject}` : `m:${hero.mode}`, () => {
-    d['cx-icon'].innerHTML = hero.subject ? subjectIcon(hero.subject) : hero.mode === 'break' ? breakIcon() : glyph('moon');
-    d['cx-art'].innerHTML = d['cx-icon'].innerHTML;
-    d['cx-hero'].classList.toggle('has-subject', Boolean(hero.subject));
-    if (hero.subject) d['cx-hero'].style.setProperty('--subject', subjectLook(hero.subject).color);
-    else d['cx-hero'].style.removeProperty('--subject');
-  });
-  put('teacher', hero.teacher, v => (d['now-teacher'].textContent = v));
-  put('place', hero.place, v => (d['now-place'].textContent = v));
-  put('label', hero.label, v => (d['now-class-label'].innerHTML = v));
-  put('hasMeta', Boolean(hero.teacher || hero.place || hero.label), v => (d['cx-meta'].hidden = !v));
-  put('hasTimer', Boolean(hero.timer), v => (d['timer-group'].style.display = v ? 'flex' : 'none'));
-  if (hero.timer) {
-    put('timerLabel', hero.timer.label, v => (d['timer-label'].textContent = v));
-    put('timerVal', hero.timer.value, v => (d['timer-val'].textContent = v));
-  }
-  // The ring round the glyph: the class (or the wait) gone by.
-  put('progress', hero.progress == null ? '' : hero.progress.toFixed(1), v => (d['cx-ring-fill'].style.strokeDasharray = v === '' ? '0 100' : `${v} 100`));
-  const foot = hero.foot;
-  put('foot', foot ? (foot.note ? 'note' : 'class') : 'none', v => {
-    d['cx-foot'].hidden = v === 'none';
-    d['cx-foot'].dataset.kind = v;
-  });
-  if (foot?.note) put('note', foot.note, v => (d['next-note'].textContent = v));
-  else if (foot) {
-    put('nextLabel', foot.label, v => (d['next-label'].textContent = v));
-    put('nextName', foot.name, v => {
-      d['next-name'].textContent = v;
-      d['next-name'].className = nameSize(v).trim();
-    });
-    put('nextIcon', foot.subject || '', v => d['next-icon'].replaceChildren(...(v ? [subjectTile(v, 'sm', true)] : [])));
-    put('nextTime', foot.time, v => (d['next-time'].textContent = v));
-    put('nextSub', foot.sub, v => (d['next-sub'].textContent = v));
-  }
-  put('strip', `${week}|${JSON.stringify(hero.strip)}`, () => renderStrip(hero.strip, week));
+// "39:54" or "1:02:03" → whole minutes, rounded up (a class 39:54 from its end is 40 minutes).
+export function minutesOf(value) {
+  const parts = String(value || '')
+    .split(':')
+    .map(Number);
+  if (!value || parts.some(n => !Number.isFinite(n))) return null;
+  return Math.ceil(parts.reduce((s, n) => s * 60 + n, 0) / 60);
+}
+// The big figure: 40 分鐘後下課 / 1 小時 5 分後上課 (the numbers large, the words small after them).
+function bigMinutes(mins, label) {
+  if (mins == null) return null;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const unit = s => el('small', 'nv-unit', s);
+  const tail = getLocale() === 'en' ? ` ${label}` : label;
+  const parts = h ? [el('b', '', String(h)), unit(L('小時', 'h')), m ? el('b', '', String(m)) : null, unit(m ? L('分', 'm') + tail : tail)] : [el('b', '', String(m)), unit(L('分鐘', 'min') + tail)];
+  return withId(el('div', 'nv-big', parts), 'timer-val');
 }
 
-// The day at a glance, under the card's words: a chip per class in its
-// colour (its two-character short name), the ones done faded, the one now
-// ringed, each opening its own class; then how many are left, the week (單 / 雙) and when school's out.
-function renderStrip(strip, week) {
-  const box = $('cx-strip');
+// The class as a band in its subject's colour (the kit's .q-band): its glyph,
+// its name, the teacher (and 單週 / 調課); the room large on the right.
+function band(name, teacher, room) {
+  const pic = el('span', 'q-band-mark');
+  pic.innerHTML = subjectIcon(name);
+  const node = el('div', 'q-band nv-band', [pic, el('span', 'q-band-text', [withId(el('b', '', name), 'now-name'), teacher ? withId(el('small', '', teacher), 'now-teacher') : null]), room ? withId(el('span', 'q-band-end', room), 'now-place') : null]);
+  node.style.setProperty('--band', subjectLook(name).color);
+  return node;
+}
+
+// The day as one line: a dot per period in its subject's colour (done faded,
+// now ringed, the rest to come), its short name under it; a long break
+// (lunch) a longer, dashed gap. Each dot opens its own class.
+function dayLine(rows, week, now, curIdx, date) {
+  const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const names = rows.map(c => processSplitName(c, week).n);
+  const short = shortNames(names, 2);
+  const stops = [];
+  rows.forEach((c, i) => {
+    if (i) {
+      const gap = parseTime(c.s) - parseTime(rows[i - 1].e);
+      stops.push(el('i', `nv-seg${gap >= 30 ? ' is-long' : ''}${parseTime(c.s) * 60 <= secs ? ' is-done' : ''}`));
+    }
+    const st = parseTime(c.e) * 60 <= secs ? 'done' : i === curIdx ? 'now' : 'ahead';
+    const dot = button(`nv-stop is-${st}`, e => (e.stopPropagation(), openModal(c, { date })), [el('i', 'nv-dot'), el('small', '', short.get(names[i]) || '·')]);
+    dot.setAttribute('aria-label', `${c.s} ${names[i]}`);
+    dot.style.setProperty('--subject', subjectLook(names[i]).color);
+    stops.push(dot);
+  });
+  return el('div', 'nv-line', stops);
+}
+
+let drawn = '';
+// dashboard.js asks every second; drawn again only when what it shows changed
+// (the minute, the period, the day's line).
+export function renderHero(hero, { today = [], week = '', nextDay = null, now = new Date(), curIdx = -1, date = null } = {}) {
+  const box = $('nv-now');
   if (!box) return;
-  box.hidden = !strip;
-  if (!strip) return box.replaceChildren();
-  // Each by a two-character short name (國語文 → 國語, 空間資訊科技 → 空間), never two alike.
-  const short = shortNames(strip.chips.map(c => c.name), 2);
-  const chips = strip.chips.map((c, i) => {
-    const chip = el('i', `cx-chip is-${c.state}`, short.get(c.name) || '·');
-    chip.dataset.i = String(i);
-    chip.setAttribute('aria-label', `${c.start} ${c.name}`);
-    chip.style.setProperty('--subject', subjectLook(c.name).color);
-    chip.title = `${c.start} ${c.name}`;
-    return chip;
-  });
-  const words = el('span', 'cx-strip-words', [el('b', '', strip.left ? t('dashboard.stripLeft', { n: strip.left }) : t('dashboard.stripNone')), el('small', '', [week ? t(week === '單' ? 'week.odd' : 'week.even') : '', t('dashboard.stripEnd', { time: strip.end })].filter(Boolean).join(' · '))]);
-  box.replaceChildren(el('span', 'cx-chips', chips), words);
+  const mins = hero.timer ? minutesOf(hero.timer.value) : null;
+  const rows = today || [];
+  const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const lineKey = hero.strip ? rows.map(c => `${c.s}${parseTime(c.e) * 60 <= secs ? 1 : 0}${parseTime(c.s) * 60 <= secs ? 1 : 0}`).join() : '';
+  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, mins, curIdx, lineKey, JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label].join('|');
+  if (key === drawn) return;
+  drawn = key;
+
+  const f = hero.foot;
+  // A day over (or a day off): the next school day's first class is the one
+  // coming, its band; the day's state and when on the top line, no foot.
+  const ahead = hero.mode === 'off' && f && !f.note && f.subject;
+  const kicker = ahead ? hero.title : hero.kicker || (hero.mode === 'off' ? L('今天', 'Today') : '');
+  const top = el('div', 'nv-top', [el('span', 'nv-kicker', [hero.mode === 'class' ? el('i', 'nv-live') : null, withId(el('span', '', kicker), 'cx-kicker')]), withId(el('span', 'nv-span', ahead ? `${f.label} ${f.time}` : hero.span || ''), 'cx-span')]);
+  const parts = f?.sub ? f.sub.split(' · ') : [];
+  const main = ahead
+    ? band(f.name, parts.length > 1 ? parts[0] : '', parts.at(-1) || '')
+    : hero.subject
+      ? band(hero.title, [hero.teacher, plain(hero.label)].filter(Boolean).join(' · '), hero.place)
+      : withId(el('strong', 'nv-title', hero.title), 'now-name');
+  const big = hero.timer ? bigMinutes(mins, hero.timer.label) : null;
+
+  // The line, and under it how many are left, when school's out, the next school day's first class.
+  const line = hero.strip && rows.length ? dayLine(rows, week, now, curIdx, date) : null;
+  const first = nextDay?.first ? processSplitName(nextDay.first, nextDay.week) : null;
+  const end = hero.strip
+    ? el('p', 'nv-end', [el('b', '', hero.strip.left ? t('dashboard.stripLeft', { n: hero.strip.left }) : t('dashboard.stripNone')), ` · ${t('dashboard.stripEnd', { time: hero.strip.end })}`, first ? el('span', 'nv-end-next', ` · ${nextDay.label} ${nextDay.first.s} ${first.n}`) : null])
+    : null;
+
+  // The foot: the class after (接著 / 下一節), or the next school day's
+  // first; a tap on it opens that class (dashboard.js's footTarget).
+  let foot = null;
+  if (!ahead && f?.note) foot = el('p', 'nv-foot-note', f.note);
+  else if (!ahead && f) {
+    foot = button('nv-foot q-press', null, [withId(el('small', 'nv-foot-label', f.label), 'next-label'), el('span', 'nv-foot-dot'), withId(el('strong', 'nv-foot-name', f.name), 'next-name'), withId(el('span', 'nv-foot-end', [f.time, parts.length ? ` · ${parts.at(-1)}` : ''].join('')), 'next-time')]);
+    if (f.subject) foot.style.setProperty('--subject', subjectLook(f.subject).color);
+  }
+  box.replaceChildren(...[top, main, big, line, end, foot].filter(Boolean));
 }
 
 // ---- A day's classes (今天's list) ----

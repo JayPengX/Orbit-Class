@@ -107,7 +107,6 @@ function prunePastCountdowns(now = new Date()) {
 }
 
 let heroTarget = null;
-let heroDay = null; // today's classes and date, for the strip's chips
 let footTarget = null; // the class along the card's foot
 function update() {
   if (!window.MANUALLY_TEST) prunePastCountdowns();
@@ -152,11 +151,10 @@ function update() {
   // foot (today's next, or the next school day's first); none, not a button.
   const today = window.MANUALLY_TEST ? null : new Date();
   heroTarget = viewModel.curIdx >= 0 ? { c: todaySchedule[viewModel.curIdx], date: today } : viewModel.nxtIdx >= 0 && viewModel.isSchoolDay && !viewModel.isDayFinished ? { c: todaySchedule[viewModel.nxtIdx], date: today } : nextDay?.first && hero.foot?.name ? { c: nextDay.first, date: window.MANUALLY_TEST ? null : nextDay.date } : null;
-  heroDay = { rows: todaySchedule || [], date: today };
   // The foot (接著 / 下一節 / 明天) opens the class it names, not the card's.
   footTarget = hero.footAt === 'next' && nextDay?.first ? { c: nextDay.first, date: window.MANUALLY_TEST ? null : nextDay.date } : Number.isInteger(hero.footAt) && todaySchedule?.[hero.footAt] ? { c: todaySchedule[hero.footAt], date: today } : null;
   setHeroTappable(Boolean(heroTarget));
-  renderHero(hero, week);
+  renderHero(hero, { today: todaySchedule, week, nextDay, now, curIdx: viewModel.curIdx, date: today });
 
   // As the break before a class starts (five minutes before, after a long
   // one): a notice (once per class; not in test mode), only in its own
@@ -255,14 +253,11 @@ window.openTestPanel = openTestPanel; // testsim-runtime.js's patchPanelOpeners(
 // callers go through window.openTestPanel() rather than the bare function) - it
 // needs the real function bound here first, or it wraps undefined.
 window.toggleTestPanel = toggleTestPanel;
-// The hero card opens the class it shows (as a row does); a chip on its
-// strip, that chip's own class; its foot, the class the foot names.
+// The card opens the class it shows (as a row does); a dot on its line opens
+// its own class (view-today.js); its foot, the class the foot names.
 const hero = document.getElementById('cx-hero');
 const openHero = event => {
-  const chip = event?.target?.closest?.('.cx-chip');
-  const c = chip && heroDay?.rows[Number(chip.dataset.i)];
-  if (c) return openModal(c, { date: heroDay.date });
-  if (footTarget && event?.target?.closest?.('#cx-foot')) return openModal(footTarget.c, { date: footTarget.date });
+  if (footTarget && event?.target?.closest?.('.nv-foot')) return openModal(footTarget.c, { date: footTarget.date });
   if (heroTarget) openModal(heroTarget.c, { date: heroTarget.date });
 };
 function setHeroTappable(on) {
@@ -273,7 +268,8 @@ function setHeroTappable(on) {
   hero.classList.toggle('is-still', !on);
 }
 hero?.addEventListener('click', openHero);
-hero?.addEventListener('keydown', event => (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), openHero()));
+// (Keys on the card itself; a dot or the foot is a button of its own.)
+hero?.addEventListener('keydown', event => event.target === hero && (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), openHero()));
 window.update = update; // testsim-runtime.js monkey-patches this; every
 // cross-module caller goes through window.update() to see that patch.
 

@@ -116,248 +116,6 @@ body.orbit-motion-paused * {
 }
 
 /* ---- 2. 今天 ---- */
-/* The hero: the class now (or next, or the day's state). */
-.cx-hero {
-  gap: 12px;
-  padding: 16px 16px 14px;
-  cursor: pointer;
-}
-.cx-hero:focus-visible {
-  outline: 2px solid var(--q-accent);
-  outline-offset: 3px;
-}
-.cx-hero.is-still {
-  cursor: default;
-}
-.cx-hero[data-mode='break'] {
-  --q-hc-b: color-mix(in srgb, var(--q-accent) 80%, var(--q-teal));
-}
-.cx-hero-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-width: 0;
-}
-.cx-hero-top .q-hc-eyebrow {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-#cx-kicker:empty {
-  display: none;
-}
-/* No words on the top line (a day over): no lone glyph above the moon tile. */
-.cx-hero-top:has(#cx-kicker:empty):has(#cx-span:empty) {
-  display: none;
-}
-.cx-span {
-  flex: none;
-  font: 600 13px/1 var(--q-font);
-  font-variant-numeric: tabular-nums;
-  opacity: 0.85;
-}
-.cx-hero-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-.cx-hero-words {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-.cx-title {
-  font: 700 26px/31px var(--q-font);
-  letter-spacing: -0.015em;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-}
-.cx-title.is-long {
-  font-size: 22px;
-  line-height: 27px;
-}
-.cx-title.is-xlong {
-  font-size: 19px;
-  line-height: 24px;
-}
-.cx-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 6px;
-  min-width: 0;
-  color: rgba(255, 255, 255, 0.85);
-  font: var(--q-t-subhead);
-}
-.cx-meta[hidden],
-.cx-meta > :empty {
-  display: none;
-}
-.cx-meta > #now-teacher:not(:empty) ~ #now-place:not(:empty)::before {
-  content: '· ';
-}
-.cx-meta .week-label {
-  --t: #fff;
-  background: rgba(255, 255, 255, 0.2);
-}
-.cx-timer {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-.cx-timer .q-hc-big {
-  font-size: 44px;
-  line-height: 46px;
-}
-#timer-label {
-  font: 600 15px/1 var(--q-font);
-  opacity: 0.85;
-}
-/* Its foot: what comes after, in a frosted strip. */
-.cx-foot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 52px;
-  margin-top: 2px;
-  padding: 8px 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.14);
-}
-.cx-foot[hidden] {
-  display: none;
-}
-.cx-foot-icon:empty {
-  display: none;
-}
-.cx-foot-words {
-  flex: 1;
-  display: grid;
-  gap: 1px;
-  min-width: 0;
-}
-.cx-foot-words small,
-.cx-foot-end small {
-  overflow: hidden;
-  color: rgba(255, 255, 255, 0.78);
-  font: 500 12px/16px var(--q-font);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.cx-foot-words b {
-  font: 600 16px/21px var(--q-font);
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-}
-.cx-foot-words b.is-long {
-  font-size: 15px;
-  line-height: 19px;
-}
-.cx-foot-words b.is-xlong {
-  font-size: 13px;
-  line-height: 17px;
-}
-.cx-foot-end {
-  flex: none;
-  display: grid;
-  justify-items: end;
-  gap: 1px;
-  max-width: 45%;
-}
-@media (max-width: 360px) {
-  .cx-chip {
-    font-size: 12px;
-  }
-  /* The top line (打掃時間 · 接著第 2 節 · 09:10–10:00) whole on a 320 phone. */
-  .cx-hero-top .q-hc-eyebrow {
-    gap: 4px;
-    font-size: 14px;
-  }
-  .cx-span {
-    font-size: 12px;
-  }
-  .cx-foot-end small {
-    display: none;
-  }
-}
-.cx-foot-end b {
-  font: 700 17px/21px var(--q-font-rounded);
-  font-variant-numeric: tabular-nums;
-}
-.cx-foot-note {
-  display: none;
-  margin: 0;
-  font: 500 15px/20px var(--q-font);
-}
-.cx-foot[data-kind='note'] > :not(.cx-foot-note) {
-  display: none;
-}
-.cx-foot[data-kind='note'] .cx-foot-note {
-  display: block;
-}
-
-/* The day as a strip: a chip per class in its colour, the done ones faded,
-   the one now ringed; how many are left and when school's out beside it. */
-.cx-strip {
-  display: grid;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
-}
-.cx-strip[hidden] {
-  display: none;
-}
-.cx-chips {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 5px;
-}
-.cx-chip {
-  display: grid;
-  place-items: center;
-  height: 30px;
-  min-width: 0;
-  border-radius: 9px;
-  background: var(--subject);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-  color: #fff;
-  font: 700 13px/1 var(--q-font);
-  font-style: normal;
-  letter-spacing: -0.04em;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.cx-chip.is-done {
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: none;
-  color: rgba(255, 255, 255, 0.55);
-}
-.cx-chip.is-now {
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
-  color: var(--subject);
-  transform: scale(1.08);
-}
-.cx-strip-words {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  font-variant-numeric: tabular-nums;
-}
-.cx-strip-words b {
-  font: 600 15px/20px var(--q-font);
-}
-.cx-strip-words small {
-  color: rgba(255, 255, 255, 0.8);
-  font: 500 13px/18px var(--q-font);
-  white-space: nowrap;
-}
-
 /* A day's classes: a tile, the name, teacher · room, start over end. */
 .cx-day .row {
   min-height: 62px;
@@ -1981,21 +1739,6 @@ img.q-tile.tr-app {
   .cx-tl-cell.is-pair {
     font-size: 11px;
   }
-  .cx-title {
-    font-size: 23px;
-    line-height: 28px;
-  }
-  .cx-title.is-long {
-    font-size: 20px;
-    line-height: 25px;
-  }
-  .cx-title.is-xlong {
-    font-size: 18px;
-    line-height: 22px;
-  }
-  .cx-timer .q-hc-big {
-    font-size: 40px;
-  }
   .cx-occ {
     gap: 4px;
   }
@@ -2034,107 +1777,6 @@ img.q-tile.tr-app {
 }
 
 /* ---- Round 5: the look of the best of the family ---- */
-/* The hero takes the subject's colour, its glyph large and faint behind the
-   words, a ring round the glyph for the time gone by. */
-.cx-hero {
-  isolation: isolate;
-}
-.cx-hero.has-subject {
-  --q-hc-a: color-mix(in srgb, var(--subject) 62%, #0b1020);
-  --q-hc-b: var(--subject);
-  --q-hc-glow: color-mix(in srgb, var(--subject) 45%, #ffffff);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .cx-hero.has-subject {
-    --q-hc-a: color-mix(in srgb, var(--subject) 38%, #05070d);
-    --q-hc-b: color-mix(in srgb, var(--subject) 74%, #05070d);
-    --q-hc-glow: color-mix(in srgb, var(--subject) 55%, transparent);
-  }
-}
-:root[data-theme='dark'] .cx-hero.has-subject {
-  --q-hc-a: color-mix(in srgb, var(--subject) 38%, #05070d);
-  --q-hc-b: color-mix(in srgb, var(--subject) 74%, #05070d);
-}
-.cx-art {
-  position: absolute;
-  z-index: -1;
-  right: -26px;
-  bottom: -30px;
-  width: 190px;
-  height: 190px;
-  color: #fff;
-  opacity: 0.12;
-  pointer-events: none;
-  transform: rotate(-12deg);
-}
-.cx-art svg {
-  width: 100%;
-  height: 100%;
-  stroke-width: 1.4;
-}
-.cx-hero-main {
-  justify-content: space-between;
-}
-.cx-ring {
-  position: relative;
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-}
-.cx-ring > svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-.cx-ring > svg circle {
-  fill: none;
-  stroke-width: 6;
-}
-.cx-ring-track {
-  stroke: rgba(255, 255, 255, 0.22);
-}
-.cx-ring-fill {
-  stroke: #fff;
-  stroke-linecap: round;
-  stroke-dasharray: 0 100;
-  transition: stroke-dasharray 0.6s linear;
-}
-.cx-hero-icon {
-  display: grid;
-  place-items: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-.cx-hero-icon svg {
-  width: 26px;
-  height: 26px;
-}
-.cx-meta {
-  gap: 6px;
-}
-.cx-meta > #now-teacher:not(:empty) ~ #now-place:not(:empty)::before {
-  content: none;
-}
-/* Who and where: plain words on the card, not capsules (docs/DESIGN.md: chips only for taps). */
-.cx-pill {
-  color: rgba(255, 255, 255, 0.82);
-  font: 500 15px/20px var(--q-font);
-  white-space: nowrap;
-}
-.cx-pill:empty {
-  display: none;
-}
-#now-teacher:not(:empty) ~ #now-place:not(:empty)::before {
-  content: '· ';
-}
-
 /* A day's classes: a rail of cards, each its subject's colour. */
 .cx-cls {
   --q-rail-w: 128px;
@@ -2371,15 +2013,6 @@ img.q-tile.tr-app {
 .cx-occ .occ-day:not(.is-off) .occ-day-time {
   opacity: 0.85;
 }
-/* No time running (a day over): the ring is only the glyph's disc. */
-.cx-hero[data-mode='off'] .cx-ring > svg {
-  display: none;
-}
-
-.cx-hero[hidden] {
-  display: none;
-}
-
 /* The class sheet's icon, tapped to pick another. */
 .cx-pick-lead {
   position: relative;
@@ -3075,27 +2708,6 @@ body.cx-flying {
 :root.q-wide {
   --q-page-max: 1180px;
 }
-/* 今天's card across the top: what's on and the time left on the left,
-   what's next and the day's strip on the right. */
-:root.q-wide .cx-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: 'top top' 'main foot' 'timer strip';
-  align-items: center;
-  gap: 12px 32px;
-  padding: 18px 20px 16px;
-}
-:root.q-wide .cx-hero-top { grid-area: top; }
-:root.q-wide .cx-hero-main { grid-area: main; }
-:root.q-wide .cx-timer { grid-area: timer; }
-:root.q-wide .cx-foot { grid-area: foot; margin: 0; }
-:root.q-wide .cx-strip { grid-area: strip; padding-top: 0; border-top: 0; }
-/* (No strip, a day over: what's next runs down the right.) */
-:root.q-wide .cx-hero:has(.cx-strip[hidden]) .cx-foot { grid-row: 2 / span 2; }
-:root.q-wide .cx-art {
-  right: auto;
-  left: 38%;
-}
 /* Cards that ran in a sideways row on a phone are a grid on a wide page. */
 :root.q-wide :is(.cx-cls, .cx-cds).q-rail {
   grid-auto-flow: row;
@@ -3122,10 +2734,6 @@ body.cx-flying {
 }
 :root.q-wide #cx-countdowns {
   grid-column: 2;
-}
-:root.q-wide .cx-hero-main {
-  justify-content: flex-start;
-  gap: 24px;
 }
 /* 課表: both weeks, each a card under its name. */
 #cx-grid.is-both {
@@ -3161,26 +2769,6 @@ body.cx-flying {
 :root.q-wide .cx-tools-a {
   position: sticky;
   top: calc(var(--q-top, 0px) + 8px);
-}
-
-/* A phone on its side (short): the card no taller than it must be. */
-@media (max-height: 520px) {
-  :root.q-wide .cx-hero {
-    gap: 8px 24px;
-    padding: 14px 16px 12px;
-  }
-  :root.q-wide .cx-ring {
-    width: 56px;
-    height: 56px;
-  }
-  :root.q-wide .cx-hero-icon {
-    width: 40px;
-    height: 40px;
-  }
-  :root.q-wide .cx-timer .q-hc-big {
-    font-size: 38px;
-    line-height: 40px;
-  }
 }
 
 /* Sheets on a tablet or a computer: a card in the middle of the screen,
