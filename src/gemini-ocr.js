@@ -1603,6 +1603,7 @@ function activateOCRImporter() {
             reverseWeek: current.reverseWeek,
             classSwaps: current.classSwaps,
             subjectIcons: current.subjectIcons,
+            subjectColors: current.subjectColors,
             proAccent: current.proAccent,
             proSecondary: current.proSecondary,
             styleSlots: current.styleSlots

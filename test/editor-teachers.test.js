@@ -139,3 +139,26 @@ describe('assignment overwrite confirm (assignTeacherFromMenu / assignToSlot / a
     expect(daySelect(1, 1).value).toBe('A');
   });
 });
+
+// Jay 2026-11-05: a class's icon and colour are picked in 編輯課表 too.
+describe("a class's icon and colour in the editor", () => {
+  it('its tile and a row under its fields open the picker; a colour picked is saved and shown', async () => {
+    const { state } = await import('../src/state.js');
+    const card = teacherCard('A');
+    const look = card.querySelector('.tc-look');
+    expect(look).not.toBeNull();
+    expect(card.querySelector('button.teacher-avatar')).not.toBeNull();
+    look.click();
+    const sheet = [...document.querySelectorAll('dialog')].find(d => d.querySelector('.cx-color-grid'));
+    expect(sheet).toBeTruthy();
+    const dots = sheet.querySelectorAll('.cx-color-pick');
+    expect(dots.length).toBeGreaterThanOrEqual(8);
+    const before = card.querySelector('.teacher-avatar').style.getPropertyValue('--subject');
+    const other = [...dots].find(d => !d.classList.contains('is-on'));
+    other.click();
+    expect(Object.keys(state.applicationData.subjectColors || {})).toContain('數學');
+    expect(card.querySelector('.teacher-avatar').style.getPropertyValue('--subject')).not.toBe(before);
+    sheet.querySelector('.cx-pick-reset').click();
+    expect(state.applicationData.subjectColors?.數學).toBeUndefined();
+  });
+});

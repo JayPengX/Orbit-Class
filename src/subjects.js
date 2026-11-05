@@ -3,10 +3,12 @@ import { state } from './state.js';
 // ---- src/subjects.js ----
 // Every subject's picture: an icon and a colour, from its name (Traditional
 // Chinese first, English too), as the family gives every team its logo and
-// every player a face. A subject the list doesn't know gets a book in a
-// colour of its own (the same every time for the same name).
+// every player a face. Its colour is its group's (SWATCHES), its icon its own
+// (no two subjects of a timetable alike); a subject the list doesn't know
+// gets a book in grey. The person can pick either (the class sheet's pencil,
+// a class's tile in 編輯課表).
 //
-//   subjectLook('物理')        → { key: 'physics', color: '#8b5cf6', icon: '<svg…>' }
+//   subjectLook('物理')        → { key: 'physics', group: 'science', swatch: 'green', color: '#84cc16', icon: '<svg…>' }
 //   subjectTile('物理', 'sm') → a kit .q-tile in its colour
 
 // The icons: 24×24, drawn with a 2px stroke in currentColor (Lucide's way).
@@ -65,50 +67,71 @@ const P = {
   target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'
 };
 
+// The colours: one per group of subjects (as the school groups them), ten
+// clearly apart from each other on the grid's dark cells and light ones, so
+// a colour tells what kind of class it is at a glance: 國語文 red, 英語 blue,
+// other languages sky, 數學 violet, 自然 green, 社會 yellow, 藝術 pink, 健體
+// orange, 科技 teal, the rest (班會, 輔導, 自主學習…) grey. A person can put
+// any subject on any of them (applicationData.subjectColors).
+export const SWATCHES = {
+  red: '#ef4444',
+  orange: '#f97316',
+  yellow: '#eab308',
+  green: '#84cc16',
+  teal: '#14b8a6',
+  sky: '#0ea5e9',
+  blue: '#3b82f6',
+  violet: '#8b5cf6',
+  pink: '#ec4899',
+  gray: '#8e8e93'
+};
+export const COLOR_CHOICES = Object.keys(SWATCHES);
+// A group: its colour; the subjects' rules name their group.
+const GROUP = { chinese: 'red', english: 'blue', language: 'sky', math: 'violet', science: 'green', social: 'yellow', arts: 'pink', pe: 'orange', tech: 'teal', other: 'gray' };
+
 // Name → look. The first rule whose words the name contains wins, so the
 // narrower ones (地球科學 before 地理, 生活科技 before 科技) come first.
+// [key, icon, group, words]
 const RULES = [
-  ['earth', 'mountain', '#b7791f', /地科|地球科學|earth/i],
-  ['life-tech', 'wrench', '#64748b', /生活科技|生科|家政|工藝|technology|craft/i],
-  ['stem', 'rocket', '#4f46e5', /天文|機器人|創客|stem|robot|maker/i],
-  ['computer', 'laptop', '#475569', /資訊|資科|電腦|程式|計算機|資訊科技|computer|coding|programming|\bit\b/i],
-  ['diversity', 'rainbow', '#c2410c', /族群|性別|多元文化|平權|gender|diversity/i],
-  ['writing', 'feather', '#be123c', /國寫|寫作|作文|writing/i],
-  ['classics', 'scroll', '#9f1239', /古文|國學|經典|論語|classics/i],
-  ['chinese', 'book', '#e5484d', /國文|國語|語文|中文|文學|閱讀|chinese/i],
-  ['english', 'speech', '#2563eb', /英文|英語|english/i],
-  ['language', 'languages', '#0891b2', /日文|日語|韓文|韓語|法文|法語|德文|德語|西班牙|外語|第二外|language|japanese|french|german|spanish|korean/i],
-  ['math', 'sigma', '#6366f1', /數學|數甲|數乙|數a|數b|算數|math|calculus|algebra|geometry|statistics/i],
-  ['physics', 'atom', '#8b5cf6', /物理|physics/i],
-  ['chemistry', 'flask', '#0d9488', /化學|chemistry/i],
-  ['biology', 'dna', '#16a34a', /生物|biology/i],
-  ['inquiry', 'microscope', '#0e7490', /探究|實驗|研究|inquiry|\blab\b/i],
-  ['science', 'magnet', '#0ea5e9', /自然|理化|科學|science/i],
-  ['history', 'landmark', '#d97706', /歷史|history/i],
-  ['geography', 'globe', '#0891b2', /地理|geography/i],
-  ['environment', 'sprout', '#15803d', /環境|永續|園藝|農業|environment|sustainab/i],
-  ['economics', 'coins', '#a16207', /經濟|理財|economics|finance/i],
-  ['law', 'gavel', '#475569', /法律|law\b/i],
-  ['civics', 'scale', '#0284c7', /公民|社會|政治|civics|social/i],
-  ['swim', 'waves', '#0ea5e9', /游泳|swim/i],
-  ['fitness', 'dumbbell', '#ea580c', /體能|健身|fitness/i],
-  ['pe', 'ball', '#f97316', /體育|球類|\bpe\b|physical education|sport/i],
-  ['choir', 'mic', '#db2777', /合唱|演講|口語|choir|speaking/i],
-  ['music', 'music', '#ec4899', /音樂|music/i],
-  ['drama', 'film', '#a855f7', /表演|戲劇|電影|影視|drama|film|theat/i],
-  ['art', 'palette', '#d946ef', /美術|藝術|視覺|美勞|art|drawing/i],
-  ['health', 'heart', '#f43f5e', /健康|護理|健教|health|nursing/i],
-  ['defense', 'shield', '#4d7c0f', /國防|軍訓|defen[cs]e/i],
-  ['career', 'briefcase', '#0f766e', /生涯|職涯|career/i],
-  ['psychology', 'smile', '#14b8a6', /心理|psychology/i],
-  ['guidance', 'compass', '#14b8a6', /輔導|生命教育|guidance/i],
-  ['homeroom', 'people', '#6b7280', /班會|週會|朝會|導師|團體活動|社團|班級|homeroom|assembly|club/i],
-  ['project', 'target', '#ca8a04', /專題|project/i],
-  ['study', 'bulb', '#ca8a04', /自主學習|自習|彈性|study/i],
-  ['elective', 'star', '#7c3aed', /選修|特色|elective/i]
+  ['earth', 'mountain', 'science', /地科|地球科學|earth/i],
+  ['life-tech', 'wrench', 'tech', /生活科技|生科|家政|工藝|technology|craft/i],
+  ['stem', 'rocket', 'tech', /天文|機器人|創客|stem|robot|maker/i],
+  ['computer', 'laptop', 'tech', /資訊|資科|電腦|程式|計算機|資訊科技|computer|coding|programming|\bit\b/i],
+  ['diversity', 'rainbow', 'social', /族群|性別|多元文化|平權|gender|diversity/i],
+  ['english', 'speech', 'english', /英文|英語|english/i],
+  ['writing', 'feather', 'chinese', /國寫|寫作|作文|writing/i],
+  ['classics', 'scroll', 'chinese', /古文|國學|經典|論語|classics/i],
+  ['chinese', 'book', 'chinese', /國文|國語|語文|中文|文學|閱讀|chinese/i],
+  ['language', 'languages', 'language', /日文|日語|韓文|韓語|法文|法語|德文|德語|西班牙|外語|第二外|language|japanese|french|german|spanish|korean/i],
+  ['math', 'sigma', 'math', /數學|數甲|數乙|數a|數b|算數|math|calculus|algebra|geometry|statistics/i],
+  ['physics', 'atom', 'science', /物理|physics/i],
+  ['chemistry', 'flask', 'science', /化學|chemistry/i],
+  ['biology', 'dna', 'science', /生物|biology/i],
+  ['inquiry', 'microscope', 'science', /探究|實驗|研究|inquiry|\blab\b/i],
+  ['science', 'magnet', 'science', /自然|理化|科學|science/i],
+  ['history', 'landmark', 'social', /歷史|history/i],
+  ['geography', 'globe', 'social', /地理|geography/i],
+  ['environment', 'sprout', 'science', /環境|永續|園藝|農業|environment|sustainab/i],
+  ['economics', 'coins', 'social', /經濟|理財|economics|finance/i],
+  ['law', 'gavel', 'social', /法律|law\b/i],
+  ['civics', 'scale', 'social', /公民|社會|政治|民主|civics|social/i],
+  ['swim', 'waves', 'pe', /游泳|swim/i],
+  ['fitness', 'dumbbell', 'pe', /體能|健身|fitness/i],
+  ['pe', 'ball', 'pe', /體育|球類|\bpe\b|physical education|sport/i],
+  ['choir', 'mic', 'arts', /合唱|演講|口語|choir|speaking/i],
+  ['music', 'music', 'arts', /音樂|music/i],
+  ['drama', 'film', 'arts', /表演|戲劇|電影|影視|媒體|drama|film|media|theat/i],
+  ['art', 'palette', 'arts', /美術|藝術|視覺|美勞|art|drawing/i],
+  ['health', 'heart', 'pe', /健康|護理|健教|安全|health|nursing|safety/i],
+  ['defense', 'shield', 'pe', /國防|軍訓|defen[cs]e/i],
+  ['career', 'briefcase', 'other', /生涯|職涯|career/i],
+  ['psychology', 'smile', 'other', /心理|psychology/i],
+  ['guidance', 'compass', 'other', /輔導|生命教育|guidance/i],
+  ['homeroom', 'people', 'other', /班會|週會|朝會|導師|團體活動|社團|班級|homeroom|assembly|club/i],
+  ['project', 'target', 'other', /專題|project/i],
+  ['study', 'bulb', 'other', /自主學習|自習|彈性|study/i],
+  ['elective', 'star', 'other', /選修|特色|elective/i]
 ];
-// A subject no rule knows: a book, in one of these by its name.
-const SPARE = ['#e5484d', '#f97316', '#ca8a04', '#16a34a', '#0d9488', '#0891b2', '#2563eb', '#6366f1', '#8b5cf6', '#d946ef', '#ec4899'];
 const hash = s => [...String(s)].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7);
 
 const svg = body => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
@@ -157,15 +180,28 @@ function iconPlan() {
 export function subjectLook(name) {
   const n = String(name || '').trim();
   const hit = n && ruleOf(n);
-  const planned = n && iconPlan().get(n);
-  const icon = svg(P[planned || (hit ? hit[1] : 'book')]);
-  if (hit) return { key: hit[0], color: hit[2], icon };
-  return { key: 'other', color: SPARE[hash(n) % SPARE.length], icon };
+  const icon = svg(P[iconKeyOf(n)]);
+  const swatch = colorKeyOf(n);
+  return { key: hit ? hit[0] : 'other', group: hit ? hit[2] : 'other', swatch, color: SWATCHES[swatch], icon };
 }
+// The swatch a subject shows: the one picked for it, else its group's.
+export function colorKeyOf(name) {
+  const n = String(name || '').trim();
+  const picked = (state.applicationData || {}).subjectColors?.[n];
+  if (SWATCHES[picked]) return picked;
+  return GROUP[(n && ruleOf(n)?.[2]) || 'other'];
+}
+// What each colour means by itself (for the picker): the groups that wear it.
+export const groupOfColor = key => Object.keys(GROUP).find(g => GROUP[g] === key) || null;
 // A subject's icon by its key, for the picker.
 export const iconSvg = key => svg(P[key] || P.book);
 // The icon key a subject shows now.
-export const iconKeyOf = name => iconPlan().get(String(name || '').trim()) || ruleOf(String(name || '').trim())?.[1] || 'book';
+export function iconKeyOf(name) {
+  const n = String(name || '').trim();
+  const picked = (state.applicationData || {}).subjectIcons?.[n];
+  if (P[picked]) return picked;
+  return (n && iconPlan().get(n)) || ruleOf(n)?.[1] || 'book';
+}
 
 // An event's picture for 倒數 (段考 a pen, 運動會 a trophy, a trip a plane…).
 // Its colour too: an exam red, a sports day orange, a trip sky, a ceremony violet.

@@ -53,6 +53,8 @@ const fitShown = () => {
   tint(shown);
   fitSelects(shown);
 };
+// A subject's colour picked (subject-picker.js): the boxes in it again.
+document.addEventListener('cx-subject-looks', () => tint(grid?.querySelectorAll('.period-select') || []));
 // Each day's periods by number and start time (the bell rows as they stand).
 function numberRows() {
   if (!grid) return;

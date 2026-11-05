@@ -307,6 +307,11 @@ function normalizeSubjectIcons(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   return Object.fromEntries(Object.entries(value).filter(([name, key]) => String(name).trim() && /^[a-zA-Z]{2,20}$/.test(String(key))).map(([name, key]) => [String(name).trim(), String(key)]));
 }
+// A subject's picked colour by its name: { 國文: 'blue' } (keys of src/subjects.js's SWATCHES).
+function normalizeSubjectColors(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter(([name, key]) => String(name).trim() && /^[a-z]{3,12}$/.test(String(key))).map(([name, key]) => [String(name).trim(), String(key)]));
+}
 function swapsNotOver(swaps, today) {
   return (swaps || []).filter(s => s.a.date >= today || s.b.date >= today);
 }
@@ -326,6 +331,7 @@ function getDefaultData() {
     pruneCountdowns: false,
     classSwaps: [],
     subjectIcons: {},
+    subjectColors: {},
     proAccent: DEFAULT_STYLE_PRIMARY,
     proSecondary: DEFAULT_STYLE_SECONDARY,
     styleSlots: normalizeStyleSlots([])
@@ -461,6 +467,7 @@ function loadData() {
       pruneCountdowns: parsed.pruneCountdowns === true,
       classSwaps: normalizeClassSwaps(parsed.classSwaps),
       subjectIcons: normalizeSubjectIcons(parsed.subjectIcons),
+      subjectColors: normalizeSubjectColors(parsed.subjectColors),
       proAccent: normalizeProAccent(parsed.proAccent),
       proSecondary: normalizeProSecondary(parsed.proSecondary),
       styleSlots: normalizeStyleSlots(parsed.styleSlots)
@@ -486,6 +493,7 @@ function saveData(d) {
 }
 export {
   normalizeSubjectIcons,
+  normalizeSubjectColors,
   countdownsNotOver,
   getCountdownEvents,
   ORBIT_APP_ID,

@@ -17,6 +17,7 @@ import {
   showEditorConfirmSheet
 } from './editor-core.js';
 import { subjectLook } from './subjects.js';
+import { openSubjectPicker } from './subject-picker.js';
 import { t } from './strings.js';
 
 // refreshPeriodSelectOptions rebuilds every schedule-grid <select>'s full
@@ -74,10 +75,19 @@ function makeTeacherCard(key, subject, teacher, location, options = {}) {
   const div = document.createElement('div');
   div.className = expanded ? 'teacher-card is-expanded' : 'teacher-card';
   div.dataset.origKey = key;
-  div.innerHTML = `<div class="teacher-card-summary"><div class="teacher-avatar"></div><div class="teacher-summary-text"></div><div class="teacher-order-actions"><span class="teacher-drag-handle" role="button" tabindex="0" title="${esc(t('editorCore.dragToReorder'))}" aria-label="${esc(t('editorCore.dragToReorder'))}">☰</span></div><button type="button" class="teacher-card-toggle" aria-expanded="${expanded}" aria-label="${esc(t('editorCore.expandToEdit'))}">⌄</button></div><div class="teacher-card-body"><div class="teacher-fields"><input class="editor-input tc-subject" placeholder="${esc(t('editorTeachers.subjectPlaceholder'))}" value="${esc(subject)}"><input class="editor-input tc-teacher" placeholder="${esc(t('editorTeachers.teacherPlaceholder'))}" value="${esc(teacher)}"><input class="editor-input tc-location" placeholder="${esc(t('editorTeachers.locationPlaceholderOptional'))}" value="${esc(location || '')}"></div><div class="teacher-card-body-actions"><label class="order-position-label">${esc(t('editorCore.orderLabel'))}<input class="order-position" type="number" min="1" inputmode="numeric" aria-label="${esc(t('editorTeachers.subjectTeacherOrderAriaLabel'))}"></label><div class="teacher-card-buttons"><button type="button" class="teacher-assign" onclick="assignTeacherFromMenu(this)" aria-label="${esc(t('editorTeachers.assignPeriodAriaLabel'))}">${esc(t('editorTeachers.assignButtonLabel'))}</button><button type="button" class="delete-btn" onclick="deleteTeacherCard(this)" aria-label="${esc(t('common.delete'))}">×</button></div></div></div>`;
+  div.innerHTML = `<div class="teacher-card-summary"><button type="button" class="teacher-avatar" aria-label="${esc(t('sheet.pickIcon'))}"></button><div class="teacher-summary-text"></div><div class="teacher-order-actions"><span class="teacher-drag-handle" role="button" tabindex="0" title="${esc(t('editorCore.dragToReorder'))}" aria-label="${esc(t('editorCore.dragToReorder'))}">☰</span></div><button type="button" class="teacher-card-toggle" aria-expanded="${expanded}" aria-label="${esc(t('editorCore.expandToEdit'))}">⌄</button></div><div class="teacher-card-body"><div class="teacher-fields"><input class="editor-input tc-subject" placeholder="${esc(t('editorTeachers.subjectPlaceholder'))}" value="${esc(subject)}"><input class="editor-input tc-teacher" placeholder="${esc(t('editorTeachers.teacherPlaceholder'))}" value="${esc(teacher)}"><input class="editor-input tc-location" placeholder="${esc(t('editorTeachers.locationPlaceholderOptional'))}" value="${esc(location || '')}"><button type="button" class="editor-input tc-look"><span class="tc-look-tile"></span><span class="tc-look-text">${esc(t('sheet.pickIcon'))}</span><span class="tc-look-chev" aria-hidden="true">›</span></button></div><div class="teacher-card-body-actions"><label class="order-position-label">${esc(t('editorCore.orderLabel'))}<input class="order-position" type="number" min="1" inputmode="numeric" aria-label="${esc(t('editorTeachers.subjectTeacherOrderAriaLabel'))}"></label><div class="teacher-card-buttons"><button type="button" class="teacher-assign" onclick="assignTeacherFromMenu(this)" aria-label="${esc(t('editorTeachers.assignPeriodAriaLabel'))}">${esc(t('editorTeachers.assignButtonLabel'))}</button><button type="button" class="delete-btn" onclick="deleteTeacherCard(this)" aria-label="${esc(t('common.delete'))}">×</button></div></div></div>`;
   updateTeacherCardAvatar(div);
   updateTeacherCardSummary(div);
   bindEditorCardToggle(div);
+  // The class's icon and colour: its tile, or the row under its fields.
+  const pick = event => {
+    event.stopPropagation();
+    const name = (div.querySelector('.tc-subject')?.value || '').trim();
+    if (name) openSubjectPicker(name, refreshSubjectLooks);
+    else div.querySelector('.tc-subject')?.focus();
+  };
+  div.querySelector('.teacher-avatar').addEventListener('click', pick);
+  div.querySelector('.tc-look').addEventListener('click', pick);
   const positionInput = div.querySelector('.order-position');
   positionInput.addEventListener('change', event =>
     moveEditorRowToPosition(div, event.target.value, '#teacher-list .teacher-card')
@@ -114,6 +124,17 @@ function updateTeacherCardAvatar(card) {
   const look = subjectLook((card.querySelector('.tc-subject')?.value || '').trim());
   avatar.innerHTML = look.icon;
   avatar.style.setProperty('--subject', look.color);
+  const small = card.querySelector('.tc-look-tile');
+  if (small) {
+    small.innerHTML = look.icon;
+    small.style.setProperty('--subject', look.color);
+  }
+}
+// A pick changed a subject's icon or colour (and so maybe another's icon):
+// every card's tile and every period's box again.
+function refreshSubjectLooks() {
+  document.querySelectorAll('#teacher-list .teacher-card').forEach(updateTeacherCardAvatar);
+  document.dispatchEvent(new CustomEvent('cx-subject-looks'));
 }
 
 // Updates a collapsed teacher card's one-line summary from its current

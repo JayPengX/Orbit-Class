@@ -24,6 +24,7 @@ import {
   normalizeCountdownEvents,
   normalizeClassSwaps,
   normalizeSubjectIcons,
+  normalizeSubjectColors,
   remapClassSwaps,
   sanitizeBreakTimes,
   saveData,
@@ -129,8 +130,9 @@ function collectEditorFormState({ includeDraft = false } = {}) {
     pruneCountdowns,
     // (調課 isn't the editor's: kept as saved.)
     classSwaps: normalizeClassSwaps(state.applicationData.classSwaps),
-    // (Nor the picked icons: those are the class sheet's.)
+    // (Nor the picked icons and colours: the picker saves them itself.)
     subjectIcons: normalizeSubjectIcons(state.applicationData.subjectIcons),
+    subjectColors: normalizeSubjectColors(state.applicationData.subjectColors),
     proAccent,
     proSecondary,
     styleSlots: normalizeStyleSlots(state.applicationData.styleSlots),
@@ -272,7 +274,8 @@ function encodeTransferPayloadV2(data) {
     // (Appended: an older copy of the app reads the ten before it and ignores these.)
     data.pruneCountdowns ? 1 : 0,
     (data.classSwaps || []).map(({ a, b }) => [a.date, a.p, b.date, b.p]),
-    normalizeSubjectIcons(data.subjectIcons)
+    normalizeSubjectIcons(data.subjectIcons),
+    normalizeSubjectColors(data.subjectColors)
   ];
 }
 function decodeTransferPayloadV2(array) {
@@ -289,7 +292,8 @@ function decodeTransferPayloadV2(array) {
     styleSlotEntries,
     pruneCountdownsFlag,
     swapEntries,
-    subjectIcons
+    subjectIcons,
+    subjectColors
   ] = array;
   const teacherDB = {},
     locationDB = {};
@@ -328,6 +332,7 @@ function decodeTransferPayloadV2(array) {
       )
     ),
     subjectIcons: normalizeSubjectIcons(subjectIcons),
+    subjectColors: normalizeSubjectColors(subjectColors),
     proAccent,
     proSecondary,
     styleSlots,
@@ -469,6 +474,7 @@ function normalizeSettingsData(raw, { requireMarker = false } = {}) {
     pruneCountdowns: source.pruneCountdowns === true,
     classSwaps: normalizeClassSwaps(sorted.classSwaps),
     subjectIcons: normalizeSubjectIcons(source.subjectIcons),
+    subjectColors: normalizeSubjectColors(source.subjectColors),
     proAccent: normalizeProAccent(source.proAccent),
     proSecondary: normalizeProSecondary(source.proSecondary),
     styleSlots: normalizeStyleSlots(source.styleSlots)
@@ -722,6 +728,11 @@ function describeSettingsDiff(current, next, { isImport = false } = {}) {
   [...new Set([...Object.keys(iconsBefore), ...Object.keys(iconsAfter)])]
     .filter(name => iconsBefore[name] !== iconsAfter[name])
     .forEach(name => lines.push(t(iconsAfter[name] ? 'editorBackup.iconPicked' : 'editorBackup.iconAuto', { name })));
+  const colorsBefore = normalizeSubjectColors(current.subjectColors);
+  const colorsAfter = normalizeSubjectColors(next.subjectColors);
+  [...new Set([...Object.keys(colorsBefore), ...Object.keys(colorsAfter)])]
+    .filter(name => colorsBefore[name] !== colorsAfter[name])
+    .forEach(name => lines.push(t(colorsAfter[name] ? 'editorBackup.subjectColorPicked' : 'editorBackup.subjectColorAuto', { name })));
   const currentProAccent = normalizeProAccent(current.proAccent);
   const nextProAccent = normalizeProAccent(next.proAccent);
   const describeColorChange = (label, before, after) =>

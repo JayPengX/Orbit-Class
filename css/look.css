@@ -1091,7 +1091,7 @@ html[data-look='native'] .ed-ask .q-hc-eyebrow .cx-glyph {
   color: var(--q-accent);
 }
 /* (Subjects: the glyph tinted, never a filled square.) */
-html[data-look='native'] .teacher-avatar {
+html[data-look='native'] :is(.teacher-avatar, .tc-look-tile) {
   background: color-mix(in srgb, var(--subject) var(--nv-wash), transparent);
   color: color-mix(in srgb, var(--subject) var(--nv-glyph-a), var(--nv-glyph));
 }

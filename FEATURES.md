@@ -11,3 +11,4 @@ To remove a feature on purpose, delete its line here in the same commit and say 
 - 拍照匯入 and 分享金鑰 — `src/locales/zh-TW.js`: `拍照匯入`, `分享金鑰`
 - Typhoon 停課 as a day off — `src/holidays.js`: `dayoff`, `停課`
 - 專注飛行 (a focus timer following a real plane) — `src/flight.js`: `openFlight`, `resumeFlight`
+- A class's icon and colour picked (class sheet, 編輯課表) — `src/subject-picker.js`: `openSubjectPicker`, `subjectColors`

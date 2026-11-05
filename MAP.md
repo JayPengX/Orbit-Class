@@ -32,7 +32,7 @@ Live: https://orbit.jaypengx.com/class/
     cup; today's: the ones after the card; today picked again once it's
     over: 今天的課, every class faded), and the countdowns. After the last
     class it shows the next school day. A class's sheet (`view-sheet.js`):
-    its pencil opens the icon picker as a sheet over it, so closing the
+    its pencil opens the icon and colour picker as a sheet over it, so closing the
     picker leaves the class open.
   - **課表:** the week as a grid (cells solid in a soft shade of their subject's colour, back-to-back periods of one
     class one block, today's column on a plate, names on one line shrunk to fit, a free period a quiet dot, now ringed), this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
@@ -90,6 +90,17 @@ Live: https://orbit.jaypengx.com/class/
 
 ## Decisions in force
 
+- **A subject's colour says its group** (Jay 2026-11-05: "I literally can't
+  tell how you color them"): ten swatches clearly apart (`SWATCHES` in
+  `subjects.js`), one per group: 國語文 red, 英語 blue, 外語 sky, 數學 violet,
+  自然 green, 社會 yellow, 藝術 pink, 健體 orange, 科技 teal, the rest and any
+  unknown subject grey; its icon is its own (no two alike in a timetable).
+  Either can be picked per subject (`subject-picker.js`: from the class sheet's
+  pencil, or a class's tile or its 圖示和顏色 row in 編輯課表), each colour
+  named by its group there; kept as `subjectIcons` / `subjectColors` with the
+  timetable (the v2 string's 13th and 14th entries). `test/subjects.test.js`
+  holds the pattern, not the hexes.
+
 - One look: Orbit's own (Orbit-Core `docs/DESIGN.md` §11; `index.html` says
   `data-look="native"`, `css/look.css` after `styles.css`): graphite cards,
   colour only on what it names (a subject's band, its dot, the class sheet's
@@ -115,6 +126,7 @@ Live: https://orbit.jaypengx.com/class/
 | `dashboard.js` | The per-second loop and its rendering |
 | `editor-*.js` | The editor; backup format; AI editing |
 | `gemini-ocr.js` | Photo import |
+| `subjects.js`, `subject-picker.js` | A subject's icon and colour (by its group); picking them |
 | `swap.js`, `tools.js`, `sync.js` | 調課; the 工具 tab; the Pass |
 | `state.js`, `constants.js`, `strings.js` | Shared state; shared constants; text |
 | `flight.js`, `flight-plan.js`, `flight-store.js` | 專注飛行: the sheet and the flying screen; its rules (tested); what's kept |

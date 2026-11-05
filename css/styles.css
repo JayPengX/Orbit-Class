@@ -1054,9 +1054,12 @@ body:is(.editor-open, .transfer-open) {
   place-items: center;
   width: 32px;
   height: 32px;
+  padding: 0;
+  border: 0;
   border-radius: 9px;
   background: var(--subject);
   color: #fff;
+  cursor: pointer;
 }
 .teacher-avatar svg {
   width: 18px;
@@ -1115,6 +1118,41 @@ body:is(.editor-open, .transfer-open) {
 }
 .teacher-card .tc-subject {
   grid-column: 1 / -1;
+}
+/* The class's icon and colour: a row like the fields, its tile, the words, a chevron. */
+.teacher-card .tc-look {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.tc-look-tile {
+  --subject: var(--q-gray);
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--subject);
+  color: #fff;
+}
+.tc-look-tile svg {
+  width: 15px;
+  height: 15px;
+}
+.tc-look-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-look-chev {
+  color: var(--q-label-3);
+  font-size: 20px;
 }
 .teacher-card-body-actions {
   display: flex;
@@ -1789,6 +1827,45 @@ img.q-tile.tr-app {
 .cx-pick-badge svg {
   width: 13px;
   height: 13px;
+}
+/* The picker's colours: a dot each, named by the group that wears it (two rows of five). */
+.cx-color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px 4px;
+}
+.cx-color-pick {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--q-label-2);
+  cursor: pointer;
+}
+.cx-color-dot {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+}
+.cx-color-pick.is-on .cx-color-dot {
+  box-shadow: 0 0 0 3px var(--q-sheet, var(--q-bg)), 0 0 0 5px var(--swatch);
+}
+.cx-color-pick.is-on {
+  color: var(--q-label);
+}
+.cx-color-name {
+  max-width: 100%;
+  overflow: hidden;
+  font: 500 12px/15px var(--q-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .cx-icon-grid {
   display: grid;
