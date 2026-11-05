@@ -1005,7 +1005,12 @@ body:is(.editor-open, .transfer-open) {
 }
 /* (Its switches are the kit's .q-switch; .on is the kit's too.) */
 
-/* A part's rows: a summary that opens to its fields (subjects, countdowns). */
+/* A part's rows: a summary that opens to its fields (subjects, countdowns).
+   The list is the kit's grid (.q-rowcard): one column the card's width, never
+   wider for the fields inside an opened row (at 320 it ran past the edge). */
+:is(.teacher-list, .bell-list, .countdown-editor-list) {
+  grid-template-columns: minmax(0, 1fr);
+}
 .teacher-card {
   position: relative;
 }
@@ -1085,6 +1090,15 @@ body:is(.editor-open, .transfer-open) {
   font-size: 16px;
   cursor: grab;
   touch-action: none;
+}
+/* (At 320 the summary's parts sit closer, so a name of about 16 letters stays whole.) */
+@media (max-width: 359px) {
+  .teacher-card-summary {
+    gap: 6px;
+  }
+  .teacher-drag-handle {
+    width: 28px;
+  }
 }
 .teacher-card-toggle {
   flex: none;
