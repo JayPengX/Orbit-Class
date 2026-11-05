@@ -75,9 +75,15 @@ html[data-look='native'] .q-band.nv-band .q-band-mark svg {
   width: 24px;
   height: 24px;
 }
+/* A long name (族群、性別與國家的探究) wraps onto as many lines as it needs: never cut off. */
 html[data-look='native'] .q-band.nv-band .q-band-text b {
   font: 600 24px/29px var(--q-font);
   letter-spacing: -0.015em;
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 html[data-look='native'] .q-band.nv-band .q-band-text small {
   font: 500 14px/19px var(--q-font);

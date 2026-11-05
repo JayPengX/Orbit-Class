@@ -27,4 +27,11 @@ describe('the look, always on', () => {
     expect(css).toMatch(/\.nv-span \{[^}]*flex: none/);
     expect(css).toMatch(/\.nv-kicker \{[^}]*min-width: 0/);
   });
+  // Jay 2026-11-05 ("Text wrap"): a long class name on the card wraps, never "…".
+  it('the card\'s class name wraps, never cut off', () => {
+    const css = read('css/look.css').replace(/\/\*[\s\S]*?\*\//g, '');
+    const rule = css.match(/\.q-band\.nv-band \.q-band-text b \{[^}]*\}/)?.[0] || '';
+    expect(rule).toMatch(/white-space: normal/);
+    expect(rule).toMatch(/text-overflow: clip/);
+  });
 });
