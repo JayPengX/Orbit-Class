@@ -90,8 +90,6 @@ Live: https://orbit.jaypengx.com/class/
 
 ## Decisions in force
 
-- **A school outside Taiwan** (2026-11-06): Taiwan's holidays only when a Taiwan school or home place is set, or the phone isn't abroad (`holidays.js taiwanSchool`, kit `abroad`).
-
 - **A subject's colour says its group** (Jay 2026-11-05: "I literally can't
   tell how you color them"): ten swatches clearly apart (`SWATCHES` in
   `subjects.js`), one per group: 國語文 red, 英語 blue, 外語 sky, 數學 violet,
