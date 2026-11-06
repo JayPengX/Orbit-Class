@@ -2532,7 +2532,7 @@ body.cx-flying {
    day's classes beside the countdowns under it; 課表's two weeks side by
    side (調課 beside them on a computer); 工具's week beside its tools. */
 :root.q-wide {
-  --q-page-max: 1180px;
+  --q-page-max: var(--q-wide-max, 1180px);
 }
 /* Cards that ran in a sideways row on a phone are a grid on a wide page. */
 :root.q-wide .cx-cds.q-rail {
