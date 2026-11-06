@@ -40,3 +40,23 @@ describe('a typhoon day: 停課 at the school', () => {
     expect(typhoonOn(fri)).toBe(null);
   });
 });
+
+// Outside Taiwan (2026-11-06): a school abroad keeps its classes on Taiwan's holidays.
+describe('a school outside Taiwan', () => {
+  it('has classes on Taiwan holidays; back in Taiwan or with a Taiwan school set, they are off', () => {
+    const places = localStorage.getItem('q-dayoff-places');
+    localStorage.removeItem('q-dayoff-places');
+    localStorage.setItem('orbit.country', 'US');
+    try {
+      expect(holidayOn(new Date(2026, 9, 9))).toBe(null);
+      localStorage.setItem('q-dayoff-places', JSON.stringify({ school: { county: '新竹縣', town: '竹東鎮' } }));
+      expect(holidayOn(new Date(2026, 9, 9))?.zh).toBe('國慶日補假');
+      localStorage.removeItem('q-dayoff-places');
+      localStorage.setItem('orbit.country', 'TW');
+      expect(holidayOn(new Date(2026, 9, 9))?.zh).toBe('國慶日補假');
+    } finally {
+      localStorage.removeItem('orbit.country');
+      if (places) localStorage.setItem('q-dayoff-places', places);
+    }
+  });
+});

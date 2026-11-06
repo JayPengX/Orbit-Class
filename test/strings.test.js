@@ -46,13 +46,14 @@ describe('detectLocale()', () => {
     expect(detectLocale()).toBe('zh-TW');
   });
 
-  it("defaults to 'zh-TW' for an unrecognized language", () => {
+  // Outside Taiwan (2026-11-06): a phone in another language opens in English, not Chinese.
+  it("gives 'en' for a phone in another language", () => {
     const originalLanguage = navigator.language;
     const originalLanguages = navigator.languages;
     Object.defineProperty(navigator, 'language', { value: 'fr-FR', configurable: true });
     Object.defineProperty(navigator, 'languages', { value: ['fr-FR'], configurable: true });
     try {
-      expect(detectLocale()).toBe('zh-TW');
+      expect(detectLocale()).toBe('en');
     } finally {
       Object.defineProperty(navigator, 'language', { value: originalLanguage, configurable: true });
       Object.defineProperty(navigator, 'languages', {

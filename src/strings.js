@@ -21,10 +21,8 @@ const STRINGS = { 'zh-TW': zhTW, en };
 // ---- Locale detection, override, and persistence ----
 //
 // detectLocale() reads the browser's reported language(s) and maps anything
-// starting 'zh' to 'zh-TW' and anything starting 'en' to 'en', defaulting to
-// 'zh-TW' for everything else (matches the assumption test/helpers/setupEnv.js
-// pins the test environment to, and Orbit Class's actual user base, which is
-// Taiwanese schools).
+// to 'zh-TW' when any of them is Chinese (or none is given: what
+// test/helpers/setupEnv.js pins the tests to), else to 'en'.
 function detectLocale() {
   const candidates = [];
   try {
@@ -33,12 +31,9 @@ function detectLocale() {
   } catch {
     /* navigator unavailable (non-browser environment) - fall through to default. */
   }
-  for (const raw of candidates) {
-    const lang = String(raw || '').toLowerCase();
-    if (lang.startsWith('zh')) return 'zh-TW';
-    if (lang.startsWith('en')) return 'en';
-  }
-  return 'zh-TW';
+  // (Any Chinese: Chinese; any other language: English, the kit's detectLang rule, 2026-11-06.)
+  if (!candidates.length || candidates.some(raw => String(raw || '').toLowerCase().startsWith('zh'))) return 'zh-TW';
+  return 'en';
 }
 
 // The family's choice (orbit.lang, set in any Orbit app's
