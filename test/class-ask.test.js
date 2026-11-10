@@ -32,7 +32,7 @@ describe('問我的課表', () => {
   });
   it('tells the AI a line a day, outdoors marked', () => {
     const f = askFacts(days, now);
-    expect(f.split('\n')[0]).toBe('Today: 2026-11-11 (Wed).');
+    expect(f.split('\n')[0]).toBe('Now: 2026-11-11 (Wed) 07:00.');
     expect(f).toContain('2026-11-18 Wed: 1 08:10-09:00 英文; 5 13:10-14:00 體育 (outdoors)');
     expect(f).not.toContain('2026-11-14');
   });

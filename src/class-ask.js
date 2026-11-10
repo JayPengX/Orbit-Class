@@ -64,7 +64,8 @@ export function localAnswer(text, days, now = new Date(), en = false) {
 
 // The two weeks as the AI is told them, lean: a line a day.
 export function askFacts(days, now = new Date()) {
-  const head = `Today: ${dateKey(now)} (${WD_EN[now.getDay()]}).`;
+  const hm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const head = `Now: ${dateKey(now)} (${WD_EN[now.getDay()]}) ${hm}.`;
   const lines = Object.entries(days)
     .filter(([, list]) => list.length)
     .map(([key, list]) => {
