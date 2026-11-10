@@ -28,6 +28,37 @@ const L = (zh, en) => (getLocale() === 'en' ? en : zh);
 const plain = html => String(html || '').replace(/<[^>]*>/g, '').trim();
 const withId = (node, id) => ((node.id = id), node);
 
+// 下課背五個 (Jay 11-10, the family working together): at a break between
+// classes, the words Orbit Words has due today (its note in the family's
+// notebook, kit family.mjs) as one tap: a five-word round there. Before
+// English, said so. Nothing due, or no Words on this phone: nothing.
+let heardOf = null;
+import('#kit/family.mjs')
+  .then(f => (heardOf = f.heard))
+  .catch(() => {});
+export function wordsDue(now = new Date(), heard = heardOf) {
+  const d = heard?.('vocab', 'due', { maxAge: 36 * 3_600_000 });
+  return d && d.day === dateKey(now) && d.n > 0 ? Math.round(d.n) : 0;
+}
+const ENGLISH = /英文|英語|english/i;
+function wordsChip(hero, now) {
+  const n = hero.mode === 'break' && hero.subject ? wordsDue(now) : 0;
+  if (!n) return null;
+  const english = ENGLISH.test(`${hero.title || ''} ${hero.subject || ''}`);
+  // (Through the session's go: a home-screen app arrives signed in.)
+  const go = () =>
+    import('./sync.js')
+      .then(m => (m.orbitSession?.go ? m.orbitSession.go('vocab', 'five') : location.assign('/words/#five')))
+      .catch(() => location.assign('/words/#five'));
+  const pic = el('span', 'nv-words-mark');
+  pic.innerHTML = glyph('book') || '';
+  const b = button('nv-words q-press', go, [
+    pic,
+    el('span', 'nv-words-text', [el('b', '', english ? L('英文課前背 5 個單字', 'Five words before English') : L('下課背 5 個單字', 'Five words this break')), el('small', '', L(`今天 ${n} 個該複習`, `${n} due today`))])
+  ]);
+  return b;
+}
+
 // "39:54" or "1:02:03" → seconds.
 export function secondsOf(value) {
   const parts = String(value || '')
@@ -123,7 +154,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
   const rows = today || [];
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   const lineKey = hero.strip ? rows.map(c => `${c.s}${parseTime(c.e) * 60 <= secs ? 1 : 0}${parseTime(c.s) * 60 <= secs ? 1 : 0}`).join() : '';
-  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label].join('|');
+  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label, hero.mode === 'break' ? wordsDue(now) : 0].join('|');
   // How far through it is: the band itself fills, its colour lit up to now.
   const done = Number.isFinite(hero.progress) ? `${Math.max(0, Math.min(100, hero.progress)).toFixed(2)}%` : '';
   if (key === drawn) {
@@ -182,7 +213,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
     ]);
     foot.style.setProperty('--band', f.subject ? subjectLook(f.subject).color : 'var(--q-gray)');
   }
-  box.replaceChildren(...[top, main, time, line, end, foot].filter(Boolean));
+  box.replaceChildren(...[top, main, time, line, end, foot, wordsChip(hero, now)].filter(Boolean));
 }
 
 // ---- A day's classes (今天's list) ----

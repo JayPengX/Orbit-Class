@@ -36,3 +36,15 @@ describe('familyDays', () => {
     expect(days['2030-01-08']).toEqual([]);
   });
 });
+
+describe('下課背五個', () => {
+  it("reads Words' count due today, and nothing on another day or none due", async () => {
+    const { wordsDue } = await import('../src/view-today.js');
+    const now = new Date(2026, 10, 11, 10, 5);
+    const heard = (app, key) => (app === 'vocab' && key === 'due' ? { day: '2026-11-11', n: 12 } : null);
+    expect(wordsDue(now, heard)).toBe(12);
+    expect(wordsDue(new Date(2026, 10, 12, 10, 5), heard)).toBe(0);
+    expect(wordsDue(now, () => ({ day: '2026-11-11', n: 0 }))).toBe(0);
+    expect(wordsDue(now, null)).toBe(0);
+  });
+});
