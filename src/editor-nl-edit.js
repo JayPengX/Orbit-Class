@@ -30,7 +30,8 @@
 // path (manual save, AI photo import, backup import) already runs through,
 // never trusting a class key, day/period reference, or time blindly.
 import { state } from './state.js';
-import { t } from './strings.js';
+import { getLocale, t } from './strings.js';
+import { askTimetable, isQuestion } from './class-ask.js';
 import { sessionUrl } from './sync.js';
 import {
   applyEditorSettingsData,
@@ -485,6 +486,14 @@ function showNlEditConfirm(current, next, { local = false, onApplied } = {}) {
 async function submitNlEdit(rawText, { status, onDone, onApplied } = {}) {
   const text = normalizeNlEditText(rawText);
   try {
+    // 問我的課表: a question (not an edit) is answered, never applied (class-ask.js).
+    if (isQuestion(rawText)) {
+      status?.(t('nlEdit.asking'));
+      const r = await askTimetable(String(rawText).trim(), { en: getLocale() === 'en' });
+      status?.(r.error || '', !!r.error);
+      if (r.text) showNlEditInfo(t('nlEdit.askTitle'), r.ai ? `${r.text}\n\n${t('nlEdit.askAiNote')}` : r.text);
+      return;
+    }
     // 調課 (a dated, one-time swap) first, from the words as typed: the
     // clean-up above turns 明天 into a weekday. See nl-swap.js.
     const swapEdit = text && parseSwapEdit(rawText, settingsDataForExport());
