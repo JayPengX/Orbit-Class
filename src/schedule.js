@@ -33,6 +33,8 @@ function buildSchedule() {
       })
       .filter(Boolean);
   });
+  // The family's notebook: the next two weeks as held, for Weather and the rest (src/family-tell.js).
+  import('./family-tell.js').then(m => m.tellFamily()).catch(() => {});
   // 加到行事曆 on: the phone's Calendar follows the change (src/calendar.js).
   try {
     if (globalThis.localStorage?.getItem('class.cal.v1')?.includes('url')) import('./calendar.js').then(m => m.keepCalendar()).catch(() => {});

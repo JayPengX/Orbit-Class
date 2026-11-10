@@ -55,6 +55,7 @@ Live: https://orbit.jaypengx.com/class/
   is a notice through the Worker. Kept on the phone only (`class.flight.v1`).
   All of it is `src/flight*.js`, the `flight.*` strings and the `.cx-fl`/
   `.cx-fly` CSS: removing it is deleting those and the 工具 card.
+- **The family's notebook** (the kit's `family.mjs`, Jay 2026-11-10): each time the timetable is built, Class tells the other apps on this phone its next two weeks of classes as held (`src/family-tell.js`: 單/雙週's subject, holidays, typhoon days off and 調課 applied; 體育 and the like marked outdoors). Weather's place 跟著課表 and its 體育課 advice read it; nothing leaves the phone.
 - **Every second** the whole state is recomputed from the clock: weekday,
   odd/even week, current period or break, next period. Only changed
   fields are written to the page.
