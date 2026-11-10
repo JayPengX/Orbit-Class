@@ -48,3 +48,26 @@ describe('下課背五個', () => {
     expect(wordsDue(now, null)).toBe(0);
   });
 });
+
+describe('出門時間', () => {
+  const f = {
+    planHash: (p, at) => `#plan?to=${p.lat},${p.lon},${p.name}${at ? `&by=${new Date(at).toISOString()}` : ''}`,
+    placeFor: role => ({ school: { lat: 24.8, lon: 121, name: '學校' }, home: { lat: 24.7, lon: 121, name: '家' } })[role]
+  };
+  const rows = [{ s: '08:10', e: '09:00' }, { s: '15:10', e: '16:00' }];
+  it('before the first class: to school, there ten minutes early', async () => {
+    const { tripOf } = await import('../src/view-today.js');
+    const now = new Date(2026, 10, 11, 7, 0);
+    const trip = tripOf({ mode: 'before' }, rows, now, f);
+    expect(trip.to).toBe('school');
+    expect(trip.hash).toBe(`plan?to=24.8,121,學校&by=${new Date(2026, 10, 11, 8, 0).toISOString()}`);
+    expect(tripOf({ mode: 'before' }, rows, new Date(2026, 10, 11, 3, 0), f)).toBe(null);
+    expect(tripOf({ mode: 'before' }, rows, now, { ...f, placeFor: () => null })).toBe(null);
+  });
+  it('the day over: home, within three hours of the last class', async () => {
+    const { tripOf } = await import('../src/view-today.js');
+    expect(tripOf({ mode: 'off', strip: {} }, rows, new Date(2026, 10, 11, 16, 20), f).hash).toBe('plan?to=24.7,121,家');
+    expect(tripOf({ mode: 'off', strip: {} }, rows, new Date(2026, 10, 11, 20, 0), f)).toBe(null);
+    expect(tripOf({ mode: 'class' }, rows, new Date(2026, 10, 11, 10, 0), f)).toBe(null);
+  });
+});

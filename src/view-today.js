@@ -32,24 +32,62 @@ const withId = (node, id) => ((node.id = id), node);
 // classes, the words Orbit Words has due today (its note in the family's
 // notebook, kit family.mjs) as one tap: a five-word round there. Before
 // English, said so. Nothing due, or no Words on this phone: nothing.
+let fam = null;
 let heardOf = null;
 import('#kit/family.mjs')
-  .then(f => (heardOf = f.heard))
+  .then(f => ((fam = f), (heardOf = f.heard)))
   .catch(() => {});
 export function wordsDue(now = new Date(), heard = heardOf) {
   const d = heard?.('vocab', 'due', { maxAge: 36 * 3_600_000 });
   return d && d.day === dateKey(now) && d.n > 0 ? Math.round(d.n) : 0;
 }
 const ENGLISH = /英文|英語|english/i;
+// 出門時間 (Jay 11-10, Class and Transit): before the first class, 怎麼去學校
+// opens Orbit Transit planning the trip from where the phone is, there ten
+// minutes before; once the day's classes are over, 回家 the trip home now.
+// Only where the family knows the place (Weather's or Transit's) and the
+// kit can build the link.
+const goApp = (app, hash) =>
+  import('./sync.js')
+    .then(m => (m.orbitSession?.go ? m.orbitSession.go(app, hash) : location.assign(`/${app === 'vocab' ? 'words' : app}/#${hash}`)))
+    .catch(() => location.assign(`/${app === 'vocab' ? 'words' : app}/#${hash}`));
+export function tripOf(hero, rows, now = new Date(), f = fam) {
+  if (!f?.planHash || !f.placeFor) return null;
+  if (hero.mode === 'before' && rows?.length) {
+    const school = f.placeFor('school');
+    const first = parseTime(rows[0].s);
+    const at = new Date(now);
+    at.setHours(Math.floor(first / 60), first % 60 - 10, 0, 0);
+    const left = at - now;
+    if (!school || left <= 0 || left > 3 * 3_600_000) return null;
+    return { to: 'school', hash: f.planHash(school, at.getTime()).slice(1) };
+  }
+  if (hero.mode === 'off' && rows?.length && hero.strip) {
+    const home = f.placeFor('home');
+    const last = parseTime(rows.at(-1).e);
+    const mins = now.getHours() * 60 + now.getMinutes();
+    if (!home || mins < last || mins > last + 180) return null;
+    return { to: 'home', hash: f.planHash(home).slice(1) };
+  }
+  return null;
+}
+function tripChip(hero, rows, now) {
+  const trip = tripOf(hero, rows, now);
+  if (!trip) return null;
+  const pic = el('span', 'nv-words-mark nv-trip-mark');
+  pic.innerHTML = glyph('bus') || '';
+  return button('nv-words nv-trip q-press', () => goApp('transit', trip.hash), [
+    pic,
+    el('span', 'nv-words-text', [el('b', '', trip.to === 'school' ? L('怎麼去學校', 'Getting to school') : L('回家怎麼搭', 'Getting home')), el('small', '', trip.to === 'school' ? L('Orbit Transit 幫你排，第一節前 10 分鐘到', 'Orbit Transit plans it, there 10 minutes early') : L('Orbit Transit 從這裡排到家', 'Orbit Transit plans it from here'))])
+  ]);
+}
+
 function wordsChip(hero, now) {
   const n = hero.mode === 'break' && hero.subject ? wordsDue(now) : 0;
   if (!n) return null;
   const english = ENGLISH.test(`${hero.title || ''} ${hero.subject || ''}`);
   // (Through the session's go: a home-screen app arrives signed in.)
-  const go = () =>
-    import('./sync.js')
-      .then(m => (m.orbitSession?.go ? m.orbitSession.go('vocab', 'five') : location.assign('/words/#five')))
-      .catch(() => location.assign('/words/#five'));
+  const go = () => goApp('vocab', 'five');
   const pic = el('span', 'nv-words-mark');
   pic.innerHTML = glyph('book') || '';
   const b = button('nv-words q-press', go, [
@@ -154,7 +192,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
   const rows = today || [];
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   const lineKey = hero.strip ? rows.map(c => `${c.s}${parseTime(c.e) * 60 <= secs ? 1 : 0}${parseTime(c.s) * 60 <= secs ? 1 : 0}`).join() : '';
-  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label, hero.mode === 'break' ? wordsDue(now) : 0].join('|');
+  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label, hero.mode === 'break' ? wordsDue(now) : 0, tripOf(hero, rows, now)?.hash || ''].join('|');
   // How far through it is: the band itself fills, its colour lit up to now.
   const done = Number.isFinite(hero.progress) ? `${Math.max(0, Math.min(100, hero.progress)).toFixed(2)}%` : '';
   if (key === drawn) {
@@ -213,7 +251,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
     ]);
     foot.style.setProperty('--band', f.subject ? subjectLook(f.subject).color : 'var(--q-gray)');
   }
-  box.replaceChildren(...[top, main, time, line, end, foot, wordsChip(hero, now)].filter(Boolean));
+  box.replaceChildren(...[top, main, time, line, end, foot, wordsChip(hero, now), tripChip(hero, rows, now)].filter(Boolean));
 }
 
 // ---- A day's classes (今天's list) ----
