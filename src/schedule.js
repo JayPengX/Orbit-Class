@@ -33,6 +33,12 @@ function buildSchedule() {
       })
       .filter(Boolean);
   });
+  // 加到行事曆 on: the phone's Calendar follows the change (src/calendar.js).
+  try {
+    if (globalThis.localStorage?.getItem('class.cal.v1')?.includes('url')) import('./calendar.js').then(m => m.keepCalendar()).catch(() => {});
+  } catch {
+    // No storage here (a private window): nothing to keep.
+  }
 }
 // The week's number for odd/even weeks: weeks counted on from one Monday
 // (2025-12-29, 2026's ISO week 1), never starting over at a new year. ISO

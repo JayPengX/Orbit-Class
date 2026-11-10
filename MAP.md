@@ -38,7 +38,7 @@ Live: https://orbit.jaypengx.com/class/
     class one block, today's column on a plate, names on one line shrunk to fit, a free period a quiet dot, now ringed), this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
     Each class a cell washed in its subject's colour with a bar of it on its left, the class on now on its full colour ringed in the app's, today's done ones faded, a break of 30 minutes or more a dashed line across the week (named from 特殊時段, `bellGap`).
   - **工具:** the week as a grid (課表's solid cells, short names, a free period a dot) with 編輯課表; 專注飛行 (a graphite card, a flight's arc drawn on it); the editor's four parts as one card of four figures; AI 課表編輯 and 拍照匯入 as two cards;
-    分享金鑰.
+    分享金鑰 and 加到行事曆.
   - **編輯課表** (`view-editor.js`): inside a sheet a card is the sheet's cell colour (`--nv-card` set per sheet, the page's graphite read as no card); each period's box solid in a soft shade of its class's colour (`tint`), a free one grey; times centred on one line; the back a plain ‹ 課表; numbers in light figures; 新增… a line in the app's colour; remove a grey minus. No glass anywhere.
 - **專注飛行** (a trial, Jay 2026-10-30): a focus timer that follows a real plane.
   Pick 25/50/90 minutes or type 10–180; the proxy's `/flight` (Orbit-Core
@@ -130,6 +130,7 @@ Live: https://orbit.jaypengx.com/class/
 | `swap.js`, `tools.js`, `sync.js` | 調課; the 工具 tab; the Pass |
 | `state.js`, `constants.js`, `strings.js` | Shared state; shared constants; text |
 | `flight.js`, `flight-plan.js`, `flight-store.js` | 專注飛行: the sheet and the flying screen; its rules (tested); what's kept |
+| `calendar.js` | 加到行事曆: the next 4 weeks' classes (`classesOn`: 單/雙週, 調課, days off) as an .ics, handed to the proxy's `/cal` (Orbit-Core `cal.js`) when the timetable changes and weekly, which serves it at a private webcal:// address the phone's Calendar subscribes to; `class.cal.v1` on the phone |
 | `dates.js` | Date keys and times (`dateKey`, `parseTime`, `timeToMinutes`): the one copy |
 
 Gotchas:

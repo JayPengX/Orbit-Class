@@ -11,6 +11,7 @@ import { getCountdownEvents } from './data.js';
 import { el, button, fitText, glyph, row, section, tile } from './ui.js';
 import { t } from './strings.js';
 import { clock, currentLeg, flightNo, focusLeft, loadFocus } from './flight-store.js';
+import * as kit from '#kit/orbit.mjs';
 
 function openPart(id) {
   window.openEditor?.();
@@ -73,6 +74,32 @@ function flightCard() {
 const FLIGHT_ARC = '<svg viewBox="0 0 120 48"><path d="M6 42 C 34 4, 86 4, 114 42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><circle cx="6" cy="42" r="3" fill="currentColor"/><circle cx="114" cy="42" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M60 8.5c.6 0 1 .6 1 1.4v3.3l5 3v1.4l-5-1.6v3l1.5 1.2v1.1L60 20.6l-2.5.7v-1.1L59 19v-3l-5 1.6v-1.4l5-3V9.9c0-.8.4-1.4 1-1.4z" transform="rotate(90 60 14.5)" fill="currentColor" class="cx-fly-plane"/></svg>';
 const PLANE_GLYPH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.8c.9 0 1.5 1 1.5 2.2v5.1l7.7 4.6v2.1l-7.7-2.4v4.7l2.3 1.8v1.7L12 20.6l-3.8 1v-1.7l2.3-1.8v-4.7l-7.7 2.4v-2.1l7.7-4.6V4c0-1.2.6-2.2 1.5-2.2z"/></svg>';
 
+// 加到行事曆 (src/calendar.js, loaded on the tap): the timetable in the phone's
+// Calendar by subscription; on, a tap offers to stop it.
+const calOn = () => kit.readStore?.('class.cal.v1')?.includes('url');
+function calRow() {
+  const r = row({
+    cls: 'cx-way is-cal',
+    icon: tile('calendar', 'var(--q-red)'),
+    title: t('tools.calTitle'),
+    sub: t(calOn() ? 'tools.calOn' : 'tools.calSub'),
+    onClick: async () => {
+      const cal = await import('./calendar.js');
+      if (!calOn()) {
+        r.querySelector('small').textContent = t('tools.calAdding');
+        const ok = await cal.addCalendar();
+        r.querySelector('small').textContent = t(ok ? 'tools.calOn' : 'tools.calFailed');
+        return;
+      }
+      const stop = await kit.ask({ title: t('tools.calTitle'), body: t('tools.calStopBody'), ok: t('tools.calStop'), cancel: t('common.close'), danger: true });
+      if (!stop) return;
+      await cal.stopCalendar();
+      r.querySelector('small').textContent = t('tools.calSub');
+    }
+  });
+  return r;
+}
+
 let drawn = '';
 function renderTools(again = false) {
   const box = document.getElementById('cx-tools');
@@ -107,7 +134,7 @@ function renderTools(again = false) {
     return card;
   };
   const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo'))]);
-  const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
+  const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') }), calRow()]);
   // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
   box.classList.add('q-cols');
   box.replaceChildren(el('div', 'cx-tools-a', [weekCard()]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share)]));
