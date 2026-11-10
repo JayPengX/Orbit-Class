@@ -55,6 +55,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 - **AI photo import:** up to six photos, screenshots, HEIC or PDF read together as one timetable, checked locally and applied only once you confirm.
 - **AI edit:** describe a change in a sentence and confirm it as a diff.
 - **Share key:** an 8-character key gives a classmate their own copy for 24 hours.
+- **加到行事曆:** the timetable in the phone's own Calendar by subscription, kept current as it changes.
 - **Every screen, either way up:** on a tablet, a computer or a phone on its side 今天's card runs across the top with the day's classes beside the countdowns, 課表 shows both weeks side by side, and 專注飛行's card sits beside the map.
 
 ## Tech stack
