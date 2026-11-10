@@ -37,3 +37,10 @@ describe('問我的課表', () => {
     expect(f).not.toContain('2026-11-14');
   });
 });
+
+describe('問我的課表: an instruction is never a question', () => {
+  it('leaves words that only contain 什麼 to the editor', () => {
+    expect(isQuestion('隨便說點什麼')).toBe(false);
+    expect(isQuestion('下週三最後一節是什麼課')).toBe(true);
+  });
+});

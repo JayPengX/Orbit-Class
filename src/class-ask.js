@@ -12,11 +12,11 @@ const WD = '日一二三四五六';
 const WD_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const EDIT = /改|換|調|刪|移|加入|新增|設為|設成|清掉|取消|把/;
 
-// A question, not an edit: asked (？, 嗎, 幾, 哪, 什麼…) and nothing to change.
+// A question, not an edit: asked (？, 嗎, 幾點, 哪天, 什麼課…) and nothing to change.
 export function isQuestion(text) {
   const t = String(text || '').trim();
   if (!t || EDIT.test(t)) return false;
-  return /[?？]$|嗎|幾|哪|什麼|多少|有沒有|是不是|何時|^(when|what|which|how|do|does|is|are)\b/i.test(t);
+  return /[?？]\s*$|[嗎呢]\s*$|幾點|幾節|幾堂|幾天|哪天|哪一天|哪幾|哪節|什麼課|什麼時候|多少|有沒有|是不是|何時|^(when|what|which|how|do|does|is|are)\b/i.test(t);
 }
 
 // The day a question names: 今天, 明天, 後天, (下)週三 / 星期三 / 禮拜三; null none.
