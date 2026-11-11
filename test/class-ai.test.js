@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeSchool, normalizeTodo, normalizeTodos, todoEntry, todoOf, todosKept } from '../src/todos-data.js';
 import { blocksOf, examSubject, planSessions, plainTask, withTasks } from '../src/plan.js';
-import { forMe, isSome } from '../src/school-news.js';
+import { cleanTitle, forMe, guessWho, isNight, isSome, kindOf, words } from '../src/school-news.js';
 import { normalizeSettingsData, encodeTransferData, decodeTransferData } from '../src/editor-backup.js';
 import { buildFixtureData } from './helpers/fixtureData.js';
 
@@ -118,5 +118,30 @@ describe('學校公告: only the ones for this student', () => {
     expect(forMe(it_(['3']), '')).toBe(true);
     expect(forMe(it_(['some']), '')).toBe(false);
     expect(isSome(it_(['some']))).toBe(true);
+  });
+  it('進修部 (a school’s night school) by its title: never for a day student, its own tab', () => {
+    const night = { title: '【進修部】116學年度四技二專甄選入學對照表', who: ['all'] };
+    expect(isNight(night)).toBe(true);
+    expect(forMe(night, '3')).toBe(false);
+    expect(kindOf(night)).toBe('night');
+  });
+  it('each one’s kind by code', () => {
+    expect(kindOf({ title: '115學年度第1學期第2次期中考考程表' })).toBe('exam');
+    expect(kindOf({ title: '【轉知】南華大學特殊選才線上說明會' })).toBe('apply');
+    expect(kindOf({ title: '公告本校115學年度第2學期減免學雜費申請' })).toBe('money');
+    expect(kindOf({ title: '寒假雙外語冬令營' })).toBe('event');
+    expect(kindOf({ title: '11/27(五)全校晚自習暫停乙次' })).toBe('other');
+  });
+  it('before the AI words it: who from the title, the title without its tags', () => {
+    expect(guessWho({ title: '教師專業發展研習 第二梯次' })).toEqual([]);
+    expect(guessWho({ title: '高三模擬考 12/3 舉行' })).toEqual(['3']);
+    expect(guessWho({ title: '【全校】學習歷程檔案上傳期程' })).toEqual(['all']);
+    expect(guessWho({ title: '南華大學說明會' })).toBe(null);
+    expect(forMe({ title: '高三模擬考 12/3 舉行' }, '3')).toBe(true);
+    expect(forMe({ title: '高三模擬考 12/3 舉行' }, '2')).toBe(false);
+    expect(cleanTitle('【轉知】【全校】寒假營隊開放報名。')).toBe('寒假營隊開放報名');
+    expect(cleanTitle('<公告>教育人員任用條例修正')).toBe('教育人員任用條例修正');
+    expect(words({ title: 't', line: '學測報名 11/20 截止。' })).toBe('學測報名 11/20 截止');
+    expect(words({ title: '【轉知】志工營', line: '' })).toBe('志工營');
   });
 });

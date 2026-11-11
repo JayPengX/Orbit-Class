@@ -3,10 +3,14 @@
 // (the Ministry's list of senior high schools, public/schools.json; or its
 // site pasted) with their grade, kept with the timetable (applicationData.school).
 // The proxy's /class-news reads the school's own list by code and words each
-// title once for everyone at that school (Orbit-Core class-news.js); here
-// only the ones for this student: for every student, their grade, or their
-// school's 國中部 for a 國中 grade. 今天 shows the newest few (a week); the
-// sheet all of them, the rest folded. A tap opens the school's own page.
+// title once for everyone at that school (Orbit-Core class-news.js). Fast
+// (Jay 11-11, "a bit too slow"): the titles come at once, the AI's lines
+// behind them (`wording`: asked again a few seconds on). Drawn, never plain
+// text (Jay 11-11): each one a row with its kind's tile (考試, 升學, 活動,
+// 獎助, by code), the thing first, its day and unit, a deadline as a tag;
+// the sheet's text tabs 跟你有關 · 全部 · each kind · 進修部. 進修部's own
+// (a school's night school, by its title, code) are never "for you" and sit
+// in their own tab. 今天 shows the newest few for this student (a week).
 import * as kitUI from '#kit/ui.mjs';
 import * as kit from '#kit/orbit.mjs';
 import { state } from './state.js';
@@ -24,9 +28,47 @@ const GRADE_NAME = { 1: ['高一', 'Grade 10'], 2: ['高二', 'Grade 11'], 3: ['
 export const gradeName = g => (GRADE_NAME[g] ? L(...GRADE_NAME[g]) : '');
 
 export const schoolOf = () => normalizeSchool(state.applicationData?.school);
-// For this student: who names everyone, their grade (1–3), or 國中部 (jh) for a 國中 grade; 'some' when it asks to sign up.
+
+// ---- By code: the night school's, each one's kind, who it's for before the AI says ----
+export const isNight = it => /進修部|夜間部|進修學校|補校/.test(it?.title || '');
+// The thing first: a title's 【轉知】, <公告>, 公告本校 and its end's 。 off.
+export function cleanTitle(t = '') {
+  let s = String(t).trim();
+  for (let i = 0; i < 3; i++) s = s.replace(/^\s*(?:【[^】]{1,8}】|\[[^\]]{1,8}\]|<[^>]{1,8}>|〔[^〕]{1,8}〕|（[^）]{1,6}）)\s*/, '');
+  return s.replace(/^公告(?:本校)?/, '').replace(/[。．.！!]+$/, '').trim() || String(t).trim();
+}
+export const words = it => (it.line || '').replace(/[。．.！!]+$/, '') || cleanTitle(it.title);
+export const KINDS = {
+  exam: { re: /段考|期中考|期末考|模擬考|考程|補考|複習考|小考|考試/, name: ['考試', 'Exams'], icon: 'pencil', color: 'var(--q-red)' },
+  apply: { re: /大學|學測|分科|甄選入學|申請入學|特殊選才|招生|升學|科大|四技|二專|繁星|志願|簡章/, name: ['升學', 'University'], icon: 'school', color: 'var(--q-indigo, #6366f1)' },
+  money: { re: /獎學金|助學金|減免|補助|學雜費|助學|獎助/, name: ['獎助', 'Grants'], icon: 'coin', color: 'var(--q-green)' },
+  event: { re: /營隊|營$|營。|冬令營|夏令營|競賽|比賽|徵稿|徵件|徵選|活動|講座|說明會|志工|體驗|展覽|音樂會|講習|交流|研討會|課程/, name: ['活動', 'Events'], icon: 'star', color: 'var(--q-orange)' },
+  night: { re: null, name: ['進修部', 'Night school'], icon: 'moon', color: 'var(--q-gray)' },
+  other: { re: null, name: ['校務', 'School'], icon: 'bell', color: 'var(--q-teal, #14b8a6)' }
+};
+export function kindOf(it) {
+  if (isNight(it)) return 'night';
+  const text = `${it.title || ''} ${it.line || ''}`;
+  for (const k of ['exam', 'apply', 'money', 'event']) if (KINDS[k].re.test(text)) return k;
+  return 'other';
+}
+// Who, from the title alone, for one the AI hasn't worded yet (null: can't tell).
+export function guessWho(it) {
+  const t = it?.title || '';
+  if (/教師|教職員|研習(?!營)|招標|採購|公開觀課|人事|會議紀錄|家長會/.test(t)) return [];
+  const who = [];
+  if (/高一|一年級|1\d\d班/.test(t)) who.push('1');
+  if (/高二|二年級|2\d\d班/.test(t)) who.push('2');
+  if (/高三|三年級|3\d\d班|畢業班|學測|分科測驗/.test(t)) who.push('3');
+  if (/國中部|國一|國二|國三|[七八九]年級/.test(t)) who.push('jh');
+  if (!who.length && /全校|全體|同學|學生/.test(t)) who.push('all');
+  return who.length ? who : null;
+}
+// For this student: everyone's, their grade's (1–3), or 國中部 (jh) for a 國中
+// grade; never the night school's; 'some' (sign-ups) not.
 export function forMe(item, grade = '') {
-  const who = Array.isArray(item.who) ? item.who : null;
+  if (isNight(item)) return false;
+  const who = Array.isArray(item.who) ? item.who : guessWho(item);
   if (!who) return false;
   if (who.includes('all')) return true;
   if (!grade) return who.includes('1') || who.includes('2') || who.includes('3') || who.includes('jh');
@@ -50,18 +92,26 @@ const keep = v => {
   }
 };
 let asking = null;
-// The school's list: the phone's copy, read again from the proxy past 30 minutes.
+let again = null;
+let tries = 0;
+// The school's list: the phone's copy, read again from the proxy past 30
+// minutes. While the AI words it (`wording`), asked again at 6, 12, 20 and 30
+// seconds; each new copy announced ('class-news') to whatever shows it.
 export async function loadNews({ force = false } = {}) {
   const sc = schoolOf();
   if (!sc) return null;
   const have = kept();
-  if (!force && have?.site === sc.url && Date.now() - (have.got || 0) < FRESH) return have;
+  if (!force && have?.site === sc.url && Date.now() - (have.got || 0) < FRESH && !have.wording) return have;
   asking ||= kit
     .workerJson('/class-news', `site=${encodeURIComponent(sc.url)}`, { timeout: 40_000, errors: true })
     .then(r => {
       if (r && Array.isArray(r.items)) {
         const v = { ...r, site: sc.url, got: Date.now() };
         keep(v);
+        clearTimeout(again);
+        if (r.wording && tries < 4) again = setTimeout(() => loadNews({ force: true }), [6, 6, 8, 10][tries++] * 1000);
+        else tries = 0;
+        window.dispatchEvent(new Event('class-news'));
         return v;
       }
       return have?.site === sc.url ? { ...have, failed: r?.error || 'offline' } : { site: sc.url, items: [], failed: r?.error || 'offline' };
@@ -70,19 +120,31 @@ export async function loadNews({ force = false } = {}) {
   return asking;
 }
 
-const words = it => it.line || it.title;
-function newsRow(it, now = new Date()) {
-  const d = it.date ? dateFromKey(it.date) : null;
-  const bits = [d ? `${d.getMonth() + 1}/${d.getDate()}` : '', it.unit || '', it.by && it.by >= dateKey(now) ? L(`${shortDay(it.by)} 前`, `by ${shortDay(it.by)}`) : ''].filter(Boolean).join(' · ');
-  const act = it.act ? el('span', 'cx-news-act', it.act) : null;
-  const r = button('q-ritem chevron cx-news', () => kit.openLink?.(it.url) ?? window.open(it.url, '_blank', 'noopener'), [el('span', 'q-ritem-text', [el('span', 'q-ritem-title', words(it)), el('small', '', bits)]), act]);
-  r.title = it.title;
-  return r;
-}
-const shortDay = k => {
+const short = k => {
   const d = dateFromKey(k);
   return `${d.getMonth() + 1}/${d.getDate()}`;
 };
+// One announcement: its kind's tile, the thing (two lines at most), its day ·
+// unit · what to do; a deadline still ahead a tag (orange within a week).
+function newsRow(it, now = new Date()) {
+  const k = kindOf(it);
+  const today = dateKey(now);
+  const ahead = it.by && it.by >= today;
+  const soon = ahead && it.by <= dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));
+  const day = it.date === today ? L('今天', 'Today') : it.date ? short(it.date) : '';
+  const bits = [day, it.unit || '', it.act || ''].filter(Boolean).join(' · ');
+  const by = ahead ? (kitUI.tag?.(L(`${short(it.by)} 截止`, `by ${short(it.by)}`), '', soon ? '#f97316' : '') || el('span', 'q-tag', short(it.by))) : null;
+  const r = button(`q-ritem chevron cx-news is-${k}`, () => kit.openLink?.(it.url) ?? window.open(it.url, '_blank', 'noopener'), [tile(KINDS[k].icon, KINDS[k].color), el('span', 'q-ritem-text', [el('span', 'q-ritem-title', words(it)), el('small', '', bits)]), by]);
+  r.title = it.title;
+  return r;
+}
+// Rows' places held while the list is read.
+const skeleton = (n = 4) =>
+  el(
+    'div',
+    'q-rowcard cx-news-skel',
+    Array.from({ length: n }, () => el('div', 'q-ritem', [el('span', 'q-tile q-skel'), el('span', 'q-ritem-text', [el('span', 'q-skel cx-skel-a'), el('span', 'q-skel cx-skel-b')])]))
+  );
 
 // ---- 今天: the newest few for this student, a week back ----
 let drawn = '';
@@ -98,16 +160,22 @@ export async function renderSchoolNews(now = new Date()) {
   }
   const have = kept();
   draw(have?.site === sc.url ? have : null, sc, now);
-  if (!have || have.site !== sc.url || Date.now() - (have.got || 0) > FRESH) {
+  if (!have || have.site !== sc.url || Date.now() - (have.got || 0) > FRESH || have.wording) {
     const fresh = await loadNews();
     draw(fresh, sc, now);
   }
 }
+window.addEventListener('class-news', () => {
+  const sc = schoolOf();
+  const have = kept();
+  if (sc && have?.site === sc.url) draw(have, sc, new Date());
+});
 function draw(news, sc, now) {
   const box = document.getElementById('cx-news');
+  if (!box) return;
   const week = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7));
   const mine = (news?.items || []).filter(it => forMe(it, sc.grade) && it.date >= week).slice(0, 3);
-  const key = `${sc.url}|${sc.grade}|${getLocale()}|${JSON.stringify(mine)}|${!!news}`;
+  const key = `${sc.url}|${sc.grade}|${getLocale()}|${dateKey(now)}|${JSON.stringify(mine)}|${!!news}`;
   if (key === drawn) return;
   drawn = key;
   box.hidden = !news || !mine.length;
@@ -116,49 +184,59 @@ function draw(news, sc, now) {
   box.replaceChildren(...sec.childNodes);
 }
 
-// ---- Every one: for this student first, the rest folded ----
+// ---- Every one: text tabs (跟你有關, 全部, each kind, 進修部), newest first ----
 export async function openNewsSheet() {
   const sc = schoolOf();
   if (!sc) return openSchoolPicker();
   const body = el('div', 'cx-news-all');
   const note = el('div', 'cx-news-note');
-  let noted = false;
   const change = button('q-btn plain cx-news-school', () => (s.close(), openSchoolPicker()), L('換學校或年級', 'Change school or grade'));
   const s = kitUI.sheet({ title: L('學校公告', 'School news'), subtitle: `${sc.name}${sc.grade ? ` · ${gradeName(sc.grade)}` : ''}`, body: [note, body, change], cls: 'cx-kit-sheet', detent: 'large', closeLabel: L('關閉', 'Close') });
+  let tab = '';
+  const ai = await import('#kit/ai.mjs').catch(() => null);
   const fill = news => {
+    if (!s.el.isConnected) return;
     const items = news?.items || [];
+    const now = new Date();
     const mine = items.filter(it => forMe(it, sc.grade));
-    const rest = items.filter(it => !forMe(it, sc.grade));
-    const parts = [];
-    if (news?.unread || (!items.length && news?.failed)) parts.push(kitUI.empty({ icon: 'school', title: L('讀不到這所學校的公告', 'Can’t read this school’s news'), body: L('有些學校網站要用瀏覽器才看得到。可以換成學校「最新消息」那一頁的網址。', 'Some school sites only work in a browser. Try the address of its news page.'), action: { label: L('換網址', 'Change address'), onTap: () => (s.close(), openSchoolPicker()) } }));
-    else if (!items.length) parts.push(kitUI.empty({ icon: 'school', title: L('最近沒有公告', 'No news lately'), body: '' }));
-    if (mine.length) parts.push(kitUI.section(L('跟你有關', 'For you'), el('div', 'q-rowcard', mine.map(it => newsRow(it))), { shd: true, cls: 'cx-sec' }));
-    if (rest.length) {
-      const fold = el('div', 'q-rowcard', rest.map(it => newsRow(it)));
-      fold.hidden = true;
-      const words = L(`其他 ${rest.length} 則`, `${rest.length} others`);
-      const t = kitUI.moreToggle ? kitUI.moreToggle({ more: words, less: L('收起', 'Less'), cls: 'cx-news-more', onToggle: o => (fold.hidden = !o) }) : button('q-more cx-news-more', () => (fold.hidden = !fold.hidden), words);
-      parts.push(el('div', 'cx-sec', [t, fold]));
+    if (news?.unread || (!items.length && news?.failed)) {
+      note.replaceChildren();
+      return body.replaceChildren(kitUI.empty({ icon: 'school', title: L('讀不到這所學校的公告', 'Can’t read this school’s news'), body: L('有些學校網站要用瀏覽器才看得到。可以換成學校「最新消息」那一頁的網址。', 'Some school sites only work in a browser. Try the address of its news page.'), action: { label: L('換網址', 'Change address'), onTap: () => (s.close(), openSchoolPicker()) } }));
     }
-    if (!noted && mine.some(it => it.line)) {
-      noted = true;
-      import('#kit/ai.mjs')
-        .then(ai => {
-          const n = ai.aiNote?.(L('每則一句話是 AI 依標題寫的，點開看學校原文', 'One line each by AI from the title; tap for the school’s page'));
-          if (n) note.replaceChildren(n);
-        })
-        .catch(() => {});
+    if (!items.length) {
+      note.replaceChildren();
+      return body.replaceChildren(kitUI.empty({ icon: 'school', title: L('最近沒有公告', 'No news lately'), body: '' }));
     }
-    body.replaceChildren(...parts);
+    // The tabs: only those with any; 跟你有關 first when it has some.
+    const groups = [
+      ['me', L('跟你有關', 'For you'), mine],
+      ['all', L('全部', 'All'), items.filter(it => !isNight(it))],
+      ...['exam', 'apply', 'event', 'money', 'other', 'night'].map(k => [k, L(...KINDS[k].name), items.filter(it => kindOf(it) === k)])
+    ].filter(([, , list]) => list.length);
+    if (!groups.some(([id]) => id === tab)) tab = groups[0][0];
+    const tabs = el('div', 'q-chips q-texttabs cx-news-tabs', groups.map(([id, name, list]) => button(`q-chip${id === tab ? ' on' : ''}`, () => ((tab = id), fill(news)), `${name} ${list.length}`)));
+    const list = groups.find(([id]) => id === tab)[2];
+    body.replaceChildren(tabs, el('div', 'q-rowcard', list.map(it => newsRow(it, now))));
+    requestAnimationFrame(() => tabs.querySelector('.on')?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' }));
+    // While the AI words them: a line that says so; then the note that it did.
+    const wording = news?.wording;
+    const n = wording ? ai?.aiThinking?.(L('AI 正在整理每一則…', 'AI is sorting each one…')) : items.some(it => it.line) ? ai?.aiNote?.(L('每則一句話由 AI 依標題寫成，點開看學校原文', 'One line each by AI from the title; tap for the school’s page')) : null;
+    note.replaceChildren(...(n ? [n] : []));
   };
+  const onNews = () => {
+    if (!s.el.isConnected) return window.removeEventListener('class-news', onNews);
+    const have = kept();
+    if (have?.site === sc.url) fill(have);
+  };
+  window.addEventListener('class-news', onNews);
   const have = kept();
   if (have?.site === sc.url) fill(have);
-  else {
-    const wait = await import('#kit/ai.mjs').then(ai => ai.aiThinking?.(L('讀學校網站…', 'Reading the school’s site…'))).catch(() => null);
-    if (wait) body.replaceChildren(wait);
+  else body.replaceChildren(skeleton(5));
+  const stale = !have || have.site !== sc.url || Date.now() - (have.got || 0) > FRESH || have.wording;
+  if (stale) {
+    const fresh = await loadNews({ force: true });
+    fill(fresh);
   }
-  const fresh = await loadNews({ force: !have || have.site !== sc.url || Date.now() - (have.got || 0) > FRESH });
-  if (s.el.isConnected) fill(fresh);
   drawn = '';
   renderSchoolNews();
 }

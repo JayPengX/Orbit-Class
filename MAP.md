@@ -66,9 +66,15 @@ Live: https://orbit.jaypengx.com/class/
       (Orbit-Core `class-news.js`) reads the school's own list and words new
       titles once for everyone at that school (`class-news`, Haiku): who it's
       for, one line, what to do, by when. Shown: only `forMe` (everyone, their
-      grade, 國中部 for a 國中 grade); 今天 the last week's 3, the sheet all
-      (the rest folded). Kept on the phone (`class.news.v1`), read again past
-      30 minutes. A school whose site can't be read: an empty state that asks
+      grade, 國中部 for a 國中 grade; before the AI's words, `guessWho` from
+      the title); 進修部's (`isNight`, by the title) never for you, their own
+      tab. Drawn, never plain text: a row each with its kind's tile (`kindOf`:
+      考試, 升學, 活動, 獎助, 校務, by code), the thing first (`words`,
+      `cleanTitle`), day · unit · what to do, a deadline as a tag; the sheet's
+      text tabs 跟你有關 · 全部 · each kind. 今天 the last week's 3. Fast: the
+      proxy answers with the titles at once and words them behind
+      (`wording`; the phone asks again at 6–30 s); kept on the phone
+      (`class.news.v1`), read again past 30 minutes. A school whose site can't be read: an empty state that asks
       for its news page's address.
   - **編輯課表** (`view-editor.js`): inside a sheet a card is the sheet's cell colour (`--nv-card` set per sheet, the page's graphite read as no card); each period's box solid in a soft shade of its class's colour (`tint`), a free one grey; times centred on one line; the back a plain ‹ 課表; numbers in light figures; 新增… a line in the app's colour; remove a grey minus. No glass anywhere.
 - **專注飛行** (a trial, Jay 2026-10-30): a focus timer that follows a real plane.
