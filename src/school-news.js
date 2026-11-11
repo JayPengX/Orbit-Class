@@ -42,7 +42,7 @@ export function cleanTitle(t = '') {
 }
 export const words = it => (it.line || '').replace(/[。．.！!]+$/, '') || cleanTitle(it.title);
 export const KINDS = {
-  exam: { re: /段考|期中考|期末考|模擬考|考程|補考|複習考|小考|考試/, name: ['考試', 'Exams'], icon: 'pencil', color: 'var(--q-red)' },
+  exam: { re: /段考|期中考|期末考|模擬考|考程|補考|複習考|小考|(?<!招生|入學|單獨招生)考試/, name: ['考試', 'Exams'], icon: 'pencil', color: 'var(--q-red)' },
   apply: { re: /學測|分科|甄選入學|申請入學|特殊選才|招生|升學|四技|二專|繁星|志願|簡章/, name: ['升學', 'University'], icon: 'school', color: 'var(--q-indigo, #6366f1)' },
   money: { re: /獎學金|助學金|減免|補助|學雜費|助學|獎助/, name: ['獎助', 'Grants'], icon: 'coin', color: 'var(--q-green)' },
   event: { re: /營隊|營$|營。|冬令營|夏令營|競賽|比賽|徵稿|徵件|徵選|活動|講座|說明會|志工|體驗|展覽|成果展|特展|科技展|音樂會|講習|交流|研討會|課程/, name: ['活動', 'Events'], icon: 'star', color: 'var(--q-orange)' },
