@@ -269,7 +269,7 @@ export async function openSchoolPicker() {
   const list = el('div', 'q-rowcard cx-school-list');
   const own = document.createElement('input');
   own.className = 'cx-input';
-  own.placeholder = L('或貼上學校網站，例如 https://www.xxx.edu.tw', 'Or paste the school’s site');
+  own.placeholder = L('或貼上學校網址', 'Or paste the school’s site');
   own.inputMode = 'url';
   own.addEventListener('input', () => {
     const v = own.value.trim();
