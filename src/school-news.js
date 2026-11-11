@@ -34,7 +34,7 @@ export const isNight = it => /進修部|夜間部|進修學校|補校/.test(it?.
 // The thing first: a title's 【轉知】, <公告>, 公告本校 and its end's 。 off.
 export function cleanTitle(t = '') {
   let s = String(t).trim();
-  for (let i = 0; i < 3; i++) s = s.replace(/^\s*(?:【[^】]{1,8}】|\[[^\]]{1,8}\]|<[^>]{1,8}>|〔[^〕]{1,8}〕|（[^）]{1,6}）)\s*/, '');
+  for (let i = 0; i < 3; i++) s = s.replace(/^\s*(?:【[^】」]{1,8}[】」]|\[[^\]]{1,8}\]|<[^>]{1,8}>|〔[^〕]{1,8}〕|（[^）]{1,6}）)\s*/, '');
   return s.replace(/^公告(?:本校)?/, '').replace(/[。．.！!]+$/, '').trim() || String(t).trim();
 }
 export const words = it => (it.line || '').replace(/[。．.！!]+$/, '') || cleanTitle(it.title);
