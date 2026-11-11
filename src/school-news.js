@@ -40,9 +40,9 @@ export function cleanTitle(t = '') {
 export const words = it => (it.line || '').replace(/[。．.！!]+$/, '') || cleanTitle(it.title);
 export const KINDS = {
   exam: { re: /段考|期中考|期末考|模擬考|考程|補考|複習考|小考|考試/, name: ['考試', 'Exams'], icon: 'pencil', color: 'var(--q-red)' },
-  apply: { re: /大學|學測|分科|甄選入學|申請入學|特殊選才|招生|升學|科大|四技|二專|繁星|志願|簡章/, name: ['升學', 'University'], icon: 'school', color: 'var(--q-indigo, #6366f1)' },
+  apply: { re: /學測|分科|甄選入學|申請入學|特殊選才|招生|升學|四技|二專|繁星|志願|簡章/, name: ['升學', 'University'], icon: 'school', color: 'var(--q-indigo, #6366f1)' },
   money: { re: /獎學金|助學金|減免|補助|學雜費|助學|獎助/, name: ['獎助', 'Grants'], icon: 'coin', color: 'var(--q-green)' },
-  event: { re: /營隊|營$|營。|冬令營|夏令營|競賽|比賽|徵稿|徵件|徵選|活動|講座|說明會|志工|體驗|展覽|音樂會|講習|交流|研討會|課程/, name: ['活動', 'Events'], icon: 'star', color: 'var(--q-orange)' },
+  event: { re: /營隊|營$|營。|冬令營|夏令營|競賽|比賽|徵稿|徵件|徵選|活動|講座|說明會|志工|體驗|展覽|成果展|特展|科技展|音樂會|講習|交流|研討會|課程/, name: ['活動', 'Events'], icon: 'star', color: 'var(--q-orange)' },
   night: { re: null, name: ['進修部', 'Night school'], icon: 'moon', color: 'var(--q-gray)' },
   other: { re: null, name: ['校務', 'School'], icon: 'bell', color: 'var(--q-teal, #14b8a6)' }
 };
@@ -50,12 +50,15 @@ export function kindOf(it) {
   if (isNight(it)) return 'night';
   const text = `${it.title || ''} ${it.line || ''}`;
   for (const k of ['exam', 'apply', 'money', 'event']) if (KINDS[k].re.test(text)) return k;
-  return 'other';
+  // A university's name alone (its camp, its show are 活動 above) is 升學.
+  return /大學|科大/.test(text) ? 'apply' : 'other';
 }
+// Not for students, whatever the AI says: teachers', staff's, grown-ups' degrees.
+const ADULTS = /教師|教職員|研習(?!營)|招標|採購|公開觀課|人事|會議紀錄|家長會|碩士|博士|在職專班|進修推廣/;
 // Who, from the title alone, for one the AI hasn't worded yet (null: can't tell).
 export function guessWho(it) {
   const t = it?.title || '';
-  if (/教師|教職員|研習(?!營)|招標|採購|公開觀課|人事|會議紀錄|家長會/.test(t)) return [];
+  if (ADULTS.test(t)) return [];
   const who = [];
   if (/高一|一年級|1\d\d班/.test(t)) who.push('1');
   if (/高二|二年級|2\d\d班/.test(t)) who.push('2');
@@ -67,7 +70,7 @@ export function guessWho(it) {
 // For this student: everyone's, their grade's (1–3), or 國中部 (jh) for a 國中
 // grade; never the night school's; 'some' (sign-ups) not.
 export function forMe(item, grade = '') {
-  if (isNight(item)) return false;
+  if (isNight(item) || ADULTS.test(item?.title || '')) return false;
   const who = Array.isArray(item.who) ? item.who : guessWho(item);
   if (!who) return false;
   if (who.includes('all')) return true;
@@ -95,8 +98,8 @@ let asking = null;
 let again = null;
 let tries = 0;
 // The school's list: the phone's copy, read again from the proxy past 30
-// minutes. While the AI words it (`wording`), asked again at 6, 12, 20 and 30
-// seconds; each new copy announced ('class-news') to whatever shows it.
+// minutes. While the AI words it (`wording`, about 30 s for a school's 25),
+// asked again at 6, 12, 20, 30, 42 and 57 seconds; each new copy announced ('class-news') to whatever shows it.
 export async function loadNews({ force = false } = {}) {
   const sc = schoolOf();
   if (!sc) return null;
@@ -109,7 +112,7 @@ export async function loadNews({ force = false } = {}) {
         const v = { ...r, site: sc.url, got: Date.now() };
         keep(v);
         clearTimeout(again);
-        if (r.wording && tries < 4) again = setTimeout(() => loadNews({ force: true }), [6, 6, 8, 10][tries++] * 1000);
+        if (r.wording && tries < 6) again = setTimeout(() => loadNews({ force: true }), [6, 6, 8, 10, 12, 15][tries++] * 1000);
         else tries = 0;
         window.dispatchEvent(new Event('class-news'));
         return v;
@@ -125,7 +128,7 @@ const short = k => {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 };
 // One announcement: its kind's tile, the thing (two lines at most), its day ·
-// unit · what to do; a deadline still ahead a tag (orange within a week).
+// unit · what to do; a day still ahead the line doesn't say a tag (orange within a week).
 function newsRow(it, now = new Date()) {
   const k = kindOf(it);
   const today = dateKey(now);
@@ -133,7 +136,12 @@ function newsRow(it, now = new Date()) {
   const soon = ahead && it.by <= dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));
   const day = it.date === today ? L('今天', 'Today') : it.date ? short(it.date) : '';
   const bits = [day, it.unit || '', it.act || ''].filter(Boolean).join(' · ');
-  const by = ahead ? (kitUI.tag?.(L(`${short(it.by)} 截止`, `by ${short(it.by)}`), '', soon ? '#f97316' : '') || el('span', 'q-tag', short(it.by))) : null;
+  // The day as a tag only where the line doesn't already say it; 截止 only
+  // where the words say it's a deadline (the AI's `by` is also an event's day).
+  const md = it.by ? short(it.by) : '';
+  const said = md && new RegExp(`(^|[^\\d])${md}($|[^\\d])`).test(words(it));
+  const due = /截止|為止|止$|前$|前繳|前報名|前上傳/.test(`${it.title} ${it.line || ''} ${it.act || ''}`);
+  const by = ahead && !said ? kitUI.tag?.(due ? L(`${md} 截止`, `by ${md}`) : md, '', soon ? '#f97316' : '') || el('span', 'q-tag', md) : null;
   const r = button(`q-ritem chevron cx-news is-${k}`, () => kit.openLink?.(it.url) ?? window.open(it.url, '_blank', 'noopener'), [tile(KINDS[k].icon, KINDS[k].color), el('span', 'q-ritem-text', [el('span', 'q-ritem-title', words(it)), el('small', '', bits)]), by]);
   r.title = it.title;
   return r;

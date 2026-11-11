@@ -113,6 +113,7 @@ describe('學校公告: only the ones for this student', () => {
     expect(forMe(it_(['1']), 'j1')).toBe(false); // a 完全中學's 1 is its 高一
     expect(forMe(it_(['some']), '2')).toBe(false);
     expect(forMe({ title: 'not worded yet' }, '2')).toBe(false);
+    expect(forMe({ title: '會計與資訊科技碩士在職專班招生', who: ['3'] }, '3')).toBe(false); // grown-ups', whatever the AI said
   });
   it('no grade picked: anything for students', () => {
     expect(forMe(it_(['3']), '')).toBe(true);
@@ -131,6 +132,9 @@ describe('學校公告: only the ones for this student', () => {
     expect(kindOf({ title: '公告本校115學年度第2學期減免學雜費申請' })).toBe('money');
     expect(kindOf({ title: '寒假雙外語冬令營' })).toBe('event');
     expect(kindOf({ title: '11/27(五)全校晚自習暫停乙次' })).toBe('other');
+    expect(kindOf({ title: '【轉知】國立清華大學雙外語冬令營' })).toBe('event'); // a university's camp is a camp
+    expect(kindOf({ title: '高等教育深耕計畫成果展' })).toBe('event');
+    expect(kindOf({ title: '逢甲大學參訪' })).toBe('apply');
   });
   it('before the AI words it: who from the title, the title without its tags', () => {
     expect(guessWho({ title: '教師專業發展研習 第二梯次' })).toEqual([]);
