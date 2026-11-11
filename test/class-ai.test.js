@@ -139,6 +139,7 @@ describe('學校公告: only the ones for this student', () => {
     expect(kindOf({ title: '【轉知】國立清華大學雙外語冬令營' })).toBe('event'); // a university's camp is a camp
     expect(kindOf({ title: '高等教育深耕計畫成果展' })).toBe('event');
     expect(kindOf({ title: '逢甲大學參訪' })).toBe('apply');
+    expect(kindOf({ title: '臺灣太空科學聯盟TSU學生日', kind: '活動消息' })).toBe('event'); // its board's name
   });
   it('before the AI words it: who from the title, the title without its tags', () => {
     expect(guessWho({ title: '教師專業發展研習 第二梯次' })).toEqual([]);

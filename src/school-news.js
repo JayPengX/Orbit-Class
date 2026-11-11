@@ -53,7 +53,11 @@ export function kindOf(it) {
   if (isNight(it)) return 'night';
   const text = `${it.title || ''} ${it.line || ''}`;
   for (const k of ['exam', 'apply', 'money', 'event']) if (KINDS[k].re.test(text)) return k;
-  // A university's name alone (its camp, its show are 活動 above) is 升學.
+  // The board it was posted on (升學資訊, 競賽活動…), then a university's name alone (its camp, its show are 活動 above).
+  const board = it.kind || '';
+  if (/升學|招生/.test(board)) return 'apply';
+  if (/活動|競賽/.test(board)) return 'event';
+  if (/獎助|獎學/.test(board)) return 'money';
   return /大學|科大/.test(text) ? 'apply' : 'other';
 }
 // Not for students, whatever the AI says: teachers', staff's, grown-ups' degrees.
