@@ -123,7 +123,7 @@ export function openStudyPlan(first = null, now = new Date()) {
     }
     if (btn) btn.disabled = true;
     const ai = await import('#kit/ai.mjs').catch(() => null);
-    const wait = ai?.aiThinking?.(L('想每一段要讀什麼…', 'Working out what to study…'));
+    const wait = ai?.aiAnswerWait?.({ text: L('想每一段要讀什麼…', 'Working out what to study…'), rows: 4 }) || ai?.aiThinking?.(L('想每一段要讀什麼…', 'Working out what to study…'));
     if (wait) body.replaceChildren(wait);
     const n = {};
     for (const x of sessions) n[x.subject] = x.n;

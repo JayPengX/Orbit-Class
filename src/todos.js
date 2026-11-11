@@ -284,7 +284,7 @@ export async function openBook() {
   const btn = foot.querySelector('button');
   if (btn) btn.disabled = true;
   const s = kitUI.sheet({ title: L('拍聯絡簿', 'Contact book'), body: [body], foot, cls: 'cx-kit-sheet', detent: 'large', closeLabel: L('關閉', 'Close') });
-  const wait = ai.aiThinking(L('讀聯絡簿…', 'Reading it…'));
+  const wait = ai.aiAnswerWait?.({ text: L('讀聯絡簿…', 'Reading it…'), rows: 4 }) || ai.aiThinking(L('讀聯絡簿…', 'Reading it…'));
   body.append(wait);
   const image = await ai.aiPicture(file);
   if (!image) {
