@@ -8,7 +8,7 @@
 // behind them (`wording`: asked again a few seconds on). Drawn, never plain
 // text (Jay 11-11): each one a row with its kind's tile (考試, 升學, 活動,
 // 獎助, by code), the thing first, its day and unit, a deadline as a tag;
-// the sheet's text tabs 跟你有關 · 全部 · each kind · 進修部. 進修部's own
+// the sheet's text tabs 跟你有關 · 全部 · each kind · 轉知 · 進修部. 進修部's own
 // (a school's night school, by its title, code) are never "for you" and sit
 // in their own tab. 今天 shows the newest few for this student (a week).
 import * as kitUI from '#kit/ui.mjs';
@@ -31,6 +31,9 @@ export const schoolOf = () => normalizeSchool(state.applicationData?.school);
 
 // ---- By code: the night school's, each one's kind, who it's for before the AI says ----
 export const isNight = it => /進修部|夜間部|進修學校|補校/.test(it?.title || '');
+// 轉知 (Jay 11-11, "a lot is 轉知"): another body's notice the school passes on
+// (a university's camp, a contest, a show): never "for you", its own tab.
+export const isRelay = it => /轉知|轉發|函轉/.test(it?.title || '');
 // The thing first: a title's 【轉知】, <公告>, 公告本校 and its end's 。 off.
 export function cleanTitle(t = '') {
   let s = String(t).trim();
@@ -68,9 +71,9 @@ export function guessWho(it) {
   return who.length ? who : null;
 }
 // For this student: everyone's, their grade's (1–3), or 國中部 (jh) for a 國中
-// grade; never the night school's; 'some' (sign-ups) not.
+// grade; never the night school's, a 轉知 or grown-ups'; 'some' (sign-ups) not.
 export function forMe(item, grade = '') {
-  if (isNight(item) || ADULTS.test(item?.title || '')) return false;
+  if (isNight(item) || isRelay(item) || ADULTS.test(item?.title || '')) return false;
   const who = Array.isArray(item.who) ? item.who : guessWho(item);
   if (!who) return false;
   if (who.includes('all')) return true;
@@ -192,7 +195,7 @@ function draw(news, sc, now) {
   box.replaceChildren(...sec.childNodes);
 }
 
-// ---- Every one: text tabs (跟你有關, 全部, each kind, 進修部), newest first ----
+// ---- Every one: text tabs (跟你有關, 全部, each kind, 轉知, 進修部), newest first ----
 export async function openNewsSheet() {
   const sc = schoolOf();
   if (!sc) return openSchoolPicker();
@@ -215,11 +218,15 @@ export async function openNewsSheet() {
       note.replaceChildren();
       return body.replaceChildren(kitUI.empty({ icon: 'school', title: L('最近沒有公告', 'No news lately'), body: '' }));
     }
-    // The tabs: only those with any; 跟你有關 first when it has some.
+    // The tabs: only those with any; 跟你有關 first when it has some; the
+    // kinds the school's own, then what it passed on (轉知) and 進修部's.
+    const own = items.filter(it => !isNight(it) && !isRelay(it));
     const groups = [
       ['me', L('跟你有關', 'For you'), mine],
       ['all', L('全部', 'All'), items.filter(it => !isNight(it))],
-      ...['exam', 'apply', 'event', 'money', 'other', 'night'].map(k => [k, L(...KINDS[k].name), items.filter(it => kindOf(it) === k)])
+      ...['exam', 'apply', 'event', 'money', 'other'].map(k => [k, L(...KINDS[k].name), own.filter(it => kindOf(it) === k)]),
+      ['relay', L('轉知', 'Passed on'), items.filter(it => isRelay(it) && !isNight(it))],
+      ['night', L(...KINDS.night.name), items.filter(isNight)]
     ].filter(([, , list]) => list.length);
     if (!groups.some(([id]) => id === tab)) tab = groups[0][0];
     const tabs = el('div', 'q-chips q-texttabs cx-news-tabs', groups.map(([id, name, list]) => button(`q-chip${id === tab ? ' on' : ''}`, () => ((tab = id), fill(news)), `${name} ${list.length}`)));

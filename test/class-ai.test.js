@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeSchool, normalizeTodo, normalizeTodos, todoEntry, todoOf, todosKept } from '../src/todos-data.js';
 import { blocksOf, examSubject, planSessions, plainTask, withTasks } from '../src/plan.js';
-import { cleanTitle, forMe, guessWho, isNight, isSome, kindOf, words } from '../src/school-news.js';
+import { cleanTitle, forMe, guessWho, isNight, isRelay, isSome, kindOf, words } from '../src/school-news.js';
 import { normalizeSettingsData, encodeTransferData, decodeTransferData } from '../src/editor-backup.js';
 import { buildFixtureData } from './helpers/fixtureData.js';
 
@@ -113,6 +113,10 @@ describe('學校公告: only the ones for this student', () => {
     expect(forMe(it_(['1']), 'j1')).toBe(false); // a 完全中學's 1 is its 高一
     expect(forMe(it_(['some']), '2')).toBe(false);
     expect(forMe({ title: 'not worded yet' }, '2')).toBe(false);
+    expect(forMe({ title: '【轉知】文藻外語大學2027文藻國高中雙外語冬令營', who: ['jh', '1', '2', '3'] }, '3')).toBe(false); // 轉知 (Jay 11-11)
+    expect(forMe({ title: '<轉知>某大學營隊', who: ['all'] }, '3')).toBe(false);
+    expect(isRelay({ title: '【轉知」國立臺北科技大學校慶特展' })).toBe(true);
+    expect(forMe({ title: '【流感疫苗】學生公費流感疫苗補接種相關事宜', who: ['all'] }, '3')).toBe(true);
     expect(forMe({ title: '會計與資訊科技碩士在職專班招生', who: ['3'] }, '3')).toBe(false); // grown-ups', whatever the AI said
   });
   it('no grade picked: anything for students', () => {
