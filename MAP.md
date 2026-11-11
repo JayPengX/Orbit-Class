@@ -65,7 +65,9 @@ node ../Orbit-Core/tools/preview.mjs orbit --live --width 375
 ```
 
 A push builds and deploys to Cloudflare (`push.sh` runs the build too). The
-time simulation (`testsim-runtime.js`) is for the tests; the app has no way in.
+time simulation (`testsim-runtime.js`) opens from the kit's 測試工具 (Orbit Pass ›
+seven taps on 除錯紀錄 › 這個 App › 時間模擬): `testing.js` adds Class's switches
+there (the sim, the welcome card, `classOff` today off, `flightFail` / `flightNone`).
 
 ## If you change…
 

@@ -229,7 +229,7 @@ async function tryNlEditModels(text, context) {
     // verbatim (worker.js, a separate repo) - it is not UI copy this app
     // owns or renders on its own, so it is left as the backend's own
     // Chinese wording rather than being run through t().
-    if (response.status === 429 && /請求過於頻繁/.test(message)) throw new Error(message);
+    if (response.status === 429 && /請求過於頻繁|too many requests/i.test(message)) throw new Error(message);
     // Google's Gemini API rejects the request based on the calling IP's
     // geolocation - here, the Cloudflare Worker's own egress IP, not the
     // end user's (see gemini-ocr.js's matching comment on AIVisionProcessor

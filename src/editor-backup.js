@@ -1188,7 +1188,13 @@ function resetAllAppData() {
     t('editorBackup.resetAllDetail'),
     t('common.reset'),
     () => {
-      localStorage.clear();
+      // Only this app's own keys: the Orbit apps share one origin, so
+      // localStorage.clear() also wiped every other app's data and the Pass's
+      // sign-in in a browser.
+      const mine = /^(classFocusData|orbitOnboardingSeen|orbitTestState|orbitSetAside|class\.|orbit-class\.|orbit\.payload\.orbit$|orbit\.token:orbit$|orbit\.push\.(list|sub)\.orbit$)/;
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+      for (const k of keys) if (mine.test(k)) localStorage.removeItem(k);
       location.reload();
     },
     t('common.cancel'),

@@ -42,8 +42,12 @@ describe('resetAllAppData: a full local factory reset, now a real confirmed butt
     expect(clearSpy).not.toHaveBeenCalled();
   });
 
-  it('confirming clears localStorage and reloads the page', () => {
-    const clearSpy = vi.spyOn(Storage.prototype, 'clear').mockImplementation(() => {});
+  it('confirming removes only this app\'s keys (the apps share one origin) and reloads the page', () => {
+    localStorage.setItem('orbit.refresh', 'keep-me');
+    localStorage.setItem('orbit-transit.v1', 'keep-me');
+    localStorage.setItem('class.flight.min', '25');
+    localStorage.setItem('orbit.payload.orbit', 'mine');
+    const clearSpy = vi.spyOn(Storage.prototype, 'clear');
     // jsdom's window.location.reload isn't a configurable own property, so
     // spyOn can't replace it directly - spying on the `location` accessor
     // itself and swapping in a stand-in object works instead.
@@ -52,7 +56,12 @@ describe('resetAllAppData: a full local factory reset, now a real confirmed butt
     window.resetAllAppData();
     confirmButtons()[1].onclick(); // confirmLabel slot: "重設"
 
-    expect(clearSpy).toHaveBeenCalled();
+    expect(clearSpy).not.toHaveBeenCalled();
+    expect(localStorage.getItem('classFocusData')).toBe(null);
+    expect(localStorage.getItem('class.flight.min')).toBe(null);
+    expect(localStorage.getItem('orbit.payload.orbit')).toBe(null);
+    expect(localStorage.getItem('orbit.refresh')).toBe('keep-me');
+    expect(localStorage.getItem('orbit-transit.v1')).toBe('keep-me');
     expect(reloadSpy).toHaveBeenCalled();
   });
 });

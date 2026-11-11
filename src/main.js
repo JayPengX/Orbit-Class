@@ -14,6 +14,7 @@ import './view-editor.js';
 import './bootstrap.js';
 import './testsim-runtime.js';
 import './shell.js';
+import './testing.js';
 
 // The two AI parts (photo import, a sentence into an edit) bind their own
 // sheets' controls and are the bundle's largest code: they load once the

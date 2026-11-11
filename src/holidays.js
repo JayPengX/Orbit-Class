@@ -10,8 +10,15 @@ import { dayOffOn, placeOf } from '#kit/dayoff.mjs';
 import { dateKey } from './dates.js';
 
 const schoolPlace = () => placeOf('school') || placeOf('home');
+// (測試工具's classOff switch, today only: testing.js.)
+const testOff = date => {
+  const f = globalThis.ORBIT_TEST?.flags?.classOff;
+  return f && dateKey(date) === dateKey(new Date()) ? f : '';
+};
 // The typhoon 停課 on this (local) date: { zh, en, from }, or null.
 export const typhoonOn = date => {
+  const f = testOff(date);
+  if (f === 'typhoon' || f === 'afternoon') return { zh: '颱風停課（測試）', en: 'Typhoon day off (test)', from: f === 'afternoon' ? '12:00' : '' };
   const place = schoolPlace();
   return place ? dayOffOn(dateKey(date), place, 'class') : null;
 };
@@ -19,7 +26,7 @@ export const typhoonOn = date => {
 const allDay = o => (o && (!o.from || o.from <= '08:00') ? o : null);
 
 // The holiday on this (local) date: { zh, en }, or null.
-export const holidayOn = date => twHoliday(dateKey(date)) ?? allDay(typhoonOn(date));
+export const holidayOn = date => (testOff(date) === 'holiday' ? { zh: '假日（測試）', en: 'Holiday (test)' } : null) ?? twHoliday(dateKey(date)) ?? allDay(typhoonOn(date));
 // A typhoon stop from an hour on this date ('HH:MM'), or null: classes from then on are off.
 export const classesOffFrom = date => {
   const o = typhoonOn(date);

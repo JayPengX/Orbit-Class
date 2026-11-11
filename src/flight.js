@@ -106,7 +106,13 @@ function ask() {
     .finally(() => (poolAsk = null));
   return poolAsk;
 }
-const picks = async (minutes, opts) => choose(await pool(opts), minutes, Date.now());
+const picks = async (minutes, opts) => {
+  // (測試工具's switches: testing.js.)
+  const f = globalThis.ORBIT_TEST?.flags;
+  if (f?.flightFail) throw new Error('tester: flightFail');
+  if (f?.flightNone) return [];
+  return choose(await pool(opts), minutes, Date.now());
+};
 // A finger on 工具's card: the planes and the map's code start coming before the tap ends.
 export function warmFlights() {
   pool().catch(() => {});
@@ -166,12 +172,12 @@ export function openFlight() {
     try {
       flights = await picks(n, opts);
     } catch {
-      if (mine === ask) list.replaceChildren(kitUI.empty({ icon: 'map', title: t('flight.failed'), body: t('flight.failedBody'), action: { label: t('flight.retry'), onClick: show } }));
+      if (mine === ask) list.replaceChildren(kitUI.empty({ icon: 'map', title: t('flight.failed'), body: t('flight.failedBody'), action: { label: t('flight.retry'), onTap: () => show() } }));
       return;
     }
     if (mine !== ask) return;
     if (!flights.length) {
-      list.replaceChildren(kitUI.empty({ icon: 'clock', title: t('flight.none', { n }), body: t('flight.noneBody'), action: { label: t('flight.retry'), onClick: () => show({ fresh: true }) } }));
+      list.replaceChildren(kitUI.empty({ icon: 'clock', title: t('flight.none', { n }), body: t('flight.noneBody'), action: { label: t('flight.retry'), onTap: () => show({ fresh: true }) } }));
       return;
     }
     const now = Date.now();
