@@ -40,27 +40,30 @@ export function dayOf(text, now = new Date()) {
 
 const label = (d, en) => (en ? `${WD_EN[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}` : `${d.getMonth() + 1}/${d.getDate()}（週${WD[d.getDay()]}）`);
 
-// The questions code answers alone; null: the AI's.
-export function localAnswer(text, days, now = new Date(), en = false) {
+// The questions code answers alone: { line, show: [{ day, periods }] } (the
+// day drawn under the line, the periods that answer it lit); null: the AI's.
+export function localAsk(text, days, now = new Date(), en = false) {
   const d = dayOf(text, now);
   if (!d) return null;
-  const list = days[dateKey(d)];
+  const day = dateKey(d);
+  const list = days[day];
   if (!list) return null;
   const when = label(d, en);
-  if (!list.length) return en ? `No classes on ${when}.` : `${when}沒有課。`;
+  if (!list.length) return { line: en ? `No classes on ${when}.` : `${when}沒有課。`, show: [] };
   if (/幾點(放學|下課)|最後一節|最晚|when.*(end|finish|out)/i.test(text)) {
     const last = list.at(-1);
-    return en ? `On ${when} the last class is period ${last.n}, ${last.name}, ending at ${last.to}.` : `${when}最後一節是第 ${last.n} 節${last.name}，${last.to} 下課。`;
+    return { line: en ? `On ${when} the last class is period ${last.n}, ${last.name}, ending at ${last.to}.` : `${when}最後一節是第 ${last.n} 節${last.name}，${last.to} 下課。`, show: [{ day, periods: [last.n] }] };
   }
   if (/幾點(上課|到校)|第一節|最早|when.*(start|begin)/i.test(text)) {
     const first = list[0];
-    return en ? `On ${when} the first class is ${first.name} at ${first.from}.` : `${when}第一節是${first.name}，${first.from} 上課。`;
+    return { line: en ? `On ${when} the first class is ${first.name} at ${first.from}.` : `${when}第一節是${first.name}，${first.from} 上課。`, show: [{ day, periods: [first.n] }] };
   }
   if (/什麼課|哪些課|課表|上什麼|what class|which class|classes/i.test(text)) {
-    return (en ? `${when}: ` : `${when}：`) + list.map(c => `${c.n} ${c.name}`).join(en ? ', ' : '、') + (en ? '.' : '。');
+    return { line: en ? `${when}: ${list.length} classes.` : `${when}有 ${list.length} 節課。`, show: [{ day, periods: [] }] };
   }
   return null;
 }
+export const localAnswer = (text, days, now = new Date(), en = false) => localAsk(text, days, now, en)?.line ?? null;
 
 // The two weeks as the AI is told them, lean: a line a day.
 export function askFacts(days, now = new Date()) {
@@ -75,14 +78,39 @@ export function askFacts(days, now = new Date()) {
   return [head, ...lines].join('\n').slice(0, 4500);
 }
 
-// The answer: code's, else the AI's. { text, ai } or { error }.
+// The answer: code's, else the AI's. { line, show: [{ day, periods }], days, ai } or { error }.
+// Drawn, never a paragraph (Jay 11-10): the line, then each day shown as its
+// periods (time and subject), those that answer it lit (answerNode).
 export async function askTimetable(question, { now = new Date(), en = false } = {}) {
   const days = familyDays(now, 14);
-  const local = localAnswer(question, days, now, en);
-  if (local) return { text: local, ai: false };
+  const local = localAsk(question, days, now, en);
+  if (local) return { ...local, days, ai: false };
   const ai = await import('#kit/ai.mjs').catch(() => null);
   if (!ai?.aiCall) return { error: en ? 'This needs the newer app; reopen Orbit Class.' : '需要更新後才能問，請重新開啟 Orbit Class。' };
   const r = await ai.aiCall('class-ask', { question, facts: askFacts(days, now), lang: en ? 'en' : 'zh' });
-  if (r?.out?.answer) return { text: r.out.answer, ai: true };
+  const line = r?.out?.line || r?.out?.answer;
+  if (line) return { line, show: (r.out.show || []).filter(x => days[x.day]?.length), days, ai: true };
   return { error: r?.error ? (ai.aiSays?.(r.error, r.left) || r.error) : en ? 'Your timetable doesn’t say. Try asking another way.' : '課表裡看不出來，換個問法試試。' };
+}
+
+// The answer drawn: the line, each day's periods as rows, the answer's lit.
+export function answerNode(r, { en = false, note = '' } = {}) {
+  const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
+  const box = el('div', 'ca-answer');
+  box.append(el('p', 'ca-line', r.line));
+  for (const { day, periods } of r.show || []) {
+    const list = r.days?.[day] || [];
+    if (!list.length) continue;
+    const lit = new Set(periods);
+    const card = el('div', 'ca-day');
+    card.append(el('h4', 'ca-day-head', label(new Date(`${day}T12:00:00`), en)));
+    for (const c of list) {
+      const row = el('div', `ca-row${lit.has(c.n) ? ' on' : ''}`);
+      row.append(el('span', 'ca-n', String(c.n)), el('span', 'ca-time', `${c.from}–${c.to}`), el('span', 'ca-name', c.name));
+      card.append(row);
+    }
+    box.append(card);
+  }
+  if (note) box.append(el('p', 'ca-note', note));
+  return box;
 }

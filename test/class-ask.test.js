@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isQuestion, dayOf, localAnswer, askFacts } from '../src/class-ask.js';
+import { isQuestion, dayOf, localAnswer, localAsk, askFacts } from '../src/class-ask.js';
 
 const now = new Date(2026, 10, 11, 7, 0); // Wed
 const days = {
@@ -26,7 +26,9 @@ describe('問我的課表', () => {
   it('answers a day’s first, last and classes by code; the rest is the AI’s', () => {
     expect(localAnswer('明天幾點放學？', days, now)).toBe('11/12（週四）最後一節是第 6 節美術，15:00 下課。');
     expect(localAnswer('下週三第一節是什麼？', days, now)).toBe('11/18（週三）第一節是英文，08:10 上課。');
-    expect(localAnswer('今天有什麼課', days, now)).toBe('11/11（週三）：1 國文、7 自習。');
+    expect(localAnswer('今天有什麼課', days, now)).toBe('11/11（週三）有 2 節課。');
+    // (Drawn under the line: the day's periods, the answer's lit.)
+    expect(localAsk('明天幾點放學？', days, now).show).toEqual([{ day: '2026-11-12', periods: [6] }]);
     expect(localAnswer('星期六有課嗎', days, now)).toBe('11/14（週六）沒有課。');
     expect(localAnswer('哪天最早放學？', days, now)).toBe(null);
   });

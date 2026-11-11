@@ -31,7 +31,7 @@
 // never trusting a class key, day/period reference, or time blindly.
 import { state } from './state.js';
 import { getLocale, t } from './strings.js';
-import { askTimetable, isQuestion } from './class-ask.js';
+import { askTimetable, isQuestion, answerNode } from './class-ask.js';
 import { sessionUrl } from './sync.js';
 import {
   applyEditorSettingsData,
@@ -491,7 +491,11 @@ async function submitNlEdit(rawText, { status, onDone, onApplied } = {}) {
       status?.(t('nlEdit.asking'));
       const r = await askTimetable(String(rawText).trim(), { en: getLocale() === 'en' });
       status?.(r.error || '', !!r.error);
-      if (r.text) showNlEditInfo(t('nlEdit.askTitle'), r.ai ? `${r.text}\n\n${t('nlEdit.askAiNote')}` : r.text);
+      if (r.line) {
+        showNlEditInfo(t('nlEdit.askTitle'), r.line);
+        // (Drawn, never a paragraph: the line, then the days' periods with the answer lit.)
+        document.getElementById('editor-confirm-msg')?.replaceChildren(answerNode(r, { en: getLocale() === 'en', note: r.ai ? t('nlEdit.askAiNote') : '' }));
+      }
       return;
     }
     // 調課 (a dated, one-time swap) first, from the words as typed: the

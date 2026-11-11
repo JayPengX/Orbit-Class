@@ -1690,6 +1690,67 @@ img.q-tile.tr-app {
   color: var(--q-label-2);
   font: var(--q-t-footnote);
 }
+/* 問我的課表's answer, drawn (Jay 11-10: never a paragraph): the line, then
+   each day's periods as rows, those that answer it lit (class-ask.js answerNode). */
+.ca-answer {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+.cx-alert p.ca-line {
+  color: var(--q-label);
+  font: var(--q-t-body);
+  font-weight: 600;
+  text-align: center;
+}
+.ca-day {
+  display: grid;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--q-fill-4);
+}
+.ca-day-head {
+  margin: 0 0 4px;
+  color: var(--q-label-2);
+  font: var(--q-t-caption);
+  font-weight: 600;
+}
+.ca-row {
+  display: grid;
+  grid-template-columns: 1.4em auto 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border-radius: 8px;
+  color: var(--q-label-2);
+  font: var(--q-t-footnote);
+  font-variant-numeric: tabular-nums;
+}
+.ca-n {
+  color: var(--q-label-3);
+  text-align: right;
+}
+.ca-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--q-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ca-row.on {
+  background: var(--q-accent-wash);
+  color: var(--q-accent);
+  font-weight: 600;
+}
+.ca-row.on :is(.ca-n, .ca-name) {
+  color: inherit;
+}
+.cx-alert p.ca-note {
+  color: var(--q-label-3);
+  font: var(--q-t-caption);
+  text-align: center;
+}
 .editor-import-diff {
   max-height: 40dvh;
   padding: 10px 12px;

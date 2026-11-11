@@ -626,7 +626,7 @@ function setEditorConfirmContent(
   diffEl.textContent = diffText || '';
   diffEl.scrollTop = 0;
   diffEl.style.display = diffText ? 'block' : 'none';
-  cancelBtn.style.display = canCancel ? '' : 'none';
+  cancelBtn.style.display = canCancel && cancelLabel ? '' : 'none';
   cancelBtn.textContent = canCancel ? cancelLabel : '';
   cancelBtn.onclick = canCancel ? options.cancelHandler || hideEditorDiscardConfirm : null;
   // One colour rule for every dialog this sheet hosts: the button that just
@@ -650,7 +650,8 @@ function setEditorConfirmContent(
   // (options.cancelHandler) and put Cancel on the extra button instead.
   const actions = sheet.querySelector('.editor-confirm-actions');
   const hasExtra = !!options.extraLabel;
-  actions.classList.toggle('has-extra', hasExtra);
+  // (One button, an info's 知道了: the whole width, never half a row.)
+  actions.classList.toggle('has-extra', hasExtra || !(canCancel && cancelLabel));
   confirmBtn.style.order = hasExtra ? '0' : '';
   cancelBtn.style.order = hasExtra ? (options.cancelHandler ? '1' : '2') : '';
   extraBtn.style.order = hasExtra ? (options.cancelHandler ? '2' : '1') : '';
