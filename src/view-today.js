@@ -338,6 +338,12 @@ export function renderTodayList({ week, through, curDay, now }) {
   sec.hidden = !items.length;
   const body = none ? items : items[0]?.classList.contains('is-empty') ? [el('div', 'q-rowcard cx-day', items)] : [el('div', 'q-rail cx-cls', items)];
   list.replaceChildren(...(items.length ? body : []));
+  // On a wide screen: the day's classes, 待辦, 學校公告 and the countdowns dealt
+  // into two even columns, once; the kit deals them again as each fills in
+  // (.q-flow-refit) or the width crosses a step (Jay's iPad 2026-11-11: one
+  // class on the left beside a long right column).
+  const cols = document.querySelector('.cx-today-cols');
+  if (cols && !cols.__qFlowN) kitUI.flowColumns?.(cols);
 }
 
 // The day 今天's list shows: the family's strip of days (the kit's, as every

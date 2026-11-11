@@ -148,7 +148,7 @@ Live: https://orbit.jaypengx.com/class/
   `test/look.test.js` and `test/dashboard.test.js` hold it.
 - Every screen, either way up (Jay 2026-10-31): a phone upright or on its side, a
   tablet, a computer. On a wide page (`html.q-wide`) 今天's card runs across the
-  top (the class on the left, the day's line on the right) with the day's classes beside the countdowns, 課表 shows both weeks side
+  top (the class on the left, the day's line on the right), the day strip across under it, then the day's classes, 待辦, 學校公告 and the countdowns dealt into two columns of even height (the kit's `.q-flow.q-flow-refit`, dealt again as each fills in; Jay's iPad 2026-11-11), 課表 shows both weeks side
   by side (調課 beside them on a computer), 工具 the week beside its tools; the
   app's own sheets are centred cards on a tablet or computer (`styles.css` §7).
 - The language is the family's: one picked in any Orbit app (`orbit.lang`) opens Class.

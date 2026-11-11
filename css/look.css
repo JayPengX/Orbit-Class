@@ -440,7 +440,7 @@ html[data-look='native'] #cx-days {
   margin-top: 4px;
   margin-bottom: 0;
 }
-html[data-look='native'] #cx-days + #cx-list-sec {
+html[data-look='native'] #cx-days + .cx-today-cols > #cx-list-sec {
   margin-top: 8px;
 }
 html[data-look='native'] .cx-cl-words {

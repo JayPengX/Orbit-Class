@@ -2603,23 +2603,10 @@ body.cx-flying {
   padding: 2px 0 0;
   overflow: visible;
 }
-/* The strip of days across both columns (more days show); the day's classes
-   under it on the left, the countdowns on the right, their heads level. */
-:root.q-wide .cx-today-day {
-  display: contents;
-}
-:root.q-wide .cx-today-cols > * > .q-day-bar {
-  grid-column: 1 / -1;
-  margin-bottom: 0;
-}
-:root.q-wide #cx-list-sec {
-  grid-column: 1;
-}
-:root.q-wide .cx-today-side {
-  grid-column: 2;
-}
-/* Its first head level with 之後的課's (look.css: 8px under the days). */
-html[data-look='native']:root.q-wide .cx-today-side > .q-section:first-child {
+/* The strip of days across the page; under it the day's classes, 待辦,
+   學校公告 and the countdowns dealt into two columns of even height (the
+   kit's .q-flow), their heads level, 8px under the days. */
+html[data-look='native'] #cx-days + .cx-today-cols.q-flow-laid {
   margin-top: 8px;
 }
 /* 課表: both weeks, each a card under its name. */
@@ -2694,11 +2681,6 @@ html[data-look='native']:root.q-wide .cx-today-side > .q-section:first-child {
 }
 
 /* ---- 待辦, 拍聯絡簿, 讀書計畫, 學校公告 (src/todos.js, study.js, school-news.js) ---- */
-.cx-today-side {
-  display: grid;
-  align-content: start;
-  min-width: 0;
-}
 .cx-sec .q-section-head .cx-todo-add {
   margin-left: auto;
 }

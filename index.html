@@ -79,21 +79,18 @@
     <section class="q-hero-card cx-hero dashboard" id="cx-hero" data-mode="off" role="button" tabindex="0">
       <div class="nv-now" id="nv-now"><strong class="nv-title" id="now-name" data-i18n="dashboard.loading">載入中…</strong></div>
     </section>
-    <!-- On a wide screen: the day's classes and the countdowns side by side under the card. -->
-    <div class="q-cols cx-today-cols">
-      <div class="cx-today-day">
-        <div class="q-day-bar" id="cx-days" hidden></div>
-        <section class="q-section cx-sec" id="cx-list-sec">
-          <div class="q-section-head"><h2 id="cx-list-title" data-i18n="dashboard.laterToday">之後的課</h2><button type="button" class="cx-more" data-go="week" data-i18n="common.all">全部</button></div>
-          <div id="schedule-list"></div>
-        </section>
-      </div>
-      <!-- 待辦 (src/todos.js), 學校公告 when a school is picked (src/school-news.js), the countdowns. -->
-      <div class="cx-today-side">
-        <section class="q-section cx-sec" id="cx-todos"></section>
-        <section class="q-section cx-sec" id="cx-news" hidden></section>
-        <section class="q-section cx-sec" id="cx-countdowns"></section>
-      </div>
+    <div class="q-day-bar" id="cx-days" hidden></div>
+    <!-- On a wide screen the day's classes, 待辦 (src/todos.js), 學校公告 when a school is picked
+         (src/school-news.js) and the countdowns are dealt into two columns of even height
+         (the kit's flowColumns; dealt again as each fills in: Jay's iPad 2026-11-11). -->
+    <div class="q-flow q-flow-2 q-flow-refit cx-today-cols">
+      <section class="q-section cx-sec" id="cx-list-sec">
+        <div class="q-section-head"><h2 id="cx-list-title" data-i18n="dashboard.laterToday">之後的課</h2><button type="button" class="cx-more" data-go="week" data-i18n="common.all">全部</button></div>
+        <div id="schedule-list"></div>
+      </section>
+      <section class="q-section cx-sec" id="cx-todos"></section>
+      <section class="q-section cx-sec" id="cx-news" hidden></section>
+      <section class="q-section cx-sec" id="cx-countdowns"></section>
     </div>
   </section>
   <!-- 課表: the week as a grid, this week or next (on a wide screen both, side by side); then 調課 (src/view-week.js). -->
