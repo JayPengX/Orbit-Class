@@ -1324,6 +1324,58 @@ html[data-look='native'] .cx-way-card small {
 .cx-fl-shrink svg {
   transform: rotate(90deg);
 }
+/* 專注配樂: ♪ beside 回到飛機, lit while it plays, breathing while the first song is made. */
+.cx-fl-note-ic {
+  display: grid;
+  place-items: center;
+}
+.cx-fl-note-ic svg {
+  width: 20px;
+  height: 20px;
+}
+.cx-fl-note[data-state='playing'],
+.cx-fl-note[data-state='making'] {
+  color: var(--q-accent);
+}
+.cx-fl-note[data-state='making'] .cx-fl-note-ic {
+  animation: cx-fl-breathe 1.4s ease-in-out infinite;
+}
+.cx-fl-note[data-state='failed'] {
+  opacity: 0.55;
+}
+@keyframes cx-fl-breathe {
+  50% {
+    opacity: 0.4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-fl-note[data-state='making'] .cx-fl-note-ic {
+    animation: none;
+  }
+}
+/* The picker's switch: a row under how long, its mark on Beats' colour. */
+.cx-fl-music {
+  margin: 0 0 24px;
+}
+.cx-fl-music-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cx-fl-music-row .q-ritem-text {
+  flex: 1;
+  min-width: 0;
+}
+.cx-fl-music-ic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #c026d3;
+  color: #fff;
+}
 /* Minimised: the kit's accessory above the tabs, the plane in the app's colour,
    the time left in figures, where it's going under it, the trip as a hairline. */
 .q-accessory.cx-fl-mini {

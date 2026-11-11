@@ -34,6 +34,7 @@ import {
   hasZhCity
 } from './flight-plan.js';
 import { loadFocus } from './flight-store.js';
+import { musicWanted, wantMusic, warmMusic, startMusic, stopMusic, toggleMusic, onMusic } from './focus-music.js';
 
 const zh = () => getLocale() !== 'en';
 const POLL_MS = 15_000;
@@ -219,11 +220,18 @@ export function openFlight() {
     if (!n) input.value = String(minutes);
     choose(n);
   });
+  // 專注配樂: Orbit Beats' calm radio while it flies (src/focus-music.js), started by the tap on a flight.
+  const music = el('div', 'q-ritem cx-fl-music-row', [
+    el('span', 'cx-fl-music-ic', [noteIcon()]),
+    el('span', 'q-ritem-text', [el('span', 'q-ritem-title', t('flight.music')), el('small', '', t('flight.musicSub'))]),
+    kitUI.toggle({ checked: musicWanted(), label: t('flight.music'), onChange: on => (wantMusic(on), on && warmMusic()) })
+  ]);
+  warmMusic();
   sheet = kitUI.sheet({
     title: t('flight.title'),
     cls: 'cx-fl-sheet',
     closeLabel: t('common.close'),
-    body: [el('div', 'cx-fl-how', [seg, customRow]), kitUI.section(t('flight.pickSection'), list)],
+    body: [el('div', 'cx-fl-how', [seg, customRow]), el('div', 'q-rowcard cx-fl-music', [music]), kitUI.section(t('flight.pickSection'), list)],
     onClose: () => {
       sheet = null;
       ask += 1;
@@ -235,6 +243,8 @@ export function openFlight() {
 }
 
 function start(flight, minutes) {
+  // (In the tap: iOS plays music only from one.)
+  if (musicWanted()) startMusic();
   focus = newFocus(flight, minutes, Date.now());
   save(focus);
   bookNotice();
@@ -244,6 +254,14 @@ function start(flight, minutes) {
 }
 function bookNotice() {
   setFocusNotice(focus && !focus.done ? { at: focus.end, title: t('flight.notice'), body: t('flight.focused', { n: focus.minutes }), tag: 'focus' } : null);
+}
+
+// ♪, 專注配樂's mark.
+function noteIcon() {
+  const i = el('span', 'cx-fl-note-ic');
+  i.setAttribute('aria-hidden', 'true');
+  i.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 18.5a2.5 2.5 0 1 1-2.5-2.5c.9 0 1.7.4 2.2 1V6.2c0-.6.4-1.1 1-1.2l9-1.8c.7-.1 1.3.4 1.3 1.1v10.9a2.5 2.5 0 1 1-2.5-2.5c.9 0 1.7.4 2.2 1V8.1l-8.7 1.7z" fill="currentColor"/></svg>';
+  return i;
 }
 
 // ---- The screen while it flies ----
@@ -269,6 +287,13 @@ async function openFocus() {
   recenter.innerHTML = kitUI.icons.target;
   recenter.setAttribute('aria-label', t('flight.recenter'));
   recenter.hidden = true;
+  const note = button('q-icon-btn q-glass cx-fl-note', () => toggleMusic());
+  note.append(noteIcon());
+  const unwatch = onMusic(st => {
+    note.dataset.state = st;
+    note.setAttribute('aria-label', t(st === 'playing' ? 'flight.musicPause' : 'flight.musicPlay'));
+    note.setAttribute('aria-pressed', String(st === 'playing' || st === 'making'));
+  });
   const card = el('section', 'cx-fl-card q-glass');
   // (Clouds drifting past below the plane, the way it flies: the feel of speed.)
   const sky = el('div', 'cx-fl-sky', [el('i'), el('i'), el('i')]);
@@ -276,10 +301,10 @@ async function openFocus() {
   const planeEl = el('div', 'cx-fl-plane');
   planeEl.innerHTML = `<span class="cx-fl-shadow">${PLANE}</span><span class="cx-fl-body">${PLANE}</span>`;
   planeEl.hidden = true;
-  root.append(mapBox, sky, planeEl, el('div', 'cx-fl-top', [shrink, el('div', 'cx-fl-top-r', [recenter, end])]), card);
+  root.append(mapBox, sky, planeEl, el('div', 'cx-fl-top', [shrink, el('div', 'cx-fl-top-r', [recenter, note, end])]), card);
   document.body.append(root);
   document.body.classList.add('cx-flying');
-  screen = { root, mapBox, card, recenter, planeEl, map: null, layers: null, mode: 'intro', legHex: '', drawn: '', timer: 0, poller: 0, handing: 0, watching: false, lock: null };
+  screen = { unwatch, root, mapBox, card, recenter, planeEl, map: null, layers: null, mode: 'intro', legHex: '', drawn: '', timer: 0, poller: 0, handing: 0, watching: false, lock: null };
   draw();
   screen.timer = setInterval(draw, 1000);
   screen.poller = setInterval(poll, POLL_MS);
@@ -303,6 +328,7 @@ function closeFocus() {
   document.removeEventListener('visibilitychange', onVisible);
   screen.lock?.release?.().catch?.(() => {});
   screen.map?.remove();
+  screen.unwatch?.();
   screen.root.remove();
   document.body.classList.remove('cx-flying');
   screen = null;
@@ -364,6 +390,7 @@ async function endEarly() {
   finishUp();
 }
 function finishUp() {
+  stopMusic();
   focus = null;
   save(null);
   bookNotice();
@@ -555,6 +582,7 @@ function draw() {
     focus.doneAt = focus.end;
     save(focus);
     bookNotice();
+    stopMusic();
     kitUI.tick?.();
   }
   if (!focus.done && wantsHandoff(focus, now)) handOff();

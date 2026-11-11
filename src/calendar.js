@@ -11,8 +11,17 @@
 // weekly to roll forward; the Worker only keeps it and serves it at a private
 // address the Calendar app subscribes to (webcal://). Turned off, that address
 // stops answering. Kept on this phone: `class.cal.v1` { url, hash, at }.
+//
+// 一個行事曆 (the AI plan's family links): the same calendar also holds the
+// school days off (Taiwan's holidays and typhoon 停課, all day, from
+// holidays.js) and the games followed in Orbit Sports over the next 8 days
+// (the family notebook's sports.games, told by Sports; a tap opens the game
+// there), so the phone's Calendar shows one week, not three apps'.
 import * as kit from '#kit/orbit.mjs';
+import { heard } from '#kit/family.mjs';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
+import { holidayOn } from './holidays.js';
+import { getLocale } from './strings.js';
 import { state } from './state.js';
 
 export const WEEKS = 4;
@@ -22,6 +31,7 @@ const ROLL_MS = 6 * 86_400_000;
 const pad = n => String(n).padStart(2, '0');
 const ymd = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
 const hm = s => String(s || '').replace(':', '') + '00';
+const utc = t => new Date(t).toISOString().replace(/[-:]|\.\d+/g, '');
 // Text as iCalendar wants it: , ; \ and new lines escaped, lines folded at 75 bytes.
 const esc = s => String(s || '').replace(/\\/g, '\\\\').replace(/[,;]/g, m => `\\${m}`).replace(/\r?\n/g, '\\n');
 function fold(line) {
@@ -46,7 +56,8 @@ function fold(line) {
 
 // The calendar for `from` (a date) and the WEEKS weeks after its Monday.
 // `stamp`: DTSTAMP (kept out of the change check: it's the same calendar).
-export function buildIcs(from = new Date(), { stamp = '19700101T000000Z', name = 'Orbit Class' } = {}) {
+// `games`: Sports' followed games [{ id, at, mins, title, hash }] (the notebook's, by default).
+export function buildIcs(from = new Date(), { stamp = '19700101T000000Z', name = 'Orbit Class', games = followedGames() } = {}) {
   const monday = new Date(from.getFullYear(), from.getMonth(), from.getDate() - ((from.getDay() + 6) % 7));
   const lines = [
     'BEGIN:VCALENDAR',
@@ -71,6 +82,21 @@ export function buildIcs(from = new Date(), { stamp = '19700101T000000Z', name =
   for (let i = 0; i < WEEKS * 7; i++) {
     const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
     const week = getWeekType(date);
+    // A school day off (a holiday, a typhoon's 停課), all day.
+    const off = date.getDay() % 6 ? holidayOn(date) : null;
+    if (off) {
+      const next = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:${ymd(date)}-off@class.orbit`,
+        `DTSTAMP:${stamp}`,
+        `DTSTART;VALUE=DATE:${ymd(date)}`,
+        `DTEND;VALUE=DATE:${ymd(next)}`,
+        `SUMMARY:${esc(getLocale() === 'en' ? off.en || off.zh : off.zh)}`,
+        'TRANSP:TRANSPARENT',
+        'END:VEVENT'
+      );
+    }
     for (const c of classesOn(date)) {
       if (!c.s || !c.e) continue;
       const { n, t } = c.swap ? c : processSplitName(c, week);
@@ -88,8 +114,34 @@ export function buildIcs(from = new Date(), { stamp = '19700101T000000Z', name =
       );
     }
   }
+  const end = monday.getTime() + WEEKS * 7 * 86_400_000;
+  const site = globalThis.location?.origin || '';
+  for (const g of games || []) {
+    if (!g?.id || !Number.isFinite(g.at) || g.at < monday.getTime() || g.at >= end) continue;
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:game-${String(g.id).replace(/[^\w-]/g, '-')}@sports.orbit`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${utc(g.at)}`,
+      `DTEND:${utc(g.at + (g.mins || 150) * 60_000)}`,
+      `SUMMARY:${esc(g.title)}`,
+      ...(site && g.hash ? [`URL:${site}/sports/${g.hash}`] : []),
+      'TRANSP:TRANSPARENT',
+      'END:VEVENT'
+    );
+  }
   lines.push('END:VCALENDAR');
   return lines.map(fold).join('\r\n') + '\r\n';
+}
+
+// Sports' followed games, as it last told them (a week old at most).
+function followedGames() {
+  try {
+    const g = heard('sports', 'games', { maxAge: 7 * 86_400_000 });
+    return Array.isArray(g) ? g : [];
+  } catch {
+    return [];
+  }
 }
 
 function hashOf(text) {

@@ -61,4 +61,22 @@ describe('buildIcs', () => {
     expect(ics).not.toContain('20300101T');
     expect(ics).toContain('DTSTART;TZID=Asia/Taipei:20300108T080000');
   });
+  it('一個行事曆: the day off itself, all day, and the games followed in Orbit Sports', () => {
+    const at = Date.UTC(2030, 0, 2, 11, 30); // Wed 2030-01-02 19:30 in Taipei
+    const games = [
+      { id: 'nba:401', at, mins: 150, title: '湖人 vs 勇士', hash: '#event=nba:401' },
+      { id: 'mlb:9', at: Date.UTC(2030, 2, 1), mins: 180, title: '道奇 vs 洋基', hash: '' }
+    ];
+    const ics = buildIcs(new Date(2029, 11, 31), { games });
+    const off = events(ics).find(e => e.includes('DTSTART;VALUE=DATE:20300101'));
+    expect(off).toContain('DTEND;VALUE=DATE:20300102');
+    expect(off).toContain('SUMMARY:');
+    expect(off).toContain('TRANSP:TRANSPARENT');
+    const game = events(ics).find(e => e.includes('UID:game-nba-401@sports.orbit'));
+    expect(game).toContain('DTSTART:20300102T113000Z');
+    expect(game).toContain('DTEND:20300102T140000Z');
+    expect(game).toContain('SUMMARY:湖人 vs 勇士');
+    // (Past the calendar's weeks: left out.)
+    expect(ics).not.toContain('mlb-9');
+  });
 });

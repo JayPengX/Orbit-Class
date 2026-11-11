@@ -169,7 +169,8 @@ Live: https://orbit.jaypengx.com/class/
 | `swap.js`, `tools.js`, `sync.js` | 調課; the 工具 tab; the Pass |
 | `state.js`, `constants.js`, `strings.js` | Shared state; shared constants; text |
 | `flight.js`, `flight-plan.js`, `flight-store.js` | 專注飛行: the sheet and the flying screen; its rules (tested); what's kept |
-| `calendar.js` | 加到行事曆: the next 4 weeks' classes (`classesOn`: 單/雙週, 調課, days off) as an .ics, handed to the proxy's `/cal` (Orbit-Core `cal.js`) when the timetable changes and weekly, which serves it at a private webcal:// address the phone's Calendar subscribes to; `class.cal.v1` on the phone |
+| `focus-music.js` | 專注配樂 (the AI plan's family links): Orbit Beats' calm radio while a flight flies, its module imported from Beats' site (`/beats/lib/focus.mjs`, same origin, made on the phone); the picker's switch (`class.focusMusic.v1`), started by the tap on a flight (the audio element unlocked in that tap, iOS), ♪ on the screen to pause or play, stopped when the flight ends |
+| `calendar.js` | 加到行事曆: the next 4 weeks' classes (`classesOn`: 單/雙週, 調課, days off) as an .ics, handed to the proxy's `/cal` (Orbit-Core `cal.js`) when the timetable changes and weekly, which serves it at a private webcal:// address the phone's Calendar subscribes to; `class.cal.v1` on the phone. 一個行事曆: the same calendar holds the school days off (holidays, typhoon 停課, all day) and the games followed in Orbit Sports (the family notebook's `sports.games`, a tap opens the game) |
 | `todos.js`, `todos-data.js` | 待辦 and 拍聯絡簿; the saved shapes (pure: to-dos, the school, the v2 entries) |
 | `study.js`, `plan.js` | 考前讀書計畫: the sheet; the time by code (pure, tested) |
 | `school-news.js` | 學校公告: the school picker, 今天's section, the sheet |
