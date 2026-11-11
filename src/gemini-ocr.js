@@ -1604,6 +1604,8 @@ function activateOCRImporter() {
             classSwaps: current.classSwaps,
             subjectIcons: current.subjectIcons,
             subjectColors: current.subjectColors,
+            todos: current.todos,
+            school: current.school,
             proAccent: current.proAccent,
             proSecondary: current.proSecondary,
             styleSlots: current.styleSlots

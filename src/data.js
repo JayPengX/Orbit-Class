@@ -12,6 +12,7 @@ import {
 } from './constants.js';
 import { state } from './state.js';
 import { t, getLocale } from './strings.js';
+import { normalizeSchool, normalizeTodos } from './todos-data.js';
 
 // App defaults and live simulator state.
 const REVERSE_WEEK_LOGIC_DEFAULT = false;
@@ -332,6 +333,8 @@ function getDefaultData() {
     classSwaps: [],
     subjectIcons: {},
     subjectColors: {},
+    todos: [],
+    school: null,
     proAccent: DEFAULT_STYLE_PRIMARY,
     proSecondary: DEFAULT_STYLE_SECONDARY,
     styleSlots: normalizeStyleSlots([])
@@ -468,6 +471,8 @@ function loadData() {
       classSwaps: normalizeClassSwaps(parsed.classSwaps),
       subjectIcons: normalizeSubjectIcons(parsed.subjectIcons),
       subjectColors: normalizeSubjectColors(parsed.subjectColors),
+      todos: normalizeTodos(parsed.todos),
+      school: normalizeSchool(parsed.school),
       proAccent: normalizeProAccent(parsed.proAccent),
       proSecondary: normalizeProSecondary(parsed.proSecondary),
       styleSlots: normalizeStyleSlots(parsed.styleSlots)

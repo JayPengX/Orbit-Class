@@ -13,3 +13,7 @@ To remove a feature on purpose, delete its line here in the same commit and say 
 - 專注飛行 (a focus timer following a real plane) — `src/flight.js`: `openFlight`, `resumeFlight`
 - A class's icon and colour picked (class sheet, 編輯課表) — `src/subject-picker.js`: `openSubjectPicker`, `subjectColors`
 - 加到行事曆 (the timetable in the phone's Calendar, kept current) — `src/calendar.js`, `src/tools.js`: `buildIcs`, `keepCalendar`, `calRow`
+- 待辦 on 今天, kept with the timetable — `src/todos.js`, `src/todos-data.js`: `renderTodos`, `openTodoSheet`, `todoEntry`
+- 拍聯絡簿變待辦 (a photo read by AI, looked over before it's kept) — `src/todos.js`: `openBook`, `class-book`, `nextClassOf`
+- 考前讀書計畫 (time by code, what to do by AI) — `src/study.js`, `src/plan.js`: `openStudyPlan`, `planSessions`, `class-plan`
+- 學校公告摘要 (only the ones for this student) — `src/school-news.js`: `openSchoolPicker`, `renderSchoolNews`, `forMe`, `/class-news`

@@ -74,7 +74,7 @@
   </div>
 </header>
 <main class="cx-page">
-  <!-- 今天: the class now and next with the day as a strip, then the classes after, the countdowns (src/view-today.js). -->
+  <!-- 今天: the class now and next with the day as a strip, then the classes after, 待辦, 學校公告, the countdowns (src/view-today.js, todos.js, school-news.js). -->
   <section id="panel-today" class="cx-panel" role="tabpanel">
     <section class="q-hero-card cx-hero dashboard" id="cx-hero" data-mode="off" role="button" tabindex="0">
       <div class="nv-now" id="nv-now"><strong class="nv-title" id="now-name" data-i18n="dashboard.loading">載入中…</strong></div>
@@ -88,7 +88,12 @@
           <div id="schedule-list"></div>
         </section>
       </div>
-      <section class="q-section cx-sec" id="cx-countdowns"></section>
+      <!-- 待辦 (src/todos.js), 學校公告 when a school is picked (src/school-news.js), the countdowns. -->
+      <div class="cx-today-side">
+        <section class="q-section cx-sec" id="cx-todos"></section>
+        <section class="q-section cx-sec" id="cx-news" hidden></section>
+        <section class="q-section cx-sec" id="cx-countdowns"></section>
+      </div>
     </div>
   </section>
   <!-- 課表: the week as a grid, this week or next (on a wide screen both, side by side); then 調課 (src/view-week.js). -->

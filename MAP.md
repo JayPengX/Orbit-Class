@@ -30,7 +30,8 @@ Live: https://orbit.jaypengx.com/class/
     each class a block washed in its subject's colour with a bar of it at its
     edge, teacher · room under its name; a named break a dashed line with its
     cup; today's: the ones after the card; today picked again once it's
-    over: 今天的課, every class faded), and the countdowns. After the last
+    over: 今天的課, every class faded), 待辦, 學校公告 (when a school is
+    picked) and the countdowns. After the last
     class it shows the next school day. A class's sheet (`view-sheet.js`):
     its pencil opens the icon and colour picker as a sheet over it, so closing the
     picker leaves the class open.
@@ -38,7 +39,37 @@ Live: https://orbit.jaypengx.com/class/
     class one block, today's column on a plate, names on one line shrunk to fit, a free period a quiet dot, now ringed), this one or the next (單週 / 雙週; both side by side on a wide screen), a day's head opening 今天 on that day; and 調課.
     Each class a cell washed in its subject's colour with a bar of it on its left, the class on now on its full colour ringed in the app's, today's done ones faded, a break of 30 minutes or more a dashed line across the week (named from 特殊時段, `bellGap`).
   - **工具:** the week as a grid (課表's solid cells, short names, a free period a dot) with 編輯課表; 專注飛行 (a graphite card, a flight's arc drawn on it); the editor's four parts as one card of four figures; AI 課表編輯 and 拍照匯入 as two cards;
-    分享金鑰 and 加到行事曆.
+    分享金鑰 and 加到行事曆. 學習 (after 專注飛行): 拍聯絡簿, 考前讀書計畫, 學校公告.
+  - **待辦, 拍聯絡簿, 讀書計畫, 學校公告** (Jay 11-10, the AI plan; code first):
+    - **待辦** (`todos.js`): on 今天, what's due (6 at most, then 還有 N 項; the
+      sheet by day): a round check in the subject's colour, the words, subject ·
+      kind under them, when on the right (過期 red, 今天 the accent). 新增 opens
+      a menu: 拍聯絡簿, 考前讀書計畫, 自己加一項. A test or exam 2–45 days away
+      with no plan: one row that plans for it. Kept with the timetable
+      (`applicationData.todos`, `todos-data.js`; the v2 string's 15th entry),
+      so the Pass carries it; done ones kept 3 days, open ones 30.
+    - **拍聯絡簿**: a photo → the AI door's `class-book` (Gemini Flash; the
+      person's own subjects sent so names match) → every item looked over
+      before it's kept (on/off, kind, subject picker, words, day); no day or
+      下次上課 lands on that subject's next class by code (`nextClassOf`).
+    - **考前讀書計畫** (`study.js`, `plan.js`): the exam (a countdown or a
+      test), its subjects as chips (an exam's usual ones lit, `examSubject`),
+      each one's scope and ★ weak, minutes a school day. Code plans the time
+      (`planSessions`: ~45-minute sessions, a day without classes twice, each
+      subject's 總複習 the day before its exam, weak ×1.6); the AI door's
+      `class-plan` (Haiku) writes what to do in each from the scope (numbers
+      only the scope's); without it, plain steps. Kept as `study` to-dos
+      (replacing the same plan's undone ones).
+    - **學校公告** (`school-news.js`): the school picked once (`public/schools.json`,
+      the Ministry's 498 senior high schools; or a site pasted) and a grade
+      (`applicationData.school`, the 16th entry). The proxy's `/class-news`
+      (Orbit-Core `class-news.js`) reads the school's own list and words new
+      titles once for everyone at that school (`class-news`, Haiku): who it's
+      for, one line, what to do, by when. Shown: only `forMe` (everyone, their
+      grade, 國中部 for a 國中 grade); 今天 the last week's 3, the sheet all
+      (the rest folded). Kept on the phone (`class.news.v1`), read again past
+      30 minutes. A school whose site can't be read: an empty state that asks
+      for its news page's address.
   - **編輯課表** (`view-editor.js`): inside a sheet a card is the sheet's cell colour (`--nv-card` set per sheet, the page's graphite read as no card); each period's box solid in a soft shade of its class's colour (`tint`), a free one grey; times centred on one line; the back a plain ‹ 課表; numbers in light figures; 新增… a line in the app's colour; remove a grey minus. No glass anywhere.
 - **專注飛行** (a trial, Jay 2026-10-30): a focus timer that follows a real plane.
   Pick 25/50/90 minutes or type 10–180; the proxy's `/flight` (Orbit-Core
@@ -133,6 +164,9 @@ Live: https://orbit.jaypengx.com/class/
 | `state.js`, `constants.js`, `strings.js` | Shared state; shared constants; text |
 | `flight.js`, `flight-plan.js`, `flight-store.js` | 專注飛行: the sheet and the flying screen; its rules (tested); what's kept |
 | `calendar.js` | 加到行事曆: the next 4 weeks' classes (`classesOn`: 單/雙週, 調課, days off) as an .ics, handed to the proxy's `/cal` (Orbit-Core `cal.js`) when the timetable changes and weekly, which serves it at a private webcal:// address the phone's Calendar subscribes to; `class.cal.v1` on the phone |
+| `todos.js`, `todos-data.js` | 待辦 and 拍聯絡簿; the saved shapes (pure: to-dos, the school, the v2 entries) |
+| `study.js`, `plan.js` | 考前讀書計畫: the sheet; the time by code (pure, tested) |
+| `school-news.js` | 學校公告: the school picker, 今天's section, the sheet |
 | `dates.js` | Date keys and times (`dateKey`, `parseTime`, `timeToMinutes`): the one copy |
 
 Gotchas:
@@ -168,3 +202,4 @@ Advanced) sets any day and time by hand.
 | 調課 (`classSwaps`) | `classesOnDate`, its notices, the transfer format |
 | Class times or the notice rule | `classStartingSoon`, `schedulePush`, holidays |
 | `/gemini`, `/nl-edit` | Orbit-Core's `worker.js`; `normalizeAIOutput` reads old and new shapes |
+| `class-book`, `class-plan`, `class-news` | Orbit-Core's `ai-features.js` (prompts, checks), `ai-fixtures.js` (tried with `build.yml` ai-try), `class-news.js` (the school readers) |

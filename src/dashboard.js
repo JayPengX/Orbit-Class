@@ -26,6 +26,8 @@ import { openModal } from './view-sheet.js';
 import { renderCountdowns, renderHero, renderTodayList } from './view-today.js';
 import { renderWeek } from './view-week.js';
 import { t } from './strings.js';
+import { renderTodos } from './todos.js';
+import { renderSchoolNews } from './school-news.js';
 
 // Opens or closes the manual time simulation panel.
 // Modal and toolbar state is separate from saved schedule settings.
@@ -106,6 +108,15 @@ function prunePastCountdowns(now = new Date()) {
   pushSyncSnapshot();
 }
 
+// 學校公告: drawn from the phone's copy, read again past half an hour (school-news.js); looked at once a minute, or when the school changes.
+let newsAt = 0;
+function newsNow(now) {
+  if (window.MANUALLY_TEST || Date.now() - newsAt < 60_000) return;
+  newsAt = Date.now();
+  renderSchoolNews(now).catch(() => {});
+}
+window.addEventListener('class-school', () => (newsAt = 0));
+
 let heroTarget = null;
 let footTarget = null; // the class along the card's foot
 function update() {
@@ -122,6 +133,8 @@ function update() {
   const curDay = window.MANUALLY_TEST ? window.TEST_DAY : now.getDay();
   const week = getWeekType();
   renderCountdowns();
+  renderTodos(now);
+  newsNow(now);
 
   // A day with no classes is never the one 今天 lists: the next day that has
   // some instead (only when any day has classes at all; a day the timetable

@@ -8,6 +8,7 @@ import {
   isPlainObject
 } from './constants.js';
 import { state } from './state.js';
+import { normalizeSchool, normalizeTodos, schoolEntry, schoolOf, todoEntry, todoOf } from './todos-data.js';
 import {
   normalizeProAccent,
   normalizeProSecondary,
@@ -133,6 +134,9 @@ function collectEditorFormState({ includeDraft = false } = {}) {
     // (Nor the picked icons and colours: the picker saves them itself.)
     subjectIcons: normalizeSubjectIcons(state.applicationData.subjectIcons),
     subjectColors: normalizeSubjectColors(state.applicationData.subjectColors),
+    // (Nor 待辦 and the school: kept as saved.)
+    todos: normalizeTodos(state.applicationData.todos),
+    school: normalizeSchool(state.applicationData.school),
     proAccent,
     proSecondary,
     styleSlots: normalizeStyleSlots(state.applicationData.styleSlots),
@@ -275,7 +279,9 @@ function encodeTransferPayloadV2(data) {
     data.pruneCountdowns ? 1 : 0,
     (data.classSwaps || []).map(({ a, b }) => [a.date, a.p, b.date, b.p]),
     normalizeSubjectIcons(data.subjectIcons),
-    normalizeSubjectColors(data.subjectColors)
+    normalizeSubjectColors(data.subjectColors),
+    normalizeTodos(data.todos).map(todoEntry),
+    schoolEntry(normalizeSchool(data.school))
   ];
 }
 function decodeTransferPayloadV2(array) {
@@ -293,7 +299,9 @@ function decodeTransferPayloadV2(array) {
     pruneCountdownsFlag,
     swapEntries,
     subjectIcons,
-    subjectColors
+    subjectColors,
+    todoEntries,
+    schoolEntryValue
   ] = array;
   const teacherDB = {},
     locationDB = {};
@@ -333,6 +341,8 @@ function decodeTransferPayloadV2(array) {
     ),
     subjectIcons: normalizeSubjectIcons(subjectIcons),
     subjectColors: normalizeSubjectColors(subjectColors),
+    todos: normalizeTodos((Array.isArray(todoEntries) ? todoEntries : []).map(todoOf)),
+    school: schoolOf(schoolEntryValue),
     proAccent,
     proSecondary,
     styleSlots,
@@ -475,6 +485,8 @@ function normalizeSettingsData(raw, { requireMarker = false } = {}) {
     classSwaps: normalizeClassSwaps(sorted.classSwaps),
     subjectIcons: normalizeSubjectIcons(source.subjectIcons),
     subjectColors: normalizeSubjectColors(source.subjectColors),
+    todos: normalizeTodos(source.todos),
+    school: normalizeSchool(source.school),
     proAccent: normalizeProAccent(source.proAccent),
     proSecondary: normalizeProSecondary(source.proSecondary),
     styleSlots: normalizeStyleSlots(source.styleSlots)

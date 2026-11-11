@@ -1,7 +1,7 @@
 // ---- src/tools.js ----
 // 工具: changing the timetable. It leads with 我的課表 (the week in
 // miniature, opening the editor), then a figure card straight into
-// each part of the editor, then AI (a sentence, or a photo) and 分享 (the
+// each part of the editor, 學習 (拍聯絡簿, 讀書計畫, 學校公告), then AI (a sentence, or a photo) and 分享 (the
 // share key and the Pass). Drawn when the tab opens, and again when the timetable
 // changes while it's on screen.
 import { getWeekType, processSplitName } from './schedule.js';
@@ -9,7 +9,9 @@ import { shortNames, subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getCountdownEvents } from './data.js';
 import { el, button, fitText, glyph, row, section, tile } from './ui.js';
-import { t } from './strings.js';
+import { getLocale, t } from './strings.js';
+import { openBook, upcomingExam } from './todos.js';
+import { gradeName, openNewsSheet, openSchoolPicker, schoolOf } from './school-news.js';
 import { clock, currentLeg, flightNo, focusLeft, loadFocus } from './flight-store.js';
 import * as kit from '#kit/orbit.mjs';
 
@@ -100,6 +102,19 @@ function calRow() {
   return r;
 }
 
+// 學習 (Jay 11-10, the AI plan): 拍聯絡簿 into 待辦, 考前讀書計畫, 學校公告.
+const L = (zh, en) => (getLocale() === 'en' ? en : zh);
+function studyRows() {
+  const exam = upcomingExam();
+  const sc = schoolOf();
+  const days = exam ? Math.round((new Date(`${exam.date}T12:00:00`) - new Date(new Date().toDateString())) / 86_400_000) : 0;
+  return el('div', 'q-rowcard', [
+    row({ cls: 'cx-way is-book', icon: tile('camera', 'var(--q-orange)'), title: L('拍聯絡簿', 'Photo of the contact book'), sub: L('作業和考試排進待辦', 'Homework and tests into your to-do'), onClick: () => openBook() }),
+    row({ cls: 'cx-way is-plan', icon: tile('target', 'var(--q-indigo, #6366f1)'), title: L('考前讀書計畫', 'Study plan'), sub: exam ? L(`${exam.name} · ${days} 天後`, `${exam.name} · in ${days} days`) : L('每天讀什麼，排進待辦', 'What to study each day'), onClick: () => import('./study.js').then(m => m.openStudyPlan(exam)) }),
+    row({ cls: 'cx-way is-news', icon: tile('school', 'var(--q-green)'), title: L('學校公告', 'School news'), sub: sc ? `${sc.name}${sc.grade ? ` · ${gradeName(sc.grade)}` : ''}` : L('選你的學校，只看跟你有關的', 'Pick your school: only what’s for you'), onClick: () => (sc ? openNewsSheet() : openSchoolPicker()) })
+  ]);
+}
+
 let drawn = '';
 function renderTools(again = false) {
   const box = document.getElementById('cx-tools');
@@ -108,7 +123,8 @@ function renderTools(again = false) {
   const subjects = new Set(Object.values(data.teacherDB || {}).map(v => v?.[0]).filter(Boolean)).size;
   const breaks = (data.breakTimes || []).length;
   const events = getCountdownEvents().length;
-  const key = `${JSON.stringify(state.runtimeSchedule)}|${subjects}|${breaks}|${events}|${t('tab.tools')}`;
+  const exam = upcomingExam();
+  const key = `${JSON.stringify(state.runtimeSchedule)}|${subjects}|${breaks}|${events}|${t('tab.tools')}|${JSON.stringify(data.school || null)}|${exam?.name}|${exam?.date}|${new Date().toDateString()}`;
   if (!again && key === drawn && box.childElementCount) return;
   drawn = key;
   // The parts as four figure cards (each its colour, its count large), the
@@ -137,7 +153,7 @@ function renderTools(again = false) {
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') }), calRow()]);
   // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
   box.classList.add('q-cols');
-  box.replaceChildren(el('div', 'cx-tools-a', [weekCard()]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share)]));
+  box.replaceChildren(el('div', 'cx-tools-a', [weekCard()]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(L('學習', 'Study'), studyRows()), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share)]));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).
