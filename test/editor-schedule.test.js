@@ -91,3 +91,14 @@ describe('saveEditor: time-conflict guard', () => {
     expect(document.getElementById('editor-confirm-title').textContent).toMatch(/要儲存嗎/);
   });
 });
+
+describe('the timetable page tint', () => {
+  it('washes a period in its subject colour (by name, not its key), as 課表 does', async () => {
+    const { subjectLook } = await import('../src/subjects.js');
+    document.dispatchEvent(new Event('cx-subject-looks'));
+    // A is 數學, B is 國文/公民 (a 單/雙 pair: its first).
+    expect(daySelect(1, 0).style.getPropertyValue('--subject')).toBe(subjectLook('數學').color);
+    expect(daySelect(1, 1).style.getPropertyValue('--subject')).toBe(subjectLook('國文').color);
+    expect(subjectLook('數學').color).not.toBe(subjectLook('A').color);
+  });
+});

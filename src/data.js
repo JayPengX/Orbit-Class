@@ -341,9 +341,14 @@ function getDefaultData() {
   };
 }
 
-function sanitizeBreakTimes(bellTimes, breakTimes = []) {
+// A timetable with no break list yet (an old save, an import without one)
+// starts with the default breaks that fit; a list that has one is the
+// person's own, so a default break they deleted stays deleted (they add it
+// back with 新增, like any break).
+function sanitizeBreakTimes(bellTimes, breakTimes) {
   const validBreaks = [];
-  const source = Array.isArray(breakTimes) ? breakTimes : [];
+  const hasList = Array.isArray(breakTimes);
+  const source = hasList ? breakTimes : [];
   source.forEach(item => {
     if (!item || typeof item !== 'object') return;
     const name = String(item.name || '').trim();
@@ -359,6 +364,7 @@ function sanitizeBreakTimes(bellTimes, breakTimes = []) {
     }
   });
 
+  if (hasList) return validBreaks;
   DEFAULT_BREAK_TIMES.forEach(defaultBreak => {
     if (validBreaks.some(item => item.name === defaultBreak.name)) return;
     try {

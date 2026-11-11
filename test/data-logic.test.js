@@ -175,9 +175,15 @@ describe('sanitizeBreakTimes', () => {
     expect(result.find(item => item.name === '衝突')).toBeUndefined();
   });
 
-  it('auto-fills a default break that fits without conflict', () => {
-    const result = sanitizeBreakTimes(bellTimes, []);
+  it('starts a timetable with no break list with the default breaks that fit', () => {
+    const result = sanitizeBreakTimes(bellTimes, undefined);
     expect(result).toContainEqual({ name: '打掃時間', start: '08:50', end: '09:10' });
+  });
+
+  it('keeps a deleted default break deleted', () => {
+    expect(sanitizeBreakTimes(bellTimes, [])).toEqual([]);
+    const result = sanitizeBreakTimes(bellTimes, [{ name: '中午時間', start: '12:00', end: '13:00' }]);
+    expect(result.map(item => item.name)).toEqual(['中午時間']);
   });
 
   it('keeps a custom break that crosses midnight', () => {

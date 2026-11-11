@@ -49,6 +49,13 @@ describe('dashboard update() against the real app', () => {
     expect(text('now-place')).toBe('102');
   });
 
+  it('books the week (and a focus flight landing) by the real clock in the time simulation', () => {
+    state.classPushSlot = null;
+    setSimTime(8, 20);
+    window.update();
+    expect(state.classPushSlot).toBe(Math.floor(Date.now() / 600_000));
+  });
+
   it('shows a non-split class name and teacher unchanged', () => {
     setSimTime(8, 20); // inside period 0 (08:00-08:50)
     window.update();

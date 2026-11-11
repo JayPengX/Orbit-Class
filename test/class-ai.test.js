@@ -31,6 +31,21 @@ describe('待辦 and the school, kept with the timetable', () => {
     ];
     expect(todosKept(list, '2026-11-10').map(x => x.id)).toEqual(['2', '4', '5']);
   });
+  it('a done one with no day kept 3 days past the day it was ticked; an open one with no day always', () => {
+    const list = [
+      { id: '1', due: '', done: true, doneOn: '2026-11-06' },
+      { id: '2', due: '', done: true, doneOn: '2026-11-08' },
+      { id: '3', due: '', done: true },
+      { id: '4', due: '', done: false, doneOn: '2020-01-01' }
+    ];
+    const kept = todosKept(list, '2026-11-10');
+    expect(kept.map(x => x.id)).toEqual(['2', '3', '4']);
+    expect(kept[1].doneOn).toBe('2026-11-10');
+    expect(kept[2].doneOn).toBe('');
+    expect(todosKept(kept, '2026-11-14').map(x => x.id)).toEqual(['4']);
+    const once = normalizeTodo({ id: 'x', text: 'a', done: true, doneOn: '2026-11-08' });
+    expect(todoOf(todoEntry(once))).toEqual(once);
+  });
   it('ride the v2 string (to every device) and back', async () => {
     const todos = [normalizeTodo({ id: 'x1', kind: 'test', subject: '英文', text: 'L4 小考', due: '2026-11-12' }), normalizeTodo({ id: 'x2', kind: 'study', subject: '數學', text: '複習 2-1', due: '2026-11-11', min: 45, plan: '第二次段考', done: true })];
     const school = { name: 'A 高中', url: 'https://www.abc.edu.tw', grade: '2' };

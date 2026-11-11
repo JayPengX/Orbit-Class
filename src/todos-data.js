@@ -3,7 +3,7 @@
 // the student reads 學校公告 from, kept with the timetable (the v2 string's
 // 15th and 16th entries, so the Pass carries them to every device). Pure:
 // no DOM, nothing that runs at import.
-//   todo:   { id, kind: hw | test | bring | do | study, subject, text, due: 'YYYY-MM-DD' | '', done, min, plan }
+//   todo:   { id, kind: hw | test | bring | do | study, subject, text, due: 'YYYY-MM-DD' | '', done, min, plan, doneOn: the day it was ticked | '' }
 //   school: { name, url (an edu.tw site), grade: '' | '1' | '2' | '3' | 'j1' | 'j2' | 'j3' }
 import { isRealDate } from './dates.js';
 
@@ -26,7 +26,8 @@ export function normalizeTodo(v) {
     due,
     done: v.done === true || v.done === 1,
     min,
-    plan: s(v.plan, 30)
+    plan: s(v.plan, 30),
+    doneOn: (v.done === true || v.done === 1) && isRealDate(String(v.doneOn || '')) ? String(v.doneOn) : ''
   };
 }
 export function normalizeTodos(value) {
@@ -54,8 +55,8 @@ export function normalizeSchool(v) {
 }
 
 // The v2 string's shapes: a todo as an array, the school as one or 0.
-export const todoEntry = t => [t.id, t.kind, t.subject, t.text, t.due, t.done ? 1 : 0, t.min || 0, t.plan || ''];
-export const todoOf = e => (Array.isArray(e) ? normalizeTodo({ id: e[0], kind: e[1], subject: e[2], text: e[3], due: e[4], done: e[5], min: e[6], plan: e[7] }) : null);
+export const todoEntry = t => [t.id, t.kind, t.subject, t.text, t.due, t.done ? 1 : 0, t.min || 0, t.plan || '', t.doneOn || ''];
+export const todoOf = e => (Array.isArray(e) ? normalizeTodo({ id: e[0], kind: e[1], subject: e[2], text: e[3], due: e[4], done: e[5], min: e[6], plan: e[7], doneOn: e[8] }) : null);
 export const schoolEntry = sc => (sc ? [sc.name, sc.url, sc.grade] : 0);
 export const schoolOf = e => (Array.isArray(e) ? normalizeSchool({ name: e[0], url: e[1], grade: e[2] }) : null);
 
@@ -65,13 +66,17 @@ export function newId() {
   return `${Date.now().toString(36)}${n.toString(36).padStart(2, '0')}`.slice(-10);
 }
 
-// What's kept: a done one until 3 days past its day, an open one until 30
-// (a day it never had: a week after it was made, by its id's time).
+// What's kept: a done one until 3 days past its day (one with no day: 3 days
+// past the day it was ticked), an open one with a day until 30 past it, an
+// open one with no day always. A done one not yet stamped (ticked on an
+// older version) is stamped today, so it gets the same 3 days.
 export function todosKept(todos, today) {
   const back = days => {
     const d = new Date(`${today}T12:00:00`);
     d.setDate(d.getDate() - days);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
-  return (todos || []).filter(t => !t.due || t.due >= back(t.done ? 3 : 30));
+  return (todos || [])
+    .map(t => (t.done && !t.doneOn ? { ...t, doneOn: today } : !t.done && t.doneOn ? { ...t, doneOn: '' } : t))
+    .filter(t => (t.due ? t.due >= back(t.done ? 3 : 30) : !t.done || t.doneOn >= back(3)));
 }

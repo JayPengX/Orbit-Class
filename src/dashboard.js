@@ -175,13 +175,12 @@ function update() {
   if (!window.MANUALLY_TEST) {
     const soon = classStartingSoon({ now, week, todaySchedule });
     if (soon?.due) notifyClassSoon({ ...soon, lead: soon.left });
-    // The coming week's, for the Worker (again every ten minutes).
-    const slot = Math.floor(now.getTime() / 600_000);
-    if (slot !== state.classPushSlot) {
-      state.classPushSlot = slot;
-      scheduleClassNotices(weekClasses(now));
-    }
   }
+  // The coming week's, for the Worker (again every ten minutes), 專注飛行's
+  // landing with them. By the real clock in the time simulation too, so a
+  // flight flown there still gets its notice and no made-up time goes out
+  // (the kit holds the whole list while its own 測試工具 clock is moved).
+  bookWeek(window.MANUALLY_TEST ? new Date() : now);
 
   // The lists are drawn again only when what they show moved on (the period,
   // the day, the week chosen, the tab, the minute on 課表's grid).
@@ -195,6 +194,12 @@ function update() {
   }
 }
 
+function bookWeek(now) {
+  const slot = Math.floor(now.getTime() / 600_000);
+  if (slot === state.classPushSlot) return;
+  state.classPushSlot = slot;
+  scheduleClassNotices(weekClasses(now));
+}
 // Every class from now to a week ahead: { at (its notice's time, noticeLead), lead, tag, name, meta }.
 function weekClasses(now) {
   const out = [];

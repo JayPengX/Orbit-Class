@@ -28,10 +28,12 @@ export function buildFixtureData() {
       ['09:10', '10:00'],
       ['10:10', '11:00']
     ],
-    // Left empty deliberately: sanitizeBreakTimes() auto-merges in any
-    // DEFAULT_BREAK_TIMES entry that fits without conflict, and 打掃時間
-    // (08:50-09:10) fits exactly between period 0 and period 1 above.
-    breakTimes: [],
+    // The two default breaks: 打掃時間 (08:50-09:10) fits exactly between
+    // period 0 and period 1 above.
+    breakTimes: [
+      { name: '打掃時間', start: '08:50', end: '09:10' },
+      { name: '中午時間', start: '12:00', end: '13:00' }
+    ],
     countdownEvents: [{ name: '第一次段考', startDate: '2024-01-15', endDate: '2024-01-17' }],
     reverseWeek: false,
     proAccent: '#0A84FF',

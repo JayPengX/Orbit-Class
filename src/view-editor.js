@@ -11,6 +11,7 @@ import { openEditorFold } from './editor-core.js';
 import { el, fillGlyphs, fitSelects, row, tile } from './ui.js';
 import { t } from './strings.js';
 import { subjectLook } from './subjects.js';
+import { state } from './state.js';
 
 const sheet = document.getElementById('editor-sheet');
 const grid = document.getElementById('schedule-grid');
@@ -37,10 +38,17 @@ function showDay() {
   grid?.querySelectorAll('.schedule-day-row').forEach(r => r.classList.toggle('is-shown', Number(r.dataset.day) === day));
   fitShown();
 }
-// Each period's box washed in its class's colour (a free period plain), as 課表's cells.
+// Each period's box washed in its class's colour (a free period plain), as 課表's cells:
+// by the class's subject (its card's, as being edited; a 單/雙 pair by its first), not its key.
+const subjectOfKey = key => {
+  if (!key) return '';
+  const card = [...document.querySelectorAll('#teacher-list .teacher-card')].find(c => (c.dataset.origKey || '').trim() === key);
+  const subject = card ? card.querySelector('.tc-subject')?.value : state.applicationData?.teacherDB?.[key]?.[0];
+  return String(subject || key).split(/[／/]/)[0].trim();
+};
 function tint(selects) {
   for (const sel of selects) {
-    const name = String(sel.value || '').split(/[／/]/)[0].trim();
+    const name = subjectOfKey(String(sel.value || '').trim());
     sel.classList.toggle('is-free', !name);
     if (name) sel.style.setProperty('--subject', subjectLook(name).color);
     else sel.style.removeProperty('--subject');

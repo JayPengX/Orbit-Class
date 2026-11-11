@@ -17,7 +17,7 @@ const between = (a, b) => Math.round((at(b) - at(a)) / MS_DAY);
 const EXAM_GROUPS = new Set(['chinese', 'english', 'language', 'math', 'science', 'social']);
 export const examSubject = name => EXAM_GROUPS.has(subjectLook(name).group) && !/探究|專題|選修|彈性|自主/.test(name);
 
-// One day's minutes as sessions of about 45 (30 at least).
+// One day's minutes as sessions of about 45 (20 at least).
 export function blocksOf(min) {
   if (min < 20) return [];
   const n = Math.max(1, Math.round(min / 45));
