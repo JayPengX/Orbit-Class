@@ -17,14 +17,20 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 
 <p align="center">
   <img src="docs/screenshots/class-1.webp" width="30%" alt="Now, next, and time left">
-  <img src="docs/screenshots/class-2.webp" width="30%" alt="Your whole week">
-  <img src="docs/screenshots/class-3.webp" width="30%" alt="Every class, in detail">
+  <img src="docs/screenshots/class-2.webp" width="30%" alt="Focus on a real flight">
+  <img src="docs/screenshots/class-3.webp" width="30%" alt="Change or ask your timetable in words">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/class-4.webp" width="30%" alt="Swap a class in seconds">
-  <img src="docs/screenshots/class-5.webp" width="30%" alt="Focus on a real flight">
-  <img src="docs/screenshots/class-6.webp" width="30%" alt="Snap it, AI reads it">
+  <img src="docs/screenshots/class-4.webp" width="30%" alt="Your whole week">
+  <img src="docs/screenshots/class-5.webp" width="30%" alt="Every class, in detail">
+  <img src="docs/screenshots/class-6.webp" width="30%" alt="Swap a class in seconds">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/class-7.webp" width="30%" alt="Snap it, AI reads it">
+  <img src="docs/screenshots/class-8.webp" width="30%" alt="Your timetable in your calendar">
+  <img src="docs/screenshots/class-9.webp" width="30%" alt="Today's classes and countdowns">
 </p>
 
 <details>
@@ -32,20 +38,28 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 
 <p align="center">
   <img src="docs/screenshots/class-1.zh.webp" width="30%" alt="現在、下一節與剩餘時間">
-  <img src="docs/screenshots/class-2.zh.webp" width="30%" alt="整週課表一眼看">
-  <img src="docs/screenshots/class-3.zh.webp" width="30%" alt="每一節課的細節">
+  <img src="docs/screenshots/class-2.zh.webp" width="30%" alt="跟著真的飛機專注">
+  <img src="docs/screenshots/class-3.zh.webp" width="30%" alt="用說的改課表，也能問課表">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/class-4.zh.webp" width="30%" alt="調課幾秒完成">
-  <img src="docs/screenshots/class-5.zh.webp" width="30%" alt="跟著真的飛機專注">
-  <img src="docs/screenshots/class-6.zh.webp" width="30%" alt="拍下課表，AI 幫你讀">
+  <img src="docs/screenshots/class-4.zh.webp" width="30%" alt="整週課表一眼看">
+  <img src="docs/screenshots/class-5.zh.webp" width="30%" alt="每一節課的細節">
+  <img src="docs/screenshots/class-6.zh.webp" width="30%" alt="調課幾秒完成">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/class-7.zh.webp" width="30%" alt="拍下課表，AI 幫你讀">
+  <img src="docs/screenshots/class-8.zh.webp" width="30%" alt="課表加到手機行事曆">
+  <img src="docs/screenshots/class-9.zh.webp" width="30%" alt="今天的課與倒數">
 </p>
 
 </details>
 
 ## Features
 
+- **School days in one place:** 學校公告 reads your school's own boards every hour, sorted into exams, admissions, events and awards, what concerns you first and notices passed on (轉知) apart; 拍聯絡簿 turns a photo of the homework book into to-dos; 考前讀書計畫 is laid out by code and worded by AI; 問我的課表 answers questions in the timetable's editor, the day's periods drawn with the answer lit.
+- **With the family:** before the first class, today's card opens Orbit Transit's trip to school (after the last, the trip home); at a break, Orbit Words' five-word round (下課背五個).
 - **Today:** one card answers "what's left today": the class now with teacher, room and time left, the next one, and the day as a strip of coloured chips. After the last class it shows the next school day.
 - **The week** as a grid, this week or the next, with odd and even weeks (單週 / 雙週) and subjects that alternate by week.
 - **調課:** swap two periods on any two dates, even across weeks, and undo it.
