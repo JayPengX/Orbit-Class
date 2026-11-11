@@ -17,3 +17,4 @@ To remove a feature on purpose, delete its line here in the same commit and say 
 - 拍聯絡簿變待辦 (a photo read by AI, looked over before it's kept) — `src/todos.js`: `openBook`, `class-book`, `nextClassOf`
 - 考前讀書計畫 (time by code, what to do by AI) — `src/study.js`, `src/plan.js`: `openStudyPlan`, `planSessions`, `class-plan`
 - 學校公告摘要 (only the ones for this student) — `src/school-news.js`: `openSchoolPicker`, `renderSchoolNews`, `forMe`, `/class-news`
+- 問 Orbit's question (`#ask=`, the Pass sheet's box) asked in the editor's AI box as 問我的課表 — `src/ask-link.js`, `src/shell.js`: `askInBox`, `askFromLink(opened)`
