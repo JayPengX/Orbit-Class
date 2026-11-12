@@ -38,7 +38,8 @@ export function saveTodos(list) {
 export function subjectsOf(data = state.applicationData) {
   const db = data?.teacherDB || {};
   const order = [...(data?.teacherOrder || []), ...Object.keys(db)];
-  return [...new Set(order.map(k => db[k]?.[0]).filter(Boolean).map(s => String(s).trim()).filter(Boolean))];
+  // (A class split by week, 國文／公民, is two subjects.)
+  return [...new Set(order.map(k => db[k]?.[0]).filter(Boolean).flatMap(s => String(s).split(/[/／]/)).map(s => s.trim()).filter(Boolean))];
 }
 // A subject's next class after `from` (the timetable as held: 單雙週, 調課, days off), or ''.
 export function nextClassOf(subject, from = new Date(), within = 30) {
@@ -234,7 +235,7 @@ export function openTodoSheet(todo) {
   const remove = todo ? button('q-btn tinted danger block cx-todo-remove', () => {
     saveTodos(todos().filter(x => x.id !== t.id));
     s.close();
-    kitUI.toast?.(L('刪掉了', 'Deleted'), { action: { label: L('復原', 'Undo'), onClick: () => saveTodos([...todos(), todo]) } });
+    kitUI.toast?.(L('刪掉了', 'Deleted'), { action: { label: L('復原', 'Undo'), onTap: () => saveTodos([...todos(), todo]) } });
   }, L('刪除', 'Delete')) : null;
   const s = kitUI.sheet({
     title: todo ? L('待辦', 'To do') : L('新增待辦', 'New to-do'),
@@ -258,7 +259,7 @@ function picker(items, value, onChange) {
   import('#kit/ai.mjs')
     .then(ai => {
       if (!ai.picker) throw new Error('old kit');
-      holder.replaceChildren(ai.picker(items, { value, title: L('科目', 'Subject'), empty: L('不分科', 'No subject'), onChange }));
+      holder.replaceChildren(ai.picker(items, { value, title: L('科目', 'Subject'), empty: L('不分科', 'No subject'), clear: true, onChange }));
     })
     .catch(() => {
       const sel = document.createElement('select');
