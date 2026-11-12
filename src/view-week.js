@@ -157,13 +157,18 @@ let swapsDrawn = '';
 function drawSwaps() {
   const box = $('cx-swaps');
   if (!box) return;
+  // "11/17 週二 第 6 節" breaks only before 第 (P6): at 320 px half a row can't hold it on one line.
+  const slotSmall = text => {
+    const m = /^(.*?)\s+((?:第|P)\s?\d.*)$/.exec(text);
+    return el('small', '', m ? [el('span', '', m[1]), ' ', el('span', '', m[2])] : text);
+  };
   const coming = swapsNotOver(state.applicationData.classSwaps || [], dateKey(new Date()));
   const key = `${JSON.stringify(coming)}|${t('swap.section')}`;
   if (key === swapsDrawn && box.childElementCount) return;
   swapsDrawn = key;
   const swapTile = () => tile('swap', 'var(--q-orange)');
   const rows = coming.map(swap => {
-    const sides = el('span', 'q-ritem-text cx-swap-sides', [swap.a, swap.b].map(side => el('span', 'cx-swap-side', [el('b', '', nameAt(side)), el('small', '', slotText(side))])));
+    const sides = el('span', 'q-ritem-text cx-swap-sides', [swap.a, swap.b].map(side => el('span', 'cx-swap-side', [el('b', '', nameAt(side)), slotSmall(slotText(side))])));
     return button('q-ritem cx-swap', () => undoSwap(swap), [swapTile(), sides]);
   });
   rows.push(row({ cls: 'cx-way is-swap', icon: swapTile(), title: t('swap.add'), onClick: () => openSwapSheet() }));

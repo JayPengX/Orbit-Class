@@ -186,7 +186,7 @@ export function openFlight() {
         const leg = legOf(f);
         const row = button('q-ritem cx-fl-pick chevron', () => start(f, n), [
           airlineLogo(leg),
-          el('span', 'q-ritem-text', [el('span', 'q-ritem-title cx-fl-route', [city(f.to)]), el('small', '', [t('flight.fromCity'), city(f.from), ` · ${flightNo(f.no)}`])]),
+          el('span', 'q-ritem-text', [el('span', 'q-ritem-title cx-fl-route', [city(f.to)]), el('small', 'cx-fl-sub', [el('span', '', [t('flight.fromCity'), city(f.from), ' ·']), ' ', el('span', '', flightNo(f.no))])]),
           el('span', 'q-ritem-end cx-fl-in', t('flight.landsIn', { n: Math.max(1, Math.round((f.eta - now) / 60_000)) }))
         ]);
         return row;

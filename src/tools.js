@@ -147,7 +147,9 @@ function renderTools(again = false) {
   const way = (cls, icon, color, title, sub, onClick) => {
     const pic = el('span', 'cx-cl-icon');
     pic.innerHTML = glyph(icon);
-    const card = button(`cx-way-card ${cls} q-press`, onClick, [pic, el('strong', '', title), el('small', '', sub)]);
+    // Its words wrap between phrases (一句話改課表、/ 問問題), never mid-word.
+    const phrases = String(sub).split(/(?<=[，、；,;])\s*/).flatMap((p, i) => (i ? [' ', el('span', '', p)] : [el('span', '', p)]));
+    const card = button(`cx-way-card ${cls} q-press`, onClick, [pic, el('strong', '', title), el('small', 'cx-way-sub', phrases)]);
     card.style.setProperty('--subject', color);
     return card;
   };

@@ -458,7 +458,7 @@ export default {
   'testsim.timeSimAriaLabel': 'Time simulation',
   'testsim.versionLoading': 'Loading version…',
   'editorBackup.resetAllDataAriaLabel': 'Reset all data',
-  'editorCore.timeHourMinuteLabel': 'Time (hour/minute)',
+  'editorCore.timeHourMinuteLabel': 'Time',
   'editorCore.minutesAriaLabel': 'Minutes',
   'testsim.exitSimButton': 'Exit simulation',
   'common.close': 'Close',

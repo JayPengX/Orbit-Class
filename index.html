@@ -132,7 +132,7 @@
       <summary class="editor-fold-summary" data-i18n="editorCore.scheduleFoldLabel">課表</summary>
       <div class="editor-fold-body">
         <div class="q-hero-card ed-ask" id="nl-edit-box">
-          <span class="q-hc-eyebrow"><span class="q-ai-mark" data-glyph="ai" aria-hidden="true"></span><span data-i18n="tools.aiEditSub">一句話改課表或問問題</span></span>
+          <span class="q-hc-eyebrow"><span class="q-ai-mark" data-glyph="ai" aria-hidden="true"></span><span data-i18n="tools.aiEditSub">一句話改課表、問課表</span></span>
           <div class="q-hc-pill ed-ask-pill">
             <input id="nl-edit-input" type="text" maxlength="200" placeholder="例如：把週二第三節改成物理、下週三幾點放學？" data-i18n-placeholder="nlEdit.inputPlaceholder" autocomplete="off" enterkeyhint="send">
             <button type="button" id="nl-edit-submit" class="ed-ask-send" aria-label="送出" data-i18n-aria-label="common.submit"><span class="cx-glyph" data-glyph="send"></span></button>
@@ -286,7 +286,7 @@
           <option value="0" data-i18n="weekday.sunday">週日</option>
         </select>
       </label>
-      <div class="q-ritem"><span class="q-ritem-text"><label class="q-ritem-title" for="in-h" data-i18n="editorCore.timeHourMinuteLabel">時間（時／分）</label></span>
+      <div class="q-ritem"><span class="q-ritem-text"><label class="q-ritem-title" for="in-h" data-i18n="editorCore.timeHourMinuteLabel">時間</label></span>
         <span class="sim-time"><input type="number" id="in-h" min="0" max="24" value="8" onchange="syncTestFromInputs()"><b>:</b><input type="number" id="in-m" min="0" max="59" value="0" onchange="syncTestFromInputs()" aria-label="分" data-i18n-aria-label="editorCore.minutesAriaLabel"></span>
       </div>
       <div class="q-ritem"><input type="range" id="test-time-slider" min="480" max="1440" value="480" oninput="syncTestFromSlider()"></div>

@@ -323,7 +323,7 @@ export async function openSchoolPicker() {
   const s = kitUI.sheet({
     title: L('學校公告', 'School news'),
     body: [
-      el('p', 'cx-sheet-sub', L('選你的學校和年級，只列跟你有關的公告，每則一句話。', 'Pick your school and grade: only the news for you, one line each.')),
+      el('p', 'cx-sheet-sub', L('只列跟你年級有關的公告。', 'Only the news for your grade.')),
       kitUI.section(L('學校', 'School'), el('div', 'cx-school-find', [find, list, own]), { shd: true, cls: 'cx-sec' }),
       kitUI.section(L('年級', 'Grade'), grades, { shd: true, cls: 'cx-sec' }),
       remove

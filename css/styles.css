@@ -366,6 +366,8 @@ body.orbit-motion-paused * {
 .cx-swap-side small {
   color: var(--q-label-2);
   font: var(--q-t-footnote);
+}
+.cx-swap-side small > span {
   white-space: nowrap;
 }
 .cx-swap-side + .cx-swap-side {
@@ -1636,6 +1638,9 @@ img.q-tile.tr-app {
   color: var(--q-label-2);
   font: var(--q-t-footnote);
 }
+.app-version > span {
+  white-space: nowrap;
+}
 .test-update-status {
   margin: 6px 4px 0;
   color: var(--q-label-2);
@@ -1882,6 +1887,21 @@ img.q-tile.tr-app {
   .cx-occ {
     gap: 4px;
   }
+  /* (第 3 節 was cut to 第 3 … in a 320 px tile.) */
+  .occ-day {
+    padding-inline: 0;
+  }
+  .occ-day-period {
+    font-size: 12px;
+  }
+  /* The Pass row: its words on one line each, not "Pass" alone under them. */
+  img.q-tile.tr-app {
+    display: none;
+  }
+  /* 專注飛行's flights: the logo a step smaller, so 從 … · CI 113 fits a line. */
+  .cx-fl-pick .cx-fl-logo {
+    --s: 32px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .cx-sheet,
@@ -2048,6 +2068,12 @@ img.q-tile.tr-app {
   color: var(--q-accent);
   font: 600 15px/1 var(--q-font-rounded);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cx-way-sub > span {
+  display: inline-block;
+}
+.cx-fl-sub > span {
   white-space: nowrap;
 }
 .cx-fl-logo {

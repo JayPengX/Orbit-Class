@@ -62,9 +62,9 @@ const APP_VERSION_DATE = typeof __APP_VERSION_DATE__ !== 'undefined' ? __APP_VER
 const APP_VERSION_HASH = typeof __APP_VERSION_HASH__ !== 'undefined' ? __APP_VERSION_HASH__ : '?';
 function syncAppVersion() {
   const version = el('app-version');
-  if (version)
-    version.textContent =
-      t('testsim.versionLabel') + ' ' + APP_VERSION_DATE + ' · ' + APP_VERSION_HASH;
+  // (In two pieces that break between them at 320, never inside a date.)
+  const part = text => Object.assign(document.createElement('span'), { textContent: text });
+  if (version) version.replaceChildren(part(t('testsim.versionLabel') + ' ' + APP_VERSION_DATE + ' ·'), ' ', part(APP_VERSION_HASH));
 }
 function clampInt(value, min, max, fallback) {
   let n = parseInt(value, 10);
