@@ -73,7 +73,7 @@ export function openModal(shown, { date = null } = {}) {
     body.push(el('div', 'cx-halves', [half(0, t('week.odd')), half(1, t('week.even'))]));
   }
   const next = nextMeeting(info.n);
-  const stats = el('div', 'q-stats cx-figs', [fig(t('dashboard.periodsPerWeekLabel'), String(count), 'm-count'), next ? fig(`${t('dashboard.nextClassLabel')} · ${next.day}`, next.time, 'm-next') : null].filter(Boolean));
+  const stats = el('div', 'q-stats cx-figs', [fig(t('dashboard.periodsPerWeekLabel'), String(count), 'm-count'), next ? fig(t('dashboard.nextClassOn', { day: next.day }), next.time, 'm-next') : null].filter(Boolean));
   stats.style.setProperty('--q-stats-n', String(stats.childElementCount));
   body.push(stats);
   const occ = el(

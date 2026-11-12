@@ -88,11 +88,11 @@ describe('課表', () => {
 });
 
 describe('工具', () => {
-  it('is the timetable, 專注飛行, 學習, then AI and 分享', () => {
+  it('is the timetable and its parts, 專注飛行, 學習, then AI and 分享', () => {
     document.body.dataset.tab = 'tools';
     renderTools();
     const heads = [...document.querySelectorAll('#cx-tools .q-section-head h2')].map(h => h.textContent);
-    expect(heads).toEqual(['專注', '學習', '課表', 'AI', '分享']);
+    expect(heads).toEqual(['課表', '專注', '學習', 'AI', '分享']);
     expect(document.querySelector('#cx-tools .cx-tl-part')).toBeNull();
     expect(document.querySelector('#cx-tools .cx-way.is-swap')).toBeNull();
   });

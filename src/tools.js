@@ -111,7 +111,7 @@ function studyRows() {
   // (Midnight to midnight: noon to midnight rounded a 4-day wait up to 5.)
   const days = exam ? Math.round((dateFromKey(exam.date) - new Date(new Date().toDateString())) / 86_400_000) : 0;
   return el('div', 'q-rowcard', [
-    row({ cls: 'cx-way is-book', icon: tile('camera', 'var(--q-orange)'), title: L('拍聯絡簿', 'Photo of the contact book'), sub: L('作業和考試排進待辦', 'Homework and tests into your to-do'), onClick: () => openBook() }),
+    row({ cls: 'cx-way is-book', icon: tile('camera', 'var(--q-orange)'), title: L('拍聯絡簿', 'Photo of the contact book'), sub: L('作業和考試排進待辦', 'Adds homework and tests'), onClick: () => openBook() }),
     row({ cls: 'cx-way is-plan', icon: tile('target', 'var(--q-indigo, #6366f1)'), title: L('考前讀書計畫', 'Study plan'), sub: exam ? L(`${exam.name} · ${days} 天後`, `${exam.name} · in ${days} days`) : L('每天讀什麼，排進待辦', 'What to study each day'), onClick: () => import('./study.js').then(m => m.openStudyPlan(exam)) }),
     row({ cls: 'cx-way is-news', icon: tile('school', 'var(--q-green)'), title: L('學校公告', 'School news'), sub: sc ? `${sc.name}${sc.grade ? ` · ${gradeName(sc.grade)}` : ''}` : L('選你的學校，只看跟你有關的', 'Pick your school: only what’s for you'), onClick: () => (sc ? openNewsSheet() : openSchoolPicker()) })
   ]);
@@ -138,17 +138,20 @@ function renderTools(again = false) {
     card.style.setProperty('--subject', color);
     return card;
   };
+  // (English: a word each, as the Chinese fits its tile; the editor's pages keep their full names.)
   const parts = el('div', 'cx-parts q-card', [
-    figure('book', '#6366f1', subjects, t('editorTeachers.subjectsAndTeachersFoldLabel'), 'editor-fold-teachers'),
-    figure('clock', '#f97316', (data.bellTimes || []).length, t('editorBackup.sectionBellTimes'), 'editor-fold-bells'),
-    figure('cup', '#0d9488', breaks, t('editorSchedule.specialTimeFoldLabel'), 'editor-fold-breaks'),
-    figure('flag', '#e5484d', events, t('editorBackup.sectionCountdownEvents'), 'editor-fold-countdown')
+    figure('book', '#6366f1', subjects, L(t('editorTeachers.subjectsAndTeachersFoldLabel'), 'Subjects'), 'editor-fold-teachers'),
+    figure('clock', '#f97316', (data.bellTimes || []).length, L(t('editorBackup.sectionBellTimes'), 'Periods'), 'editor-fold-bells'),
+    figure('cup', '#0d9488', breaks, L(t('editorSchedule.specialTimeFoldLabel'), 'Breaks'), 'editor-fold-breaks'),
+    figure('flag', '#e5484d', events, L(t('editorBackup.sectionCountdownEvents'), 'Events'), 'editor-fold-countdown')
   ]);
   const way = (cls, icon, color, title, sub, onClick) => {
     const pic = el('span', 'cx-cl-icon');
     pic.innerHTML = glyph(icon);
     // Its words wrap between phrases (一句話改課表、/ 問問題), never mid-word.
-    const phrases = String(sub).split(/(?<=[，、；,;])\s*/).flatMap((p, i) => (i ? [' ', el('span', '', p)] : [el('span', '', p)]));
+    // (A space after "," but none after "、": a zero-width break there.)
+    const bits = String(sub).split(/(?<=[，、；,;])\s*/);
+    const phrases = bits.flatMap((p, i) => (i ? [/[,;]$/.test(bits[i - 1]) ? ' ' : '\u200b', el('span', '', p)] : [el('span', '', p)]));
     const card = button(`cx-way-card ${cls} q-press`, onClick, [pic, el('strong', '', title), el('small', 'cx-way-sub', phrases)]);
     card.style.setProperty('--subject', color);
     return card;
@@ -157,7 +160,8 @@ function renderTools(again = false) {
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') }), calRow()]);
   // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
   box.classList.add('q-cols');
-  box.replaceChildren(el('div', 'cx-tools-a', [weekCard()]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(L('學習', 'Study'), studyRows(), { ai: true }), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai, { ai: true }), section(t('tools.shareSection'), share)]));
+  // (The timetable's parts under it, so the two columns end about level.)
+  box.replaceChildren(el('div', 'cx-tools-a', [weekCard(), section(t('tools.partsSection'), parts)]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(L('學習', 'Study'), studyRows(), { ai: true }), section(t('tools.aiSection'), ai, { ai: true }), section(t('tools.shareSection'), share)]));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).

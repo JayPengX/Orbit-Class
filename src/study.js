@@ -160,7 +160,7 @@ export function openStudyPlan(first = null, now = new Date()) {
     );
     import('#kit/ai.mjs')
       .then(ai => {
-        const n = !plain && ai.aiNote?.(L('時間是程式排的，每段讀什麼是 AI 寫的', 'Times planned by the app; what to study written by AI'));
+        const n = !plain && ai.aiNote?.(L('每段讀什麼由 AI 建議', 'What to study: suggested by AI'));
         if (n) head.after(n);
       })
       .catch(() => {});

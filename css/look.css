@@ -244,6 +244,9 @@ html[data-look='native'] .nv-end {
   color: var(--q-label-2);
   font: 400 14px/20px var(--q-font);
 }
+html[data-look='native'] .nv-end-next {
+  white-space: nowrap;
+}
 html[data-look='native'] .nv-end b {
   color: var(--q-label);
   font-weight: 600;

@@ -84,6 +84,7 @@ export default {
   'dashboard.stripEnd': '{time} 放學',
   'dashboard.today': '今天',
   'dashboard.nextClassLabel': '下次',
+  'dashboard.nextClassOn': '下次 · {day}',
   'dashboard.noTimetable': '還沒有課表',
   'dashboard.noTimetableBody': '拍照匯入或自己輸入',
   'dashboard.addTimetable': '加入課表',

@@ -68,6 +68,8 @@ function showOnboardingPrompt({ force = false, still = false } = {}) {
     ])
   );
   const later = kitUI.sheetFoot({ button: { label: t('onboarding.later'), onClick: () => done() } });
+  // 稍後再說 is the quiet way out, not the sheet's main action (the kit's foot makes it blue).
+  later.querySelector('button').classList.replace('primary', 'ghost');
   later.querySelector('button').classList.add('orbit-welcome-later');
   const done = () => (sheet.close(), !sheet.el.open && sheet.el.remove());
   const sheet = kitUI.sheet({ title: t('onboarding.welcomeTitle'), cls: 'orbit-welcome-sheet', body: [lead, el('div', { class: 'orbit-welcome-choices q-rowcard' }, rows), later] });
