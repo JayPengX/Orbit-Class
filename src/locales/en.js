@@ -279,6 +279,9 @@ export default {
   'editorBackup.confirmMerge': 'Confirm merge',
   'editorBackup.confirmImport': 'Confirm import',
   'editorBackup.updatedFromOtherDevice': 'Updated from another device',
+  'editorBackup.savedSwapsKept': 'Saved · your class swaps kept',
+  'editorBackup.savedSwapsSome': 'Saved · class swaps kept: {kept}, removed: {dropped}',
+  'editorBackup.savedSwapsGone': 'Saved · class swaps removed: they no longer fit',
   'editorBackup.saved': 'Saved',
   'editorBackup.resetAllTitle': 'Reset all data?',
   'editorBackup.resetAllMessage':

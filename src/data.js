@@ -258,7 +258,10 @@ function normalizeClassSwaps(value) {
 // period's place, and a swap kept pointing at the place, so it moved to
 // another class); a period whose time was edited in place keeps its place
 // while the count is the same; a swap on a period gone is dropped.
-function remapClassSwaps(swaps, before, after) {
+// `imported`: a whole new timetable came in (a photo, a backup), so a period
+// that no time matches keeps its number while the new day still has it (Jay
+// 11-12: keep the 調課 that still fit, drop only the ones that don't).
+function remapClassSwaps(swaps, before, after, { imported = false } = {}) {
   const list = swaps || [];
   if (!list.length || JSON.stringify(before) === JSON.stringify(after)) return list;
   const key = bt => `${bt[0]}-${bt[1]}`;
@@ -267,6 +270,7 @@ function remapClassSwaps(swaps, before, after) {
     const bt = (before || [])[p];
     if (!bt) return null;
     if (place.has(key(bt))) return place.get(key(bt));
+    if (imported) return p < (after || []).length ? p : null;
     return (before || []).length === (after || []).length ? p : null;
   };
   return list.flatMap(({ a, b }) => {

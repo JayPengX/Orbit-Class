@@ -1136,7 +1136,7 @@ function showEditorImportConfirm(current, next, isMerge, preserveStyle = false) 
 // bounce the same write straight back out).
 function applyEditorSettingsData(
   next,
-  { closeAfter = false, fromSync = false } = {}
+  { closeAfter = false, fromSync = false, imported = false } = {}
 ) {
   const before = state.applicationData;
   state.applicationData = cloneSettingsData(next);
@@ -1144,8 +1144,14 @@ function applyEditorSettingsData(
   // to their new places when the bell times changed. (A backup or the pass
   // brings its own, already right for its bell times.)
   const carried = JSON.stringify(normalizeClassSwaps(before?.classSwaps)) === JSON.stringify(normalizeClassSwaps(next.classSwaps));
-  if (!fromSync && before && carried)
-    state.applicationData.classSwaps = normalizeClassSwaps(remapClassSwaps(state.applicationData.classSwaps, before.bellTimes, state.applicationData.bellTimes));
+  let saved = t('editorBackup.saved');
+  if (!fromSync && before && carried) {
+    const had = normalizeClassSwaps(before.classSwaps).length;
+    state.applicationData.classSwaps = normalizeClassSwaps(remapClassSwaps(state.applicationData.classSwaps, before.bellTimes, state.applicationData.bellTimes, { imported }));
+    // An import says what became of the 調課: all kept, or how many went.
+    const kept = state.applicationData.classSwaps.length;
+    if (imported && had) saved = t(kept === had ? 'editorBackup.savedSwapsKept' : kept ? 'editorBackup.savedSwapsSome' : 'editorBackup.savedSwapsGone', { kept, dropped: had - kept });
+  }
   state.applicationData.proAccent = normalizeProAccent(state.applicationData.proAccent);
   state.applicationData.proSecondary = normalizeProSecondary(state.applicationData.proSecondary);
   state.applicationData.styleSlots = normalizeStyleSlots(state.applicationData.styleSlots);
@@ -1162,7 +1168,7 @@ function applyEditorSettingsData(
   state.editorBaselineData = cloneSettingsData(state.applicationData);
   state.lastListKey = '';
   window.update();
-  toast(fromSync ? t('editorBackup.updatedFromOtherDevice') : t('editorBackup.saved'));
+  toast(fromSync ? t('editorBackup.updatedFromOtherDevice') : saved);
   if (closeAfter) setTimeout(() => closeEditor(true), 400);
   // A real local change (never one sync itself just applied) pushes right
   // away instead of waiting for the next poll tick - see sync.js's syncTick
@@ -1181,7 +1187,7 @@ function applyPendingImportSettings() {
     hideEditorDiscardConfirm();
     return;
   }
-  applyEditorSettingsData(state.pendingEditorImportData, { closeAfter: true });
+  applyEditorSettingsData(state.pendingEditorImportData, { closeAfter: true, imported: true });
   state.pendingEditorImportData = null;
   resetOCRImporterUI();
   hideEditorDiscardConfirm();

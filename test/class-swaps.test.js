@@ -168,6 +168,19 @@ describe('swaps when the bell times change', () => {
     expect(remapClassSwaps(swaps, bells, bells)).toBe(swaps);
   });
 
+  it('an imported timetable keeps the swaps whose periods it still has (Jay 11-12)', () => {
+    const swaps = [
+      { a: { date: MON, p: 0 }, b: { date: THU, p: 1 } },
+      { a: { date: MON, p: 2 }, b: { date: THU, p: 0 } }
+    ];
+    // Every time new, two periods: the first swap's places are there, the second's p 2 isn't.
+    const two = [['07:50', '08:40'], ['08:50', '09:40']];
+    expect(remapClassSwaps(swaps, bells, two, { imported: true })).toEqual([swaps[0]]);
+    expect(remapClassSwaps(swaps, bells, two)).toEqual([]);
+    // A time it shares still moves the swap with its period.
+    expect(remapClassSwaps(swaps, bells, [['10:10', '11:00'], ['13:00', '13:50'], ['14:00', '14:50']], { imported: true })[1]).toEqual({ a: { date: MON, p: 0 }, b: { date: THU, p: 0 } });
+  });
+
   it('a save that deletes a period keeps each swap on its class', () => {
     use([{ a: { date: MON, p: 2 }, b: { date: THU, p: 1 } }]);
     expect(names(MON)[2]).toBe('2:英文@10:10');
