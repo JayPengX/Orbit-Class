@@ -32,7 +32,7 @@
 import { state } from './state.js';
 import { getLocale, t } from './strings.js';
 import { askTimetable, isQuestion, answerNode } from './class-ask.js';
-import { sessionUrl } from './sync.js';
+import { sessionFetch } from './sync.js';
 import {
   applyEditorSettingsData,
   cloneSettingsData,
@@ -207,7 +207,7 @@ async function tryNlEditModels(text, context) {
   for (const model of NL_EDIT_MODELS) {
     let response;
     try {
-      response = await fetch(await sessionUrl(NL_EDIT_PROXY_URL), {
+      response = await sessionFetch(NL_EDIT_PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, text, context })

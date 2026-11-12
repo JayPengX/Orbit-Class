@@ -124,6 +124,22 @@ describe('submitNlEdit - request shape', () => {
     vi.unstubAllGlobals();
   });
 
+  it('asks once more with a new session token when the proxy turns the old one away (401)', async () => {
+    let n = 0;
+    const fetchMock = vi.fn(async () => {
+      n++;
+      if (n === 1) return { ok: false, status: 401, statusText: 'Unauthorized', json: async () => ({ error: { code: 'ECO_TOKEN_INVALID', message: '登入已過期，正在重新登入…' } }) };
+      return fakeNlEditResponse(okChangedState());
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { calls, status } = statusRecorder();
+    await submitNlEdit('把我週二第一節改成物理', { status });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(calls.some(call => call.isError)).toBe(false);
+    clickCancel();
+    vi.unstubAllGlobals();
+  });
+
   it('falls back to the lite model when the stronger one is overloaded', async () => {
     const fetchMock = vi.fn(async (url, options) => {
       const body = JSON.parse(options.body);
@@ -189,7 +205,7 @@ describe('submitNlEdit - request shape', () => {
     vi.stubGlobal('fetch', fetchMock);
     const { calls, status } = statusRecorder();
     await submitNlEdit('把我週二第一節改成物理', { status });
-    expect(calls.some(call => call.isError && /地區限制|稍後再試/.test(call.message))).toBe(true);
+    expect(calls.some(call => call.isError && /連不上|稍後再試/.test(call.message))).toBe(true);
     expect(calls.some(call => /User location/.test(call.message))).toBe(false);
     // The colo that actually got blocked (X-Worker-Colo, set by
     // worker.js from request.cf.colo) - Smart Placement can stick a

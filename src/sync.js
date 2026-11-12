@@ -364,10 +364,17 @@ function startSyncLoop() {
 }
 
 // The pass's session token for Orbit's AI requests (the Worker needs one).
-async function sessionUrl(url) {
-  const token = await q.ensureToken().catch(() => '');
+async function sessionUrl(url, renew = false) {
+  const token = await q.ensureToken({ renew }).catch(() => '');
   if (!token) return url;
   return `${url}${url.includes('?') ? '&' : '?'}qt=${encodeURIComponent(token)}`;
+}
+// An AI request with it: a token run out (or signed before the proxy's secret
+// changed) is turned away with a 401, so it's asked once more with a new one
+// (it said 登入已過期，正在重新登入… and stopped there).
+async function sessionFetch(url, init) {
+  const res = await fetch(await sessionUrl(url), init);
+  return res.status === 401 ? fetch(await sessionUrl(url, true), init) : res;
 }
 
 // ---- Sharing ------------------------------------------------------------------------------
@@ -568,6 +575,7 @@ export {
   pushSyncSnapshot,
   renderSyncPanel,
   sessionUrl,
+  sessionFetch,
   setSyncStatusUi,
   startSyncLoop,
   syncTick,

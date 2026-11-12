@@ -207,7 +207,7 @@ describe('AIVisionProcessor.recognizeSchedule with a configured proxy', () => {
     } catch (error) {
       caught = error;
     }
-    expect(caught?.message).toMatch(/地區限制|稍後再試/);
+    expect(caught?.message).toMatch(/連不上|稍後再試/);
     expect(caught?.message).not.toMatch(/User location/);
     // The colo that actually got blocked (X-Worker-Colo, set by
     // worker.js from request.cf.colo) - Smart Placement can stick a

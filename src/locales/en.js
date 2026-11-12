@@ -24,18 +24,15 @@ export default {
     'AI schedule editing has not been set up yet. Please contact your schedule administrator.',
   'nlEdit.offline': 'One-line edits need a connection.',
   'nlEdit.emptyInput': 'Please enter what you would like to change first.',
-  'nlEdit.working': 'Asking AI to parse the instruction…',
-  'nlEdit.ready': 'AI has proposed a change. Please review and apply it.',
-  'nlEdit.badResponse': "AI didn't return a recognizable change. Please try rephrasing.",
+  'nlEdit.working': 'Working it out…',
+  'nlEdit.ready': 'Ready: check it, then apply.',
+  'nlEdit.badResponse': "Didn't get that. Try saying it another way.",
   'nlEdit.unclearTitle': "Couldn't understand this instruction",
-  'nlEdit.unclearMessage':
-    'AI could not determine which change this sentence refers to. Please try rephrasing.',
+  'nlEdit.unclearMessage': 'Try another way, like "make Tuesday period 3 Physics".',
   'nlEdit.notFoundTitle': 'No matching class or period found',
-  'nlEdit.notFoundMessage':
-    'AI determined that the day, period, or class mentioned does not exist in the current schedule.',
+  'nlEdit.notFoundMessage': "That day, period or class isn't in your timetable.",
   'nlEdit.noChangeTitle': 'No changes',
-  'nlEdit.noChangeMessage':
-    "AI's proposed change is identical to the current schedule, so there is nothing to apply.",
+  'nlEdit.noChangeMessage': 'Your timetable already says that.',
   'nlEdit.confirmTitle': "Apply AI's suggested change?",
   'nlEdit.confirmTitleLocal': 'Apply these changes?',
   'nlEdit.confirmMessage': 'The following change will be applied.',
@@ -287,14 +284,12 @@ export default {
   'editorBackup.resetAllDetail':
     'The schedule, style, sync settings, and more will all be cleared. Other synced devices are not affected.',
   'editorBackup.noFileSelected': 'No file selected yet',
-  'nlEdit.invalidJsonResponse': 'The content AI returned is not valid JSON: {message}',
-  'nlEdit.cannotConnect': 'Could not connect to the AI service: {message}',
-  'nlEdit.locationBlocked':
-    'The AI service is temporarily unavailable due to a server-region restriction (node: {colo}). This is usually a temporary network routing issue, please try again shortly.',
-  'nlEdit.parseFailedWithStatus': 'AI instruction parsing failed ({status}): {message}',
-  'nlEdit.parseFailedNoModel': 'AI instruction parsing failed: no model is available.',
-  'nlEdit.locationBlockedRetrying':
-    'The AI service is temporarily unavailable due to a server-region restriction (node: {colo}). Automatically retrying (attempt {attempt})…',
+  'nlEdit.invalidJsonResponse': "Couldn't read the AI's answer. Try again.",
+  'nlEdit.cannotConnect': "Couldn't reach the AI. Try again.",
+  'nlEdit.locationBlocked': "The AI can't be reached right now ({colo}). Try again later.",
+  'nlEdit.parseFailedWithStatus': "Couldn't make that change: {message}",
+  'nlEdit.parseFailedNoModel': "The AI isn't available right now. Try again later.",
+  'nlEdit.locationBlockedRetrying': "The AI can't be reached, trying again ({attempt})…",
   'sync.uploadFailed': 'Sync upload failed: {message}',
   'sync.downloadFailed': 'Sync download failed: {message}',
   'sync.newerElsewhere':
@@ -353,25 +348,21 @@ export default {
     'AI import has not been set up yet. Please contact your schedule administrator.',
   'geminiOcr.offline': 'Reading a photo needs a connection.',
   'geminiOcr.selectFileFirst': 'Please select a file first.',
-  'geminiOcr.requestingModel': 'Requesting the AI model ({model}) to analyze the schedule…',
-  'geminiOcr.connectionFailedNextModel': 'Connection failed. Switching to the next model…',
-  'geminiOcr.aiRespondedParsing':
-    'AI responded (model used: {model}). Parsing the recognition result…',
-  'geminiOcr.resultIncompleteRetryStronger':
-    'The result from model ({model}) was incomplete. Retrying with a stronger model…',
+  'geminiOcr.requestingModel': 'Reading the timetable…',
+  'geminiOcr.connectionFailedNextModel': 'Connection dropped, trying again…',
+  'geminiOcr.aiRespondedParsing': 'Got it, sorting it out…',
+  'geminiOcr.resultIncompleteRetryStronger': 'Some of it was missing, reading it again more carefully…',
   'geminiOcr.serviceUnavailable':
     'The AI service is currently unavailable. Please try again later.',
-  'geminiOcr.recognitionFailedWithStatus': 'AI recognition request failed ({status}): {message}',
-  'geminiOcr.modelUnavailableNextModel':
-    'Model ({model}) is temporarily unavailable ({status}: {message}). Switching to the next model…',
-  'geminiOcr.recognitionFailedNoModel': 'AI recognition request failed: no model is available.',
-  'geminiOcr.noScheduleContent':
-    'AI did not return any schedule content. Please try a clearer photo.',
+  'geminiOcr.recognitionFailedWithStatus': "Couldn't read it: {message}",
+  'geminiOcr.modelUnavailableNextModel': "That didn't work, trying again…",
+  'geminiOcr.recognitionFailedNoModel': "The AI isn't available right now. Try again later.",
+  'geminiOcr.noScheduleContent': "Couldn't find a timetable. Try a clearer photo.",
   'geminiOcr.lunchBreakFallback': 'Lunch break',
   'geminiOcr.filePrefixedMessage': 'File {number}: {message}',
   'geminiOcr.noScheduleOrCountdownDetected':
     'No schedule photo or countdown event was detected. Please make sure the uploaded files include at least one complete weekly schedule photo, a course selection record, or a dated countdown-event notice.',
-  'geminiOcr.noValidScheduleData': 'AI did not return valid schedule data.',
+  'geminiOcr.noValidScheduleData': "Couldn't find a timetable.",
   'geminiOcr.noClassesOrCountdownDetected': 'No classes or countdown dates were recognized.',
   'geminiOcr.bellTimesFormatInvalid': 'The period-time data format is invalid.',
   'geminiOcr.someBellTimesFormatInvalid': 'Some period times have an invalid format.',
