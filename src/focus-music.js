@@ -23,8 +23,16 @@ export const wantMusic = on => {
 };
 
 // Beats' module, from its site; null where it can't load (offline, an older Beats).
+// (A module that failed once stays failed at its address for the page's life:
+// asked again, it's at a new one, so ♪ works once the connection is back.)
 let mod = null;
-const load = () => (mod ||= import(/* @vite-ignore */ new URL('../beats/lib/focus.mjs', location.href).href).catch(() => ((mod = null), null)));
+let failed = 0;
+const load = () =>
+  (mod ||= import(/* @vite-ignore */ new URL(`../beats/lib/focus.mjs${failed ? `?again=${failed}` : ''}`, location.href).href).catch(() => {
+    failed += 1;
+    mod = null;
+    return null;
+  }));
 
 let player = null;
 let audio = null;
