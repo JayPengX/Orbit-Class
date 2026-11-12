@@ -102,6 +102,7 @@ const keep = v => {
   }
 };
 let asking = null;
+let askingFor = '';
 let again = null;
 let tries = 0;
 // The school's list: the phone's copy, read again from the proxy past 30
@@ -112,6 +113,13 @@ export async function loadNews({ force = false } = {}) {
   if (!sc) return null;
   const have = kept();
   if (!force && have?.site === sc.url && Date.now() - (have.got || 0) < FRESH && !have.wording) return have;
+  // (A read still going for the school before a change is not this one's.)
+  if (askingFor !== sc.url) {
+    asking = null;
+    clearTimeout(again);
+    tries = 0;
+  }
+  askingFor = sc.url;
   asking ||= kit
     .workerJson('/class-news', `site=${encodeURIComponent(sc.url)}`, { timeout: 40_000, errors: true })
     .then(r => {
@@ -119,14 +127,14 @@ export async function loadNews({ force = false } = {}) {
         const v = { ...r, site: sc.url, got: Date.now() };
         keep(v);
         clearTimeout(again);
-        if (r.wording && tries < 6) again = setTimeout(() => loadNews({ force: true }), [6, 6, 8, 10, 12, 15][tries++] * 1000);
+        if (r.wording && tries < 6 && askingFor === sc.url) again = setTimeout(() => loadNews({ force: true }), [6, 6, 8, 10, 12, 15][tries++] * 1000);
         else tries = 0;
         window.dispatchEvent(new Event('class-news'));
         return v;
       }
       return have?.site === sc.url ? { ...have, failed: r?.error || 'offline' } : { site: sc.url, items: [], failed: r?.error || 'offline' };
     })
-    .finally(() => (asking = null));
+    .finally(() => askingFor === sc.url && (asking = null));
   return asking;
 }
 
@@ -188,6 +196,7 @@ window.addEventListener('class-news', () => {
 function draw(news, sc, now) {
   const box = document.getElementById('cx-news');
   if (!box) return;
+  if (news && news.site !== sc.url) news = null;
   const week = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7));
   const mine = (news?.items || []).filter(it => forMe(it, sc.grade) && it.date >= week).slice(0, 3);
   const key = `${sc.url}|${sc.grade}|${getLocale()}|${dateKey(now)}|${JSON.stringify(mine)}|${!!news}`;
@@ -210,7 +219,7 @@ export async function openNewsSheet() {
   let tab = '';
   const ai = await import('#kit/ai.mjs').catch(() => null);
   const fill = news => {
-    if (!s.el.isConnected) return;
+    if (!s.el.isConnected || (news && news.site !== sc.url)) return;
     const items = news?.items || [];
     const now = new Date();
     const mine = items.filter(it => forMe(it, sc.grade));
@@ -273,6 +282,8 @@ export async function openSchoolPicker() {
   own.inputMode = 'url';
   own.addEventListener('input', () => {
     const v = own.value.trim();
+    // (The address typed, cleared: none, unless a school from the list is picked.)
+    if (!v && !all.some(([, url]) => url === st.url)) st.url = st.name = '';
     if (v) {
       st.url = /^https?:\/\//.test(v) ? v : `https://${v}`;
       st.name = '';
