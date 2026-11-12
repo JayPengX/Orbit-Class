@@ -28,6 +28,11 @@ describe('調課 from the AI box', () => {
     const had = [{ a: { date: '2026-10-21', p: 1 }, b: { date: '2026-10-21', p: 4 } }];
     expect(parseSwapEdit('取消明天的調課', data(had), now).swaps).toEqual([]);
   });
+  it('昨天 and 上週 are days gone by: said so, never taken as today or a coming day', () => {
+    expect(parseSwapEdit('昨天第2節和第5節調課', data(), now).error).toMatch(/過了/);
+    expect(parseSwapEdit('前天第1節和第3節調課', data(), now).error).toMatch(/過了/);
+    expect(parseSwapEdit('上週三第一節與第四節調課', data(), now).error).toMatch(/過了/);
+  });
   it('a period past the day\'s last is an error, not a guess', () => {
     expect(parseSwapEdit('明天第2節和第9節調課', data(), now).error).toBeTruthy();
   });

@@ -16,7 +16,7 @@ const EDIT = /改|換|調|刪|移|加入|新增|設為|設成|清掉|取消|把/
 export function isQuestion(text) {
   const t = String(text || '').trim();
   if (!t || EDIT.test(t)) return false;
-  return /[?？]\s*$|[嗎呢]\s*$|幾點|幾節|幾堂|幾天|哪天|哪一天|哪幾|哪節|什麼課|什麼時候|多少|有沒有|是不是|何時|^(when|what|which|how|do|does|is|are)\b/i.test(t);
+  return /[?？]\s*$|[嗎呢]\s*$|幾點|幾節|幾堂|幾天|哪天|哪一天|哪幾|哪節|什麼課|什麼時候|[節堂]是什麼\s*$|多少|有沒有|是不是|何時|^(when|what|which|how|do|does|is|are)\b/i.test(t);
 }
 
 // The day a question names: 今天, 明天, 後天, (下)週三 / 星期三 / 禮拜三; null none.
@@ -24,6 +24,7 @@ export function dayOf(text, now = new Date()) {
   const t = String(text || '');
   const at = n => new Date(now.getFullYear(), now.getMonth(), now.getDate() + n);
   if (/今天|today/i.test(t)) return at(0);
+  if (/大後天/.test(t)) return at(3);
   if (/後天/.test(t)) return at(2);
   if (/明天|tomorrow/i.test(t)) return at(1);
   const m = /(下)?(?:週|星期|禮拜)([一二三四五六日天])/.exec(t);

@@ -18,7 +18,7 @@ import { t } from './strings.js';
 
 const DIGITS = { 〇: 0, 零: 0, 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
 const DAYS = { 日: 0, 天: 0, 7: 0, 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
-const RELATIVE = { 今天: 0, 今日: 0, 明天: 1, 明日: 1, 後天: 2, 后天: 2, 大後天: 3, 大后天: 3 };
+const RELATIVE = { 前天: -2, 昨天: -1, 昨日: -1, 今天: 0, 今日: 0, 明天: 1, 明日: 1, 後天: 2, 后天: 2, 大後天: 3, 大后天: 3 };
 const SWAP_WORD = /調課|换课|換課|對調|交換|互換|調換|互調/;
 const CANCEL_WORD = /取消|撤銷|撤回|刪除|刪掉|不要/;
 
@@ -34,8 +34,8 @@ const atDay = (now, ahead) => new Date(now.getFullYear(), now.getMonth(), now.ge
 // The dates and periods the text names, in order: [{ kind: 'date', date } | { kind: 'period', p }].
 const TOKEN = new RegExp(
   [
-    '(大後天|大后天|今天|今日|明天|明日|後天|后天)',
-    '(這個|這|本|下個|下)?(?:星期|禮拜|週|周)([日天一二三四五六1-7])',
+    '(大後天|大后天|前天|昨天|昨日|今天|今日|明天|明日|後天|后天)',
+    '(這個|這|本|下個|下|上個|上)?(?:星期|禮拜|週|周)([日天一二三四五六1-7])',
     '(\\d{1,2})\\s*[/月]\\s*(\\d{1,2})日?',
     '第?\\s*([一二兩三四五六七八九十\\d]{1,3})\\s*[節节堂]'
   ].join('|'),
@@ -52,7 +52,9 @@ function tokens(text, now) {
       const monday = atDay(now, -((today + 6) % 7));
       const inWeek = d => (d === 0 ? 6 : d - 1);
       let date;
+      // (昨天 and 上週 too: a day gone by is named so it can be said it's past, never taken as today or a coming one.)
       if (m[2] && /下/.test(m[2])) date = atDay(monday, 7 + inWeek(want));
+      else if (m[2] && /上/.test(m[2])) date = atDay(monday, -7 + inWeek(want));
       else if (m[2]) date = atDay(monday, inWeek(want));
       else date = atDay(now, (want - today + 7) % 7);
       out.push({ kind: 'date', firm: !!m[2], date });

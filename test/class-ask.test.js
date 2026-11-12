@@ -13,11 +13,13 @@ describe('問我的課表', () => {
   it('tells a question from an edit', () => {
     expect(isQuestion('下週三幾點放學？')).toBe(true);
     expect(isQuestion('哪天最早放學')).toBe(true);
+    expect(isQuestion('明天最後一節是什麼')).toBe(true);
     expect(isQuestion('把週二第三節改成物理')).toBe(false);
     expect(isQuestion('週二第三節換成物理嗎')).toBe(false);
   });
   it('reads the day a question names', () => {
     expect(dayOf('明天', now).getDate()).toBe(12);
+    expect(dayOf('大後天', now).getDate()).toBe(14);
     expect(dayOf('週三', now).getDate()).toBe(11);
     expect(dayOf('下週三', now).getDate()).toBe(18);
     expect(dayOf('星期六', now).getDate()).toBe(14);

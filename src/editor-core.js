@@ -591,6 +591,37 @@ function openEditorFold(id) {
   });
 }
 
+// The changes as drawn rows, not a text dump: each part's name, then each
+// change as what it is (週二第 3 節), what it was (struck) and what it becomes.
+// The lines are editor-backup.js's diff text: "部分:" then "- 名稱：舊 -> 新".
+function drawDiff(box, text) {
+  box.replaceChildren();
+  for (const raw of String(text).split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (/[:：]$/.test(line) && !line.startsWith('- ')) {
+      box.append(Object.assign(document.createElement('div'), { className: 'ed-diff-sec', textContent: line.replace(/[:：]$/, '') }));
+      continue;
+    }
+    const item = line.replace(/^-\s*/, '');
+    const row = Object.assign(document.createElement('div'), { className: 'ed-diff-row' });
+    const m = /：|: /.exec(item);
+    const what = m && m.index > 0 ? item.slice(0, m.index) : '';
+    const rest = what ? item.slice(m.index + m[0].length) : item;
+    const arrow = rest.indexOf(' -> ');
+    if (what) row.append(Object.assign(document.createElement('span'), { className: 'ed-diff-what', textContent: what }));
+    const change = Object.assign(document.createElement('span'), { className: 'ed-diff-change' });
+    if (arrow >= 0) {
+      change.append(
+        Object.assign(document.createElement('s'), { className: 'ed-diff-before', textContent: rest.slice(0, arrow) }),
+        ' → ',
+        Object.assign(document.createElement('b'), { className: 'ed-diff-after', textContent: rest.slice(arrow + 4) })
+      );
+    } else change.textContent = rest;
+    row.append(change);
+    box.append(row);
+  }
+}
 function setEditorConfirmContent(
   title,
   message,
@@ -625,7 +656,7 @@ function setEditorConfirmContent(
   }
   titleEl.textContent = title;
   msgEl.textContent = message;
-  diffEl.textContent = diffText || '';
+  drawDiff(diffEl, diffText || '');
   diffEl.scrollTop = 0;
   diffEl.style.display = diffText ? 'block' : 'none';
   cancelBtn.style.display = canCancel && cancelLabel ? '' : 'none';

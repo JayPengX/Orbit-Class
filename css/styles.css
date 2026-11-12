@@ -1769,6 +1769,40 @@ img.q-tile.tr-app {
 .editor-import-diff:empty {
   display: none;
 }
+.editor-import-diff:has(.ed-diff-row) {
+  white-space: normal;
+}
+.ed-diff-sec {
+  margin: 10px 0 2px;
+  color: var(--q-label-3);
+  font-size: 12px;
+}
+.ed-diff-sec:first-child {
+  margin-top: 0;
+}
+.ed-diff-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  padding: 5px 0;
+}
+.ed-diff-row + .ed-diff-row {
+  border-top: 0.5px solid var(--q-separator);
+}
+.ed-diff-what {
+  color: var(--q-label);
+  font-weight: 600;
+}
+.ed-diff-before {
+  color: var(--q-label-3);
+}
+.ed-diff-after {
+  color: var(--q-label);
+  font-weight: 600;
+}
+#editor-confirm-msg:empty {
+  display: none;
+}
 .editor-confirm-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
