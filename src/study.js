@@ -98,7 +98,7 @@ export function openStudyPlan(first = null, now = new Date()) {
     body.replaceChildren(
       kitUI.section(L('考什麼', 'Exam'), examChips, { shd: true, cls: 'cx-sec' }),
       kitUI.section(L('考哪些科', 'Subjects'), subjChips, { shd: true, cls: 'cx-sec' }),
-      rows.length ? kitUI.section(L('範圍和弱科', 'Scope, and ★ weak'), el('div', 'q-rowcard', rows), { shd: true, cls: 'cx-sec', sub: examDays.length > 1 ? L('考試有好幾天：點每科考哪天', 'Several days: tap each subject’s day') : '' }) : null,
+      rows.length ? kitUI.section(L('範圍和弱科', 'Scope, ★ for weak ones'), el('div', 'q-rowcard', rows), { shd: true, cls: 'cx-sec', sub: examDays.length > 1 ? L('考試有好幾天：點每科考哪天', 'Several days: tap each subject’s day') : '' }) : null,
       kitUI.section(L('上課日每天讀多久', 'Each school day'), per, { shd: true, cls: 'cx-sec', sub: L('沒課的日子排兩倍', 'Days off get twice that') })
     );
     if (btn) {

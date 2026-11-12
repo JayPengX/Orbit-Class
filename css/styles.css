@@ -905,6 +905,10 @@ body:is(.editor-open, .transfer-open) {
 .ed-days .q-seg {
   margin: 0;
 }
+/* Seven days in one row: English's three letters (Mon) were cut to "M…" by the usual padding. */
+.ed-days .q-seg > * {
+  padding-inline: 2px;
+}
 .schedule-grid {
   padding: 8px 12px;
   border-radius: 18px;
