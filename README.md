@@ -16,42 +16,28 @@
 The class now and what comes next, at a glance. Part of **Orbit**, a family of apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [orbit.jaypengx.com](https://orbit.jaypengx.com/pass/).
 
 <p align="center">
-  <img src="docs/screenshots/class-1.webp" width="30%" alt="Now, next, and time left">
-  <img src="docs/screenshots/class-2.webp" width="30%" alt="Focus on a real flight">
-  <img src="docs/screenshots/class-3.webp" width="30%" alt="Change or ask your timetable in words">
+  <img src="docs/screenshots/class-1.webp" width="30%" alt="What's on now, and how long is left">
+  <img src="docs/screenshots/class-2.webp" width="30%" alt="Your whole week, odd and even weeks">
+  <img src="docs/screenshots/class-3.webp" width="30%" alt="To-dos and exam countdowns">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/class-4.webp" width="30%" alt="Your whole week">
-  <img src="docs/screenshots/class-5.webp" width="30%" alt="Every class, in detail">
-  <img src="docs/screenshots/class-6.webp" width="30%" alt="Swap a class in seconds">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/class-7.webp" width="30%" alt="Snap it, AI reads it">
-  <img src="docs/screenshots/class-8.webp" width="30%" alt="Your timetable in your calendar">
-  <img src="docs/screenshots/class-9.webp" width="30%" alt="Today's classes and countdowns">
+  <img src="docs/screenshots/class-4.webp" width="30%" alt="Swap a class in seconds">
+  <img src="docs/screenshots/class-5.webp" width="30%" alt="Focus along a real flight">
 </p>
 
 <details>
 <summary>中文畫面</summary>
 
 <p align="center">
-  <img src="docs/screenshots/class-1.zh.webp" width="30%" alt="現在、下一節與剩餘時間">
-  <img src="docs/screenshots/class-2.zh.webp" width="30%" alt="跟著真的飛機專注">
-  <img src="docs/screenshots/class-3.zh.webp" width="30%" alt="用說的改課表，也能問課表">
+  <img src="docs/screenshots/class-1.zh.webp" width="30%" alt="現在上什麼、還剩幾分鐘">
+  <img src="docs/screenshots/class-2.zh.webp" width="30%" alt="整週課表，單雙週都對">
+  <img src="docs/screenshots/class-3.zh.webp" width="30%" alt="待辦與考試倒數">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/class-4.zh.webp" width="30%" alt="整週課表一眼看">
-  <img src="docs/screenshots/class-5.zh.webp" width="30%" alt="每一節課的細節">
-  <img src="docs/screenshots/class-6.zh.webp" width="30%" alt="調課幾秒完成">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/class-7.zh.webp" width="30%" alt="拍下課表，AI 幫你讀">
-  <img src="docs/screenshots/class-8.zh.webp" width="30%" alt="課表加到手機行事曆">
-  <img src="docs/screenshots/class-9.zh.webp" width="30%" alt="今天的課與倒數">
+  <img src="docs/screenshots/class-4.zh.webp" width="30%" alt="調課，幾秒完成">
+  <img src="docs/screenshots/class-5.zh.webp" width="30%" alt="跟著一班真的飛機專注">
 </p>
 
 </details>
