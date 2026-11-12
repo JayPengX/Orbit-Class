@@ -89,9 +89,8 @@ function classesOnDate(date) {
   const day = date.getDay();
   const base = state.runtimeSchedule[day] || [];
   const key = dateKey(date);
-  const mine = (state.applicationData.classSwaps || []).flatMap(({ a, b }) =>
-    a.date === key ? [[a, b]] : b.date === key ? [[b, a]] : []
-  );
+  // (Both sides when both are this day: a same-day swap moves each class to the other's period.)
+  const mine = (state.applicationData.classSwaps || []).flatMap(({ a, b }) => [...(a.date === key ? [[a, b]] : []), ...(b.date === key ? [[b, a]] : [])]);
   if (!mine.length) return base;
   const byPeriod = new Map(base.map(c => [c.p, c]));
   for (const [here, there] of mine) {

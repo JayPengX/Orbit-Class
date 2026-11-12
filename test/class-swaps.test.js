@@ -182,3 +182,12 @@ describe('swaps when the bell times change', () => {
     expect(names(THU)).toEqual(['0:英文@09:10', '1:數學@10:10']);
   });
 });
+
+// 11-12 testing: a swap of two periods on the same day moved only one of them
+// (the first period took the second's class, the second kept its own: one class twice, the other gone).
+describe('a same-day swap', () => {
+  it('moves both classes', () => {
+    use([{ a: { date: MON, p: 0 }, b: { date: MON, p: 2 } }]);
+    expect(names(MON)).toEqual(['0:英文@08:00', '1:國文/公民@09:10', '2:數學@10:10']);
+  });
+});

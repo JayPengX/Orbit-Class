@@ -275,7 +275,8 @@ export function dayCards(rows, week, { date = null, from = 0, over = false } = {
     pic.innerHTML = subjectIcon(info.n);
     // A timeline: the start over the end on the left, the class as a block washed in its subject's colour.
     const when = el('span', 'cx-cl-when', [el('b', 'cx-cl-time', c.s), el('small', 'cx-cl-till', c.e)]);
-    const sub = [info.t, c.loc].filter(Boolean).join(' · ');
+    // (調課, or the week of a class split by week, said after the teacher, as on the card.)
+    const sub = [info.t, c.loc, plain(info.label)].filter(Boolean).join(' · ');
     const words = el('span', 'cx-cl-words', [el('strong', `cx-cl-name${nameSize(info.n)}`, info.n), sub ? el('small', 'cx-cl-sub', sub) : null]);
     const card = button('cx-cl q-press', () => openModal(c, { date }), [when, el('span', 'cx-cl-block', [pic, words])]);
     card.setAttribute('aria-label', `${t('dashboard.periodNumber', { number: (c.p ?? i) + 1 })} ${c.s}–${c.e} ${info.n}${sub ? ` ${sub}` : ''}`);
