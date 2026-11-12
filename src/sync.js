@@ -32,7 +32,7 @@ import {
   notify,
   schedulePush
 } from '#kit/orbit.mjs';
-import { h } from '#kit/ui.mjs';
+import { h, toast } from '#kit/ui.mjs';
 import { glyph } from './ui.js';
 
 const lang = detectLang();
@@ -166,22 +166,41 @@ async function readPass() {
 // This device's change lost to a newer one on the pass: kept aside on the
 // device (the newest ten), and the pass's copy shown.
 async function keepAside() {
+  let payload = '';
   try {
+    payload = await encodeTransferData(state.applicationData);
     const kept = JSON.parse(localStorage.getItem(SET_ASIDE_KEY) || '[]');
-    kept.push({ t: Date.now(), payload: await encodeTransferData(state.applicationData) });
+    kept.push({ t: Date.now(), payload });
     localStorage.setItem(SET_ASIDE_KEY, JSON.stringify(kept.slice(-10)));
   } catch {
     // Storage full: the pass's newer copy still wins.
   }
+  return payload;
 }
 async function setAside(remote) {
-  await keepAside();
+  const mine = await keepAside();
   setDirty(false);
   lastPayload = null;
   // (Under an editor with changes not saved the newer copy shows once it's
   // saved or closed; `base` stays the older one till then.)
   if ((await applyPayload(remote, t('sync.newerElsewhere'))) !== DEFERRED) setBase(remote);
   setSyncStatusUi(t('sync.newerElsewhere'), true);
+  // Said where it's seen (the line above is in the Pass sheet): the edit just
+  // saved here went back with only 已從其他裝置更新, as if lost. 用我的 puts it
+  // back, saved over the newer copy on purpose.
+  toast(t('sync.newerElsewhereShort'), {
+    ms: 8000,
+    action: mine && {
+      label: t('sync.keepMine'),
+      onTap: async () => {
+        try {
+          applyEditorSettingsData(normalizeSettingsData(await decodeTransferData(mine), { requireMarker: true }));
+        } catch {
+          // (Unreadable: it stays in orbitSetAside.)
+        }
+      }
+    }
+  });
 }
 
 // Uploads this device's saved schedule (never an unsaved editor draft) to

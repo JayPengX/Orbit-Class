@@ -264,6 +264,8 @@ export default {
   'sync.downloadFailed': '同步下載失敗：{message}',
   'sync.newerElsewhere':
     '這台裝置的課表比較舊：已保留其他裝置較新的課表，這裡剛剛的修改沒有覆蓋上去。',
+  'sync.newerElsewhereShort': '另一台裝置剛改過課表，先用它的。',
+  'sync.keepMine': '用我的',
   'sync.syncedFromOtherDevice': '已從其他裝置同步課表。',
   'sync.editTitle': '編輯課表',
   'testsim.start': '開始',

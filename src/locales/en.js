@@ -299,6 +299,8 @@ export default {
   'sync.downloadFailed': 'Sync download failed: {message}',
   'sync.newerElsewhere':
     'This device was behind: the newer schedule from your other device was kept, and the change made here was set aside.',
+  'sync.newerElsewhereShort': 'Another device just changed the timetable: using that one.',
+  'sync.keepMine': 'Keep mine',
   'sync.syncedFromOtherDevice': 'The schedule was synced from another device.',
   'sync.editTitle': 'Edit schedule',
   'testsim.start': 'Start',
