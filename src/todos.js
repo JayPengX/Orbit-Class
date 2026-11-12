@@ -98,7 +98,7 @@ function todoRow(t, { onToggle, onOpen, now = new Date() } = {}) {
 const toggle = t => {
   const list = todos().map(x => (x.id === t.id ? { ...x, done: !x.done } : x));
   saveTodos(list);
-  kitUI.haptic?.();
+  kitUI.tick?.();
 };
 
 // ---- 今天's section ----
