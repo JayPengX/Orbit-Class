@@ -49,12 +49,14 @@ export function planSessions({ subjects = [], perDay = 60, start, schoolDay = ()
   const got = Object.fromEntries(list.map(s => [s.name, 0]));
   const out = [];
   for (const d of days) {
-    // The day's reviews come first; the rest of its sessions to the subjects
-    // still before their 總複習: the least studied (weighted), the nearest exam
-    // lifted, never the same one twice running.
-    const today = d.taken.map((x, i) => ({ day: d.day, subject: x.subject, min: d.blocks[i], last: true }));
-    const open = list.filter(s => lastDay[s.name] && lastDay[s.name] > d.day);
-    for (let i = today.length; i < d.blocks.length; i++) {
+    // The day's free sessions to the subjects not yet past their 總複習 (one
+    // whose 總複習 is today too: the day before an exam used to give it that
+    // one session and leave the rest of the evening empty): the least studied
+    // (weighted), the nearest exam lifted, never the same one twice running.
+    // Then the day's reviews, last.
+    const today = [];
+    const open = list.filter(s => lastDay[s.name] && lastDay[s.name] >= d.day);
+    for (let i = d.taken.length; i < d.blocks.length; i++) {
       const prev = today.at(-1)?.subject;
       let best = null, bestScore = -1;
       for (const s of open) {
@@ -64,10 +66,11 @@ export function planSessions({ subjects = [], perDay = 60, start, schoolDay = ()
         if (score > bestScore) (best = s), (bestScore = score);
       }
       if (!best) break;
-      today.push({ day: d.day, subject: best.name, min: d.blocks[i], last: false });
+      today.push({ day: d.day, subject: best.name, last: false });
       got[best.name]++;
     }
-    out.push(...today);
+    for (const x of d.taken) today.push({ day: d.day, subject: x.subject, last: true });
+    out.push(...today.map((x, i) => ({ ...x, min: d.blocks[i] })));
   }
   // Each subject's sessions counted in order.
   const n = {};

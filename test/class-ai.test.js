@@ -101,6 +101,11 @@ describe('考前讀書計畫: the time by code', () => {
     expect(out.filter(x => x.last).length).toBe(9);
     for (const s of subjects) expect(out.filter(x => x.subject === s.name).at(-1).last).toBe(true);
   });
+  it('the day before an exam uses all its time, its 總複習 last', () => {
+    const out = planSessions({ subjects: [{ name: '英文', exam: '2026-11-16' }], perDay: 60, start: '2026-11-15', schoolDay: () => false });
+    expect(out.reduce((m, x) => m + x.min, 0)).toBe(120);
+    expect(out.map(x => x.last)).toEqual([false, false, true]);
+  });
   it('an exam today or past: nothing to plan', () => {
     expect(planSessions({ subjects: [{ name: '數學', exam: '2026-11-10' }], start: '2026-11-10' })).toEqual([]);
   });

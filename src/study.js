@@ -131,7 +131,9 @@ export function openStudyPlan(first = null, now = new Date()) {
     const r = ai?.aiCall ? await ai.aiCall('class-plan', { today: start, exam: st.exam.name, subjects: subjects.map(x => ({ ...x, n: n[x.name] || 0 })).filter(x => x.n), lang: getLocale() === 'en' ? 'en' : 'zh' }, { timeout: 40_000 }) : { error: 'offline' };
     if (!s.el.isConnected) return;
     const planned = withTasks(sessions, r?.out?.plans || {}, scopes, getLocale() === 'en');
-    showPlan(planned, !r?.out, r?.error ? ai?.aiSays?.(r.error, r.left) : '');
+    // A reason worth saying (today's AI used up, offline…) before the plain steps; any other failure: the plain note alone.
+    const why = ['cap', 'signin', 'busy', 'paused', 'offline'].includes(r?.error) ? ai?.aiSays?.(r.error) : '';
+    showPlan(planned, !r?.out, why ? `${why}${L('先用一般的讀法。', ' Plain steps for now.')}` : '');
   }
   function showPlan(planned, plain, why) {
     const byDay = new Map();
