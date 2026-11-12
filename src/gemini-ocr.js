@@ -1616,6 +1616,8 @@ function activateOCRImporter() {
             message: error.message || error
           });
           statusElement.classList.add('error');
+          // (The button is at the foot of a long preview, the line at its head.)
+          statusElement.scrollIntoView?.({ block: 'center' });
         }
       },
       status: (message, error = false) => {
@@ -1641,10 +1643,13 @@ const ocrImageInput = document.getElementById('ocr-import-image');
 // importer's own lazy load: a user who opens the picker, cancels, and comes
 // back a few minutes later needs the connection warmed again, and the
 // function rate-limits itself.
-ocrImageInput?.addEventListener('pointerdown', () => {
+// (The tap lands on the 選擇檔案 label: the input itself is hidden and takes no pointer.)
+const warmUp = () => {
   activateOCRImporter();
   warmUpGeminiProxy();
-});
+};
+ocrImageInput?.addEventListener('pointerdown', warmUp);
+document.getElementById('ocr-import-image-label')?.addEventListener('pointerdown', warmUp);
 ocrImageInput?.addEventListener('change', async event => {
   const controller = ocrImporterController || (await activateOCRImporter());
   await controller?.loadFiles(event.target.files);

@@ -42,16 +42,20 @@ function isSyncConfigured() {
 }
 // One quiet line under the share cards; an error is a red-tinted banner, and
 // it goes away once a later check reads and writes fine (a dropped connection
-// used to leave 同步上傳失敗 on the sheet for good).
-function setSyncStatusUi(message, isError) {
+// used to leave 同步上傳失敗 on the sheet for good). A share key's own error
+// ('share') stays: the tap that asked also starts a check, which used to wipe
+// 找不到這組分享金鑰 a moment after it showed.
+function setSyncStatusUi(message, isError, from = '') {
   setStatusText('sync-status', message, isError);
   const box = document.getElementById('sync-status');
   if (!box) return;
   box.style.color = '';
   box.classList.toggle('is-error', Boolean(isError && message));
+  box.dataset.from = from;
 }
 function clearSyncError() {
-  if (document.getElementById('sync-status')?.classList.contains('is-error')) setSyncStatusUi('');
+  const box = document.getElementById('sync-status');
+  if (box?.classList.contains('is-error') && box.dataset.from !== 'share') setSyncStatusUi('');
 }
 const failText = error => errorText(error, lang) || error?.message || String(error);
 
@@ -356,16 +360,16 @@ async function createShareKey() {
     shared = await q.op('share-create');
     renderSyncPanel();
   } catch (error) {
-    setSyncStatusUi(failText(error), true);
+    setSyncStatusUi(failText(error), true, 'share');
   }
 }
 async function redeemKey() {
   const input = document.getElementById('orbit-key');
   const key = String(input?.value || '').trim();
-  if (!key) return setSyncStatusUi(t('orbit.enterKey'), true);
+  if (!key) return setSyncStatusUi(t('orbit.enterKey'), true, 'share');
   try {
     const res = await q.op('share-redeem', { key });
-    if (res.own) return setSyncStatusUi(t('orbit.ownKey'), true);
+    if (res.own) return setSyncStatusUi(t('orbit.ownKey'), true, 'share');
     const next = normalizeSettingsData(await decodeTransferData(res.payload), {
       requireMarker: true
     });
@@ -377,7 +381,8 @@ async function redeemKey() {
   } catch (error) {
     setSyncStatusUi(
       error.code === 'ECO_SHARE_NOT_FOUND' ? t('orbit.keyNotFound') : failText(error),
-      true
+      true,
+      'share'
     );
   }
 }

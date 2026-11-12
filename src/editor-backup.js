@@ -1232,8 +1232,12 @@ function resetOCRImporterUI() {
   });
   const filename = document.getElementById('ocr-import-filename');
   if (filename) filename.textContent = t('editorBackup.noFileSelected');
+  // (Its two lines emptied, never the element: startEtaTimer writes into them.)
   const eta = document.getElementById('ocr-import-eta');
-  if (eta) eta.textContent = '';
+  if (eta) {
+    eta.hidden = true;
+    for (const line of eta.children) line.textContent = '';
+  }
   const status = document.getElementById('ocr-import-status');
   if (status) {
     status.textContent = '';
