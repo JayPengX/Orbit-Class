@@ -5,6 +5,7 @@
 // share key and the Pass). Drawn when the tab opens, and again when the timetable
 // changes while it's on screen.
 import { getWeekType, processSplitName } from './schedule.js';
+import { dateFromKey } from './dates.js';
 import { shortNames, subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getCountdownEvents } from './data.js';
@@ -107,7 +108,8 @@ const L = (zh, en) => (getLocale() === 'en' ? en : zh);
 function studyRows() {
   const exam = upcomingExam();
   const sc = schoolOf();
-  const days = exam ? Math.round((new Date(`${exam.date}T12:00:00`) - new Date(new Date().toDateString())) / 86_400_000) : 0;
+  // (Midnight to midnight: noon to midnight rounded a 4-day wait up to 5.)
+  const days = exam ? Math.round((dateFromKey(exam.date) - new Date(new Date().toDateString())) / 86_400_000) : 0;
   return el('div', 'q-rowcard', [
     row({ cls: 'cx-way is-book', icon: tile('camera', 'var(--q-orange)'), title: L('拍聯絡簿', 'Photo of the contact book'), sub: L('作業和考試排進待辦', 'Homework and tests into your to-do'), onClick: () => openBook() }),
     row({ cls: 'cx-way is-plan', icon: tile('target', 'var(--q-indigo, #6366f1)'), title: L('考前讀書計畫', 'Study plan'), sub: exam ? L(`${exam.name} · ${days} 天後`, `${exam.name} · in ${days} days`) : L('每天讀什麼，排進待辦', 'What to study each day'), onClick: () => import('./study.js').then(m => m.openStudyPlan(exam)) }),
@@ -149,11 +151,11 @@ function renderTools(again = false) {
     card.style.setProperty('--subject', color);
     return card;
   };
-  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'spark', '#0284c7', t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo'))]);
+  const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'ai', '#0284c7', t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') }), calRow()]);
   // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
   box.classList.add('q-cols');
-  box.replaceChildren(el('div', 'cx-tools-a', [weekCard()]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(L('學習', 'Study'), studyRows()), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai), section(t('tools.shareSection'), share)]));
+  box.replaceChildren(el('div', 'cx-tools-a', [weekCard()]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(L('學習', 'Study'), studyRows(), { ai: true }), section(t('tools.partsSection'), parts), section(t('tools.aiSection'), ai, { ai: true }), section(t('tools.shareSection'), share)]));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).

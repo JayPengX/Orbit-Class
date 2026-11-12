@@ -78,8 +78,9 @@ export function row({ cls = '', icon = null, title = '', sub = '', end = null, o
   return node;
 }
 // A page section: a 20px head (and a link on its right), then its body.
-export const section = (title, body, { more = '', onMore = null, cls = '' } = {}) =>
-  kitUI.section(title, body, { shd: true, cls: `cx-sec${cls ? ` ${cls}` : ''}`, action: more ? button('cx-more', onMore, more) : null });
+// (ai: the Orbit AI mark before the head, on a smart feature's section.)
+export const section = (title, body, { more = '', onMore = null, cls = '', ai = false } = {}) =>
+  kitUI.section(title, body, { shd: true, cls: `cx-sec${cls ? ` ${cls}` : ''}`, action: more ? button('cx-more', onMore, more) : null, ai });
 // Every [data-glyph] in the page's markup filled once.
 export function fillGlyphs(root = document) {
   root.querySelectorAll('[data-glyph]').forEach(node => {

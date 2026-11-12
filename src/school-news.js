@@ -195,7 +195,7 @@ function draw(news, sc, now) {
   drawn = key;
   box.hidden = !news || !mine.length;
   if (box.hidden) return box.replaceChildren();
-  const sec = section(L('學校公告', 'School news'), el('div', 'q-rowcard', mine.map(it => newsRow(it, now))), { more: L('全部', 'All'), onMore: () => openNewsSheet() });
+  const sec = section(L('學校公告', 'School news'), el('div', 'q-rowcard', mine.map(it => newsRow(it, now))), { more: L('全部', 'All'), onMore: () => openNewsSheet(), ai: true });
   box.replaceChildren(...sec.childNodes);
 }
 
