@@ -253,8 +253,11 @@ function openTransferSheet(focus = 'key') {
 // locale is active at the moment it's actually shown - a module-level
 // constant would freeze in whatever locale was active when this module
 // first loaded, and never pick up a later language switch.
-function offlineMessage() {
-  return t('editorCore.offlineMessage');
+// One short line per place, naming only what's locked there (the family's
+// own 沒有網路連線 pill already says the rest).
+const OFFLINE_KEYS = { 'ocr-import-status': 'geminiOcr.offline', 'sync-status': 'sync.offline', 'nl-edit-status': 'nlEdit.offline' };
+function offlineMessage(id) {
+  return t(OFFLINE_KEYS[id]);
 }
 // Toggles .is-offline on both sheets that can host a network-dependent AI
 // box - the transfer sheet (AI import, sync) and the schedule editor
@@ -274,19 +277,14 @@ function applyOfflineLock() {
   const ocrStatus = document.getElementById('ocr-import-status');
   const syncStatus = document.getElementById('sync-status');
   const nlEditStatus = document.getElementById('nl-edit-status');
+  const boxes = [ocrStatus, syncStatus, nlEditStatus].filter(Boolean);
   if (offline) {
-    const message = offlineMessage();
-    if (ocrStatus) ocrStatus.textContent = message;
-    if (syncStatus) syncStatus.textContent = message;
-    if (nlEditStatus) nlEditStatus.textContent = message;
+    boxes.forEach(box => (box.textContent = offlineMessage(box.id)));
   } else if (wasOffline) {
     // Only clear it if it's still showing our own message - connectivity
     // could have come back after some other, more recent status (a real
     // recognition error, a sync result) already replaced it.
-    const message = offlineMessage();
-    if (ocrStatus?.textContent === message) ocrStatus.textContent = '';
-    if (syncStatus?.textContent === message) syncStatus.textContent = '';
-    if (nlEditStatus?.textContent === message) nlEditStatus.textContent = '';
+    boxes.forEach(box => box.textContent === offlineMessage(box.id) && (box.textContent = ''));
   }
 }
 window.addEventListener('online', applyOfflineLock);

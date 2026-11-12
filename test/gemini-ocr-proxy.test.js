@@ -162,6 +162,20 @@ describe('AIVisionProcessor.recognizeSchedule with a configured proxy', () => {
     vi.unstubAllGlobals();
   });
 
+  it("stops at the proxy's daily cap too, in any language", async () => {
+    const processor = new AIVisionProcessor();
+    const fetchMock = vi.fn(async () => ({
+      ok: false,
+      status: 429,
+      statusText: 'Too Many Requests',
+      json: async () => ({ error: { code: 'DAILY_QUOTA_EXCEEDED', message: "Today's quota has been used up. Please try again tomorrow." } })
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(processor.recognizeSchedule(fakeFiles(), () => {})).rejects.toThrow(/quota/);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+
   // The actual bug report this addresses: Google's Gemini API rejects a
   // request based on the *proxy's* egress IP, not the end user's real
   // location - so this can surface for a user whose own location is fully
@@ -235,7 +249,7 @@ describe('AIVisionProcessor.recognizeSchedule with a configured proxy', () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     await expect(processor.recognizeSchedule(fakeFiles(), () => {})).rejects.toThrow(
-      /沒有網路連線/
+      /連上網路後/
     );
     expect(fetchMock).not.toHaveBeenCalled();
     vi.unstubAllGlobals();

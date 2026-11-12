@@ -156,6 +156,21 @@ describe('submitNlEdit - request shape', () => {
     vi.unstubAllGlobals();
   });
 
+  it("stops at the proxy's daily cap too, in any language", async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: false,
+      status: 429,
+      statusText: 'Too Many Requests',
+      json: async () => ({ error: { code: 'DAILY_QUOTA_EXCEEDED', message: '今日額度已用盡，請明天再試。' } })
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { calls, status } = statusRecorder();
+    await submitNlEdit('把我週二第一節改成物理', { status });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(calls.some(call => call.isError && /今日額度已用盡/.test(call.message))).toBe(true);
+    vi.unstubAllGlobals();
+  });
+
   // Google's Gemini API rejects a request based on the *proxy's* egress IP,
   // not the end user's real location - so this can surface for a user
   // whose own location is fully supported, whenever Cloudflare happens to
@@ -410,7 +425,7 @@ describe('submitNlEdit - offline', () => {
     const { calls, status } = statusRecorder();
     await submitNlEdit('把我週二第一節改成物理', { status });
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(calls.some(call => call.isError && /沒有網路連線/.test(call.message))).toBe(true);
+    expect(calls.some(call => call.isError && /連上網路後/.test(call.message))).toBe(true);
     vi.unstubAllGlobals();
     Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
   });

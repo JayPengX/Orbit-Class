@@ -1577,7 +1577,7 @@ img.q-tile.tr-app {
   display: none;
 }
 /* Offline: the parts that need the network say so by fading. */
-:is(.transfer-sheet, .editor-sheet).is-offline :is(#ocr-import-box, #nl-edit-box) {
+:is(.transfer-sheet, .editor-sheet).is-offline :is(#ocr-import-box, #nl-edit-box, #orbit-box .tr-card) {
   opacity: 0.45;
   pointer-events: none;
 }

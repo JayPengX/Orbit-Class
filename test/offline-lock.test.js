@@ -24,8 +24,8 @@ describe('applyOfflineLock: AI import and setting up sync need a real connection
     setOnline(false);
     applyOfflineLock();
     expect(document.getElementById('transfer-sheet').classList.contains('is-offline')).toBe(true);
-    expect(document.getElementById('ocr-import-status').textContent).toMatch(/沒有網路連線/);
-    expect(document.getElementById('sync-status').textContent).toMatch(/沒有網路連線/);
+    expect(document.getElementById('ocr-import-status').textContent).toMatch(/連上網路後/);
+    expect(document.getElementById('sync-status').textContent).toMatch(/連上網路後/);
   });
 
   it('unlocks and clears its own message once back online', () => {

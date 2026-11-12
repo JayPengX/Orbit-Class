@@ -22,7 +22,7 @@ export default {
   'nlEdit.swapTaken': 'One of those periods is already swapped; cancel that one first',
   'nlEdit.notConfigured':
     'AI schedule editing has not been set up yet. Please contact your schedule administrator.',
-  'nlEdit.offline': 'You are currently offline, so AI schedule editing is temporarily unavailable.',
+  'nlEdit.offline': 'One-line edits need a connection.',
   'nlEdit.emptyInput': 'Please enter what you would like to change first.',
   'nlEdit.working': 'Asking AI to parse the instruction…',
   'nlEdit.ready': 'AI has proposed a change. Please review and apply it.',
@@ -314,8 +314,7 @@ export default {
   'testsim.updating': 'Updating…',
   'editorCore.unnamedClassLabel': 'Unnamed',
   'editorCore.scheduleImpactLine': '{day} period {number}: {ref}',
-  'editorCore.offlineMessage':
-    'You are currently offline, so AI import and cross-device sync are temporarily unavailable.',
+  'sync.offline': 'Syncs once you are back online.',
   'editorCore.dragToReorder': 'Drag to reorder',
   'editorCore.expandToEdit': 'Expand to edit',
   'editorCore.eventNameLabel': 'Event name',
@@ -352,7 +351,7 @@ export default {
   'geminiOcr.fileReadFailed': 'Failed to read the file. Please try again.',
   'geminiOcr.notConfigured':
     'AI import has not been set up yet. Please contact your schedule administrator.',
-  'geminiOcr.offline': 'You are currently offline, so AI import is temporarily unavailable.',
+  'geminiOcr.offline': 'Reading a photo needs a connection.',
   'geminiOcr.selectFileFirst': 'Please select a file first.',
   'geminiOcr.requestingModel': 'Requesting the AI model ({model}) to analyze the schedule…',
   'geminiOcr.connectionFailedNextModel': 'Connection failed. Switching to the next model…',
