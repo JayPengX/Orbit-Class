@@ -317,7 +317,7 @@ export function heroView(vm, { now, week, todaySchedule, nextDay = null, holiday
   };
   const footFor = (c, w, label) => {
     const info = processSplitName(c, w);
-    return { label, name: info.n, subject: info.n, time: c.s, sub: [info.t, c.loc].filter(Boolean).join(' · ') };
+    return { label, name: info.n, subject: info.n, time: c.s, teacher: info.t || '', place: c.loc || '', sub: [info.t, c.loc].filter(Boolean).join(' · ') };
   };
   const last = today[today.length - 1];
   const lastNote = () => ({ note: t('dashboard.lastPeriodNote', { time: last.e }) });

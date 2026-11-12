@@ -62,7 +62,8 @@ export function tripOf(hero, rows, now = new Date(), f = fam) {
     if (!school || left <= 0 || left > 3 * 3_600_000) return null;
     return { to: 'school', hash: f.planHash(school, at.getTime()).slice(1) };
   }
-  if (hero.mode === 'off' && rows?.length && hero.strip) {
+  // (Once the day's over the card has no line of the day: today's classes say it was a school day.)
+  if (hero.mode === 'off' && rows?.length) {
     const home = f.placeFor('home');
     const last = parseTime(rows.at(-1).e);
     const mins = now.getHours() * 60 + now.getMinutes();
@@ -74,9 +75,9 @@ export function tripOf(hero, rows, now = new Date(), f = fam) {
 function tripChip(hero, rows, now) {
   const trip = tripOf(hero, rows, now);
   if (!trip) return null;
-  const pic = el('span', 'nv-words-mark nv-trip-mark');
+  const pic = el('span', 'q-tile sm soft nv-words-mark nv-trip-mark');
   pic.innerHTML = glyph('bus') || '';
-  return button('nv-words nv-trip q-press', () => goApp('transit', trip.hash), [
+  return button('nv-words nv-trip q-press', e => (e?.stopPropagation(), goApp('transit', trip.hash)), [
     pic,
     el('span', 'nv-words-text', [el('b', '', trip.to === 'school' ? L('怎麼去學校', 'Getting to school') : L('回家怎麼搭', 'Getting home')), el('small', '', trip.to === 'school' ? L('Orbit Transit 幫你排，第一節前 10 分鐘到', 'Orbit Transit plans it, there 10 minutes early') : L('Orbit Transit 從這裡排到家', 'Orbit Transit plans it from here'))])
   ]);
@@ -87,8 +88,9 @@ function wordsChip(hero, now) {
   if (!n) return null;
   const english = ENGLISH.test(`${hero.title || ''} ${hero.subject || ''}`);
   // (Through the session's go: a home-screen app arrives signed in.)
-  const go = () => goApp('vocab', 'five');
-  const pic = el('span', 'nv-words-mark');
+  // (A chip on the card: its tap is its own, never the card's class too.)
+  const go = e => (e?.stopPropagation(), goApp('vocab', 'five'));
+  const pic = el('span', 'q-tile sm soft nv-words-mark');
   pic.innerHTML = glyph('book') || '';
   const b = button('nv-words q-press', go, [
     pic,
@@ -127,7 +129,7 @@ function bigTime(secs, label, toSecond) {
     const mins = Math.ceil(secs / 60);
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    parts = h ? [num(h), unit(L('小時', 'h')), m ? num(m) : null, unit(m ? L('分', 'm') + tail : tail)] : [num(m), unit(L('分鐘', 'min') + tail)];
+    parts = h ? (m ? [num(h), unit(L('小時', 'h')), num(m), unit(L('分', 'm') + tail)] : [num(h), unit(L('小時', 'h') + tail)]) : [num(m), unit(L('分鐘', 'min') + tail)];
   }
   return withId(el('div', 'nv-big', parts), 'timer-val');
 }
@@ -213,7 +215,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
   const top = rest ? null : el('div', 'nv-top', [el('span', 'nv-kicker', [hero.mode === 'class' ? el('i', 'nv-live') : null, withId(el('span', '', kicker), 'cx-kicker')]), withId(el('span', 'nv-span', ahead ? `${f.label} ${f.time}` : hero.span || ''), 'cx-span')]);
   const parts = f?.sub ? f.sub.split(' · ') : [];
   const main = ahead
-    ? band(f.name, parts.length > 1 ? parts[0] : '', parts.at(-1) || '')
+    ? band(f.name, f.teacher ?? (parts.length > 1 ? parts[0] : ''), f.place ?? (parts.at(-1) || ''))
     : hero.subject
       ? band(hero.title, [hero.teacher, plain(hero.label)].filter(Boolean).join(' · '), hero.place)
       : rest

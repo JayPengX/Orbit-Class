@@ -284,7 +284,7 @@ describe('heroView: the card says one thing', () => {
     const h = hero(at(8, 20));
     expect(h).toMatchObject({ mode: 'class', kicker: '第 1 節 · 上課中', span: '08:00–08:50', title: '數學', teacher: '王老師', place: '101' });
     expect(h.timer).toEqual({ value: '30:00', label: '後下課' });
-    expect(h.foot).toEqual({ label: '下一節', name: '國文', subject: '國文', time: '09:10', sub: '李老師 · 102' });
+    expect(h.foot).toEqual({ label: '下一節', name: '國文', subject: '國文', time: '09:10', teacher: '李老師', place: '102', sub: '李老師 · 102' });
     expect(h.footAt).toBe(1);
   });
   it('footAt names the class along the foot, so a tap on 接著 opens that one', () => {
@@ -306,7 +306,7 @@ describe('heroView: the card says one thing', () => {
     const h = heroView(compute(now, { breakTimes: night }), { now, week: '單', todaySchedule, nextDay: { label: '明天', first: todaySchedule[0], week: '雙' } });
     expect(h).toMatchObject({ mode: 'break', title: '就寢時間', span: '22:00–06:00' });
     expect(h.timer.label).toBe('後結束');
-    expect(h.foot).toEqual({ label: '明天', name: '數學', subject: '數學', time: '08:00', sub: '王老師 · 101' });
+    expect(h.foot).toEqual({ label: '明天', name: '數學', subject: '數學', time: '08:00', teacher: '王老師', place: '101', sub: '王老師 · 101' });
   });
   it('the day over: its state, and the next school day along the foot', () => {
     const h = hero(at(12, 0), { nextDay: { label: '明天', first: todaySchedule[1], week: '雙' } });

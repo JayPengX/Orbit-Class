@@ -61,7 +61,8 @@ export function openModal(shown, { date = null } = {}) {
   let count = 0;
   for (const d of [1, 2, 3, 4, 5])
     for (const item of state.runtimeSchedule[d] || []) {
-      if (c.isSplit ? !terms.some(x => item.n.includes(x)) : item.n !== c.n) continue;
+      // (The subject as it is that week: a 國文／公民 period counts for 公民 in a 雙週, never for both.)
+      if (item.n !== c.n && processSplitName(item, week).n !== info.n) continue;
       count += 1;
       (days[d] ||= []).push({ n: item.p + 1, s: item.s });
     }

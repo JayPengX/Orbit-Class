@@ -20,14 +20,16 @@ function buildSchedule() {
         ];
         const bt = state.applicationData.bellTimes[i];
         if (!bt) return null;
+        // (「／」, as the editor's hint and a phone's Chinese keys write it, splits like "/".)
+        const n = String(m[0] || '').replace(/／/g, '/');
         return {
           key,
-          n: m[0],
-          t: m[1],
+          n,
+          t: String(m[1] || '').replace(/／/g, '/'),
           s: bt[0],
           e: bt[1],
           p: i,
-          isSplit: m[0].includes('/'),
+          isSplit: n.includes('/'),
           loc: state.applicationData.locationDB[key] || ''
         };
       })

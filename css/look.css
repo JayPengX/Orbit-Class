@@ -298,17 +298,10 @@ html[data-look='native'][data-look='native'] .nv-words {
   text-align: left;
   cursor: pointer;
 }
+/* (Its mark the kit's tinted tile: the glyph drawn as a line, on a wash of its colour.) */
 html[data-look='native'] .nv-words-mark {
-  display: inline-flex;
+  --t: var(--q-teal, #30b0c7);
   flex: none;
-  width: 20px;
-  height: 20px;
-  color: var(--q-teal, #30b0c7);
-}
-html[data-look='native'] .nv-words-mark svg {
-  width: 100%;
-  height: 100%;
-  fill: currentColor;
 }
 html[data-look='native'] .nv-words-text {
   display: flex;

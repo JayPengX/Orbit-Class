@@ -70,3 +70,20 @@ describe('課表’s week grid puts each class in its own period’s row', () =>
     expect(at(2, 2).textContent).toBe('數學');
   });
 });
+
+// 11-12 testing: the editor's hint (and a phone's Chinese keys) write 「／」; it splits by week like "/".
+describe('a class split by week with the full-width slash', () => {
+  it('國文／公民 is 國文 in a 單週 and 公民 in a 雙週, each counted in its own week', async () => {
+    const { processSplitName, getWeekType } = await import('../src/schedule.js');
+    state.applicationData = { ...fixture(), teacherDB: { A: ['數學', '王老師', ''], B: ['英文', '林老師', ''], C: ['國文／公民', '李老師／蔡老師', ''], D: ['公民', '蔡老師', ''] }, weeklySchedule: { 1: ['C', 'D'], 2: ['A', 'B'] }, classSwaps: [] };
+    buildSchedule();
+    const c = state.runtimeSchedule[1][0];
+    expect(c.isSplit).toBe(true);
+    expect(processSplitName(c, '單')).toMatchObject({ n: '國文', t: '李老師' });
+    expect(processSplitName(c, '雙')).toMatchObject({ n: '公民', t: '蔡老師' });
+    // A 雙週 Monday: 公民 meets twice that week (the split period and its own).
+    const even = [new Date(2026, 10, 9), new Date(2026, 10, 16)].find(d => getWeekType(d) === '雙');
+    openModal(c, { date: even });
+    expect(document.querySelector('#m-count').textContent).toBe('2');
+  });
+});

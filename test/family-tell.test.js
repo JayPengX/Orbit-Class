@@ -66,8 +66,8 @@ describe('出門時間', () => {
   });
   it('the day over: home, within three hours of the last class', async () => {
     const { tripOf } = await import('../src/view-today.js');
-    expect(tripOf({ mode: 'off', strip: {} }, rows, new Date(2026, 10, 11, 16, 20), f).hash).toBe('plan?to=24.7,121,家');
-    expect(tripOf({ mode: 'off', strip: {} }, rows, new Date(2026, 10, 11, 20, 0), f)).toBe(null);
+    expect(tripOf({ mode: 'off', strip: null }, rows, new Date(2026, 10, 11, 16, 20), f).hash).toBe('plan?to=24.7,121,家');
+    expect(tripOf({ mode: 'off', strip: null }, rows, new Date(2026, 10, 11, 20, 0), f)).toBe(null);
     expect(tripOf({ mode: 'class' }, rows, new Date(2026, 10, 11, 10, 0), f)).toBe(null);
   });
 });
