@@ -399,7 +399,7 @@ export default {
   'editorTeachers.splitWeekHintBody': '兩週不同時以「／」分隔（例：國文／公民）',
   'editorCore.scheduleFoldLabel': '課表',
   'nlEdit.headingLabel': 'AI 課表編輯',
-  'nlEdit.inputPlaceholder': '例如：把週二第三節改成物理、下週三幾點放學？',
+  'nlEdit.inputPlaceholder': '例如：週二第三節改成物理',
   'common.submit': '送出',
   'editorSchedule.addPeriodButton': '新增節次',
   'editorSchedule.specialTimeFoldLabel': '特殊時段',

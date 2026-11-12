@@ -445,7 +445,7 @@ export default {
   'editorCore.scheduleFoldLabel': 'Timetable',
   'nlEdit.headingLabel': 'AI timetable editing',
   'common.submit': 'Submit',
-  'nlEdit.inputPlaceholder': 'e.g. Make Tue period 3 Physics, or: when am I out next Wed?',
+  'nlEdit.inputPlaceholder': 'e.g. Tue period 3 to Physics',
   'editorSchedule.addPeriodButton': 'Add period',
   'editorSchedule.specialTimeFoldLabel': 'Special time slots',
   'editorSchedule.addSpecialTimeButton': 'Add special time slot',
