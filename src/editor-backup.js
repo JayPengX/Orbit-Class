@@ -571,6 +571,21 @@ function isPureReorder(beforeKeys, afterKeys) {
   const sortedAfter = [...afterKeys].sort();
   return sortedBefore.every((key, index) => key === sortedAfter[index]);
 }
+function diffBreaks(before = [], after = []) {
+  const text = b => `${b.name} ${b.start}-${b.end}`;
+  const was = (before || []).filter(Boolean);
+  const now = (after || []).filter(Boolean);
+  const gone = was.filter(b => !now.some(x => text(x) === text(b)));
+  const come = now.filter(b => !was.some(x => text(x) === text(b)));
+  const items = [];
+  for (const b of gone) {
+    const moved = come.find(x => x.name === b.name);
+    if (moved) items.push(t('editorBackup.breakChange', { name: b.name, before: `${b.start}-${b.end}`, after: `${moved.start}-${moved.end}` }));
+    else items.push(t('editorBackup.removed', { item: text(b) }));
+  }
+  for (const b of come) if (!gone.some(x => x.name === b.name)) items.push(t('editorBackup.added', { item: text(b) }));
+  return items;
+}
 function describeSettingsDiff(current, next, { isImport = false } = {}) {
   const lines = [];
   const teacherItems = [];
@@ -642,13 +657,9 @@ function describeSettingsDiff(current, next, { isImport = false } = {}) {
   );
   pushDiff(lines, t('editorBackup.sectionBellTimes'), bellItems);
 
-  const breakItems = diffIndexedArrays(
-    current.breakTimes,
-    next.breakTimes,
-    item => (item ? `${item.name} ${item.start}-${item.end}` : t('editorBackup.noneValue')),
-    (i, beforeText, afterText) =>
-      t('editorBackup.breakChange', { number: i + 1, before: beforeText, after: afterText })
-  );
+  // Breaks by what they are, not their place in the list (kept in time order): one
+  // deleted read as every later one changing into the next (11-12 testing).
+  const breakItems = diffBreaks(current.breakTimes, next.breakTimes);
   pushDiff(lines, t('editorBackup.sectionBreakTimes'), breakItems);
 
   const scheduleItems = [];

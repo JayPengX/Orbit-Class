@@ -187,7 +187,7 @@ export default {
   'editorBackup.noneValue': '（無）',
   'editorBackup.periodChange': '第 {number} 節：{before} -> {after}',
   'editorBackup.sectionBellTimes': '節次時間',
-  'editorBackup.breakChange': '休息時段 {number}：{before} -> {after}',
+  'editorBackup.breakChange': '{name}：{before} -> {after}',
   'editorBackup.sectionBreakTimes': '休息時段',
   'editorBackup.scheduleCellChange': '{day}第 {number} 節：{before} -> {after}',
   'editorBackup.sectionScheduleContent': '課表內容',

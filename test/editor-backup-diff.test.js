@@ -101,3 +101,17 @@ describe('describeSettingsDiff: no truncation for a long diff', () => {
     }
   });
 });
+
+// 11-12 testing: one break deleted read as every later break turning into the next.
+describe('the save diff names breaks by what they are', () => {
+  it('a deleted break is one line, a moved one says its times', () => {
+    const base = buildFixtureData();
+    const current = { ...base, breakTimes: [{ name: '中午時間', start: '12:00', end: '13:00' }, { name: '打掃時間', start: '15:00', end: '15:10' }, { name: '就寢', start: '23:00', end: '06:30' }] };
+    const next = { ...base, breakTimes: [{ name: '打掃時間', start: '15:10', end: '15:20' }, { name: '就寢', start: '23:00', end: '06:30' }, { name: '早自習', start: '07:30', end: '08:00' }] };
+    const text = describeSettingsDiff(current, next);
+    expect(text).toContain('移除 中午時間 12:00-13:00');
+    expect(text).toContain('打掃時間：15:00-15:10 -> 15:10-15:20');
+    expect(text).toContain('新增 早自習 07:30-08:00');
+    expect(text).not.toContain('就寢');
+  });
+});

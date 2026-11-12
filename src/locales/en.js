@@ -214,7 +214,7 @@ export default {
   'editorBackup.noneValue': '(none)',
   'editorBackup.periodChange': 'Period {number}: {before} -> {after}',
   'editorBackup.sectionBellTimes': 'Period times',
-  'editorBackup.breakChange': 'Break {number}: {before} -> {after}',
+  'editorBackup.breakChange': '{name}: {before} -> {after}',
   'editorBackup.sectionBreakTimes': 'Break times',
   'editorBackup.scheduleCellChange': '{day} period {number}: {before} -> {after}',
   'editorBackup.sectionScheduleContent': 'Schedule content',

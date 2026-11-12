@@ -361,6 +361,7 @@ function addCountdownEventRow(event = { name: '', startDate: '', endDate: '' }, 
   row.querySelector('.delete-btn').addEventListener('click', () => {
     if (list.children.length > 1) row.remove();
     else row.querySelectorAll('input').forEach(input => (input.value = ''));
+    refreshCountdownMoveButtons();
   });
   bindEditorCardToggle(row);
   list.appendChild(row);
@@ -385,6 +386,9 @@ function addCountdownEventRow(event = { name: '', startDate: '', endDate: '' }, 
 }
 function refreshCountdownMoveButtons() {
   const rows = [...document.querySelectorAll('#countdown-event-list .countdown-event-row')];
+  // (Twelve is the most: 新增倒數 then does nothing, so it's off until one goes.)
+  const add = document.querySelector('#editor-fold-countdown .ed-add');
+  if (add) add.disabled = rows.length >= 12;
   rows.forEach((row, index) => {
     row
       .querySelector('.teacher-drag-handle')
