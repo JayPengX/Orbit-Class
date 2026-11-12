@@ -249,9 +249,9 @@ function normalizeClassSwaps(value) {
     used.add(ka);
     used.add(kb);
     out.push({ a, b });
-    if (out.length >= MAX_CLASS_SWAPS) break;
   }
-  return out;
+  // At most 60: the oldest go (a new swap is added last; keeping the first 60 dropped the new one).
+  return out.slice(-MAX_CLASS_SWAPS);
 }
 // The swaps after the bell times changed: each side's period found again by
 // its time (a period deleted, added or the list sorted moved every later

@@ -20,6 +20,17 @@ beforeAll(async () => {
   ({ decodeTransferData, encodeTransferData, normalizeSettingsData } = await import('../src/editor-backup.js'));
 });
 
+describe('調課 kept at most 60', () => {
+  it('the 61st (the newest, added last) stays and the oldest goes', () => {
+    const day = i => `2026-12-${String(1 + Math.floor(i / 4)).padStart(2, '0')}`;
+    const list = Array.from({ length: 61 }, (_, i) => ({ a: { date: day(i), p: (i % 4) * 2 }, b: { date: day(i), p: (i % 4) * 2 + 1 } }));
+    const kept = normalizeClassSwaps(list);
+    expect(kept).toHaveLength(60);
+    expect(kept.at(-1)).toEqual(list[60]);
+    expect(kept[0]).toEqual(list[1]);
+  });
+});
+
 describe('impossible dates are not dates', () => {
   it('a swap on 2026-02-30 is dropped', () => {
     expect(normalizeClassSwaps([{ a: { date: '2026-02-30', p: 0 }, b: { date: '2026-03-02', p: 1 } }])).toEqual([]);
