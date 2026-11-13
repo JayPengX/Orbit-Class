@@ -40,7 +40,13 @@ export function cleanTitle(t = '') {
   for (let i = 0; i < 3; i++) s = s.replace(/^\s*(?:【[^】」]{1,8}[】」]|\[[^\]]{1,8}\]|<[^>]{1,8}>|〔[^〕]{1,8}〕|（[^）]{1,6}）)\s*/, '');
   return s.replace(/^公告(?:本校)?/, '').replace(/[。．.！!]+$/, '').trim() || String(t).trim();
 }
-export const words = it => (it.line || '').replace(/[。．.！!]+$/, '') || cleanTitle(it.title);
+export const words = it => (getLocale() === 'en' && it.en) || (it.line || '').replace(/[。．.！!]+$/, '') || cleanTitle(it.title);
+// (One language, Jay 11-13: in English, the AI's English line and what to do; a school office by its English name, else left out.)
+const UNIT_EN = { 教務處: 'Academic Affairs', 學務處: 'Student Affairs', 總務處: 'General Affairs', 輔導室: 'Counseling', 輔導處: 'Counseling', 圖書館: 'Library', 註冊組: 'Registration', 教學組: 'Teaching', 實研組: 'Research', 設備組: 'Equipment', 訓育組: 'Activities', 生輔組: 'Student Life', 生教組: 'Student Life', 衛生組: 'Health', 體育組: 'Sports', 人事室: 'Personnel', 會計室: 'Accounting', 主計室: 'Accounting', 校長室: 'Principal’s Office', 教官室: 'Military Training', 資訊組: 'IT', 特教組: 'Special Education', 進修部: 'Night School', 實習處: 'Internships', 健康中心: 'Health Center' };
+// (What has no English yet, a title the AI hasn't worded, marked Chinese for the reader's voice.)
+const zhMarked = node => (getLocale() === 'en' && /[\u3400-\u9fff]/.test(node.textContent) && (node.lang = 'zh-Hant'), node);
+const unitOf = it => (getLocale() === 'en' ? UNIT_EN[String(it.unit || '').trim()] || '' : it.unit || '');
+const actOf = it => (getLocale() === 'en' ? (it.en ? it.actEn || '' : '') : it.act || '');
 export const KINDS = {
   exam: { re: /段考|期中考|期末考|模擬考|考程|補考|複習考|小考|(?<!招生|入學|單獨招生)考試/, name: ['考試', 'Exams'], icon: 'pencil', color: 'var(--q-red)' },
   apply: { re: /學測|分科|甄選入學|申請入學|特殊選才|招生|升學|四技|二專|繁星|志願|簡章/, name: ['升學', 'University'], icon: 'school', color: 'var(--q-indigo, #6366f1)' },
@@ -150,14 +156,14 @@ function newsRow(it, now = new Date()) {
   const ahead = it.by && it.by >= today;
   const soon = ahead && it.by <= dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));
   const day = it.date === today ? L('今天', 'Today') : it.date ? short(it.date) : '';
-  const bits = [day, it.unit || '', it.act || ''].filter(Boolean).join(' · ');
+  const bits = [day, unitOf(it), actOf(it)].filter(Boolean).join(' · ');
   // The day as a tag only where the line doesn't already say it; 截止 only
   // where the words say it's a deadline (the AI's `by` is also an event's day).
   const md = it.by ? short(it.by) : '';
   const said = md && new RegExp(`(^|[^\\d])${md}($|[^\\d])`).test(words(it));
   const due = /截止|為止|止$|前$|前繳|前報名|前上傳/.test(`${it.title} ${it.line || ''} ${it.act || ''}`);
   const by = ahead && !said ? kitUI.tag?.(due ? L(`${md} 截止`, `by ${md}`) : md, '', soon ? '#f97316' : '') || el('span', 'q-tag', md) : null;
-  const r = button(`q-ritem chevron cx-news is-${k}`, () => kit.openLink?.(it.url) ?? window.open(it.url, '_blank', 'noopener'), [tile(KINDS[k].icon, KINDS[k].color), el('span', 'q-ritem-text', [el('span', 'q-ritem-title', words(it)), el('small', '', bits)]), by]);
+  const r = button(`q-ritem chevron cx-news is-${k}`, () => kit.openLink?.(it.url) ?? window.open(it.url, '_blank', 'noopener'), [tile(KINDS[k].icon, KINDS[k].color), el('span', 'q-ritem-text', [zhMarked(el('span', 'q-ritem-title', words(it))), zhMarked(el('small', '', bits))]), by]);
   r.title = it.title;
   return r;
 }
