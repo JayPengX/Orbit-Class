@@ -18,7 +18,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 <p align="center">
   <img src="docs/screenshots/class-1.webp" width="30%" alt="What's on now, and how long is left">
   <img src="docs/screenshots/class-2.webp" width="30%" alt="Your whole week, odd and even weeks">
-  <img src="docs/screenshots/class-3.webp" width="30%" alt="To-dos and exam countdowns">
+  <img src="docs/screenshots/class-3.webp" width="30%" alt="A study plan for every exam">
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 <p align="center">
   <img src="docs/screenshots/class-1.zh.webp" width="30%" alt="現在上什麼、還剩幾分鐘">
   <img src="docs/screenshots/class-2.zh.webp" width="30%" alt="整週課表，單雙週都對">
-  <img src="docs/screenshots/class-3.zh.webp" width="30%" alt="待辦與考試倒數">
+  <img src="docs/screenshots/class-3.zh.webp" width="30%" alt="考前讀書計畫，照範圍排好">
 </p>
 
 <p align="center">
