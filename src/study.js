@@ -39,7 +39,7 @@ export function openStudyPlan(first = null, now = new Date()) {
   const st = { exam: null, perDay: 60, picked: new Map(), planned: null };
   const s = kitUI.sheet({ title: L('考前讀書計畫', 'Study plan'), body: [body], foot, cls: 'cx-kit-sheet', detent: 'large', closeLabel: L('關閉', 'Close') });
   if (!exams.length) {
-    body.append(kitUI.empty({ icon: 'flag', title: L('沒有要考的', 'No exam coming'), body: L('在倒數加段考，或拍聯絡簿把小考加進待辦。', 'Add an exam to the countdowns, or a test to 待辦.') }));
+    body.append(kitUI.empty({ icon: 'flag', title: L('沒有要考的', 'No exam coming'), body: L('在倒數加段考，或拍聯絡簿把小考加進待辦。', 'Add an exam to the countdowns, or a quiz to To do from your contact book.') }));
     if (btn) btn.disabled = true;
     return;
   }
