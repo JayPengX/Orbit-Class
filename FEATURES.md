@@ -11,6 +11,7 @@ To remove a feature on purpose, delete its line here in the same commit and say 
 - 拍照匯入 and 分享金鑰 — `src/locales/zh-TW.js`: `拍照匯入`, `分享金鑰`
 - Typhoon 停課 as a day off — `src/holidays.js`: `dayoff`, `停課`
 - 專注飛行 (a focus timer following a real plane) — `src/flight.js`: `openFlight`, `resumeFlight`
+- 專注飛行 follows the account: begun, handed over, landed or ended in one place (Orbit, the separate app, another device), Class opened anywhere else flies the same flight — `src/flight-store.js`, `src/flight.js`, `src/sync.js`: `focusChanged`, `focusFromPass`, `flightFromPass`
 - A class's icon and colour picked (class sheet, 編輯課表) — `src/subject-picker.js`: `openSubjectPicker`, `subjectColors`
 - 加到行事曆 (the timetable in the phone's Calendar, kept current) — `src/calendar.js`, `src/tools.js`: `buildIcs`, `keepCalendar`, `calRow`
 - 待辦 on 今天, kept with the timetable — `src/todos.js`, `src/todos-data.js`: `renderTodos`, `openTodoSheet`, `todoEntry`

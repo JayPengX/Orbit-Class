@@ -34,9 +34,16 @@ import {
 } from '#kit/orbit.mjs';
 import { h, toast } from '#kit/ui.mjs';
 import { glyph } from './ui.js';
+import { focusFromPass, focusHeard } from './flight-store.js';
 
 const lang = detectLang();
 const q = orbitSession('orbit', { lang });
+// 專注飛行 begun, handed over or ended in another place (Orbit, the separate
+// app, another device): taken up here (one account, many places, 11-13).
+q.on?.('now', shelf => {
+  if (focusFromPass(q, shelf)) import('./flight.js').then(m => m.flightFromPass()).catch(() => {});
+});
+q.on?.('claim', c => c?.ok && focusHeard(q));
 function isSyncConfigured() {
   return Boolean(q.pass);
 }

@@ -33,7 +33,7 @@ import {
   hasZhAirline,
   hasZhCity
 } from './flight-plan.js';
-import { loadFocus } from './flight-store.js';
+import { loadFocus, focusChanged } from './flight-store.js';
 import { musicWanted, wantMusic, warmMusic, startMusic, stopMusic, toggleMusic, onMusic } from './focus-music.js';
 
 const zh = () => getLocale() !== 'en';
@@ -41,13 +41,16 @@ const POLL_MS = 15_000;
 const MIN_KEY = 'class.flight.min';
 
 // ---- Kept on the phone ----
-function save(focus) {
+// (`pass`: a change the account's other places take up too: begun, handed
+// over, landed, ended; flight-store.js focusChanged.)
+function save(focus, { pass = false } = {}) {
   try {
     if (focus) localStorage.setItem(STORE_KEY, JSON.stringify(focus));
     else localStorage.removeItem(STORE_KEY);
   } catch {
     // (Private browsing, or a full store: this run still works.)
   }
+  if (pass) focusChanged(orbitSession, focus);
 }
 let focus = loadFocus();
 
@@ -252,7 +255,7 @@ function start(flight, minutes) {
   // (In the tap: iOS plays music only from one.)
   if (musicWanted()) startMusic();
   focus = newFocus(flight, minutes, Date.now());
-  save(focus);
+  save(focus, { pass: true });
   bookNotice();
   sheet?.close();
   kitUI.tick?.();
@@ -382,7 +385,7 @@ async function handOff() {
     const next = flights.find(f => f.hex !== leg.hex);
     if (!next || !focus || focus.done) return;
     focus.legs.push(legOf(next));
-    save(focus);
+    save(focus, { pass: true });
     kitUI.toast(t('flight.handoff', { no: flightNo(leg.no), city: cityName(leg.to, zh()), next: flightNo(next.no) }), { ms: 4000 });
     draw();
   } catch {
@@ -398,7 +401,7 @@ async function endEarly() {
 function finishUp() {
   stopMusic();
   focus = null;
-  save(null);
+  save(null, { pass: true });
   bookNotice();
   closeFocus();
   hideMini();
@@ -449,7 +452,7 @@ function drawMini() {
   if (up && !focus.done) {
     focus.done = true;
     focus.doneAt = focus.end;
-    save(focus);
+    save(focus, { pass: true });
     bookNotice();
   }
   mini.root.classList.toggle('is-up', up);
@@ -586,7 +589,7 @@ function draw() {
   if (!focus.done && now >= focus.end) {
     focus.done = true;
     focus.doneAt = focus.end;
-    save(focus);
+    save(focus, { pass: true });
     bookNotice();
     stopMusic();
     kitUI.tick?.();
@@ -651,6 +654,23 @@ function endCard(leg, p) {
         draw();
       }, t('flight.watch'));
   return [el('div', 'cx-fl-done', [trip, el('h2', '', title), el('p', 'cx-fl-done-sub', lines), still]), el('div', 'cx-fl-actions', [done, watch])];
+}
+
+// The focus as another place left it (flight-store.js focusFromPass kept it
+// on the phone): flown here from where it is, or ended here too.
+export function flightFromPass() {
+  const was = Boolean(focus);
+  const shrunk = !screen && Boolean(mini);
+  focus = loadFocus();
+  closeFocus();
+  hideMini();
+  if (!focus) {
+    if (was) stopMusic();
+    return bookNotice();
+  }
+  // (Shrunk here, it stays a pill; else the flight's screen.)
+  if (shrunk) focus.mini = true;
+  resumeFlight();
 }
 
 // Opened again with a focus running (the app closed mid-flight): straight back to it.
