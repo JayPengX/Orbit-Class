@@ -81,3 +81,19 @@ afterAll(() => {
 // the phone layout; the wide one is CSS and screenshots (tools/shots.mjs).
 Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true, writable: true });
 Object.defineProperty(window, 'innerHeight', { value: 844, configurable: true, writable: true });
+
+// Nothing off this machine (as the other apps' kit/no-net.mjs): the kit
+// reads the proxy's /config on import, and every test file's jsdom did it
+// for real (32 Workers requests a run, 2026-11-13, on the Free plan's
+// 100,000 a day). A test that wants an answer stubs fetch itself.
+{
+  const real = globalThis.fetch;
+  const local = u => {
+    try {
+      return /^(localhost|127\.|0\.0\.0\.0|\[?::1\]?$)/.test(new URL(String(u?.url || u), 'http://localhost/').hostname);
+    } catch {
+      return true;
+    }
+  };
+  globalThis.fetch = window.fetch = (input, init) => (local(input) ? real(input, init) : Promise.reject(new TypeError('no-net: the tests reach nothing off this machine')));
+}
