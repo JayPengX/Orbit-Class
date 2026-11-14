@@ -156,12 +156,14 @@ function renderTools(again = false) {
     card.style.setProperty('--subject', color);
     return card;
   };
+  // (Both ways are Orbit AI's: the section is gone with none on the account, kit aiLock.)
+  const aiOnly = n => (n.setAttribute('data-ai-only', ''), n);
   const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'ai', '#0284c7', t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo'))]);
   const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') }), calRow()]);
   // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
   box.classList.add('q-cols');
   // (The timetable's parts under it, so the two columns end about level.)
-  box.replaceChildren(el('div', 'cx-tools-a', [weekCard(), section(t('tools.partsSection'), parts)]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(L('學習', 'Study'), studyRows(), { ai: true }), section(t('tools.aiSection'), ai, { ai: true }), section(t('tools.shareSection'), share)]));
+  box.replaceChildren(el('div', 'cx-tools-a', [weekCard(), section(t('tools.partsSection'), parts)]), el('div', 'cx-tools-b', [section(t('flight.section'), flightCard()), section(L('學習', 'Study'), studyRows(), { ai: true }), aiOnly(section(t('tools.aiSection'), ai, { ai: true })), section(t('tools.shareSection'), share)]));
 }
 
 // Kept current while it's on screen (a timetable arriving from the pass).
