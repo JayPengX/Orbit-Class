@@ -6,14 +6,16 @@
 
 <p align="center">
   <b>Today's classes at a glance.</b><br>
-  <a href="https://orbit.jaypengx.com/class/"><b>orbit.jaypengx.com/class</b></a>
+  <a href="https://orbit.jaypengx.com/app/"><b>Use it in Orbit</b></a> · on its own at <a href="https://orbit.jaypengx.com/class/">orbit.jaypengx.com/class</a>
 </p>
 
 <p align="center">
   <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-ES_modules-F7DF1E?logo=javascript&logoColor=000"> <img alt="Vite" src="https://img.shields.io/badge/Vite-build-646CFF?logo=vite&logoColor=fff"> <img alt="PWA" src="https://img.shields.io/badge/PWA-works_offline-5A0FC8?logo=pwa&logoColor=fff"> <img alt="Cloudflare" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=fff"> <img alt="Tests" src="https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=fff">
 </p>
 
-The class now and what comes next, at a glance. Part of **Orbit**, a family of apps for life in Taiwan that share one sign-in, the Orbit Pass. See them all at [orbit.jaypengx.com](https://orbit.jaypengx.com/pass/).
+The class now and what comes next, at a glance. Part of **Orbit**, a family of apps for life in Taiwan that share one sign-in, the Orbit Pass.
+
+> **Best in Orbit.** Add [Orbit](https://orbit.jaypengx.com/app/) to your home screen: every Orbit app in one, signed in once, switching between them without reloading. Orbit Class also works on its own at [orbit.jaypengx.com/class](https://orbit.jaypengx.com/class/) if it's the only one you want.
 
 <p align="center">
   <img src="docs/screenshots/class-1.webp" width="30%" alt="What's on now, and how long is left">
@@ -128,6 +130,8 @@ The time simulation panel (in the transfer sheet, under Advanced) sets any day a
 Push to `main`. GitHub Actions runs the tests, builds with Vite and publishes `dist/` to Cloudflare at its orbit.jaypengx.com address (Orbit-Core `deploy/cf-site.mjs`). There are no pull requests or release branches.
 
 ## Part of Orbit
+
+Every app below is in **[Orbit](https://orbit.jaypengx.com/app/)**, one home-screen app for them all; each also works on its own.
 
 | App | What it is |
 | --- | --- |
