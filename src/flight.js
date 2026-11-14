@@ -259,7 +259,7 @@ function start(flight, minutes) {
   save(focus, { pass: true });
   bookNotice();
   sheet?.close();
-  kitUI.tick?.();
+  kitUI.tick();
   openFocus();
 }
 function bookNotice() {
@@ -419,7 +419,7 @@ function minimize() {
   save(focus);
   closeFocus();
   showMini();
-  kitUI.tick?.();
+  kitUI.tick();
 }
 function showMini() {
   if (!focus || mini) return;
@@ -593,7 +593,7 @@ function draw() {
     save(focus, { pass: true });
     bookNotice();
     stopMusic();
-    kitUI.tick?.();
+    kitUI.tick();
   }
   if (!focus.done && wantsHandoff(focus, now)) handOff();
   const leg = currentLeg(focus);

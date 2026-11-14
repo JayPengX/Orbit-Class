@@ -149,8 +149,8 @@ function hashOf(text) {
   for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
   return (h >>> 0).toString(36);
 }
-const read = () => kit.readJson?.(KEY, null) ?? null;
-const write = v => kit.writeJson?.(KEY, v);
+const read = () => kit.readJson(KEY, null) ?? null;
+const write = v => kit.writeJson(KEY, v);
 export const calendarOn = () => !!read()?.url;
 
 async function upload(ics) {
@@ -158,7 +158,7 @@ async function upload(ics) {
   return r?.url ? r : null;
 }
 // The address the Calendar app subscribes to.
-export const subscribeUrl = url => `${(kit.API || '').replace(/^https?:/, 'webcal:')}${url}`;
+export const subscribeUrl = url => `${kit.API.replace(/^https?:/, 'webcal:')}${url}`;
 
 // Turned on (a tap): the calendar handed over, then the Calendar app asked to subscribe.
 export async function addCalendar() {

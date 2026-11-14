@@ -27,7 +27,7 @@ export function familyDays(now = new Date(), n = 14) {
 }
 
 // Told after the timetable is built (a phone that opens Class keeps the
-// next two weeks current); a kit without the notebook: nothing.
+// next two weeks current).
 export function tellFamily(now = new Date()) {
   const days = familyDays(now);
   return import('#kit/family.mjs').then(f => f.tell?.('class', 'days', days)).catch(() => {});

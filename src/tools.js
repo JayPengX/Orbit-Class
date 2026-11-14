@@ -79,7 +79,7 @@ const PLANE_GLYPH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="cur
 
 // 加到行事曆 (src/calendar.js, loaded on the tap): the timetable in the phone's
 // Calendar by subscription; on, a tap offers to stop it.
-const calOn = () => kit.readStore?.('class.cal.v1')?.includes('url');
+const calOn = () => kit.readStore('class.cal.v1')?.includes('url');
 function calRow() {
   const r = row({
     cls: 'cx-way is-cal',

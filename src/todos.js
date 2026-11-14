@@ -98,7 +98,7 @@ function todoRow(t, { onToggle, onOpen, now = new Date() } = {}) {
 const toggle = t => {
   const list = todos().map(x => (x.id === t.id ? { ...x, done: !x.done } : x));
   saveTodos(list);
-  kitUI.tick?.();
+  kitUI.tick();
 };
 
 // ---- 今天's section ----
@@ -235,7 +235,7 @@ export function openTodoSheet(todo) {
   const remove = todo ? button('q-btn tinted danger block cx-todo-remove', () => {
     saveTodos(todos().filter(x => x.id !== t.id));
     s.close();
-    kitUI.toast?.(L('刪掉了', 'Deleted'), { action: { label: L('復原', 'Undo'), onTap: () => saveTodos([...todos(), todo]) } });
+    kitUI.toast(L('刪掉了', 'Deleted'), { action: { label: L('復原', 'Undo'), onTap: () => saveTodos([...todos(), todo]) } });
   }, L('刪除', 'Delete')) : null;
   const s = kitUI.sheet({
     title: todo ? L('待辦', 'To do') : L('新增待辦', 'New to-do'),
@@ -277,7 +277,7 @@ function picker(items, value, onChange) {
 // subject, words, day) → the ones kept go into 待辦.
 export async function openBook() {
   const ai = await import('#kit/ai.mjs').catch(() => null);
-  if (!ai?.pickPicture) return kitUI.toast?.(L('需要更新後才能用，請重新開啟 Orbit Class。', 'Reopen Orbit Class to use this.'));
+  if (!ai?.pickPicture) return kitUI.toast(L('需要更新後才能用，請重新開啟 Orbit Class。', 'Reopen Orbit Class to use this.'));
   const file = await ai.pickPicture();
   if (!file) return;
   const body = el('div', 'cx-book');
@@ -320,7 +320,7 @@ export async function openBook() {
     if (!add.length) return;
     saveTodos([...todos(), ...add]);
     s.close();
-    kitUI.toast?.(L(`加了 ${add.length} 項待辦`, `${add.length} added`));
+    kitUI.toast(L(`加了 ${add.length} 項待辦`, `${add.length} added`));
   }
 }
 // One item read from the photo: on or off, its kind (a tap: the next), subject, words, day.

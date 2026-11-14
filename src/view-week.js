@@ -179,7 +179,7 @@ export function renderWeek(now = new Date()) {
   const { both, shown } = weeks(now);
   const box = $('cx-grid');
   // A wide screen has room for both weeks side by side, each under its name: no switch.
-  const both2 = Boolean(kit.screenFit?.().wide);
+  const both2 = Boolean(kit.screenFit().wide);
   $('cx-week-switch').hidden = both2;
   if (!both2) drawSwitch(both, shown);
   if (box) {

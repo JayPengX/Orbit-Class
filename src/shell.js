@@ -43,7 +43,7 @@ function show(id) {
 
 // The screen turned or resized: what's drawn for its width (課表's one week
 // or both, 工具's columns) drawn again.
-kit.onScreen?.(() => {
+kit.onScreen(() => {
   state.lastListKey = '';
   if (document.body.dataset.tab === 'tools') renderTools(true);
   else window.update?.();

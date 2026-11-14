@@ -11,7 +11,7 @@
 import * as kit from '#kit/orbit.mjs';
 
 // (api.<domain> on the family's own domain: the kit's API, kit/domain.mjs.)
-const PROXY_DEFAULT = kit.API || 'https://orbit-workers-proxy.pengzjay.workers.dev';
+const PROXY_DEFAULT = kit.API;
 const PROXY_BASE_URL = (import.meta.env?.VITE_PROXY_URL ?? PROXY_DEFAULT).trim().replace(/\/+$/, '');
 
 export function proxyPath(path) {

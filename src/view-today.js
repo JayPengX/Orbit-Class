@@ -346,7 +346,7 @@ export function renderTodayList({ week, through, curDay, now }) {
   // (.q-flow-refit) or the width crosses a step (Jay's iPad 2026-11-11: one
   // class on the left beside a long right column).
   const cols = document.querySelector('.cx-today-cols');
-  if (cols && !cols.__qFlowN) kitUI.flowColumns?.(cols);
+  if (cols && !cols.__qFlowN) kitUI.flowColumns(cols);
 }
 
 // The day 今天's list shows: the family's strip of days (the kit's, as every

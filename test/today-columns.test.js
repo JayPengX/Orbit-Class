@@ -23,6 +23,6 @@ describe('今天 lays its sections out by their height', () => {
   });
   it('deals the flow once drawn', () => {
     const src = read('src/view-today.js');
-    expect(src).toMatch(/flowColumns\?\.\(cols\)/);
+    expect(src).toMatch(/flowColumns\(cols\)/);
   });
 });

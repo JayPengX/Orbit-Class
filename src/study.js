@@ -190,6 +190,6 @@ export function openStudyPlan(first = null, now = new Date()) {
     const add = planned.map(x => normalizeTodo({ id: newId(), kind: 'study', subject: x.subject, text: x.text, due: x.day, min: x.min, plan: name })).filter(Boolean);
     saveTodos([...kept, ...add]);
     s.close();
-    kitUI.toast?.(L(`排好了：${planned.length} 段在待辦`, `Planned: ${planned.length} sessions in 待辦`));
+    kitUI.toast(L(`排好了：${planned.length} 段在待辦`, `Planned: ${planned.length} sessions in 待辦`));
   }
 }

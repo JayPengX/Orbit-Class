@@ -95,14 +95,14 @@ export const isSome = item => Array.isArray(item.who) && item.who.length === 1 &
 
 const kept = () => {
   try {
-    return kit.readJson?.(KEY) || JSON.parse(localStorage.getItem(KEY) || 'null');
+    return kit.readJson(KEY);
   } catch {
     return null;
   }
 };
 const keep = v => {
   try {
-    kit.writeJson ? kit.writeJson(KEY, v) : localStorage.setItem(KEY, JSON.stringify(v));
+    kit.writeJson(KEY, v);
   } catch {
     // a full or blocked store: read again next time
   }
@@ -162,7 +162,7 @@ function newsRow(it, now = new Date()) {
   const md = it.by ? short(it.by) : '';
   const said = md && new RegExp(`(^|[^\\d])${md}($|[^\\d])`).test(words(it));
   const due = /截止|為止|止$|前$|前繳|前報名|前上傳/.test(`${it.title} ${it.line || ''} ${it.act || ''}`);
-  const by = ahead && !said ? kitUI.tag?.(due ? L(`${md} 截止`, `by ${md}`) : md, '', soon ? '#f97316' : '') || el('span', 'q-tag', md) : null;
+  const by = ahead && !said ? kitUI.tag(due ? L(`${md} 截止`, `by ${md}`) : md, '', soon ? '#f97316' : '') || el('span', 'q-tag', md) : null;
   const r = button(`q-ritem chevron cx-news is-${k}`, () => kit.openLink?.(it.url) ?? window.open(it.url, '_blank', 'noopener'), [tile(KINDS[k].icon, KINDS[k].color), el('span', 'q-ritem-text', [zhMarked(el('span', 'q-ritem-title', words(it))), zhMarked(el('small', '', bits))]), by]);
   r.title = it.title;
   return r;
