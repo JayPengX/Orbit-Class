@@ -40,6 +40,16 @@ describe('問我的課表', () => {
     expect(f).toContain('2026-11-18 Wed: 1 08:10-09:00 英文; 5 13:10-14:00 體育 (outdoors)');
     expect(f).not.toContain('2026-11-14');
   });
+  it('tells the AI the countdowns still to come, name and days only, before the days', () => {
+    const f = askFacts(days, now, [
+      { name: '第二次段考', startDate: '2026-11-26', endDate: '2026-11-27' },
+      { name: '校慶', startDate: '2026-11-11', endDate: '2026-11-11' },
+      { name: '第一次段考', startDate: '2026-10-01', endDate: '2026-10-02' }
+    ]).split('\n');
+    expect(f[1]).toBe('Event: 第二次段考 2026-11-26 Thu to 2026-11-27 Fri');
+    expect(f[2]).toBe('Event: 校慶 2026-11-11 Wed');
+    expect(f.join('\n')).not.toContain('第一次段考');
+  });
 });
 
 describe('問我的課表: an instruction is never a question', () => {

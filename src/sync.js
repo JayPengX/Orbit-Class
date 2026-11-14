@@ -158,14 +158,17 @@ async function readPass() {
   // seen, when the device was offline): conflict, never a silent overwrite.
   // (Not seen this session: the copy the waiting edit was made on, by its fingerprint.)
   const same = base != null ? remote === base : fingerprint(remote) === readKey(PENDING_KEY);
-  if (localDirty && remote && !same) return { conflict: remote };
+  // (The very same copy made in both places, as when each one's 結束後自動刪除
+  // took off the same ended countdown, is no conflict.)
+  if (localDirty && remote && !same && remote !== (await encodeTransferData(state.applicationData)))
+    return { conflict: remote };
   // The edit here is on top of this very copy: it stands (the copy isn't applied over it).
   if (localDirty) {
     setBase(remote);
     lastPayload = remote;
     return { applied: false };
   }
-  const done = remote ? await applyPayload(remote, t('sync.syncedFromOtherDevice')) : false;
+  const done = remote ? await applyPayload(remote) : false;
   if (done === DEFERRED) return { applied: false };
   setBase(remote);
   return { applied: done };
@@ -193,7 +196,7 @@ async function setAside(remote) {
   if ((await applyPayload(remote, t('sync.newerElsewhere'))) !== DEFERRED) setBase(remote);
   setSyncStatusUi(t('sync.newerElsewhere'), true);
   // Said where it's seen (the line above is in the Pass sheet): the edit just
-  // saved here went back with only 已從其他裝置更新, as if lost. 用我的 puts it
+  // saved here went back with no word, as if lost. 用我的 puts it
   // back, saved over the newer copy on purpose.
   toast(t('sync.newerElsewhereShort'), {
     ms: 8000,
@@ -316,7 +319,7 @@ async function startOrbitOnce() {
       }).then(() => localDirty && pushSyncSnapshot({ mine: false }));
     else if (first?.payload)
       await serial(async () => {
-        if ((await applyPayload(first.payload, t('sync.syncedFromOtherDevice'))) !== DEFERRED)
+        if ((await applyPayload(first.payload)) !== DEFERRED)
           setBase(first.payload);
       });
     else if (!first?.offline && 'payload' in (first || {})) {

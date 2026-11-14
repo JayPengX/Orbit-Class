@@ -19,3 +19,4 @@ To remove a feature on purpose, delete its line here in the same commit and say 
 - 考前讀書計畫 (time by code, what to do by AI) — `src/study.js`, `src/plan.js`: `openStudyPlan`, `planSessions`, `class-plan`
 - 學校公告摘要 (only the ones for this student) — `src/school-news.js`: `openSchoolPicker`, `renderSchoolNews`, `forMe`, `/class-news`
 - 問 Orbit's question (`#ask=`, the Pass sheet's box) asked in the editor's AI box as 問我的課表 — `src/ask-link.js`, `src/shell.js`: `askInBox`, `askFromLink(opened)`
+- 問我的課表 knows the countdowns still to come (name and days only) — `src/class-ask.js`: `askFacts`

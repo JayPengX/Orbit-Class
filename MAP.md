@@ -15,6 +15,7 @@ Jay's, dated (Taiwan day), newest wins; the family's are in Orbit-Core `docs/RUL
 - 11-10 學校公告 shows only what's for you (everyone, your grade, 國中部 for a 國中 grade); 轉知 (what the school passes on) and 進修部 are their own tabs, never in 跟你有關; every board the school has is read, kept 45 days; drawn rows, never plain text.
 - 11-12 An imported timetable (photo, backup) keeps the 調課 whose periods it still has (by time, else by number) and drops the rest; the saved toast says how many (`data.js` remapClassSwaps `imported`).
 - 11-10 The family's AI, code first: 問我的課表 answers a named day's classes by code, the rest by the AI door, every claim checked against the timetable, drawn as the days that answer it, never applied. AI import and AI editing are always shown to confirm; the odd/even toggle is never changed by AI import. The prompts live in the Worker; the client sends only files or the instruction.
+- 11-14 A copy that arrives from the Pass comes in quietly: no 從其他裝置更新 notice (it was mostly the app's own 結束後自動刪除 run in another place). The same copy made in two places is no conflict. 問我的課表 is told the countdowns still to come.
 - 11-11 A wide 今天 deals its parts into even columns, dealt again as each fills in (`.q-flow-refit`).
 - Orbit's own look (`data-look="native"`, `css/look.css` after `styles.css`; `test/look.test.js`, `test/dashboard.test.js`). The language is the family's (`orbit.lang`). No classes or notices on Taiwan's holidays or typhoon days off.
 

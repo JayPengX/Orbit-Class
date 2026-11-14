@@ -7,6 +7,7 @@
 // applied); it only reads them, and every time it says is one of theirs.
 import { dateKey } from './dates.js';
 import { familyDays } from './family-tell.js';
+import { countdownsNotOver, getCountdownEvents } from './data.js';
 
 const WD = '日一二三四五六';
 const WD_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -66,17 +67,24 @@ export function localAsk(text, days, now = new Date(), en = false) {
 }
 export const localAnswer = (text, days, now = new Date(), en = false) => localAsk(text, days, now, en)?.line ?? null;
 
-// The two weeks as the AI is told them, lean: a line a day.
-export function askFacts(days, now = new Date()) {
+const dayAt = key => `${key} ${WD_EN[new Date(`${key}T12:00:00`).getDay()]}`;
+
+// The two weeks as the AI is told them, lean: a line a day. The countdowns
+// still to come (段考, 畢旅…; Jay 11-14: the AI never knew them) go first, a
+// line each with only the name and the day(s), so the 4500 cut never drops them.
+export function askFacts(days, now = new Date(), events = []) {
   const hm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const head = `Now: ${dateKey(now)} (${WD_EN[now.getDay()]}) ${hm}.`;
+  const evs = countdownsNotOver(events, dateKey(now))
+    .slice(0, 12)
+    .map(e => `Event: ${String(e.name).slice(0, 40)} ${dayAt(e.startDate)}${e.endDate && e.endDate !== e.startDate ? ` to ${dayAt(e.endDate)}` : ''}`);
   const lines = Object.entries(days)
     .filter(([, list]) => list.length)
     .map(([key, list]) => {
       const d = new Date(`${key}T12:00:00`);
       return `${key} ${WD_EN[d.getDay()]}: ${list.map(c => `${c.n} ${c.from}-${c.to} ${c.name}${c.out ? ' (outdoors)' : ''}`).join('; ')}`;
     });
-  return [head, ...lines].join('\n').slice(0, 4500);
+  return [head, ...evs, ...lines].join('\n').slice(0, 4500);
 }
 
 // The answer: code's, else the AI's. { line, show: [{ day, periods }], days, ai } or { error }.
@@ -88,7 +96,7 @@ export async function askTimetable(question, { now = new Date(), en = false } = 
   if (local) return { ...local, days, ai: false };
   const ai = await import('#kit/ai.mjs').catch(() => null);
   if (!ai?.aiCall) return { error: en ? 'This needs the newer app; reopen Orbit Class.' : '需要更新後才能問，請重新開啟 Orbit Class。' };
-  const r = await ai.aiCall('class-ask', { question, facts: askFacts(days, now), lang: en ? 'en' : 'zh' });
+  const r = await ai.aiCall('class-ask', { question, facts: askFacts(days, now, getCountdownEvents()), lang: en ? 'en' : 'zh' });
   const line = r?.out?.line || r?.out?.answer;
   if (line) return { line, show: (r.out.show || []).filter(x => days[x.day]?.length), days, ai: true };
   return { error: r?.error ? (ai.aiSays?.(r.error, r.left) || r.error) : en ? 'Your timetable doesn’t say. Try asking another way.' : '課表裡看不出來，換個問法試試。' };

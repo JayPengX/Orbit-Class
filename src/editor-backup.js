@@ -1129,8 +1129,8 @@ function showEditorImportConfirm(current, next, isMerge, preserveStyle = false) 
 }
 // `fromSync` distinguishes "this device's own edit just got saved" from
 // "this data arrived from another device via sync.js's pullSyncSnapshot" -
-// the two need different feedback (a viewer never *saved* anything, so a
-// "已儲存" toast would be actively misleading - see the toast text below)
+// the two need different feedback (a viewer never *saved* anything, so no
+// "已儲存" toast; and no notice at all, see below)
 // and different side effects (only a genuine local save should turn around
 // and push to sync; echoing back data sync itself just pulled would just
 // bounce the same write straight back out).
@@ -1168,7 +1168,9 @@ function applyEditorSettingsData(
   state.editorBaselineData = cloneSettingsData(state.applicationData);
   state.lastListKey = '';
   window.update();
-  toast(fromSync ? t('editorBackup.updatedFromOtherDevice') : saved);
+  // (A copy from the Pass arrives quietly: it was this person's own change,
+  // often this app's own 結束後自動刪除 run in another place.)
+  if (!fromSync) toast(saved);
   if (closeAfter) setTimeout(() => closeEditor(true), 400);
   // A real local change (never one sync itself just applied) pushes right
   // away instead of waiting for the next poll tick - see sync.js's syncTick
