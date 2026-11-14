@@ -156,9 +156,10 @@ const fmt = (n, d = 0) => (Number.isFinite(n) ? n.toLocaleString(zh() ? 'zh-TW' 
 
 // ---- The sheet: how long, then which plane ----
 let sheet = null;
-export function openFlight() {
+// `minutes`: a length said (src/act.js, 「專注 50 分鐘」), else the last one chosen.
+export function openFlight({ minutes: said = null } = {}) {
   if (focus) return openFocus();
-  let minutes = Number(localStorage.getItem(MIN_KEY)) || PRESETS[0];
+  let minutes = said ? Math.min(MAX_MIN, Math.max(MIN_MIN, Math.round(said))) : Number(localStorage.getItem(MIN_KEY)) || PRESETS[0];
   const custom = !PRESETS.includes(minutes);
   const list = el('div', 'q-rowcard cx-fl-picks');
   const input = el('input', 'cx-fl-custom-input');

@@ -42,6 +42,8 @@ export default {
   'nlEdit.askTitle': 'Your timetable',
   'nlEdit.askAiNote': '(Answered by AI from your timetable)',
   'nlEdit.dismiss': 'Got it',
+  'act.countdownFull': 'Up to 12 countdowns: remove one first.',
+  'act.countdownSame': 'That countdown is already there.',
   'common.all': 'All',
   'common.edit': 'Edit',
   'tools.partsSection': 'Timetable',

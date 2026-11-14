@@ -40,6 +40,8 @@ export default {
   'nlEdit.askTitle': '問課表',
   'nlEdit.askAiNote': '（AI 依你的課表回答）',
   'nlEdit.dismiss': '知道了',
+  'act.countdownFull': '倒數最多 12 個，先刪掉一個再加。',
+  'act.countdownSame': '這個倒數已經有了。',
   'common.all': '全部',
   'common.edit': '編輯',
   'tools.partsSection': '課表',

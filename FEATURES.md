@@ -20,3 +20,4 @@ To remove a feature on purpose, delete its line here in the same commit and say 
 - 學校公告摘要 (only the ones for this student) — `src/school-news.js`: `openSchoolPicker`, `renderSchoolNews`, `forMe`, `/class-news`
 - 問 Orbit's question (`#ask=`, the Pass sheet's box) asked in the editor's AI box as 問我的課表 — `src/ask-link.js`, `src/shell.js`: `askInBox`, `askFromLink(opened)`
 - 問我的課表 knows the countdowns still to come (name and days only) — `src/class-ask.js`: `askFacts`
+- Told, not only asked (Jay 11-14): 「開始專注飛行 50 分鐘」 in the AI box or 問 Orbit opens 專注飛行 on that length, 「加段考倒數 11/30」 offers the countdown to 套用; read by code (kit act.mjs), no AI call — `src/act.js`, `src/editor-nl-edit.js`, `src/ask-link.js`: `readClassAct`, `startFocus`, `withCountdown`

@@ -32,6 +32,8 @@
 import { state } from './state.js';
 import { getLocale, t } from './strings.js';
 import { askTimetable, isQuestion, answerNode } from './class-ask.js';
+import { readClassAct, startFocus, withCountdown } from './act.js';
+import { isEditorDirty } from './editor-backup.js';
 import { sessionFetch } from './sync.js';
 import {
   applyEditorSettingsData,
@@ -488,6 +490,23 @@ function showNlEditConfirm(current, next, { local = false, onApplied } = {}) {
 async function submitNlEdit(rawText, { status, onDone, onApplied } = {}) {
   const text = normalizeNlEditText(rawText);
   try {
+    // A command (src/act.js, read by code): 專注飛行 opens on the length
+    // said; a countdown is offered here to 套用, as every edit is.
+    const act = await readClassAct(rawText);
+    if (act?.act === 'focus') {
+      status?.('');
+      await startFocus(act, { closeEditor: () => !isEditorDirty() && window.closeEditor?.() });
+      return;
+    }
+    if (act?.act === 'countdown') {
+      const current = settingsDataForExport();
+      const r = withCountdown(current, act);
+      if (r.error) return void status?.(t('act.countdownFull'), true);
+      if (r.same) return void showNlEditInfo(t('nlEdit.noChangeTitle'), t('act.countdownSame'));
+      status?.(t('nlEdit.ready'));
+      showNlEditConfirm(current, r.next, { local: true, onApplied });
+      return;
+    }
     // 問我的課表: a question (not an edit) is answered, never applied (class-ask.js).
     if (isQuestion(rawText)) {
       status?.(t('nlEdit.asking'));

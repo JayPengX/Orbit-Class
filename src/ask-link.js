@@ -19,9 +19,16 @@ export async function askInBox(text, load = () => import('./editor-nl-edit.js'))
 
 // `hash`: the address as the app opened, read before the tab bar wrote its
 // own over it; the question taken out of the address so a reload doesn't ask again.
+// 「開始專注飛行 50 分鐘」 (a command, src/act.js) opens 專注飛行 at once, never the editor.
 export function askFromLink(hash = location.hash) {
   if (!hasAsk(hash)) return;
   import('#kit/ask-orbit.mjs')
-    .then(m => askInBox(m.takeAsk?.({ hash, pathname: location.pathname, search: location.search }) || ''))
+    .then(async m => {
+      const text = m.takeAsk?.({ hash, pathname: location.pathname, search: location.search }) || '';
+      const { readClassAct, startFocus } = await import('./act.js');
+      const act = text && (await readClassAct(text));
+      if (act?.act === 'focus') return startFocus(act);
+      return askInBox(text);
+    })
     .catch(() => {});
 }
