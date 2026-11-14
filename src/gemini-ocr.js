@@ -481,7 +481,7 @@ class AIVisionProcessor {
       // owns or renders on its own, so it is left as the backend's own
       // Chinese wording rather than being run through t() (see the matching
       // comment in editor-nl-edit.js's tryNlEditModels).
-      if (response.status === 429 && (/^(RATE_LIMITED|DAILY_QUOTA_EXCEEDED)$/.test(errorJson.error?.code || '') || /請求過於頻繁|too many requests/i.test(message))) {
+      if ((response.status === 403 && errorJson.error?.code === 'PASS_LEVEL') || (response.status === 429 && (/^(RATE_LIMITED|DAILY_QUOTA_EXCEEDED)$/.test(errorJson.error?.code || '') || /請求過於頻繁|too many requests/i.test(message)))) {
         throw new Error(message);
       }
       // Retryable on the next model: retired/unknown model (404), overloaded (503), rate-limited (429), or transient server errors (5xx).
