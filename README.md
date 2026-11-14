@@ -26,6 +26,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 <p align="center">
   <img src="docs/screenshots/class-4.webp" width="30%" alt="Swap a class in seconds">
   <img src="docs/screenshots/class-5.webp" width="30%" alt="Focus along a real flight">
+  <img src="docs/screenshots/class-6.webp" width="30%" alt="To-dos and homework, beside your timetable">
 </p>
 
 <details>
@@ -40,6 +41,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 <p align="center">
   <img src="docs/screenshots/class-4.zh.webp" width="30%" alt="調課，幾秒完成">
   <img src="docs/screenshots/class-5.zh.webp" width="30%" alt="跟著一班真的飛機專注">
+  <img src="docs/screenshots/class-6.zh.webp" width="30%" alt="待辦和作業，跟課表放一起">
 </p>
 
 </details>
