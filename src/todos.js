@@ -7,6 +7,7 @@
 // item looked over before it's kept; "下次上課" or no date lands on that
 // subject's next class as held, by code), 自己加, and 考前讀書計畫 (study.js).
 import * as kitUI from '#kit/ui.mjs';
+import * as kitOrbit from '#kit/orbit.mjs';
 import { state } from './state.js';
 import { saveData } from './data.js';
 import { pushSyncSnapshot } from './sync.js';
@@ -120,7 +121,7 @@ export function renderTodos(now = new Date()) {
   // A test or an exam coming with no plan yet: one row that plans for it.
   if (exam && !all.some(t => t.kind === 'study' && t.plan === exam.name)) rows.push(planRow(exam, now));
   if (!all.length) {
-    rows.push(addRow('camera', 'var(--q-orange)', L('拍聯絡簿', 'Photo of the contact book'), L('作業和考試自己排進來', 'Homework and tests sorted in'), () => openBook()));
+    rows.push(aiRow(addRow('camera', 'var(--q-orange)', L('拍聯絡簿', 'Photo of the contact book'), L('作業和考試自己排進來', 'Homework and tests sorted in'), () => openBook())));
     rows.push(addRow('pencil', 'var(--q-blue)', L('自己加一項', 'Add one yourself'), '', () => openTodoSheet(null)));
   }
   const body = el('div', 'q-rowcard cx-todos-card', rows);
@@ -129,6 +130,8 @@ export function renderTodos(now = new Date()) {
   sec.querySelector('.q-section-head')?.append(add);
   box.replaceChildren(...sec.childNodes);
 }
+// An Orbit AI step's row: shown locked with none on the account (kit orbit.mjs aiLock).
+export const aiRow = r => (r?.setAttribute?.('data-ai-tap', ''), r);
 function addRow(icon, color, title, sub, onClick) {
   const r = button('q-ritem chevron cx-todo-way', onClick, [tile(icon, color), el('span', 'q-ritem-text', [el('span', 'q-ritem-title', title), sub ? el('small', '', sub) : null])]);
   return r;
@@ -276,6 +279,8 @@ function picker(items, value, onChange) {
 // A photo → the AI door's class-book → each item to look over (on, its kind,
 // subject, words, day) → the ones kept go into 待辦.
 export async function openBook() {
+  // (Read by Orbit AI alone: with none on the account, why, before a photo is taken.)
+  if (kitOrbit.aiStop?.()) return;
   const ai = await import('#kit/ai.mjs').catch(() => null);
   if (!ai?.pickPicture) return kitUI.toast(L('需要更新後才能用，請重新開啟 Orbit Class。', 'Reopen Orbit Class to use this.'));
   const file = await ai.pickPicture();

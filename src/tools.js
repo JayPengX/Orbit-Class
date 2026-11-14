@@ -11,7 +11,7 @@ import { state } from './state.js';
 import { getCountdownEvents } from './data.js';
 import { el, button, fitText, glyph, row, section, tile } from './ui.js';
 import { getLocale, t } from './strings.js';
-import { openBook, upcomingExam } from './todos.js';
+import { aiRow, openBook, upcomingExam } from './todos.js';
 import { gradeName, openNewsSheet, openSchoolPicker, schoolOf } from './school-news.js';
 import { clock, currentLeg, flightNo, focusLeft, loadFocus } from './flight-store.js';
 import * as kit from '#kit/orbit.mjs';
@@ -111,7 +111,7 @@ function studyRows() {
   // (Midnight to midnight: noon to midnight rounded a 4-day wait up to 5.)
   const days = exam ? Math.round((dateFromKey(exam.date) - new Date(new Date().toDateString())) / 86_400_000) : 0;
   return el('div', 'q-rowcard', [
-    row({ cls: 'cx-way is-book', icon: tile('camera', 'var(--q-orange)'), title: L('拍聯絡簿', 'Photo of the contact book'), sub: L('作業和考試排進待辦', 'Adds homework and tests'), onClick: () => openBook() }),
+    aiRow(row({ cls: 'cx-way is-book', icon: tile('camera', 'var(--q-orange)'), title: L('拍聯絡簿', 'Photo of the contact book'), sub: L('作業和考試排進待辦', 'Adds homework and tests'), onClick: () => openBook() })),
     row({ cls: 'cx-way is-plan', icon: tile('target', 'var(--q-indigo, #6366f1)'), title: L('考前讀書計畫', 'Study plan'), sub: exam ? L(`${exam.name} · ${days} 天後`, `${exam.name} · in ${days} days`) : L('每天讀什麼，排進待辦', 'What to study each day'), onClick: () => import('./study.js').then(m => m.openStudyPlan(exam)) }),
     row({ cls: 'cx-way is-news', icon: tile('school', 'var(--q-green)'), title: L('學校公告', 'School news'), sub: sc ? `${sc.name}${sc.grade ? ` · ${gradeName(sc.grade)}` : ''}` : L('選你的學校，只看跟你有關的', 'Pick your school: only what’s for you'), onClick: () => (sc ? openNewsSheet() : openSchoolPicker()) })
   ]);
