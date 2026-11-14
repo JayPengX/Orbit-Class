@@ -251,7 +251,14 @@ export async function openNewsSheet() {
     const tabs = el('div', 'q-chips q-texttabs cx-news-tabs', groups.map(([id, name, list]) => button(`q-chip${id === tab ? ' on' : ''}`, () => ((tab = id), fill(news)), `${name} ${list.length}`)));
     const list = groups.find(([id]) => id === tab)[2];
     body.replaceChildren(tabs, el('div', 'q-rowcard', list.map(it => newsRow(it, now))));
-    requestAnimationFrame(() => tabs.querySelector('.on')?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' }));
+    // (Its own row only: scrollIntoView moved the page up to the row too.)
+    requestAnimationFrame(() => {
+      const on = tabs.querySelector('.on');
+      if (!on) return;
+      const l = on.offsetLeft - tabs.offsetLeft;
+      if (l < tabs.scrollLeft) tabs.scrollLeft = l;
+      else if (l + on.offsetWidth > tabs.scrollLeft + tabs.clientWidth) tabs.scrollLeft = l + on.offsetWidth - tabs.clientWidth;
+    });
     // While the AI words them: a line that says so; then the note that it did.
     const wording = news?.wording;
     const n = wording ? ai?.aiThinking?.(L('AI 正在整理每一則…', 'AI is sorting each one…')) : items.some(it => it.line) ? ai?.aiNote?.(L('每則一句話由 AI 依標題寫成，點開看學校原文', 'One line each by AI from the title; tap for the school’s page')) : null;

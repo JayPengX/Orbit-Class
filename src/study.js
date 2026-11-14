@@ -94,13 +94,25 @@ export function openStudyPlan(first = null, now = new Date()) {
       PER_DAY.map(m => ({ id: String(m), label: m < 60 ? L(`${m} 分`, `${m} min`) : L(`${m / 60} 小時`, `${m / 60} h`) })),
       { value: String(st.perDay), onChange: v => (st.perDay = Number(v)), label: L('每天讀多久', 'A day') }
     );
-    requestAnimationFrame(() => examChips.querySelector('.on')?.scrollIntoView?.({ inline: 'center', block: 'nearest' }));
+    // (A tap draws the sheet again where it was: the exam chosen to the middle
+    // of its own row only, never scrollIntoView, which pulled the sheet up to
+    // the row, Jay 11-14 "when clicking on UI it jump the scroll".)
+    let sc = null;
+    for (let n = body.parentElement; n && !sc; n = n.parentElement) if (n.scrollHeight > n.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(n).overflowY)) sc = n;
+    const top = sc?.scrollTop || 0;
+    const across = body.querySelector('.cx-study-exams')?.scrollLeft;
+    requestAnimationFrame(() => {
+      const on = examChips.querySelector('.on');
+      if (across != null) examChips.scrollLeft = across;
+      else if (on) examChips.scrollLeft = on.offsetLeft - examChips.offsetLeft - examChips.clientWidth / 2 + on.offsetWidth / 2;
+    });
     body.replaceChildren(
       kitUI.section(L('考什麼', 'Exam'), examChips, { shd: true, cls: 'cx-sec' }),
       kitUI.section(L('考哪些科', 'Subjects'), subjChips, { shd: true, cls: 'cx-sec' }),
       rows.length ? kitUI.section(L('範圍和弱科', 'Scope, ★ for weak ones'), el('div', 'q-rowcard', rows), { shd: true, cls: 'cx-sec', sub: examDays.length > 1 ? L('考試有好幾天：點每科考哪天', 'Several days: tap each subject’s day') : '' }) : null,
       kitUI.section(L('上課日每天讀多久', 'Each school day'), per, { shd: true, cls: 'cx-sec', sub: L('沒課的日子排兩倍', 'Days off get twice that') })
     );
+    if (sc && sc.scrollTop !== top) sc.scrollTop = top;
     if (btn) {
       btn.disabled = !st.picked.size;
       btn.textContent = L('排計畫', 'Plan it');
