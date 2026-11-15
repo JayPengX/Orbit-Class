@@ -59,7 +59,8 @@ function showOnboardingPrompt({ force = false, still = false } = {}) {
   markOnboardingSeen();
   const lead = el('p', { class: 'orbit-welcome-lede', text: t('onboarding.welcomeMessage') });
   const rows = CHOICES.map(([id, icon, color, go]) =>
-    el('button', { class: 'orbit-welcome-choice q-ritem chevron', type: 'button', 'data-choice': id, onclick: () => (done(), go()) }, [
+    // (The photo is read by Orbit AI: gone on a pass without it, kit aiLock.)
+    el('button', { class: 'orbit-welcome-choice q-ritem chevron', type: 'button', 'data-choice': id, ...(id === 'photo' ? { 'data-ai-tap': '' } : {}), onclick: () => (done(), go()) }, [
       tileNode(icon, color),
       el('span', { class: 'orbit-welcome-text q-ritem-text' }, [
         el('strong', { class: 'q-ritem-title', text: t(`onboarding.${id}Title`) }),
