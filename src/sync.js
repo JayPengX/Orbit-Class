@@ -393,7 +393,8 @@ let shared = null;
 async function createShareKey() {
   try {
     await pushSyncSnapshot({ mine: false });
-    shared = await q.op('share-create');
+    // (Its own copy, open on purpose: the one on the Pass is locked to this account's devices, Orbit-Core kit vault.mjs.)
+    shared = await q.op('share-create', { payload: await encodeTransferData(state.applicationData) });
     renderSyncPanel();
   } catch (error) {
     setSyncStatusUi(failText(error), true, 'share');
