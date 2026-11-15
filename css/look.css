@@ -1448,3 +1448,14 @@ body.cx-fl-mini-on main::after {
   display: block;
   height: 72px;
 }
+
+/* No class to show (a day off, the day over): the band across the whole card,
+   not the left half beside an empty one (Jay 11-15). */
+html[data-look='native'].q-wide .nv-now:not(:has(> .nv-line, > .nv-end)) > * {
+  grid-column: 1 / -1;
+}
+/* The rail holds the top line's buttons: the page starts a gap below the
+   status bar, never flush against it (Jay 11-15). */
+html.q-tabrail .cx-page {
+  padding-top: 12px;
+}
