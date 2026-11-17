@@ -288,8 +288,10 @@ export async function openNewsSheet() {
 }
 
 // ---- Picking the school and grade ----
+// (A failed read is no list for that opening only: kept, the picker found no
+// school for the rest of the visit once the connection was back, 11-18.)
 let schools = null;
-const loadSchools = () => (schools ||= fetch(new URL('schools.json', document.baseURI)).then(r => r.json()).catch(() => []));
+export const loadSchools = () => (schools ||= fetch(new URL('schools.json', document.baseURI)).then(r => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))).catch(() => ((schools = null), [])));
 export async function openSchoolPicker() {
   const now = schoolOf();
   const st = { name: now?.name || '', url: now?.url || '', grade: now?.grade || '' };
