@@ -108,7 +108,10 @@ export function renderTodos(now = new Date()) {
   const all = todos();
   const open = openTodos(all, now);
   const today = dateKey(now);
-  const doneToday = all.filter(t => t.done && t.due === today);
+  // Done today stays in view, ticked (one due later or with no day too: it
+  // left the list at the tick, and with six or fewer open there was no 全部
+  // to find it again and take the tick back).
+  const doneToday = all.filter(t => t.done && (t.due === today || t.doneOn === today));
   const key = `${today}|${getLocale()}|${JSON.stringify(all)}`;
   if (key === drawn) return;
   drawn = key;

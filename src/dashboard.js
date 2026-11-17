@@ -119,9 +119,26 @@ window.addEventListener('class-school', () => (newsAt = 0));
 
 let heroTarget = null;
 let footTarget = null; // the class along the card's foot
+// The day 今天 was last drawn for. A new day since (the phone slept through
+// midnight with Class kept open in Orbit, so no tick saw the day end): 今天
+// starts from today again and 課表 from the coming week, as on an opening.
+// Before, Monday's list stayed picked and Wednesday morning showed 週一的課,
+// next Monday's.
+let lookedOn = '';
+function freshDay(now) {
+  const day = dateKey(now);
+  if (lookedOn && lookedOn !== day) {
+    state.viewDay = now.getDay();
+    state.viewDate = null;
+    state.viewWeek = null;
+    state.autoAdvancedAfterFinishedDay = null;
+  }
+  lookedOn = day;
+}
 function update() {
   if (!window.MANUALLY_TEST) prunePastCountdowns();
   const now = new Date();
+  if (!window.MANUALLY_TEST) freshDay(now);
   const simStatus = document.getElementById('sim-status');
   if (window.MANUALLY_TEST) {
     const h = Math.floor((window.TEST_TIME_SEC || 0) / 3600),
