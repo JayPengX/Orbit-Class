@@ -95,7 +95,8 @@ function todoRow(t, { onToggle, onOpen, now = new Date() } = {}) {
   return row;
 }
 const toggle = t => {
-  const list = todos().map(x => (x.id === t.id ? { ...x, done: !x.done } : x));
+  // (Stamped with the day it's ticked: one ticked late is kept 3 days from the tick, todosKept.)
+  const list = todos().map(x => (x.id === t.id ? { ...x, done: !x.done, doneOn: x.done ? '' : dateKey(new Date()) } : x));
   saveTodos(list);
   kitUI.tick();
 };

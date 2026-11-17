@@ -42,6 +42,11 @@ describe('待辦 and the school, kept with the timetable', () => {
     expect(kept[1].doneOn).toBe('2026-11-10');
     expect(kept[2].doneOn).toBe('');
     expect(todosKept(kept, '2026-11-14').map(x => x.id)).toEqual(['4']);
+    // Ticked 5 days late (the late ones are listed first): kept 3 days from the tick, so a mis-tap can be taken back.
+    const late = todosKept([{ id: 'L', due: '2026-11-12', done: true, doneOn: '2026-11-17' }], '2026-11-17');
+    expect(late.map(x => x.id)).toEqual(['L']);
+    expect(todosKept(late, '2026-11-20').map(x => x.id)).toEqual(['L']);
+    expect(todosKept(late, '2026-11-21')).toEqual([]);
     const once = normalizeTodo({ id: 'x', text: 'a', done: true, doneOn: '2026-11-08' });
     expect(todoOf(todoEntry(once))).toEqual(once);
   });

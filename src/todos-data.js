@@ -66,10 +66,12 @@ export function newId() {
   return `${Date.now().toString(36)}${n.toString(36).padStart(2, '0')}`.slice(-10);
 }
 
-// What's kept: a done one until 3 days past its day (one with no day: 3 days
-// past the day it was ticked), an open one with a day until 30 past it, an
-// open one with no day always. A done one not yet stamped (ticked on an
-// older version) is stamped today, so it gets the same 3 days.
+// What's kept: a done one until 3 days past its day or 3 days past the day it
+// was ticked, whichever is later (one ticked 5 days late went at the tick,
+// nothing left to take a mis-tap back), an open one with a day until 30 past
+// it, an open one with no day always. A done one not yet stamped (ticked on
+// an older version) is stamped today: with no day it gets the same 3 days,
+// with one its day alone decides.
 export function todosKept(todos, today) {
   const back = days => {
     const d = new Date(`${today}T12:00:00`);
@@ -77,6 +79,6 @@ export function todosKept(todos, today) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
   return (todos || [])
-    .map(t => (t.done && !t.doneOn ? { ...t, doneOn: today } : !t.done && t.doneOn ? { ...t, doneOn: '' } : t))
-    .filter(t => (t.due ? t.due >= back(t.done ? 3 : 30) : !t.done || t.doneOn >= back(3)));
+    .filter(t => (!t.done ? !t.due || t.due >= back(30) : (t.due && t.due >= back(3)) || (t.doneOn ? t.doneOn >= back(3) : !t.due)))
+    .map(t => (t.done && !t.doneOn ? { ...t, doneOn: today } : !t.done && t.doneOn ? { ...t, doneOn: '' } : t));
 }
