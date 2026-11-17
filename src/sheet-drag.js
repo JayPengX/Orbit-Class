@@ -1,3 +1,4 @@
+import * as kit from '#kit/orbit.mjs';
 // A bottom sheet (test/style panel, the modal, the editor) swiped down closes,
 // as on iOS: from anywhere on it while what's under the finger is scrolled to
 // its top (not only the small grab handle, which was all that worked: a swipe
@@ -79,6 +80,8 @@ export function bindSheetDragToDismiss(panelId, closeFn) {
       touch = null;
       if (event.touches.length !== 1 || !panel.classList.contains('show')) return;
       if (event.target.closest?.(SHEET_SKIP) || scrolledAbove(event.target, panel)) return;
+      // (Along a scroller's right edge, where iOS's scroll bar sits: the bar's, never the sheet's swipe down.)
+      if (kit.onScrollBar?.(event.target, event.touches[0].clientX, panel)) return;
       const t = event.touches[0];
       touch = { x: t.clientX, y: t.clientY, at: Date.now(), dy: 0, dragging: false };
     },
