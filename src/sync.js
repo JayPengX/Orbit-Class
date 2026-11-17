@@ -140,7 +140,11 @@ async function applyPayload(payload, message) {
   unreadable = false;
   lastPayload = payload;
   if (JSON.stringify(decoded) === JSON.stringify(state.applicationData)) return false;
-  if (isEditorDirty()) {
+  // (So with an edit waiting on its 套用 or 匯入 card, AI's or an import's,
+  // made on the copy shown when it was asked: applied under the card, the
+  // newer copy became `base` and 套用 then wrote the older one over it, the
+  // other device's edit gone with no word.)
+  if (isEditorDirty() || state.pendingEditorSaveData || state.pendingEditorImportData) {
     lastPayload = null;
     return DEFERRED;
   }
@@ -312,10 +316,15 @@ async function startOrbitOnce() {
     // aside on the device, never lost.
     else if (first?.payload && pending)
       await serial(async () => {
-        if (pending !== fingerprint(first.payload)) return setAside(first.payload);
+        // (The very same copy made in both places, as when each one's 結束後自動刪除
+        // took off the same ended countdown, is no conflict and nothing to send,
+        // as in readPass: it was set aside with 「別處有較新的版本」.)
+        const same = first.payload === (await encodeTransferData(state.applicationData));
+        if (!same && pending !== fingerprint(first.payload)) return setAside(first.payload);
         setBase(first.payload);
         lastPayload = first.payload;
-        localDirty = true;
+        if (same) setDirty(false);
+        else localDirty = true;
       }).then(() => localDirty && pushSyncSnapshot({ mine: false }));
     else if (first?.payload)
       await serial(async () => {
@@ -394,7 +403,8 @@ async function createShareKey() {
   try {
     await pushSyncSnapshot({ mine: false });
     // (Its own copy, open on purpose: the one on the Pass is locked to this account's devices, Orbit-Core kit vault.mjs.)
-    shared = await q.op('share-create', { payload: await encodeTransferData(state.applicationData) });
+    // (The timetable, never the sharer's own 待辦: they went to the classmate, and over theirs.)
+    shared = await q.op('share-create', { payload: await encodeTransferData({ ...state.applicationData, todos: [] }) });
     renderSyncPanel();
   } catch (error) {
     setSyncStatusUi(failText(error), true, 'share');
@@ -407,9 +417,14 @@ async function redeemKey() {
   try {
     const res = await q.op('share-redeem', { key });
     if (res.own) return setSyncStatusUi(t('orbit.ownKey'), true, 'share');
-    const next = normalizeSettingsData(await decodeTransferData(res.payload), {
+    const copy = normalizeSettingsData(await decodeTransferData(res.payload), {
       requireMarker: true
     });
+    // The classmate's timetable; this person's own 待辦 stay (a key made
+    // before 11-17 carries the sharer's), and their own school (the
+    // classmate's only where none was set).
+    const mine = state.applicationData || {};
+    const next = { ...copy, todos: mine.todos || [], school: mine.school || copy.school };
     // The timetable it replaces is kept on the device (orbitSetAside), never gone.
     if (JSON.stringify(next) !== JSON.stringify(state.applicationData)) await keepAside();
     applyEditorSettingsData(next);
