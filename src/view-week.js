@@ -138,7 +138,11 @@ function drawGrid(monday, now) {
   const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${t('dashboard.holidayTitle', { zh: c.holiday.zh, en: c.holiday.en || c.holiday.zh })}`))) : null;
   if (!periods) return null;
   // A long Latin name wraps by word; what still won't fit shrinks.
-  requestAnimationFrame(() => fitText(grid.querySelectorAll('.cx-tl-cell:is(.is-latin, .is-four, .is-long):not([hidden])'), 10));
+  // (An English subject, one word that can't wrap, down to 8.5 px: Chemistry and Geography were cut at 10 in an iPad's cell.)
+  requestAnimationFrame(() => {
+    fitText(grid.querySelectorAll('.cx-tl-cell:is(.is-four, .is-long):not([hidden])'), 10);
+    fitText(grid.querySelectorAll('.cx-tl-cell.is-latin:not([hidden])'), 8.5);
+  });
   return [grid, foot].filter(Boolean);
 }
 // The break of 30 minutes or more between period p and the next, by the bells (and its name from 特殊時段).
