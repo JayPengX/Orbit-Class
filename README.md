@@ -48,7 +48,7 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 
 ## Features
 
-- **School days in one place:** 學校公告 reads your school's own boards every hour, sorted into exams, admissions, events and awards, what concerns you first and notices passed on (轉知) apart; 拍聯絡簿 turns a photo of the homework book into to-dos; 考前讀書計畫 is laid out by code and worded by AI; 問我的課表 answers questions in the timetable's editor, the day's periods drawn with the answer lit.
+- **School days in one place:** 學校公告 reads your school's own boards every hour, sorted into exams, admissions, events and awards, what concerns you first and notices passed on (轉知) apart; 待辦 and homework typed in beside the timetable; 問我的課表 answers questions in the timetable's editor, the day's periods drawn with the answer lit.
 - **With the family:** before the first class, today's card opens Orbit Transit's trip to school (after the last, the trip home); at a break, Orbit Words' five-word round (下課背五個).
 - **Today:** one card answers "what's left today": the class now with teacher, room and time left, the next one, and the day as a strip of coloured chips. After the last class it shows the next school day.
 - **The week** as a grid, this week or the next, with odd and even weeks (單週 / 雙週) and subjects that alternate by week.
@@ -59,7 +59,6 @@ The class now and what comes next, at a glance. Part of **Orbit**, a family of a
 - **AI photo import:** up to six photos, screenshots, HEIC or PDF read together as one timetable, checked locally and applied only once you confirm.
 - **AI edit:** describe a change in a sentence and confirm it as a diff.
 - **Share key:** an 8-character key gives a classmate their own copy for 24 hours.
-- **加到行事曆:** the timetable in the phone's own Calendar by subscription, kept current as it changes.
 - **Every screen, either way up:** on a tablet, a computer or a phone on its side 今天's card runs across the top with the day's classes beside the countdowns, 課表 shows both weeks side by side, and 專注飛行's card sits beside the map.
 
 ## Tech stack
