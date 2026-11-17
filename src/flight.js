@@ -31,7 +31,8 @@ import {
   airlineName,
   cityName,
   hasZhAirline,
-  hasZhCity
+  hasZhCity,
+  portCode
 } from './flight-plan.js';
 import { loadFocus, focusChanged } from './flight-store.js';
 
@@ -473,7 +474,7 @@ function setLeg(leg) {
   const route = gcLine(leg.from, leg.to, 128);
   const lonAt = f => route[Math.round(Math.min(1, Math.max(0, f)) * (route.length - 1))][1];
   const airport = (place, lon, cls) =>
-    L.marker([place.lat, lon], { interactive: false, keyboard: false, icon: L.divIcon({ className: `cx-fl-port ${cls}`, html: `<i></i><b>${place.iata || place.icao || ''}</b>`, iconSize: [0, 0] }) });
+    L.marker([place.lat, lon], { interactive: false, keyboard: false, icon: L.divIcon({ className: `cx-fl-port ${cls}`, html: `<i></i><b>${portCode(place)}</b>`, iconSize: [0, 0] }) });
   const ahead = L.polyline(route, { className: 'cx-fl-ahead', interactive: false });
   const glow = L.polyline([], { className: 'cx-fl-glow', interactive: false });
   const flown = L.polyline([], { className: 'cx-fl-flown', interactive: false });

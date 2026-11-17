@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { newFocus, readFocus, planeNow, withFix, wantsHandoff, clock, flightNo, minutesOf, airlineName, cityName, STALE_MS } from '../src/flight-plan.js';
+import { newFocus, readFocus, planeNow, withFix, wantsHandoff, clock, flightNo, minutesOf, airlineName, cityName, portCode, STALE_MS } from '../src/flight-plan.js';
 
 const TPE = { iata: 'TPE', city: 'Taipei', lat: 25.0777, lon: 121.233 };
 const NRT = { iata: 'NRT', city: 'Tokyo', lat: 35.7647, lon: 140.386 };
@@ -59,5 +59,15 @@ describe('專注飛行', () => {
     expect(cityName({ iata: 'XYZ', city: 'Somewhere' }, true)).toBe('Somewhere');
     expect(cityName({ iata: 'TLS', city: 'Toulouse/Blagnac' }, true)).toBe('Toulouse');
     expect(cityName({ iata: 'ZZZ', city: 'Shanghai (Pudong)' }, false)).toBe('Shanghai');
+  });
+});
+
+describe('an airport on the map', () => {
+  it('its code only: the route database’s text never goes into the page as HTML', () => {
+    expect(portCode({ iata: 'TPE', icao: 'RCTP' })).toBe('TPE');
+    expect(portCode({ iata: '', icao: 'RCSS' })).toBe('RCSS');
+    expect(portCode({ iata: '<img src=x onerror=alert(1)>', icao: 'RCTP' })).toBe('RCTP');
+    expect(portCode({ iata: '<b>', icao: '' })).toBe('');
+    expect(portCode(null)).toBe('');
   });
 });

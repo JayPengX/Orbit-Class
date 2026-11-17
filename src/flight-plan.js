@@ -83,3 +83,6 @@ export const cityName = (place, zh) => (zh && CITIES_ZH[place?.iata]) || plainCi
 // (Whether a name is the source's English, for lang="en" on a Chinese page.)
 export const hasZhAirline = airline => Boolean(AIRLINES_ZH[airline?.icao]);
 export const hasZhCity = place => Boolean(CITIES_ZH[place?.iata]);
+// An airport's code as the map's marker writes it (as HTML): a code only,
+// never the route database's text as it came (anyone can add a route there).
+export const portCode = place => [place?.iata, place?.icao].find(c => /^[A-Z0-9]{3,4}$/.test(c || '')) || '';
