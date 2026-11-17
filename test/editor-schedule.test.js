@@ -85,10 +85,22 @@ describe('saveEditor: time-conflict guard', () => {
   });
 
   it('proceeds to the save-confirm sheet once times no longer overlap', () => {
+    bellRow(3).querySelector('.bell-end').value = '11:05';
+
     window.saveEditor();
 
     expect(document.getElementById('editor-confirm-sheet').classList.contains('show')).toBe(true);
     expect(document.getElementById('editor-confirm-title').textContent).toMatch(/要儲存嗎/);
+    expect(document.getElementById('editor-import-diff').textContent).toMatch(/11:05/);
+  });
+});
+
+describe('saveEditor: nothing changed', () => {
+  it('closes the editor with no 要儲存嗎 card that only says 沒有變更', () => {
+    window.saveEditor();
+
+    expect(document.getElementById('editor-confirm-sheet').classList.contains('show')).toBe(false);
+    expect(document.getElementById('editor-sheet').classList.contains('show')).toBe(false);
   });
 });
 

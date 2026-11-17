@@ -4,11 +4,13 @@ import { WEEKDAYS_DISPLAY_ORDER, WEEKDAY_LABELS } from './constants.js';
 import { state } from './state.js';
 import { validateTimeIntervals } from './data.js';
 import {
+  applyPendingSaveEditor,
   collectEditorFormState,
   describeSettingsDiff,
   normalizeSettingsData
 } from './editor-backup.js';
 import {
+  closeEditor,
   esc,
   findScheduleImpacts,
   getEditorBellPeriodCount,
@@ -216,6 +218,13 @@ function saveEditor() {
   const next = normalizeSettingsData(draft);
   const baseline = state.editorBaselineData || normalizeSettingsData(state.applicationData);
   const diff = describeSettingsDiff(baseline, next);
+  // Nothing to confirm: unchanged just closes; a change the list can't name
+  // (it says 沒有變更) saves straight away, never a card that says nothing.
+  if (diff === t('editorBackup.noChanges')) {
+    if (JSON.stringify(normalizeSettingsData(baseline)) === JSON.stringify(next)) return closeEditor(true);
+    state.pendingEditorSaveData = next;
+    return applyPendingSaveEditor();
+  }
   state.pendingEditorSaveData = next;
   showEditorSaveConfirm(diff);
 }
