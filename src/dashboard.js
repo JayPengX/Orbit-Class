@@ -172,7 +172,8 @@ function update() {
   if (!dayDone && state.autoAdvancedAfterFinishedDay === curDay) state.autoAdvancedAfterFinishedDay = null;
   if (dayDone && state.viewDay === curDay && state.autoAdvancedAfterFinishedDay !== curDay) {
     state.viewDay = window.MANUALLY_TEST ? getNextSchoolDay(curDay) : (nextDay?.day ?? getNextSchoolDay(curDay));
-    state.viewDate = null;
+    // (Its date too: a week or more off, 春節, the weekday's coming date was a holiday.)
+    state.viewDate = window.MANUALLY_TEST ? null : nextDay?.date || null;
     state.autoAdvancedAfterFinishedDay = curDay;
   }
 
