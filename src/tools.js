@@ -1,20 +1,17 @@
 // ---- src/tools.js ----
 // 工具: changing the timetable. It leads with 我的課表 (the week in
 // miniature, opening the editor), then a figure card straight into
-// each part of the editor, 學習 (拍聯絡簿, 讀書計畫, 學校公告), then AI (a sentence, or a photo) and 分享 (the
-// share key and the Pass). Drawn when the tab opens, and again when the timetable
+// each part of the editor, 學習 (學校公告), then AI (a sentence, or a photo) and 分享 (the
+// share key). Drawn when the tab opens, and again when the timetable
 // changes while it's on screen.
 import { getWeekType, processSplitName } from './schedule.js';
-import { dateFromKey } from './dates.js';
 import { shortNames, subjectLook } from './subjects.js';
 import { state } from './state.js';
 import { getCountdownEvents } from './data.js';
 import { el, button, fitText, glyph, row, section, tile } from './ui.js';
 import { getLocale, t } from './strings.js';
-import { aiRow, openBook, upcomingExam } from './todos.js';
 import { gradeName, openNewsSheet, openSchoolPicker, schoolOf } from './school-news.js';
 import { clock, currentLeg, flightNo, focusLeft, loadFocus } from './flight-store.js';
-import * as kit from '#kit/orbit.mjs';
 
 function openPart(id) {
   window.openEditor?.();
@@ -77,42 +74,11 @@ function flightCard() {
 const FLIGHT_ARC = '<svg viewBox="0 0 120 48"><path d="M6 42 C 34 4, 86 4, 114 42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"/><circle cx="6" cy="42" r="3" fill="currentColor"/><circle cx="114" cy="42" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M60 8.5c.6 0 1 .6 1 1.4v3.3l5 3v1.4l-5-1.6v3l1.5 1.2v1.1L60 20.6l-2.5.7v-1.1L59 19v-3l-5 1.6v-1.4l5-3V9.9c0-.8.4-1.4 1-1.4z" transform="rotate(90 60 14.5)" fill="currentColor" class="cx-fly-plane"/></svg>';
 const PLANE_GLYPH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1.8c.9 0 1.5 1 1.5 2.2v5.1l7.7 4.6v2.1l-7.7-2.4v4.7l2.3 1.8v1.7L12 20.6l-3.8 1v-1.7l2.3-1.8v-4.7l-7.7 2.4v-2.1l7.7-4.6V4c0-1.2.6-2.2 1.5-2.2z"/></svg>';
 
-// 加到行事曆 (src/calendar.js, loaded on the tap): the timetable in the phone's
-// Calendar by subscription; on, a tap offers to stop it.
-const calOn = () => kit.readStore('class.cal.v1')?.includes('url');
-function calRow() {
-  const r = row({
-    cls: 'cx-way is-cal',
-    icon: tile('calendar', 'var(--q-red)'),
-    title: t('tools.calTitle'),
-    sub: t(calOn() ? 'tools.calOn' : 'tools.calSub'),
-    onClick: async () => {
-      const cal = await import('./calendar.js');
-      if (!calOn()) {
-        r.querySelector('small').textContent = t('tools.calAdding');
-        const ok = await cal.addCalendar();
-        r.querySelector('small').textContent = t(ok ? 'tools.calOn' : 'tools.calFailed');
-        return;
-      }
-      const stop = await kit.ask({ title: t('tools.calTitle'), body: t('tools.calStopBody'), ok: t('tools.calStop'), cancel: t('common.close'), danger: true });
-      if (!stop) return;
-      await cal.stopCalendar();
-      r.querySelector('small').textContent = t('tools.calSub');
-    }
-  });
-  return r;
-}
-
-// 學習 (Jay 11-10, the AI plan): 拍聯絡簿 into 待辦, 考前讀書計畫, 學校公告.
+// 學習 (Jay 11-10, the AI plan): 學校公告.
 const L = (zh, en) => (getLocale() === 'en' ? en : zh);
 function studyRows() {
-  const exam = upcomingExam();
   const sc = schoolOf();
-  // (Midnight to midnight: noon to midnight rounded a 4-day wait up to 5.)
-  const days = exam ? Math.round((dateFromKey(exam.date) - new Date(new Date().toDateString())) / 86_400_000) : 0;
   return el('div', 'q-rowcard', [
-    aiRow(row({ cls: 'cx-way is-book', icon: tile('camera', 'var(--q-orange)'), title: L('拍聯絡簿', 'Photo of the contact book'), sub: L('作業和考試排進待辦', 'Adds homework and tests'), onClick: () => openBook() })),
-    row({ cls: 'cx-way is-plan', icon: tile('target', 'var(--q-indigo, #6366f1)'), title: L('考前讀書計畫', 'Study plan'), sub: exam ? L(`${exam.name} · ${days} 天後`, `${exam.name} · in ${days} days`) : L('每天讀什麼，排進待辦', 'What to study each day'), onClick: () => import('./study.js').then(m => m.openStudyPlan(exam)) }),
     row({ cls: 'cx-way is-news', icon: tile('school', 'var(--q-green)'), title: L('學校公告', 'School news'), sub: sc ? `${sc.name}${sc.grade ? ` · ${gradeName(sc.grade)}` : ''}` : L('選你的學校，只看跟你有關的', 'Pick your school: only what’s for you'), onClick: () => (sc ? openNewsSheet() : openSchoolPicker()) })
   ]);
 }
@@ -125,8 +91,7 @@ function renderTools(again = false) {
   const subjects = new Set(Object.values(data.teacherDB || {}).map(v => v?.[0]).filter(Boolean)).size;
   const breaks = (data.breakTimes || []).length;
   const events = getCountdownEvents().length;
-  const exam = upcomingExam();
-  const key = `${JSON.stringify(state.runtimeSchedule)}|${subjects}|${breaks}|${events}|${t('tab.tools')}|${JSON.stringify(data.school || null)}|${exam?.name}|${exam?.date}|${new Date().toDateString()}`;
+  const key = `${JSON.stringify(state.runtimeSchedule)}|${subjects}|${breaks}|${events}|${t('tab.tools')}|${JSON.stringify(data.school || null)}|${new Date().toDateString()}`;
   if (!again && key === drawn && box.childElementCount) return;
   drawn = key;
   // The parts as four figure cards (each its colour, its count large), the
@@ -159,7 +124,7 @@ function renderTools(again = false) {
   // (Both ways are Orbit AI's: the section is gone with none on the account, kit aiLock.)
   const aiOnly = n => (n.setAttribute('data-ai-only', ''), n);
   const ai = el('div', 'cx-ways', [way('cx-way is-ai', 'ai', '#0284c7', t('tools.aiEditTitle'), t('tools.aiEditSub'), () => openPart('editor-fold-schedule')), way('cx-way is-photo', 'camera', '#f97316', t('tools.photoTitle'), t('tools.photoSub'), () => openTransfer('photo'))]);
-  const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') }), calRow()]);
+  const share = el('div', 'q-rowcard', [row({ cls: 'cx-way is-key', icon: tile('key', 'var(--q-green)'), title: t('tools.keyTitle'), sub: t('tools.keySub'), onClick: () => openTransfer('key') })]);
   // Two columns on a wide screen (.q-cols): the week beside the rest; one on a phone.
   box.classList.add('q-cols');
   // (The timetable's parts under it, so the two columns end about level.)

@@ -1,9 +1,9 @@
 // ---- src/todos-data.js ----
-// 待辦 (Jay 11-10, the AI plan: 拍聯絡簿變待辦, 考前讀書計畫) and the school
-// the student reads 學校公告 from, kept with the timetable (the v2 string's
-// 15th and 16th entries, so the Pass carries them to every device). Pure:
-// no DOM, nothing that runs at import.
+// 待辦 (Jay 11-10) and the school the student reads 學校公告 from, kept with
+// the timetable (the v2 string's 15th and 16th entries, so the Pass carries
+// them to every device). Pure: no DOM, nothing that runs at import.
 //   todo:   { id, kind: hw | test | bring | do | study, subject, text, due: 'YYYY-MM-DD' | '', done, min, plan, doneOn: the day it was ticked | '' }
+//   (study, min and plan: a session the 讀書計畫 Class once had made, still read and kept as saved.)
 //   school: { name, url (an edu.tw site), grade: '' | '1' | '2' | '3' | 'j1' | 'j2' | 'j3' }
 import { isRealDate } from './dates.js';
 

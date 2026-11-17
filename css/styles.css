@@ -2745,7 +2745,7 @@ html[data-look='native'] #cx-days + .cx-today-cols.q-flow-laid {
   }
 }
 
-/* ---- 待辦, 拍聯絡簿, 讀書計畫, 學校公告 (src/todos.js, study.js, school-news.js) ---- */
+/* ---- 待辦, 學校公告 (src/todos.js, school-news.js) ---- */
 .cx-sec .q-section-head .cx-todo-add {
   margin-left: auto;
 }
@@ -2809,17 +2809,11 @@ html[data-look='native'] #cx-days + .cx-today-cols.q-flow-laid {
 }
 /* A field: its label over it. */
 .cx-todo-form,
-.cx-study,
-.cx-book,
 .cx-news-all {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--q-s-4, 16px);
   min-width: 0;
-}
-.cx-study .q-rowcard,
-.cx-book .q-rowcard {
-  grid-template-columns: minmax(0, 1fr);
 }
 .cx-field {
   display: grid;
@@ -2868,153 +2862,11 @@ select.cx-input {
 .cx-todo-remove {
   margin-top: var(--q-s-2, 8px);
 }
-/* 拍聯絡簿: each item read, looked over before it's kept. */
-.cx-book-row {
-  align-items: flex-start;
-  --q-ritem-sep: 50px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-.cx-book-row > .cx-todo-check {
-  margin-top: 3px;
-}
-.cx-book-row.is-off .cx-book-main {
-  opacity: 0.45;
-}
-.cx-book-main {
-  flex: 1;
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-.cx-book-top {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: 0;
-}
-.cx-book-kind {
-  min-height: 32px;
-}
-.cx-book-kind.is-test {
-  color: var(--q-red);
-}
-.cx-book-text {
-  width: 100%;
-  min-width: 0;
-  padding: 2px 0;
-  border: 0;
-  border-bottom: var(--q-hairline, 0.5px) solid var(--q-sep);
-  background: none;
-  color: var(--q-label);
-  font: 500 16px/22px var(--q-font);
-  outline: 0;
-  box-sizing: border-box;
-}
-.cx-book-text:focus {
-  border-bottom-color: var(--q-accent);
-}
-.cx-book-row .cx-date {
-  flex: 0 1 auto;
-  min-height: 34px;
-  width: auto;
-  font-size: 15px;
-}
-.cx-book-when {
-  color: var(--q-label-2);
-  font: var(--q-t-footnote, 13px/18px var(--q-font));
-}
-.cx-book-error,
-.cx-study-plain {
-  margin: 0 4px;
-  color: var(--q-label-2);
-  font: var(--q-t-subhead, 15px/20px var(--q-font));
-}
-/* 讀書計畫: each subject's scope and ★, then the plan by day. */
-.cx-study-row {
-  align-items: flex-start;
-  border-left: 0;
-}
-.cx-study-row > .q-tile {
-  margin-top: 2px;
-}
-.cx-study-main {
-  flex: 1;
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-.cx-study-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 28px;
-}
-.cx-study-top strong {
-  overflow: hidden;
-  font: 600 16px/21px var(--q-font);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cx-study-weak {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  margin: -4px -6px -4px 0;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  color: var(--q-label-3);
-  cursor: pointer;
-}
-.cx-study-weak svg {
-  width: 20px;
-  height: 20px;
-}
-.cx-study-weak.on {
-  color: var(--q-orange);
-}
-.cx-study-weak.on svg {
-  fill: currentColor;
-}
-.cx-study-scope {
-  width: 100%;
-  min-width: 0;
-  min-height: 38px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 10px;
-  background: var(--q-fill-3);
-  color: var(--q-label);
-  font: 400 16px/1.2 var(--q-font);
-  box-sizing: border-box;
-  outline: 0;
-}
-.cx-study-scope:focus {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--subject, var(--q-accent)) 55%, transparent);
-}
-.cx-study-day .q-chip {
-  min-height: 30px;
-}
-.cx-study-sum {
-  margin: 0 4px;
-  color: var(--q-label);
-  font: 600 var(--q-t-headline, 17px) / 1.3 var(--q-font);
-}
-.cx-study-sess .q-ritem-title,
 .cx-news .q-ritem-title {
   white-space: normal;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-}
-.cx-study-sess.is-last .q-ritem-title {
-  font-weight: 600;
 }
 /* 學校公告: each a row with its kind's tile; a deadline a tag on the right. */
 .cx-news .q-ritem-title {
