@@ -133,9 +133,17 @@ function drawGrid(monday, now) {
     const gap = p < periods - 1 && bellGap(bells, p);
     if (gap) grid.append(Object.assign(at(el('span', 'cx-tl-gap', gap.name ? [el('small', '', `${gap.start} ${gap.name}`)] : null), rowOf[p] + 1, 1), { style: `grid-row: ${rowOf[p] + 1}; grid-column: 1 / -1` }));
   }
-  // A holiday's column says which.
-  const offs = cols.filter(c => c.holiday);
-  const foot = offs.length ? el('div', 'cx-tl-offs', offs.map(c => el('span', 'q-tag red', `${t(`tools.day${c.d}`)} ${t('dashboard.holidayTitle', { zh: c.holiday.zh, en: c.holiday.en || c.holiday.zh })}`))) : null;
+  // A holiday's column says which: days in a row off for the same reason
+  // (寒假's week) once: 週一至五 寒假.
+  const runs = [];
+  cols.forEach((c, i) => {
+    if (!c.holiday) return;
+    const run = runs.at(-1);
+    if (run && run.last === i - 1 && run.zh === c.holiday.zh) (run.last = i), (run.to = c.d);
+    else runs.push({ zh: c.holiday.zh, en: c.holiday.en || c.holiday.zh, from: c.d, to: c.d, last: i });
+  });
+  const offDays = r => (r.to === r.from ? t('tools.offDay', { d: t(`tools.day${r.from}`) }) : t('tools.offDays', { from: t(`tools.day${r.from}`), to: t(`tools.day${r.to}`) }));
+  const foot = runs.length ? el('div', 'cx-tl-offs', runs.map(r => el('span', 'q-tag red', `${offDays(r)} ${t('dashboard.holidayTitle', r)}`))) : null;
   if (!periods) return null;
   // A long Latin name wraps by word; what still won't fit shrinks.
   // (An English subject, one word that can't wrap, down to 8.5 px: Chemistry and Geography were cut at 10 in an iPad's cell.)

@@ -115,6 +115,8 @@ export default {
   'tools.day4': '四',
   'tools.day5': '五',
   'tools.day6': '六',
+  'tools.offDay': '週{d}',
+  'tools.offDays': '週{from}至{to}',
   'dashboard.nextPeriod': '下一節',
   'dashboard.holidayKicker': '今天放假',
   'dashboard.holidayTitle': '{zh}',

@@ -83,9 +83,10 @@ document.addEventListener('keydown', event => {
 
 // The next school day after `day`, for the card's foot once today is over.
 // The next day with classes, past any national holiday (國慶日補假 on a
-// Friday: Monday's first class, not Friday's).
+// Friday: Monday's first class, not Friday's) and the whole of 暑假 (two
+// months: 7/1, 開學 8/31).
 function nextSchoolDay(now, curDay) {
-  for (let ahead = 1; ahead <= 21; ahead++) {
+  for (let ahead = 1; ahead <= 70; ahead++) {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ahead);
     const day = (curDay + ahead) % 7;
     // (Test Mode's simulated weekday walks the timetable, not dates.)

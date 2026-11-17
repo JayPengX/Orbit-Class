@@ -134,6 +134,8 @@ export default {
   'tools.day4': 'Thu',
   'tools.day5': 'Fri',
   'tools.day6': 'Sat',
+  'tools.offDay': '{d}',
+  'tools.offDays': '{from}–{to}',
   'dashboard.nextPeriod': 'Next',
   'dashboard.holidayKicker': 'A day off',
   'dashboard.holidayTitle': '{en}',
