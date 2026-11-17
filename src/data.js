@@ -3,7 +3,7 @@
 // src/ module may be assumed ready yet when this one's top-level code runs
 // (see state.js's comment on the circular-import TDZ this ran into).
 import { normalizeProAccent, normalizeProSecondary, normalizeStyleSlots } from './appearance.js';
-import { isRealDate, timeToMinutes } from './dates.js';
+import { dateKey, isRealDate, timeToMinutes } from './dates.js';
 import {
   DEFAULT_STYLE_PRIMARY,
   DEFAULT_STYLE_SECONDARY,
@@ -96,12 +96,11 @@ export function eventName(name) {
   if (!m) return text;
   return m.length === 3 ? `${EXAMS_EN[m[2]]} ${Number(m[1]) + 1911}` : EXAMS_EN[m[1]];
 }
-const DEFAULT_COUNTDOWN_EVENT = {
-  name: '116 學測',
-  startDate: '2027-01-22',
-  endDate: '2027-01-24'
-};
-const DEFAULT_COUNTDOWN_EVENTS = [DEFAULT_COUNTDOWN_EVENT];
+// A new timetable's countdown: the next 學測 (大考中心's dates), only while
+// it's still to come (none once it's over: a new person never starts on an
+// exam already past; 117 學測's dates weren't out on 2026-11-17).
+const DEFAULT_COUNTDOWN_EVENTS = [{ name: '116 學測', startDate: '2027-01-22', endDate: '2027-01-24' }];
+const defaultCountdowns = (today = dateKey(new Date())) => DEFAULT_COUNTDOWN_EVENTS.filter(e => (e.endDate || e.startDate) >= today).map(event => ({ ...event }));
 // Shared validation and normalization keeps saved and imported data predictable.
 function isValidTime(value) {
   if (!/^\d{2}:\d{2}$/.test(String(value || ''))) return false;
@@ -214,7 +213,7 @@ function normalizeCountdownEvents(value) {
     ? events
     : Array.isArray(value)
       ? []
-      : DEFAULT_COUNTDOWN_EVENTS.map(event => ({ ...event }));
+      : defaultCountdowns();
 }
 // The saved countdowns, cleaned (the app's data by default).
 function getCountdownEvents(data = state.applicationData) {
@@ -331,7 +330,7 @@ function getDefaultData() {
     weeklySchedule: { ...DEFAULT_WEEKLY_SCHEDULE },
     bellTimes: DEFAULT_BELL_TIMES.map(period => [...period]),
     breakTimes: DEFAULT_BREAK_TIMES.map(item => ({ ...item })),
-    countdownEvents: DEFAULT_COUNTDOWN_EVENTS.map(event => ({ ...event })),
+    countdownEvents: defaultCountdowns(),
     reverseWeek: REVERSE_WEEK_LOGIC_DEFAULT,
     pruneCountdowns: false,
     classSwaps: [],
