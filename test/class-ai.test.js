@@ -1,9 +1,9 @@
 // 待辦, 學校公告 (Jay 11-10, the AI plan): what code does around the AI.
 // A to-do and the school ride with the timetable (the v2 string), the news
 // for this student by grade.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { normalizeSchool, normalizeTodo, normalizeTodos, todoEntry, todoOf, todosKept } from '../src/todos-data.js';
-import { cleanTitle, forMe, guessWho, isNight, isRelay, isSome, kindOf, words } from '../src/school-news.js';
+import { cleanTitle, forMe, guessWho, isNight, isRelay, isSome, kindOf, openUrl, words } from '../src/school-news.js';
 import { normalizeSettingsData, encodeTransferData, decodeTransferData } from '../src/editor-backup.js';
 import { buildFixtureData } from './helpers/fixtureData.js';
 
@@ -114,5 +114,19 @@ describe('學校公告: only the ones for this student', () => {
     expect(cleanTitle('<公告>教育人員任用條例修正')).toBe('教育人員任用條例修正');
     expect(words({ title: 't', line: '學測報名 11/20 截止。' })).toBe('學測報名 11/20 截止');
     expect(words({ title: '【轉知】志工營', line: '' })).toBe('志工營');
+  });
+});
+
+describe('學校公告 opened', () => {
+  it('once: the kit opener gives back null and nothing opens it again', () => {
+    const own = vi.spyOn(window, 'open').mockReturnValue(null);
+    const kitOpen = vi.fn(() => null);
+    openUrl('https://example.edu.tw/n/1', kitOpen);
+    expect(kitOpen).toHaveBeenCalledTimes(1);
+    expect(own).not.toHaveBeenCalled();
+    // A kit from before openLink: the page's own window.open, once.
+    openUrl('https://example.edu.tw/n/1', null);
+    expect(own).toHaveBeenCalledTimes(1);
+    own.mockRestore();
   });
 });

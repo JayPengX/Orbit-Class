@@ -163,10 +163,15 @@ function newsRow(it, now = new Date()) {
   const said = md && new RegExp(`(^|[^\\d])${md}($|[^\\d])`).test(words(it));
   const due = /截止|為止|止$|前$|前繳|前報名|前上傳/.test(`${it.title} ${it.line || ''} ${it.act || ''}`);
   const by = ahead && !said ? kitUI.tag(due ? L(`${md} 截止`, `by ${md}`) : md, '', soon ? '#f97316' : '') || el('span', 'q-tag', md) : null;
-  const r = button(`q-ritem chevron cx-news is-${k}`, () => kit.openLink?.(it.url) ?? window.open(it.url, '_blank', 'noopener'), [tile(KINDS[k].icon, KINDS[k].color), el('span', 'q-ritem-text', [zhMarked(el('span', 'q-ritem-title', words(it))), zhMarked(el('small', '', bits))]), by]);
+  const r = button(`q-ritem chevron cx-news is-${k}`, () => openUrl(it.url), [tile(KINDS[k].icon, KINDS[k].color), el('span', 'q-ritem-text', [zhMarked(el('span', 'q-ritem-title', words(it))), zhMarked(el('small', '', bits))]), by]);
   r.title = it.title;
   return r;
 }
+// A notice opened once: the kit's openLink gives back null (a window opened
+// with noopener, or the link handed to the chosen browser), so a fallback
+// after `??` opened every notice a second time. (openLink is new 11-15:
+// window.open on a kit from before it.)
+export const openUrl = (url, open = kit.openLink) => (open ? open(url) : window.open(url, '_blank', 'noopener'));
 // Rows' places held while the list is read.
 const skeleton = (n = 4) =>
   el(
