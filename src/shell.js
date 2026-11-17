@@ -13,7 +13,6 @@ import { renderTools } from './tools.js';
 import { pickDay, schoolDays } from './view-today.js';
 import { dateKey } from './dates.js';
 import { dateOfDay } from './schedule.js';
-import { askFromLink, hasAsk } from './ask-link.js';
 
 const TABS = [
   { id: 'today', icon: 'home' },
@@ -73,9 +72,5 @@ kitUI.daySwipe(document.getElementById('panel-today'), dir => {
   const d = kitUI.dayStep(schoolDays(now), dateKey(state.viewDate || dateOfDay(state.viewDay, now)), dir);
   return Boolean(d && (pickDay(d), true));
 });
-const opened = location.hash || '';
-const start = opened.slice(1);
+const start = location.hash.slice(1);
 show(TABS.some(x => x.id === start) ? start : 'today');
-// 問 Orbit's question (#ask=<words>): 問我的課表 with it, at start and while open.
-askFromLink(opened);
-window.addEventListener('hashchange', () => hasAsk(location.hash) && askFromLink());

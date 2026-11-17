@@ -1,5 +1,5 @@
 // ---- src/act.js ----
-// A command said to Class (Jay 11-14: the AI box and 問 Orbit also do, not
+// A command said to Class (Jay 11-14: the AI box also does, not
 // only answer): 「開始專注飛行 50 分鐘」, 「加段考倒數 11/30」. Read by the
 // kit's code (kit act.mjs), never an AI call. Each is done the way its own
 // buttons do it: the focus opens 專注飛行 on that length and starts when a
