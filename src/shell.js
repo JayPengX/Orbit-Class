@@ -11,6 +11,7 @@ import { orbitSession } from './sync.js';
 import { t } from './strings.js';
 import { renderTools } from './tools.js';
 import { pickDay, schoolDays } from './view-today.js';
+import { weekSwipe } from './view-week.js';
 import { dateKey } from './dates.js';
 import { dateOfDay } from './schedule.js';
 
@@ -72,5 +73,6 @@ kitUI.daySwipe(document.getElementById('panel-today'), dir => {
   const d = kitUI.dayStep(schoolDays(now), dateKey(state.viewDate || dateOfDay(state.viewDay, now)), dir);
   return Boolean(d && (pickDay(d), true));
 });
+weekSwipe(document.getElementById('panel-week'));
 const start = location.hash.slice(1);
 show(TABS.some(x => x.id === start) ? start : 'today');

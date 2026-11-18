@@ -187,6 +187,21 @@ function drawSwaps() {
   box.replaceChildren(...section(t('swap.section'), el('div', 'q-rowcard', rows)).childNodes);
 }
 
+// A swipe across 課表: the other week (Jay 2026-11-18: "課表 tab can't swipe");
+// not on a wide screen, where both weeks show side by side. 調課 stays put.
+export function weekSwipe(panel) {
+  kitUI.daySwipe(panel, dir => {
+    if (kit.screenFit().wide) return false;
+    const { both, shown } = weeks(new Date());
+    const next = both[both.indexOf(shown) + dir];
+    if (!next) return false;
+    state.viewWeek = next.week;
+    state.lastListKey = '';
+    window.update?.();
+    return true;
+  }, { can: () => !kit.screenFit().wide });
+}
+
 export function renderWeek(now = new Date()) {
   const { both, shown } = weeks(now);
   const box = $('cx-grid');

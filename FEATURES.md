@@ -7,6 +7,7 @@ To remove a feature on purpose, delete its line here in the same commit and say 
 - 今天: the card (the class as a band, the minutes, the day as one line), the day's classes, any school day picked — `src/view-today.js`: `renderHero`, `dayCards`, `pickDay` (its look in css/look.css)
 - Countdowns in your own order — `src/view-today.js`: `renderCountdowns`
 - 課表 with 單/雙週 — `src/view-week.js`: `renderWeek`, `單週`
+- A swipe on 課表 goes to the other week; on 今天 the card stays put while the day slides — `src/view-week.js`, `src/shell.js`, `index.html`: `weekSwipe`, `weekSwipe(document.getElementById('panel-week'))`, `cx-hero dashboard q-day-still`
 - 調課: add and undo, and by AI — `src/swap.js`, `src/nl-swap.js`: `openSwapSheet`, `removeSwap`, `parseSwapEdit`
 - 拍照匯入 and 分享金鑰 — `src/locales/zh-TW.js`: `拍照匯入`, `分享金鑰`
 - Typhoon 停課 as a day off — `src/holidays.js`: `dayoff`, `停課`
