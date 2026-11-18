@@ -302,6 +302,17 @@ function startOrbit() {
 }
 async function startOrbitOnce() {
   started = true;
+  try {
+    return await startFromPass();
+  } finally {
+    bootMerging = false;
+  }
+}
+// True until the opening has merged the Pass's copy it opened with: the Pass
+// turning live as it starts is that same opening, not a second read of the
+// same copy (each opening read the account twice, 11-18).
+let bootMerging = true;
+async function startFromPass() {
   const first = await q.start({ data: true });
   renderSyncPanel();
   if (!q.pass) return;
@@ -379,7 +390,7 @@ function startSyncLoop() {
     'visibilitychange',
     () => document.visibilityState === 'visible' && started && syncTick()
   );
-  q.on('active', live => live && syncTick());
+  q.on('active', live => live && !bootMerging && syncTick());
 }
 
 // The pass's session token for Orbit's AI requests (the Worker needs one).
