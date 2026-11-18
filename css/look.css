@@ -1030,8 +1030,9 @@ html[data-look='native'] .editor-sheet :is(.q-rowcard, .q-list, .editor-fold-sum
 html[data-look='native'] .editor-sheet :is(.editor-input, .time-input, .order-position) {
   background: var(--q-fill-3, rgba(120, 120, 128, 0.16));
 }
-/* (A time: one line, its figures in the middle of the field; iOS put them at the top.) */
-html[data-look='native'][data-look='native'] .editor-sheet .time-input {
+/* (A time or a date: one line, its figures in the middle of the field; iOS put
+   them at the top, a 倒數's dates too, 2026-11-18.) */
+html[data-look='native'][data-look='native'] .editor-sheet :is(.time-input, .countdown-date-range .editor-input) {
   display: block;
   height: 44px;
   min-height: 44px;
@@ -1042,7 +1043,7 @@ html[data-look='native'][data-look='native'] .editor-sheet .time-input {
   font: 400 17px/44px var(--nv-display);
   font-variant-numeric: tabular-nums;
 }
-html[data-look='native'] .editor-sheet .time-input::-webkit-date-and-time-value {
+html[data-look='native'] .editor-sheet :is(.time-input, .countdown-date-range .editor-input)::-webkit-date-and-time-value {
   margin: 0;
   line-height: 44px;
   text-align: center;
