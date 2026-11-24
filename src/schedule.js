@@ -35,8 +35,6 @@ function buildSchedule() {
       })
       .filter(Boolean);
   });
-  // The family's notebook: the next two weeks as held, for Weather and the rest (src/family-tell.js).
-  import('./family-tell.js').then(m => m.tellFamily()).catch(() => {});
 }
 // The week's number for odd/even weeks: weeks counted on from one Monday
 // (2025-12-29, 2026's ISO week 1), never starting over at a new year. ISO

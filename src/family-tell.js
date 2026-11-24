@@ -1,10 +1,8 @@
 // ---- src/family-tell.js ----
-// The family's notebook (kit family.mjs; Jay 11-10: apps working together).
-// Class tells the others its next two weeks of classes as they're held
-// (單/雙週, holidays, typhoon days off and 調課 applied), each period's
-// subject, times and whether it's outdoors (體育): Weather says 帶傘 for the
-// way to school and home and marks an outdoor class when rain is due. Only
-// what's on the timetable, on this phone; nothing is sent anywhere.
+// The next two weeks of classes as they're held (單/雙週, holidays, typhoon
+// days off and 調課 applied), each period's subject, times and whether it's
+// outdoors (體育), for Class's own 問 (class-ask.js). (Told to the other apps
+// till 11-24, when that went with the thin cross-app features.)
 import { dateKey } from './dates.js';
 import { classesOn, getWeekType, processSplitName } from './schedule.js';
 
@@ -24,11 +22,4 @@ export function familyDays(now = new Date(), n = 14) {
       });
   }
   return days;
-}
-
-// Told after the timetable is built (a phone that opens Class keeps the
-// next two weeks current).
-export function tellFamily(now = new Date()) {
-  const days = familyDays(now);
-  return import('#kit/family.mjs').then(f => f.tell?.('class', 'days', days)).catch(() => {});
 }
