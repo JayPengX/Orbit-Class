@@ -285,40 +285,6 @@ html[data-look='native'] .nv-foot-note {
   font: 400 15px/20px var(--q-font);
 }
 
-/* ---- 下課背五個: Orbit Words' review as one quiet row under the foot ---- */
-html[data-look='native'][data-look='native'] .nv-words {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin: 8px 0 0;
-  padding: 10px 12px;
-  border: 0;
-  border-radius: var(--q-r-cell);
-  background: var(--q-fill-3);
-  color: var(--q-label);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-/* (Its mark the kit's tinted tile: the glyph drawn as a line, on a wash of its colour.) */
-html[data-look='native'] .nv-words-mark {
-  --t: var(--q-teal, #30b0c7);
-  flex: none;
-}
-html[data-look='native'] .nv-words-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-html[data-look='native'] .nv-words-text b {
-  font: 600 15px/20px var(--q-font);
-}
-html[data-look='native'] .nv-words-text small {
-  color: var(--q-label-2);
-  font: 400 13px/18px var(--q-font);
-}
-
 /* ---- Shared: a glyph tinted in its colour (the kit's .q-tile wash) ---- */
 html[data-look='native'] .cx-cl-icon {
   display: grid;
@@ -981,7 +947,7 @@ html[data-look='native'].q-wide .nv-now > .nv-end {
   align-self: start;
   padding-top: 8px;
 }
-html[data-look='native'].q-wide .nv-now > :is(.nv-foot, .nv-foot-note, .nv-words) {
+html[data-look='native'].q-wide .nv-now > :is(.nv-foot, .nv-foot-note) {
   grid-column: 1 / -1;
 }
 

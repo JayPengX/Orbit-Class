@@ -28,52 +28,6 @@ const L = (zh, en) => (getLocale() === 'en' ? en : zh);
 const plain = html => String(html || '').replace(/<[^>]*>/g, '').trim();
 const withId = (node, id) => ((node.id = id), node);
 
-// The family's notebook (kit family.mjs): home and school, for 出門時間.
-let fam = null;
-import('#kit/family.mjs')
-  .then(f => (fam = f))
-  .catch(() => {});
-// 出門時間 (Jay 11-10, Class and Transit): before the first class, 怎麼去學校
-// opens Orbit Transit planning the trip from where the phone is, there ten
-// minutes before; once the day's classes are over, 回家 the trip home now.
-// Only where the family knows the place (Weather's or Transit's) and the
-// kit can build the link.
-const goApp = (app, hash) =>
-  import('./sync.js')
-    .then(m => (m.orbitSession?.go ? m.orbitSession.go(app, hash) : location.assign(`/${app === 'vocab' ? 'words' : app}/#${hash}`)))
-    .catch(() => location.assign(`/${app === 'vocab' ? 'words' : app}/#${hash}`));
-export function tripOf(hero, rows, now = new Date(), f = fam) {
-  if (!f?.planHash || !f.placeFor) return null;
-  if (hero.mode === 'before' && rows?.length) {
-    const school = f.placeFor('school');
-    const first = parseTime(rows[0].s);
-    const at = new Date(now);
-    at.setHours(Math.floor(first / 60), first % 60 - 10, 0, 0);
-    const left = at - now;
-    if (!school || left <= 0 || left > 3 * 3_600_000) return null;
-    return { to: 'school', hash: f.planHash(school, at.getTime()).slice(1) };
-  }
-  // (Once the day's over the card has no line of the day: today's classes say it was a school day.)
-  if (hero.mode === 'off' && rows?.length) {
-    const home = f.placeFor('home');
-    const last = parseTime(rows.at(-1).e);
-    const mins = now.getHours() * 60 + now.getMinutes();
-    if (!home || mins < last || mins > last + 180) return null;
-    return { to: 'home', hash: f.planHash(home).slice(1) };
-  }
-  return null;
-}
-function tripChip(hero, rows, now) {
-  const trip = tripOf(hero, rows, now);
-  if (!trip) return null;
-  const pic = el('span', 'q-tile sm soft nv-words-mark nv-trip-mark');
-  pic.innerHTML = glyph('bus') || '';
-  return button('nv-words nv-trip q-press', e => (e?.stopPropagation(), goApp('transit', trip.hash)), [
-    pic,
-    el('span', 'nv-words-text', [el('b', '', trip.to === 'school' ? L('怎麼去學校', 'Getting to school') : L('回家怎麼搭', 'Getting home')), el('small', '', trip.to === 'school' ? L('Orbit Transit 幫你排，第一節前 10 分鐘到', 'Orbit Transit plans it, there 10 minutes early') : L('Orbit Transit 從這裡排到家', 'Orbit Transit plans it from here'))])
-  ]);
-}
-
 // "39:54" or "1:02:03" → seconds.
 export function secondsOf(value) {
   const parts = String(value || '')
@@ -169,7 +123,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
   const rows = today || [];
   const secs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   const lineKey = hero.strip ? rows.map(c => `${c.s}${parseTime(c.e) * 60 <= secs ? 1 : 0}${parseTime(c.s) * 60 <= secs ? 1 : 0}`).join() : '';
-  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label, tripOf(hero, rows, now)?.hash || ''].join('|');
+  const key = [getLocale(), week, hero.mode, hero.kicker, hero.span, hero.title, hero.place, hero.teacher, hero.label, toSecond ? 's' : mins, curIdx, lineKey, hero.mode === 'break' && !hero.subject ? Math.floor(hero.progress || 0) : '', JSON.stringify(hero.strip), JSON.stringify(hero.foot), nextDay?.first?.s, nextDay?.label].join('|');
   // How far through it is: the band itself fills, its colour lit up to now.
   const done = Number.isFinite(hero.progress) ? `${Math.max(0, Math.min(100, hero.progress)).toFixed(2)}%` : '';
   if (key === drawn) {
@@ -228,7 +182,7 @@ export function renderHero(hero, { today = [], week = '', nextDay = null, now = 
     ]);
     foot.style.setProperty('--band', f.subject ? subjectLook(f.subject).color : 'var(--q-gray)');
   }
-  box.replaceChildren(...[top, main, time, line, end, foot, tripChip(hero, rows, now)].filter(Boolean));
+  box.replaceChildren(...[top, main, time, line, end, foot].filter(Boolean));
 }
 
 // ---- A day's classes (今天's list) ----
