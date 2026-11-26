@@ -82,8 +82,11 @@ export function guessWho(it) {
 }
 // For this student: everyone's, their grade's (1–3), or 國中部 (jh) for a 國中
 // grade; never the night school's, a 轉知 or grown-ups'; 'some' (sign-ups) not.
+// One school's own admission (屏東科技大學公費生單獨招生, 臺北藝術大學學士班單獨招生): for those who pick that
+// school, never everyone in 高三's 跟你有關 (Jay 11-26); the AI says 'some' for it since, this for older words.
+const ONE_SCHOOL = /(大學|科大|學院|醫學院|警專|軍校|專科學校).{0,20}(單獨招生|單招|獨招|公費生|學士班|專班)|(單獨招生|單招|獨招)/;
 export function forMe(item, grade = '') {
-  if (isNight(item) || isRelay(item) || ADULTS.test(item?.title || '')) return false;
+  if (isNight(item) || isRelay(item) || ADULTS.test(item?.title || '') || ONE_SCHOOL.test(`${item?.title || ''} ${item?.line || ''}`)) return false;
   const who = Array.isArray(item.who) ? item.who : guessWho(item);
   if (!who) return false;
   if (who.includes('all')) return true;

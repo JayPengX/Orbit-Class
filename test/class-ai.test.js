@@ -130,3 +130,13 @@ describe('學校公告 opened', () => {
     own.mockRestore();
   });
 });
+
+// Jay 11-26: 屏東科技大學公費生單獨招生 and 臺北藝術大學學士班單獨招生 in 高三's 跟你有關: one school's own admission
+// is for those who pick that school, not everyone in 高三.
+describe("one university's own admission is not 跟你有關", () => {
+  it('its 單獨招生 stays out, 學測 stays in', () => {
+    expect(forMe({ title: '轉知國立屏東科技大學公費生單獨招生簡章', who: ['3'] }, '3')).toBe(false);
+    expect(forMe({ title: '臺北藝術大學學士班單獨招生', line: '臺北藝術大學學士班單獨招生，11/25 截止', who: ['3'] }, '3')).toBe(false);
+    expect(forMe({ title: '115學年度學測報名', who: ['3'] }, '3')).toBe(true);
+  });
+});
