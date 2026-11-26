@@ -133,10 +133,12 @@ export async function loadNews({ force = false } = {}) {
     .workerJson('/class-news', `site=${encodeURIComponent(sc.url)}`, { timeout: 40_000, errors: true })
     .then(r => {
       if (r && Array.isArray(r.items)) {
-        const v = { ...r, site: sc.url, got: Date.now() };
+        const v = { ...r, site: sc.url, got: r.stale ? have?.got || 0 : Date.now() };
         keep(v);
         clearTimeout(again);
-        if (r.wording && tries < 6 && askingFor === sc.url) again = setTimeout(() => loadNews({ force: true }), [6, 6, 8, 10, 12, 15][tries++] * 1000);
+        // (An old copy the proxy answered while it reads the school again: asked again in seconds too, never
+        // kept as fresh for half an hour: the newest there was 11/20 on 11/26, Jay.)
+        if ((r.wording || r.stale) && tries < 6 && askingFor === sc.url) again = setTimeout(() => loadNews({ force: true }), [6, 6, 8, 10, 12, 15][tries++] * 1000);
         else tries = 0;
         window.dispatchEvent(new Event('class-news'));
         return v;
